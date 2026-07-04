@@ -35,6 +35,8 @@ Initial geometry milestone.
   left to user models rather than wrapped by LogoT.
 - Hole regression tests for washers, rectangular plates, rounded mounting plates,
   repeated holes, scaled holes, and failure cases.
+- Visual regression-test colors based on grid X index, with colored LogoT
+  marker icons identifying Y-index rows left of the test grid.
 
 ### Removed
 

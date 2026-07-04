@@ -8,6 +8,7 @@
 - `CHANGELOG.md` — milestone release history.
 - `LogoT-ARC-Implementation.md` — design notes for ARC tessellation.
 - `LogoT-Holes-Implementation.md` — design notes for regions and holes.
+- `LogoT-User-Manual.md` — command reference and practical examples.
 
 ## Workflow
 
@@ -15,6 +16,10 @@
 2. Leave `RunLogoTests = true` to run the regression tests.
 3. Set `RunLogoTests = false` when using the file as a library.
 4. Commit stable milestones to Git.
+
+Visual regression tests are color-coded by grid index. Test geometry color follows
+the X index, while small LogoT marker icons to the left of the grid identify
+the Y row. Colors cover indices 0 through 9; larger indices use `TestColorMax`.
 
 ## Current command format
 

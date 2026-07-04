@@ -927,7 +927,7 @@ Notes:
 | `RUN` | Reusing a named command list at the current state | You only need a simple one-line command |
 | `RUN` with scale | Reusing a shape at different sizes | You need nonuniform scaling; LogoT scale is uniform |
 | `RUN` with `maxRec` | Nested generated command lists | The same result is simpler with `REPEAT` |
-| OpenSCAD recursive functions | Fractals and depth-controlled structures | The geometry would be clearer as simple explicit commands |
+| OpenSCAD recursive functions | Fractals and depth-controlled structures | Simpler explicit commands would be clearer |
 
 For 3D-printing parts, keep recursion depth modest. Fractals are excellent test
 cases and decorative features, but dense recursive outlines can generate large

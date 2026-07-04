@@ -21,27 +21,116 @@
 // Public render helpers live in LogoT-Foundation-Core.scad. The tests use the
 // same renderer modules that library users call.
 
+BasicY     = 0;
+RunY0      = 1;
+RunY1      = 2;
+StateFlowY = 3;
+PenY       = 4;
+ArcY       = 5;
+ShapeY     = 6;
+HoleY      = 7;
+FailureY   = 8;
+
+TestGridXStep = 35;
+TestGridYStep = 35;
+TestMarkerXIndex = -0.5;
+TestMarkerSize = 7;
+TestMarkerHoleRadius = 1.4;
+TestMarkerCornerRadius = 1.5;
+
+TestRowMarkerLogo =
+[
+    [ROUNDEDRECT, TestMarkerSize, TestMarkerSize, TestMarkerCornerRadius, 4],
+    [HOLE, [[CIRCLE, TestMarkerHoleRadius, 12]]]
+];
+
+TestColor0 = "red";
+TestColor1 = "orange";
+TestColor2 = "gold";
+TestColor3 = "green";
+TestColor4 = "cyan";
+TestColor5 = "blue";
+TestColor6 = "violet";
+TestColor7 = "magenta";
+TestColor8 = "brown";
+TestColor9 = "gray";
+TestColorMax = "black";
+
+TestColors =
+[
+    TestColor0,
+    TestColor1,
+    TestColor2,
+    TestColor3,
+    TestColor4,
+    TestColor5,
+    TestColor6,
+    TestColor7,
+    TestColor8,
+    TestColor9
+];
+
+function LogoTestColor(index) =
+    index >= 0 && index < len(TestColors) ? TestColors[floor(index)] : TestColorMax;
+
+function LogoTestGridOffset(testIndex) =
+[
+    testIndex[0] * TestGridXStep,
+    testIndex[1] * TestGridYStep
+];
+
+// Render a colored row marker just left of the visual test grid. The marker
+// color is based on the Y index, so a rendered row can be mapped back to its
+// suite even when the actual test geometry is complex. The marker itself is a
+// tiny LogoT command list, not a special OpenSCAD square, so the visual test
+// image also exercises the public RenderLogo2D() path.
+module LogoTestRowMarker(yIndex, testColor = undef, height = DefaultTestHeight)
+{
+    useColor = testColor == undef ? LogoTestColor(yIndex) : testColor;
+    offset = LogoTestGridOffset([TestMarkerXIndex, yIndex]);
+
+    translate([offset[0], offset[1], 0])
+    {
+        color(useColor)
+        {
+            linear_extrude(height = height, center = true, convexity = 10)
+            {
+                RenderLogo2D(TestRowMarkerLogo);
+            }
+        }
+    }
+}
+
+module LogoTestRowMarkers()
+{
+    for (yIndex = [BasicY : FailureY])
+    {
+        LogoTestRowMarker(yIndex);
+    }
+}
+
 // Run one named Logo test and render all resulting regions.
 //
 // testIndex is a grid index [xIndex, yIndex], not an absolute drawing position.
 // The grid scale constants below convert that logical index to an OpenSCAD
 // translation. This makes it easier to map rendered output back to test calls.
-module LogoTest(testName, vtCmds, testIndex = [0, BasicY], height = DefaultTestHeight)
+// Test colors default to the X index. Columns past TestColor9 use TestColorMax.
+module LogoTest(
+    testName,
+    vtCmds,
+    testIndex = [0, BasicY],
+    height = DefaultTestHeight,
+    testColor = undef)
 {
-    TestGridXStep = 35;
-    TestGridYStep = 35;
-
-    offset =
-    [
-        testIndex[0] * TestGridXStep,
-        testIndex[1] * TestGridYStep
-    ];
+    offset = LogoTestGridOffset(testIndex);
+    useColor = testColor == undef ? LogoTestColor(testIndex[0]) : testColor;
 
     echo("");
     echo("============================================================");
     echo("LogoTest:", testName);
     echo("Index:", testIndex);
     echo("Offset:", offset);
+    echo("Color:", useColor);
     echo("============================================================");
 
     // Dump the command structure before execution. This is generally much
@@ -53,20 +142,23 @@ module LogoTest(testName, vtCmds, testIndex = [0, BasicY], height = DefaultTestH
 
     translate([offset[0], offset[1], 0])
     {
-        if (CountContourPoints(contours) >= 3)
+        color(useColor)
         {
-            linear_extrude(height = height, center = true, convexity = 10)
+            if (CountContourPoints(contours) >= 3)
             {
-                RenderContours2D(contours);
+                linear_extrude(height = height, center = true, convexity = 10)
+                {
+                    RenderContours2D(contours);
+                }
             }
-        }
-        else
-        {
-            echo("[ERROR]", "LogoTest did not produce enough polygon points", [testName, contours]);
-
-            linear_extrude(height = height, center = true)
+            else
             {
-                square([2, 2], center = true);
+                echo("[ERROR]", "LogoTest did not produce enough polygon points", [testName, contours]);
+
+                linear_extrude(height = height, center = true)
+                {
+                    square([2, 2], center = true);
+                }
             }
         }
     }
@@ -194,7 +286,6 @@ module LogoCheckRegionRingLengths(testName, vtCmds, expectedRingLengths)
 // Basic Logo geometry regression suite.
 module TestBasicSuiteLogo()
 {
-    BasicY = 0;
     square =
     [
         [MOVE, 10],
@@ -348,7 +439,6 @@ function RecursiveSharkFinCmds(depth) =
 // RUN scaling and nested RUN regression suite.
 module TestRunSuiteLogo()
 {
-    RunY0 = 1;
 
     smallSquare =
     [
@@ -416,7 +506,6 @@ module TestRunSuiteLogo()
 // Recursive RUN regression suite.
 module TestRunRecursiveSuiteLogo()
 {
-    RunY1 = 2;
 
     recursiveBox =
         RecursiveBoxCmds(3);
@@ -454,7 +543,6 @@ module TestRunRecursiveSuiteLogo()
 // disconnected branches.
 module TestStateFlowSuiteLogo()
 {
-    StateFlowY = 3;
     // Expected result:
     //     A simple rectangle. PUSH/POP temporarily changes heading and scale,
     //     then restores the original state before drawing continues, so the
@@ -561,7 +649,6 @@ module TestStateFlowSuiteLogo()
 // PENUP/PENDOWN and multiple-contour regression suite.
 module TestPenSuiteLogo()
 {
-    PenY = 4;
     // Expected result:
     //     Two disconnected squares. PENUP moves the Logo between them without
     //     creating a connecting polygon edge; PENDOWN starts a new contour.
@@ -676,7 +763,6 @@ module TestPenSuiteLogo()
 // ARC geometry regression suite.
 module TestArcSuiteLogo()
 {
-    ArcY = 5;
 
     quarterArc =
     [
@@ -803,7 +889,6 @@ module TestArcSuiteLogo()
 // Closed-shape geometry regression suite.
 module TestClosedShapeSuiteLogo()
 {
-    ShapeY = 6;
 
     circleShape =
     [
@@ -903,7 +988,6 @@ module TestClosedShapeSuiteLogo()
 // Region/hole regression suite.
 module TestHoleSuiteLogo()
 {
-    HoleY = 7;
 
     washer =
     [
@@ -1024,7 +1108,6 @@ module TestHoleSuiteLogo()
 // They should not abort the complete OpenSCAD run unless HardErrors = true.
 module TestFailureSuiteLogo()
 {
-    FailureY = 8;
     badOpcode =
     [
         [999, 10]
@@ -1241,6 +1324,8 @@ module TestFailureSuiteLogo()
 // Run all current LogoT regression suites.
 module RunAllLogoTests()
 {
+    LogoTestRowMarkers();
+
     TestBasicSuiteLogo();
     TestRunSuiteLogo();
     TestRunRecursiveSuiteLogo();
