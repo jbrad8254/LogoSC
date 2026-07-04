@@ -21,6 +21,7 @@ CHANGELOG.md                      Release history.
 LogoT-ARC-Implementation.md        ARC tessellation design notes.
 LogoT-Holes-Implementation.md     Region/hole design notes.
 LogoT-User-Manual.md              This manual.
+LogoT-Examples.scad               Runnable example gallery.
 .gitattributes                    LF line-ending policy for Git.
 ```
 
@@ -70,7 +71,34 @@ LogoT intentionally renders **2D regions only**. It does not wrap
 those operations outside LogoT keeps the API small and lets OpenSCAD do normal
 OpenSCAD work.
 
-## 3. Coordinate model
+
+## 3. Runnable examples
+
+`LogoT-Examples.scad` is the best place to see the library used as an OpenSCAD
+modeling tool rather than as a test harness. It contains a gallery module plus
+individual named examples for washers, mounting plates, radial holes, Koch
+snowflake geometry, rotate-extruded profiles, twisted extrusions, a small spiral
+tower, and the LogoT feature wordmark.
+
+Open `LogoT-Examples.scad` directly in OpenSCAD. The default setting renders the
+full gallery:
+
+```scad
+RunLogoExamples = true;
+```
+
+The examples file includes the core and suppresses test/tracing output with:
+
+```scad
+include <LogoT-Foundation-Core.scad>
+RunLogoTests = false;
+TraceLevel = 0; // [0:4]
+```
+
+Use it as a cookbook: copy a command list such as `ExampleMountingPlate`, or use
+one of the example rendering modules as a starting point for your own model.
+
+## 4. Coordinate model
 
 LogoT maintains a current state:
 
@@ -100,7 +128,7 @@ heading 270 points along -Y
 Movement commands update the current state. Closed-shape commands stamp geometry
 at the current state but do not move the state.
 
-## 4. Rendering model
+## 5. Rendering model
 
 LogoT evaluates commands into **regions**.
 
@@ -123,7 +151,7 @@ OpenSCAD `polygon()` closes each path automatically. LogoT currently targets
 closed printable 2D polygons, not open strokes. Stroke rendering, line width,
 end caps, joins, and miter limits are future work.
 
-## 5. Public rendering API
+## 6. Public rendering API
 
 Most users should use only:
 
@@ -150,7 +178,7 @@ RenderContours2D(regions, convexity = 10);
 The old `RenderContours()` compatibility alias has been removed. Use
 `RenderContours2D()` when rendering already-evaluated regions.
 
-## 6. 3D printing workflow
+## 7. 3D printing workflow
 
 ### Linear extrusion
 
@@ -200,7 +228,7 @@ rotate_extrude(angle = 360, convexity = 10)
 }
 ```
 
-## 7. Segment-count controls
+## 8. Segment-count controls
 
 Curved commands use tessellated line segments. If a command supplies an explicit
 segment count, that value overrides OpenSCAD's `$fn`, `$fa`, and `$fs` controls.
@@ -221,7 +249,7 @@ selection:
 `REGPOLY` uses its side count directly and does not consult `$fn`, `$fa`, or
 `$fs`.
 
-## 8. Command reference
+## 9. Command reference
 
 ### `MOVE`
 
@@ -739,7 +767,7 @@ part =
 Closed-shape commands also obey pen state. For example, `[PENUP], [CIRCLE, 5]`
 does not emit a circle.
 
-## 9. Recursion and recursive patterns
+## 10. Recursion and recursive patterns
 
 LogoT uses the word "recursion" in a few related but distinct ways. They are
 worth separating because they have different costs and different failure modes.
@@ -933,13 +961,13 @@ For 3D-printing parts, keep recursion depth modest. Fractals are excellent test
 cases and decorative features, but dense recursive outlines can generate large
 polygons that are slow to preview, render, slice, and print.
 
-## 10. Practical examples
+## 11. Practical examples
 
 ### Example 1: simple extruded plate
 
 ```scad
-RunLogoTests = false;
 include <LogoT-Foundation-Core.scad>
+RunLogoTests = false;
 
 plate =
 [
@@ -955,8 +983,8 @@ linear_extrude(height = 3, convexity = 10)
 ### Example 2: rounded mounting plate
 
 ```scad
-RunLogoTests = false;
 include <LogoT-Foundation-Core.scad>
+RunLogoTests = false;
 
 mountingPlate =
 [
@@ -1033,7 +1061,7 @@ rotate_extrude(angle = 360, convexity = 10)
 }
 ```
 
-## 11. Error handling and tracing
+## 12. Error handling and tracing
 
 LogoT defaults to soft errors:
 
@@ -1062,7 +1090,7 @@ TraceLevel = 4; // full execution trace
 
 Higher levels include lower levels.
 
-## 12. Limitations
+## 13. Limitations
 
 Current limitations:
 
@@ -1078,7 +1106,7 @@ Current limitations:
 For now, use closed shapes, `HOLE`, and native OpenSCAD boolean/modeling
 operations to build printable parts.
 
-## 13. Suggested style for LogoT programs
+## 14. Suggested style for LogoT programs
 
 Use named OpenSCAD variables for repeated command lists:
 

@@ -9,6 +9,7 @@
 - `LogoT-ARC-Implementation.md` — design notes for ARC tessellation.
 - `LogoT-Holes-Implementation.md` — design notes for regions and holes.
 - `LogoT-User-Manual.md` — command reference and practical examples.
+- `LogoT-Examples.scad` — runnable example gallery and 3D-printing demos.
 
 ## Workflow
 
@@ -171,6 +172,23 @@ Common join styles are miter, bevel, and round.
 Potential future geometry helpers include automatic path fillets and possibly a
 `ROUNDEDREGPOLY` command. That should wait until the corner-rounding semantics
 are clearer; for now `REGPOLY` plus explicit construction is less magical.
+
+## Examples
+
+`LogoT-Examples.scad` contains a runnable gallery of practical LogoT models. It
+shows 2D profiles, holes, recursive/fractal construction, native OpenSCAD
+`linear_extrude()` and `rotate_extrude()` usage, and the LogoT feature wordmark.
+
+Open the examples file directly in OpenSCAD. By default it renders the full
+example gallery:
+
+```scad
+RunLogoExamples = true;
+```
+
+To use one example in another model, include the core file and copy or reuse the
+corresponding command list/module from `LogoT-Examples.scad`. LogoT itself still
+renders only 2D regions; use ordinary OpenSCAD wrappers for final 3D parts.
 
 ## Release history
 

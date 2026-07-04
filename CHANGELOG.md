@@ -38,6 +38,10 @@ Initial geometry milestone.
 - Visual regression-test colors based on grid X index, with colored LogoT
   marker icons identifying Y-index rows left of the test grid.
 
+- `LogoT-Examples.scad` runnable example gallery, including washers, mounting
+  plates, radial hole patterns, Koch geometry, twist/rotate extrusions, a spiral
+  tower, and the LogoT feature wordmark.
+
 ### Removed
 
 - `RenderContours()` compatibility alias. Use `RenderContours2D()` for
