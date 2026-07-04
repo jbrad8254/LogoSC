@@ -22,6 +22,29 @@ Visual regression tests are color-coded by grid index. Test geometry color follo
 the X index, while small LogoT marker icons to the left of the grid identify
 the Y row. Colors cover indices 0 through 9; larger indices use `TestColorMax`.
 
+## Versioning
+
+Current public API version: `2026.0`.
+
+`LogoT-Foundation-Core.scad` exposes:
+
+```scad
+LogoTVersionMajor
+LogoTVersionMinor
+LogoTVersion
+LogoTVersionAtLeast(major, minor)
+```
+
+Version bumps are manual and intended for public API or feature milestones. Git
+commit hashes track ordinary source history; the LogoT version constants are for
+user-model compatibility checks.
+
+Example:
+
+```scad
+assert(LogoTVersionAtLeast(2026, 0), "This model requires LogoT 2026.0+");
+```
+
 ## Current command format
 
 ```scad

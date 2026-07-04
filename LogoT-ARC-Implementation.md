@@ -117,8 +117,9 @@ not to every partial arc. A small nonzero arc can use one segment.
 
 ## Explicit segment override
 
-When the optional fourth command field is supplied, `segments` is interpreted as the actual number of line segments along this arc,
-not as a full-circle fragment count.
+When the optional fourth command field is supplied, `segments` is interpreted as
+the actual number of line segments along this arc, not as a full-circle fragment
+count.
 
 Examples:
 

@@ -23,22 +23,16 @@
 //     [SCALE,  scaleMultiplier]
 //     [GOTO,   x, y, heading]
 //
-//     [ARC,    radius, degrees]
-//     [ARC,    radius, degrees, segments]
+//     [ARC,         radius, degrees[, segments]]
 //
-//     [CIRCLE, radius]
-//     [CIRCLE, radius, segments]
-//     [REGPOLY, sides, radius]
-//     [REGPOLY, sides, radius, rotation]
-//     [RECT, width, height]
-//     [ROUNDEDRECT, width, height, radius]
-//     [ROUNDEDRECT, width, height, radius, segments]
+//     [CIRCLE,      radius[, segments]]
+//     [REGPOLY,     sides, radius[, rotation]]
+//     [RECT,        width, height]
+//     [ROUNDEDRECT, width, height, radius[, segments]]
 //
-//     [HOLE, cmds]
+//     [HOLE,        cmds]
 //
-//     [RUN,    cmds]
-//     [RUN,    cmds, scale]
-//     [RUN,    cmds, scale, maxRec]
+//     [RUN,         cmds[, scale[, maxRec]]]
 //
 //     [PUSH]
 //         Saves the current Logo state [x, y, heading, scale] onto the
@@ -70,6 +64,21 @@
 //     Regions render through polygon(points=..., paths=...), so holes are
 //     represented by secondary paths inside the same polygon call. Open-stroke
 //     rendering is intentionally deferred.
+// -----------------------------------------------------------------------------
+// LogoT library version
+// -----------------------------------------------------------------------------
+// Public API version. Bump manually on feature/API milestones; Git records
+// normal per-commit source history. Use LogoTVersionAtLeast() in downstream
+// models when a model requires a minimum LogoT API version.
+LogoTVersionMajor = 2026 + 0;
+LogoTVersionMinor = 0 + 0;
+LogoTVersion = str(LogoTVersionMajor, ".", LogoTVersionMinor);
+
+function LogoTVersionAtLeast(major, minor) =
+    (LogoTVersionMajor > major)
+        ? true
+        : (LogoTVersionMajor == major && LogoTVersionMinor >= minor);
+
 // -----------------------------------------------------------------------------
 
 /* [LogoT Controls] */
@@ -139,17 +148,17 @@ TURN    = 1 + 0;  // [TURN, deltaHeading]
 DIR     = 2 + 0;  // [DIR, absoluteHeading]
 SCALE   = 3 + 0;  // [SCALE, scaleMultiplier]
 GOTO    = 4 + 0;  // [GOTO, x, y, heading]
-RUN     = 5 + 0;  // [RUN, cmds], [RUN, cmds, scale], [RUN, cmds, scale, maxRec]
+RUN     = 5 + 0;  // [RUN, cmds[, scale[, maxRec]]]
 PUSH    = 6 + 0;  // [PUSH] saves current Logo state on the stack.
 POP     = 7 + 0;  // [POP] restores the most recently pushed Logo state.
 REPEAT  = 8 + 0;  // [REPEAT, count, cmds] executes cmds count times.
 PENUP   = 9 + 0;  // [PENUP] disables point emission while movement continues.
 PENDOWN = 10 + 0; // [PENDOWN] starts a new contour and resumes point emission.
-ARC         = 11 + 0; // [ARC, radius, degrees], [ARC, radius, degrees, segments]
-CIRCLE      = 12 + 0; // [CIRCLE, radius], [CIRCLE, radius, segments]
-REGPOLY     = 13 + 0; // [REGPOLY, sides, radius], [REGPOLY, sides, radius, rotation]
+ARC         = 11 + 0; // [ARC, radius, degrees[, segments]]
+CIRCLE      = 12 + 0; // [CIRCLE, radius[, segments]]
+REGPOLY     = 13 + 0; // [REGPOLY, sides, radius[, rotation]]
 RECT        = 14 + 0; // [RECT, width, height]
-ROUNDEDRECT = 15 + 0; // [ROUNDEDRECT, width, height, radius], optional segments
+ROUNDEDRECT = 15 + 0; // [ROUNDEDRECT, width, height, radius[, segments]]
 HOLE        = 16 + 0; // [HOLE, cmds] attaches child contours to the latest region.
 
 // Mathematical constants.

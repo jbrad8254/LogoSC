@@ -39,6 +39,29 @@ RunLogoTests = false;
 
 when using LogoT as a library in your own model.
 
+### Library version
+
+Current public API version: `2026.0`.
+
+The core file exposes version constants and a helper for user-model compatibility
+checks:
+
+```scad
+LogoTVersionMajor
+LogoTVersionMinor
+LogoTVersion
+LogoTVersionAtLeast(major, minor)
+```
+
+Example:
+
+```scad
+assert(LogoTVersionAtLeast(2026, 0), "This model requires LogoT 2026.0+");
+```
+
+The version is bumped manually for public API or feature milestones. Git remains
+the source of truth for ordinary commit-by-commit source history.
+
 ## 2. Core idea
 
 A LogoT program is an OpenSCAD vector of command vectors:
@@ -124,6 +147,12 @@ heading 90  points along +Y
 heading 180 points along -X
 heading 270 points along -Y
 ```
+
+LogoT uses OpenSCAD's right-handed coordinate system. In the standard LogoT
+test/example view, +X appears to the left and +Y appears upward; avoid assuming
+a left-handed screen-coordinate convention when reasoning about turns and arcs.
+Positive relative turns are right-handed rotations about the +Z axis. Viewed
+from +Z toward the XY plane, positive turns are counterclockwise.
 
 Movement commands update the current state. Closed-shape commands stamp geometry
 at the current state but do not move the state.
@@ -291,7 +320,9 @@ Syntax:
 [TURN, deltaHeading]
 ```
 
-Adds `deltaHeading` degrees to the current heading.
+Adds `deltaHeading` degrees to the current heading. Positive values rotate
+counterclockwise in the XY plane, using the standard right-handed +Z-axis
+rotation convention.
 
 Example:
 

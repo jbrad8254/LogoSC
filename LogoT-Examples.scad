@@ -12,9 +12,9 @@
 // difference() around RenderLogo2D() for actual 3D modeling.
 // ============================================================================
 
-// Keep the regression-test grid and trace output out of the examples view when
-// this file is opened directly. OpenSCAD include behaves like textual insertion,
-// so these settings live after the include to override core Customizer defaults.
+// Keep the regression-test grid and tracing output out of the examples view
+// when this file is opened directly. These assignments must come after include
+// so they override the core file's Customizer defaults without polluting it.
 include <LogoT-Foundation-Core.scad>
 RunLogoTests = false;
 TraceLevel = 0; // [0:4]
@@ -108,12 +108,8 @@ function KochSegment(depth, len) =
         );
 
 function KochSnowflake(x, y, side, depth) =
-    let(height = side * sqrt(3) / 2)
     concat(
-        // Start from the lower-left vertex of a downward-pointing triangle whose
-        // centroid is [x, y]. This keeps snowflake holes optically centered in
-        // circular and rectangular examples.
-        [[GOTO, x - side / 2, y + height / 3, 0]],
+        [[GOTO, x - side / 2, y - side * sqrt(3) / 6, 0]],
         KochSegment(depth, side),
         [[TURN, -120]],
         KochSegment(depth, side),
@@ -203,27 +199,6 @@ ExamplePathBracket =
     [MOVE, 20]
 ];
 
-// A compact 2D profile for a visibly 3D twisted extrusion example.
-ExampleTwistedRoundedSquare =
-[
-    [ROUNDEDRECT, 24, 24, 4, 10],
-    [HOLE, [[CIRCLE, 5, 48]]]
-];
-
-// Reusable tile for the spiral tower example. The 3D module below arranges many
-// copies of this LogoT-generated 2D part in a rising spiral.
-ExampleSpiralTowerTile =
-[
-    [ROUNDEDRECT, 10, 5, 1.2, 5],
-    [HOLE, [[CIRCLE, 1.0, 16]]]
-];
-
-ExampleSpiralTowerCore =
-[
-    [CIRCLE, 3.0, 40],
-    [HOLE, [[CIRCLE, 1.0, 24]]]
-];
-
 // -----------------------------------------------------------------------------
 // LogoT feature wordmark
 // -----------------------------------------------------------------------------
@@ -271,20 +246,14 @@ LogoGlyphGTail1 =
     [ROUNDEDRECT, 12, 4, 2, 6]
 ];
 
-function LogoGlyphKochOOuter(side = 15, depth = 2) =
+function LogoGlyphKochOHole(side = 8.5, depth = 2) =
     KochSnowflake(0, 0, side, depth);
 
-function LogoGlyphKochOHole(radius = 3, segments = 32) =
-[
-    [GOTO, 0, 0, 0],
-    [CIRCLE, radius, segments]
-];
-
 LogoGlyphKochO =
-    concat(
-        LogoGlyphKochOOuter(),
-        [[HOLE, LogoGlyphKochOHole()]]
-    );
+[
+    [CIRCLE, 8, 64],
+    [HOLE, LogoGlyphKochOHole()]
+];
 
 LogoGlyphTBar =
 [
@@ -422,18 +391,12 @@ module RenderLogoTWordmarkExample(index = [0, 2], exampleScale = 0.55)
     }
 }
 
-// Standalone 3D use case: a twisted rounded square with a central hole.
-module RenderTwistedRoundedSquare3D(height = 18, twist = 90, slices = 32)
+// Standalone 3D use case: a linearly extruded mounting plate.
+module RenderMountingPlate3D(height = 4)
 {
-    linear_extrude(
-        height = height,
-        center = false,
-        convexity = LogoExampleConvexity,
-        twist = twist,
-        slices = slices
-    )
+    linear_extrude(height = height, center = false, convexity = LogoExampleConvexity)
     {
-        RenderLogo2D(ExampleTwistedRoundedSquare, convexity = LogoExampleConvexity);
+        RenderLogo2D(ExampleMountingPlate, convexity = LogoExampleConvexity);
     }
 }
 
@@ -446,129 +409,6 @@ module RenderKnobProfile3D(angle = 360)
     }
 }
 
-// Standalone 3D use case: a rising spiral made from repeated LogoT tiles.
-module RenderLogoTSpiralTower3D(
-    stepCount = 14,
-    radiusStart = 5.5,
-    radiusStep = 0.8,
-    angleStep = 32,
-    heightStep = 0.7,
-    tileHeight = 1.1)
-{
-    coreHeight = stepCount * heightStep + tileHeight;
-
-    color("gray")
-    {
-        linear_extrude(height = coreHeight, center = false, convexity = LogoExampleConvexity)
-        {
-            RenderLogo2D(ExampleSpiralTowerCore, convexity = LogoExampleConvexity);
-        }
-    }
-
-    for (i = [0 : stepCount - 1])
-    {
-        angle = i * angleStep;
-        radius = radiusStart + i * radiusStep;
-        useColor = LogoExampleColor(i % len(LogoExampleColors));
-
-        translate([radius * cos(angle), radius * sin(angle), i * heightStep])
-        {
-            rotate([0, 0, angle + 12])
-            {
-                color(useColor)
-                {
-                    linear_extrude(
-                        height = tileHeight,
-                        center = false,
-                        convexity = LogoExampleConvexity
-                    )
-                    {
-                        RenderLogo2D(
-                            ExampleSpiralTowerTile,
-                            convexity = LogoExampleConvexity
-                        );
-                    }
-                }
-            }
-        }
-    }
-}
-
-// Gallery wrapper for the standalone twisted extrusion example.
-module RenderTwistedRoundedSquare3DExample(index = [0, 1], exampleScale = 1.0)
-{
-    offset = LogoExampleGridOffset(index);
-
-    echo("");
-    echo("============================================================");
-    echo("LogoExample:", "twisted rounded square 3D");
-    echo("Index:", index);
-    echo("Offset:", offset);
-    echo("Scale:", exampleScale);
-    echo("Color:", "green");
-    echo("============================================================");
-
-    translate([offset[0], offset[1], 0])
-    {
-        color("green")
-        {
-            scale([exampleScale, exampleScale, exampleScale])
-            {
-                RenderTwistedRoundedSquare3D(height = 18, twist = 105, slices = 36);
-            }
-        }
-    }
-}
-
-// Gallery wrapper for the standalone LogoT spiral tower example.
-module RenderLogoTSpiralTower3DExample(index = [1, 1], exampleScale = 1.0)
-{
-    offset = LogoExampleGridOffset(index);
-
-    echo("");
-    echo("============================================================");
-    echo("LogoExample:", "LogoT spiral tower 3D");
-    echo("Index:", index);
-    echo("Offset:", offset);
-    echo("Scale:", exampleScale);
-    echo("Color:", "rainbow by step");
-    echo("============================================================");
-
-    translate([offset[0], offset[1], 0])
-    {
-        scale([exampleScale, exampleScale, exampleScale])
-        {
-            RenderLogoTSpiralTower3D();
-        }
-    }
-}
-
-// Gallery wrapper for the standalone rotate-extruded knob/profile.
-module RenderKnobProfile3DExample(index = [3, 1], exampleScale = 1.0)
-{
-    offset = LogoExampleGridOffset(index);
-
-    echo("");
-    echo("============================================================");
-    echo("LogoExample:", "rotate-extruded knob 3D");
-    echo("Index:", index);
-    echo("Offset:", offset);
-    echo("Scale:", exampleScale);
-    echo("Color:", "violet");
-    echo("============================================================");
-
-    translate([offset[0], offset[1], 0])
-    {
-        color("violet")
-        {
-            scale([exampleScale, exampleScale, exampleScale])
-            {
-                RenderKnobProfile3D(angle = 360);
-            }
-        }
-    }
-}
-
 // Gallery routine similar in spirit to LogoTest(): render all examples at once.
 module RenderAllLogoExamples()
 {
@@ -577,15 +417,8 @@ module RenderAllLogoExamples()
     RenderLogoExample("radial hole disk", ExampleRadialHoleDisk, [2, 0]);
     RenderLogoExample("Koch snowflake plaque", ExampleKochSnowflakePlaque, [3, 0], exampleScale = 0.85);
 
-    RenderTwistedRoundedSquare3DExample([0, 1], exampleScale = 1.0);
-    RenderLogoTSpiralTower3DExample([1, 1], exampleScale = 1.0);
-    RenderLogoExample(
-        "rotate-extrude knob profile",
-        ExampleKnobProfile,
-        [2, 1],
-        exampleColor = "violet"
-    );
-    RenderKnobProfile3DExample([3, 1], exampleScale = 1.0);
+    RenderLogoExample("rotate-extrude knob profile", ExampleKnobProfile, [0, 1]);
+    RenderLogoExample("path-built bracket", ExamplePathBracket, [1, 1], exampleScale = 0.85);
 
     RenderLogoTWordmarkExample([0, 2], exampleScale = 0.58);
 }

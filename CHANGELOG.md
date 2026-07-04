@@ -7,20 +7,16 @@ Initial geometry milestone.
 ### Added
 
 - `ARC` command:
-  - `[ARC, radius, degrees]`
-  - `[ARC, radius, degrees, segments]`
+  - `[ARC, radius, degrees[, segments]]`
 - ARC tessellation into contour points.
 - OpenSCAD-style automatic segment selection using `$fn`, `$fa`, and `$fs`.
 - ARC regression tests for quarter arcs, semicircles, full-circle-ish arcs, pen-up
   arcs, REPEAT, RUN, scaled arcs, and rounded-rectangle construction.
 - Closed shape commands for 3D-printing-oriented geometry:
-  - `[CIRCLE, radius]`
-  - `[CIRCLE, radius, segments]`
-  - `[REGPOLY, sides, radius]`
-  - `[REGPOLY, sides, radius, rotation]`
+  - `[CIRCLE, radius[, segments]]`
+  - `[REGPOLY, sides, radius[, rotation]]`
   - `[RECT, width, height]`
-  - `[ROUNDEDRECT, width, height, radius]`
-  - `[ROUNDEDRECT, width, height, radius, segments]`
+  - `[ROUNDEDRECT, width, height, radius[, segments]]`
 - Closed-shape regression tests for circles, regular polygons, rectangles,
   rounded rectangles, pen-up behavior, scaling, and RUN scaling.
 - `HOLE` command:
@@ -37,6 +33,11 @@ Initial geometry milestone.
   repeated holes, scaled holes, and failure cases.
 - Visual regression-test colors based on grid X index, with colored LogoT
   marker icons identifying Y-index rows left of the test grid.
+- Public API version constants and compatibility helper:
+  - `LogoTVersionMajor = 2026`
+  - `LogoTVersionMinor = 0`
+  - `LogoTVersion = "2026.0"`
+  - `LogoTVersionAtLeast(major, minor)`
 
 - `LogoT-Examples.scad` runnable example gallery, including washers, mounting
   plates, radial hole patterns, Koch geometry, twist/rotate extrusions, a spiral
