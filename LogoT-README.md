@@ -1,7 +1,5 @@
 # LogoT-Foundation
 
-
-
 ## Current files
 
 - `LogoT-Foundation-Core.scad` — core interpreter and renderer.

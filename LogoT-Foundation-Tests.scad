@@ -6,24 +6,19 @@
 // -----------------------------------------------------------------------------
 
 // =============================================================================
-// =============================================================================
 //  TEST SUITES
 // =============================================================================
 //
-// The interpreter above is the reusable LogoT-Base library.
+// This file is intentionally noisy: it exercises the evaluator, RUN command
+// expansion, scaling, recursion limiting, pen-state behavior, and soft-error
+// behavior. Test execution is guarded by RunLogoTests in the core file.
 //
-// The code below is intentionally noisy: it exercises the evaluator, RUN command
-// expansion, scaling, recursion limiting, and soft-error behavior. Comment out
-// the final TestBasicSuiteLogo()/TestRunSuiteLogo() calls when importing this as a pure library.
-//
-// =============================================================================
 // =============================================================================
 
 // -----------------------------------------------------------------------------
 // Test geometry
 // -----------------------------------------------------------------------------
 
-// Run one named Logo test and render its polygon at the requested offset.
 // Render all contours from an evaluated Logo result.
 //
 // Each contour becomes one polygon() call. This supports disconnected filled
@@ -56,7 +51,6 @@ module RenderContours(contours, height = 5)
     }
 }
 
-// Run one named Logo test and render all resulting contours.
 // Run one named Logo test and render all resulting contours.
 //
 // testIndex is a grid index [xIndex, yIndex], not an absolute drawing position.

@@ -11,15 +11,10 @@
 // OpenSCAD Logo / Logo-style command evaluator.
 // Interpreter uses one Eval* handler function per opcode.
 //
-// This is a single-file development bundle containing:
-//     - Customizer controls
-//     - Opcode and index constants
-//     - Logo state functions
-//     - Trace functions
-//     - Opcode handlers
-//     - Logo evaluator
-//     - Renderer
-//     - Test suites
+// This split-file baseline contains core interpreter controls, constants,
+// state functions, trace functions, opcode handlers, and evaluator logic.
+// The companion LogoT-Foundation-Tests.scad file is included at parse time
+// below, with test execution gated by RunLogoTests.
 //
 // Command format:
 //     [MOVE,   len]
@@ -418,49 +413,6 @@ module TraceCmds(
         }
     }
 }
-
-// -----------------------------------------------------------------------------
-// LogoT_v3_RunCmdsFirst.scad
-//
-// OpenSCAD Logo / Logo-style command evaluator.
-// Interpreter uses one Eval* handler function per opcode.
-//
-// Command format:
-//     [MOVE,   len]
-//     [TURN,   deltaHeading]
-//     [DIR,    absoluteHeading]
-//     [SCALE,  scaleMultiplier]
-//     [GOTO,   x, y, heading]
-//
-//     [RUN,    cmds]
-//     [RUN,    cmds, scale]
-//     [RUN,    cmds, scale, maxRec]
-//
-//     [PUSH]
-//         Saves the current Logo state [x, y, heading, scale] onto the
-//         interpreter state stack.
-//
-//     [POP]
-//         Restores the most recently pushed Logo state. If the stack is empty,
-//         this reports a soft error and continues when HardErrors = false.
-//
-//     [PENUP]
-//         Stops adding MOVE/GOTO destinations to the current contour. Logo
-//         position and heading still change.
-//
-//     [PENDOWN]
-//         Starts a new contour at the current Logo location and resumes adding
-//         MOVE/GOTO destinations.
-//
-//     [REPEAT, count, cmds]
-//         Executes cmds count times. The command body can contain MOVE, TURN,
-//         RUN, PUSH, POP, PENUP, PENDOWN, nested REPEAT, and other supported
-//         Logo commands.
-//
-// RUN defaults:
-//     scale  = 1
-//     maxRec = 2
-// -----------------------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
 // Evaluator
