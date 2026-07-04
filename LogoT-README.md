@@ -5,6 +5,7 @@
 - `LogoT-Foundation-Core.scad` — core interpreter and renderer.
 - `LogoT-Foundation-Tests.scad` — regression and failure test suites.
 - `LogoT-README.md` — this overview.
+- `CHANGELOG.md` — milestone release history.
 
 ## Workflow
 
@@ -42,6 +43,10 @@ separate `polygon()` call. This supports disconnected filled shapes created with
 `PENUP` and `PENDOWN`.
 
 Holes and open-stroke rendering are intentionally deferred.
+
+## Release history
+
+See `CHANGELOG.md`.
 
 ## Milestone roadmap
 
