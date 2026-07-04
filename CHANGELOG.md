@@ -27,8 +27,19 @@ Initial geometry milestone.
   - `[HOLE, cmds]`
 - Region-based rendering where each region is `[outer, hole0, hole1, ...]`.
 - OpenSCAD `polygon(points=..., paths=...)` output for regions with holes.
+- Reusable 2D rendering API moved into `LogoT-Foundation-Core.scad`:
+  - `RenderRegion2D()`
+  - `RenderContours2D()`
+  - `RenderLogo2D()`
+- Native OpenSCAD `linear_extrude()` and `rotate_extrude()` are intentionally
+  left to user models rather than wrapped by LogoT.
 - Hole regression tests for washers, rectangular plates, rounded mounting plates,
   repeated holes, scaled holes, and failure cases.
+
+### Removed
+
+- `RenderContours()` compatibility alias. Use `RenderContours2D()` for
+  pre-evaluated regions or `RenderLogo2D()` for command lists.
 
 ### Notes
 
@@ -65,7 +76,7 @@ Initial stable foundation baseline.
 - `evalLogoR()` recursive child-list evaluator.
 - `evalRepeatLogo()` repeat evaluator.
 - `LogoTest()` test harness.
-- `RenderContours()` renderer.
+- Reusable 2D renderer.
 - Core commands:
   - `MOVE`
   - `TURN`

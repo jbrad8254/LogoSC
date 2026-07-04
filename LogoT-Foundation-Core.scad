@@ -380,6 +380,93 @@ function ClosedContoursFromRegions(regions) =
 function CountClosedContours(regions) =
     len(ClosedContoursFromRegions(regions));
 
+
+// -----------------------------------------------------------------------------
+// Rendering helpers and public 2D renderer modules
+// -----------------------------------------------------------------------------
+// LogoT's evaluator returns regions, not OpenSCAD geometry. These helpers turn
+// evaluated regions into 2D polygon() output. User models can wrap RenderLogo2D()
+// in native OpenSCAD linear_extrude(), rotate_extrude(), difference(), union(),
+// translate(), and related modeling operations.
+//
+// LogoT intentionally does not wrap OpenSCAD's extrusion operators. Keeping the
+// public renderer 2D-only avoids forwarding every extrusion parameter and leaves
+// 3D composition under normal OpenSCAD control.
+
+// Convert one region into the flat point list required by polygon().
+function RegionRenderPoints(region) =
+    [
+        for (ring = region)
+            for (point = ring)
+                point
+    ];
+
+// Return the starting flat-point index for one ring inside a region.
+function RegionPathStart(region, pathIndex, ringIndex = 0) =
+    (ringIndex >= pathIndex)
+        ? 0
+        : len(region[ringIndex]) + RegionPathStart(region, pathIndex, ringIndex + 1);
+
+// Convert one ring inside a region into polygon() path indices.
+function RegionRenderPath(region, pathIndex) =
+    let(
+        start = RegionPathStart(region, pathIndex),
+        count = len(region[pathIndex])
+    )
+    [
+        for (i = [0 : count - 1])
+            start + i
+    ];
+
+// Convert all drawable rings inside a region into polygon() paths.
+function RegionRenderPaths(region) =
+    [
+        for (pathIndex = [0 : len(region) - 1])
+            if (len(region[pathIndex]) >= 3)
+                RegionRenderPath(region, pathIndex)
+    ];
+
+// Render one evaluated LogoT region as a 2D polygon.
+module RenderRegion2D(region, convexity = 10)
+{
+    outer = RegionOuter(region);
+
+    if (len(outer) >= 3)
+    {
+        polygon(
+            points = RegionRenderPoints(region),
+            paths = RegionRenderPaths(region),
+            convexity = convexity
+        );
+    }
+    else if (len(outer) > 0)
+    {
+        echo("[ERROR]", "Region outer has fewer than three points", region);
+
+        translate(outer[0])
+        {
+            square([2, 2], center = true);
+        }
+    }
+}
+
+// Render all evaluated LogoT regions as 2D polygons.
+module RenderContours2D(regions, convexity = 10)
+{
+    for (i = [0 : len(regions) - 1])
+    {
+        RenderRegion2D(regions[i], convexity);
+    }
+}
+
+
+// Evaluate a LogoT command list and render the resulting 2D regions.
+module RenderLogo2D(cmds, convexity = 10)
+{
+    result = evalLogo(cmds);
+    RenderContours2D(ResultContours(result), convexity);
+}
+
 // Return the smaller of two scalar values.
 function min2(a, b) =
     (a < b) ? a : b;

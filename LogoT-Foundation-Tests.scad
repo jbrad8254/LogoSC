@@ -18,76 +18,8 @@
 // -----------------------------------------------------------------------------
 // Test geometry
 // -----------------------------------------------------------------------------
-
-// Convert one region into the flat point list required by polygon().
-function RegionRenderPoints(region) =
-    [
-        for (ring = region)
-            for (point = ring)
-                point
-    ];
-
-// Return the starting flat-point index for one ring inside a region.
-function RegionPathStart(region, pathIndex, ringIndex = 0) =
-    (ringIndex >= pathIndex)
-        ? 0
-        : len(region[ringIndex]) + RegionPathStart(region, pathIndex, ringIndex + 1);
-
-// Convert one ring inside a region into polygon() path indices.
-function RegionRenderPath(region, pathIndex) =
-    let(
-        start = RegionPathStart(region, pathIndex),
-        count = len(region[pathIndex])
-    )
-    [
-        for (i = [0 : count - 1])
-            start + i
-    ];
-
-// Convert all rings inside a region into polygon() paths.
-function RegionRenderPaths(region) =
-    [
-        for (pathIndex = [0 : len(region) - 1])
-            if (len(region[pathIndex]) >= 3)
-                RegionRenderPath(region, pathIndex)
-    ];
-
-// Render all regions from an evaluated Logo result.
-//
-// Each region becomes one polygon(points=..., paths=...) call. The first path is
-// the outer boundary; later paths are holes. Regions with only one path behave
-// like the old independent-contour renderer.
-module RenderContours(regions, height = 5)
-{
-    for (i = [0 : len(regions) - 1])
-    {
-        region = regions[i];
-        outer = RegionOuter(region);
-
-        if (len(outer) >= 3)
-        {
-            linear_extrude(height = height, center = true)
-            {
-                polygon(
-                    points = RegionRenderPoints(region),
-                    paths = RegionRenderPaths(region)
-                );
-            }
-        }
-        else if (len(outer) > 0)
-        {
-            echo("[ERROR]", "Region outer has fewer than three points", [i, region]);
-
-            translate(outer[0])
-            {
-                linear_extrude(height = height, center = true)
-                {
-                    square([2, 2], center = true);
-                }
-            }
-        }
-    }
-}
+// Public render helpers live in LogoT-Foundation-Core.scad. The tests use the
+// same renderer modules that library users call.
 
 // Run one named Logo test and render all resulting regions.
 //
@@ -123,7 +55,10 @@ module LogoTest(testName, vtCmds, testIndex = [0, BasicY], height = DefaultTestH
     {
         if (CountContourPoints(contours) >= 3)
         {
-            RenderContours(contours, height);
+            linear_extrude(height = height, center = true, convexity = 10)
+            {
+                RenderContours2D(contours);
+            }
         }
         else
         {

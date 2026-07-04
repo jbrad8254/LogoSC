@@ -90,6 +90,69 @@ with only one ring behave like the earlier independent-contour renderer.
 emit separate outer-region contours before rendering. Open-stroke rendering is
 intentionally deferred.
 
+## Rendering API
+
+The reusable renderer lives in `LogoT-Foundation-Core.scad`; user models do not
+need to duplicate the test renderer. LogoT intentionally renders 2D regions only.
+Use native OpenSCAD operations around `RenderLogo2D()` for 3D modeling.
+
+```scad
+plate =
+[
+    [ROUNDEDRECT, 60, 30, 4],
+    [HOLE, [[GOTO, -20, 0, 0], [CIRCLE, 3]]],
+    [HOLE, [[GOTO,  20, 0, 0], [CIRCLE, 3]]]
+];
+
+RenderLogo2D(plate, convexity = 10);
+
+linear_extrude(height = 4, center = false, convexity = 10)
+{
+    RenderLogo2D(plate);
+}
+
+linear_extrude(
+    height = 4,
+    center = true,
+    convexity = 10,
+    twist = 30,
+    slices = 24)
+{
+    RenderLogo2D(plate);
+}
+```
+
+For rotational solids, create a 2D profile and wrap it with OpenSCAD's native
+`rotate_extrude()`. Position the profile according to OpenSCAD's normal rotation
+rules; in practice, keep the profile on the positive-X side of the rotation axis
+unless you are intentionally using axis-touching behavior.
+
+```scad
+profile =
+[
+    [GOTO, 20, 0, 0],
+    [RECT, 4, 12]
+];
+
+rotate_extrude(angle = 360, convexity = 10)
+{
+    RenderLogo2D(profile);
+}
+```
+
+Lower-level renderers are also available if you want to evaluate once and render
+the resulting regions yourself:
+
+```scad
+result = evalLogo(plate);
+regions = ResultContours(result);
+
+RenderContours2D(regions, convexity = 10);
+```
+
+Use OpenSCAD's `linear_extrude()`, `rotate_extrude()`, `difference()`, `union()`,
+and transforms around `RenderLogo2D()` for final 3D parts.
+
 ## Future rendering work
 
 LogoT currently targets closed polygons because that maps cleanly to OpenSCAD and
