@@ -26,6 +26,14 @@
 //     [ARC,    radius, degrees]
 //     [ARC,    radius, degrees, segments]
 //
+//     [CIRCLE, radius]
+//     [CIRCLE, radius, segments]
+//     [REGPOLY, sides, radius]
+//     [REGPOLY, sides, radius, rotation]
+//     [RECT, width, height]
+//     [ROUNDEDRECT, width, height, radius]
+//     [ROUNDEDRECT, width, height, radius, segments]
+//
 //     [RUN,    cmds]
 //     [RUN,    cmds, scale]
 //     [RUN,    cmds, scale, maxRec]
@@ -48,8 +56,8 @@
 //
 //     [REPEAT, count, cmds]
 //         Executes cmds count times. The command body can contain MOVE, TURN,
-//         RUN, ARC, PUSH, POP, PENUP, PENDOWN, nested REPEAT, and other supported
-//         Logo commands.
+//         RUN, ARC, closed-shape commands, PUSH, POP, PENUP, PENDOWN,
+//         nested REPEAT, and other supported Logo commands.
 //
 // RUN defaults:
 //     scale  = 1
@@ -57,8 +65,8 @@
 //
 // Rendering model:
 //     LogoT now returns multiple contours. Each contour is rendered with a
-//     separate polygon() call. Holes and open-stroke rendering are intentionally
-//     deferred.
+//     separate polygon() call. Closed-shape commands emit their own contours.
+//     Holes and open-stroke rendering are intentionally deferred.
 // -----------------------------------------------------------------------------
 
 /* [LogoT Controls] */
@@ -73,6 +81,14 @@ $fa = 12;      // [1:1:90]
 
 // Minimum fragment size used for automatic ARC tessellation when $fn == 0.
 $fs = 2;       // [0.1:0.1:20]
+
+// Segment-count convention for curved closed geometry:
+//     Explicit ARC/CIRCLE/ROUNDEDRECT segment arguments override $fn/$fa/$fs.
+//     Omitted segment arguments use OpenSCAD-style automatic selection:
+//         $fn > 0 gives the full-circle fragment count; otherwise $fa/$fs apply.
+//     ARC explicit segments count the arc itself. CIRCLE explicit segments count
+//     the full circle. ROUNDEDRECT explicit segments count each rounded corner.
+//     REGPOLY uses its side count directly and does not consult $fn/$fa/$fs.
 
 // Enable hard-stop interpreter errors.
 // false: print [ERROR] and continue the test suite.
@@ -126,7 +142,11 @@ POP     = 7 + 0;  // [POP] restores the most recently pushed Logo state.
 REPEAT  = 8 + 0;  // [REPEAT, count, cmds] executes cmds count times.
 PENUP   = 9 + 0;  // [PENUP] disables point emission while movement continues.
 PENDOWN = 10 + 0; // [PENDOWN] starts a new contour and resumes point emission.
-ARC     = 11 + 0; // [ARC, radius, degrees], [ARC, radius, degrees, segments]
+ARC         = 11 + 0; // [ARC, radius, degrees], [ARC, radius, degrees, segments]
+CIRCLE      = 12 + 0; // [CIRCLE, radius], [CIRCLE, radius, segments]
+REGPOLY     = 13 + 0; // [REGPOLY, sides, radius], [REGPOLY, sides, radius, rotation]
+RECT        = 14 + 0; // [RECT, width, height]
+ROUNDEDRECT = 15 + 0; // [ROUNDEDRECT, width, height, radius], optional segments
 
 // Mathematical constants.
 LOGOT_PI = 3.141592653589793 + 0;
@@ -152,6 +172,7 @@ COP = 0 + 0;
 CA1 = 1 + 0;
 CA2 = 2 + 0;
 CA3 = 3 + 0;
+CA4 = 4 + 0;
 
 // -----------------------------------------------------------------------------
 // Evaluator result indices: [state, contours, stack, pen]
@@ -219,6 +240,22 @@ function AddPointsToContours(contours, points) =
         contours,
         concat(CurrentContour(contours), points)
     );
+
+// Return all contours before the current mutable contour.
+function ContoursBeforeCurrent(contours) =
+    (len(contours) <= 1)
+        ? []
+        :
+        [
+            for (i = [0 : len(contours) - 2])
+                contours[i]
+        ];
+
+// Add a finished closed contour without making it the current mutable contour.
+function AddClosedContourToContours(contours, contour) =
+    (len(contours) == 0)
+        ? [contour, []]
+        : concat(ContoursBeforeCurrent(contours), [contour, CurrentContour(contours)]);
 
 // Start a new contour at the current Logo state.
 function StartContour(contours, state) =
@@ -342,8 +379,96 @@ function stateArc(vState, radius, degrees, scale) =
     );
 
 
+// Convert a local point into world coordinates using current position and heading.
+function LocalPointToWorld(vState, localPoint) =
+    let(
+        h = vState[SH]
+    )
+    [
+        vState[SX] + localPoint[0] * cos(h) - localPoint[1] * sin(h),
+        vState[SY] + localPoint[0] * sin(h) + localPoint[1] * cos(h)
+    ];
+
+// Return a radial point around the current Logo position.
+function ShapeRadialPoint(vState, scaledRadius, angle) =
+    LocalPointToWorld(
+        vState,
+        [
+            scaledRadius * cos(angle),
+            scaledRadius * sin(angle)
+        ]
+    );
+
+// Return a closed circle contour centered on the current Logo position.
+function CircleContour(vState, scaledRadius, segments) =
+    [
+        for (i = [0 : segments - 1])
+            ShapeRadialPoint(vState, scaledRadius, 360 * i / segments)
+    ];
+
+// Return a closed regular-polygon contour centered on the current Logo position.
+function RegPolyContour(vState, scaledRadius, sides, rotation) =
+    [
+        for (i = [0 : sides - 1])
+            ShapeRadialPoint(vState, scaledRadius, rotation + 360 * i / sides)
+    ];
+
+// Return a closed rectangle contour centered on the current Logo position.
+function RectContour(vState, scaledWidth, scaledHeight) =
+    let(
+        hw = scaledWidth / 2,
+        hh = scaledHeight / 2
+    )
+    [
+        LocalPointToWorld(vState, [ hw, -hh]),
+        LocalPointToWorld(vState, [ hw,  hh]),
+        LocalPointToWorld(vState, [-hw,  hh]),
+        LocalPointToWorld(vState, [-hw, -hh])
+    ];
+
+// Return one rounded-rectangle corner as local-to-world points.
+function RoundedRectCornerPoints(
+    vState,
+    cornerCenter,
+    scaledRadius,
+    startAngle,
+    segments) =
+    [
+        for (i = [0 : segments])
+            LocalPointToWorld(
+                vState,
+                [
+                    cornerCenter[0] + scaledRadius * cos(startAngle + 90 * i / segments),
+                    cornerCenter[1] + scaledRadius * sin(startAngle + 90 * i / segments)
+                ]
+            )
+    ];
+
+// Return a closed rounded-rectangle contour centered on the current Logo position.
+function RoundedRectContour(vState, scaledWidth, scaledHeight, scaledRadius, segments) =
+    let(
+        hw = scaledWidth / 2,
+        hh = scaledHeight / 2,
+        r = min2(scaledRadius, min2(scaledWidth, scaledHeight) / 2)
+    )
+    (r <= 0)
+        ? RectContour(vState, scaledWidth, scaledHeight)
+        : concat(
+            RoundedRectCornerPoints(vState, [ hw - r,  hh - r], r,   0, segments),
+            RoundedRectCornerPoints(vState, [-hw + r,  hh - r], r,  90, segments),
+            RoundedRectCornerPoints(vState, [-hw + r, -hh + r], r, 180, segments),
+            RoundedRectCornerPoints(vState, [ hw - r, -hh + r], r, 270, segments)
+        );
+
+// Emit a closed contour only when the pen is down.
+function EmitClosedContour(contours, contour, pen) =
+    (pen == PEN_DOWN && len(contour) >= 3)
+        ? AddClosedContourToContours(contours, contour)
+        : contours;
+
+
 // -----------------------------------------------------------------------------
-// RUN, REPEAT, and ARC command helpers
+// RUN, REPEAT, ARC, and closed-shape command helpers
 // -----------------------------------------------------------------------------
 
 // Extract the child command list from a RUN command.
@@ -406,6 +531,71 @@ function ArcSegmentCount(logoCmd, state) =
         ? ArcExplicitSegments(logoCmd)
         : ArcAutoSegments(ArcRadius(logoCmd) * state[SS], ArcDegrees(logoCmd));
 
+
+// Extract the CIRCLE radius.
+function CircleRadius(logoCmd) =
+    CmdArg(logoCmd, CA1, 0);
+
+// Return true when a CIRCLE command contains an explicit segment count.
+function CircleHasExplicitSegments(logoCmd) =
+    len(logoCmd) > CA2 && logoCmd[CA2] != undef;
+
+// Extract the explicit CIRCLE segment count, if present.
+function CircleExplicitSegments(logoCmd) =
+    floor(CmdArg(logoCmd, CA2, 0));
+
+// Return the effective CIRCLE segment count for a command in the current state.
+function CircleSegmentCount(logoCmd, state) =
+    CircleHasExplicitSegments(logoCmd)
+        ? CircleExplicitSegments(logoCmd)
+        : ArcAutoSegments(CircleRadius(logoCmd) * abs(state[SS]), 360);
+
+// Extract the REGPOLY side count.
+function RegPolySides(logoCmd) =
+    floor(CmdArg(logoCmd, CA1, 0));
+
+// Extract the REGPOLY circumradius.
+function RegPolyRadius(logoCmd) =
+    CmdArg(logoCmd, CA2, 0);
+
+// Extract the optional REGPOLY rotation relative to the current heading.
+function RegPolyRotation(logoCmd) =
+    CmdArg(logoCmd, CA3, 0);
+
+// Extract the RECT width.
+function RectWidth(logoCmd) =
+    CmdArg(logoCmd, CA1, 0);
+
+// Extract the RECT height.
+function RectHeight(logoCmd) =
+    CmdArg(logoCmd, CA2, 0);
+
+// Extract the ROUNDEDRECT width.
+function RoundedRectWidth(logoCmd) =
+    CmdArg(logoCmd, CA1, 0);
+
+// Extract the ROUNDEDRECT height.
+function RoundedRectHeight(logoCmd) =
+    CmdArg(logoCmd, CA2, 0);
+
+// Extract the ROUNDEDRECT corner radius.
+function RoundedRectRadius(logoCmd) =
+    CmdArg(logoCmd, CA3, 0);
+
+// Return true when ROUNDEDRECT contains an explicit per-corner segment count.
+function RoundedRectHasExplicitSegments(logoCmd) =
+    len(logoCmd) > CA4 && logoCmd[CA4] != undef;
+
+// Extract the explicit ROUNDEDRECT per-corner segment count, if present.
+function RoundedRectExplicitSegments(logoCmd) =
+    floor(CmdArg(logoCmd, CA4, 0));
+
+// Return the effective ROUNDEDRECT segment count per rounded corner.
+function RoundedRectSegmentCount(logoCmd, state) =
+    RoundedRectHasExplicitSegments(logoCmd)
+        ? RoundedRectExplicitSegments(logoCmd)
+        : ArcAutoSegments(RoundedRectRadius(logoCmd) * abs(state[SS]), 90);
+
 // Convert an opcode to a printable command name.
 function CmdName(op) =
       (op == MOVE)   ? "MOVE"
@@ -419,7 +609,11 @@ function CmdName(op) =
     : (op == REPEAT) ? "REPEAT"
     : (op == PENUP)  ? "PENUP"
     : (op == PENDOWN)? "PENDOWN"
-    : (op == ARC)    ? "ARC"
+    : (op == ARC)        ? "ARC"
+    : (op == CIRCLE)     ? "CIRCLE"
+    : (op == REGPOLY)    ? "REGPOLY"
+    : (op == RECT)       ? "RECT"
+    : (op == ROUNDEDRECT)? "ROUNDEDRECT"
     : str("UNKNOWN(", op, ")");
 
 // Emit one command-execution trace line from inside a function.
@@ -708,6 +902,170 @@ function EvalArc(vCmd, state, contours, stack, pen) =
                         )
                         EvalResult(nextState, nextContours, stack, pen);
 
+
+// Handle CIRCLE.
+//
+// Creates a closed filled contour centered on the current Logo position. This is
+// a CAD/3D-printing circle, not classic Logo full-circle movement.
+function EvalCircle(vCmd, state, contours, stack, pen) =
+    (len(vCmd) <= CA1)
+        ? let(
+            _err = SoftError("Malformed CIRCLE command", vCmd)
+        )
+        EvalResult(state, contours, stack, pen)
+        : (CircleRadius(vCmd) < 0)
+            ? let(
+                _err = SoftError("CIRCLE radius must be nonnegative", vCmd)
+            )
+            EvalResult(state, contours, stack, pen)
+            : (CircleHasExplicitSegments(vCmd) && CircleExplicitSegments(vCmd) < 3)
+                ? let(
+                    _err = SoftError("CIRCLE segment count must be at least 3", vCmd)
+                )
+                EvalResult(state, contours, stack, pen)
+                : let(
+                    scaledRadius = CircleRadius(vCmd) * abs(state[SS])
+                )
+                (scaledRadius == 0)
+                    ? EvalResult(state, contours, stack, pen)
+                    : let(
+                        segments = CircleSegmentCount(vCmd, state),
+                        contour = CircleContour(state, scaledRadius, segments)
+                    )
+                    EvalResult(
+                        state,
+                        EmitClosedContour(contours, contour, pen),
+                        stack,
+                        pen
+                    );
+
+// Handle REGPOLY.
+//
+// Creates a closed regular polygon centered on the current Logo position.
+function EvalRegPoly(vCmd, state, contours, stack, pen) =
+    (len(vCmd) <= CA2)
+        ? let(
+            _err = SoftError("Malformed REGPOLY command", vCmd)
+        )
+        EvalResult(state, contours, stack, pen)
+        : (RegPolySides(vCmd) < 3)
+            ? let(
+                _err = SoftError("REGPOLY side count must be at least 3", vCmd)
+            )
+            EvalResult(state, contours, stack, pen)
+            : (RegPolyRadius(vCmd) < 0)
+                ? let(
+                    _err = SoftError("REGPOLY radius must be nonnegative", vCmd)
+                )
+                EvalResult(state, contours, stack, pen)
+                : let(
+                    scaledRadius = RegPolyRadius(vCmd) * abs(state[SS])
+                )
+                (scaledRadius == 0)
+                    ? EvalResult(state, contours, stack, pen)
+                    : let(
+                        contour = RegPolyContour(
+                            state,
+                            scaledRadius,
+                            RegPolySides(vCmd),
+                            RegPolyRotation(vCmd)
+                        )
+                    )
+                    EvalResult(
+                        state,
+                        EmitClosedContour(contours, contour, pen),
+                        stack,
+                        pen
+                    );
+
+// Handle RECT.
+//
+// Creates a closed rectangle centered on the current Logo position and oriented
+// by the current heading.
+function EvalRect(vCmd, state, contours, stack, pen) =
+    (len(vCmd) <= CA2)
+        ? let(
+            _err = SoftError("Malformed RECT command", vCmd)
+        )
+        EvalResult(state, contours, stack, pen)
+        : (RectWidth(vCmd) <= 0 || RectHeight(vCmd) <= 0)
+            ? let(
+                _err = SoftError("RECT width and height must be positive", vCmd)
+            )
+            EvalResult(state, contours, stack, pen)
+            : let(
+                scaledWidth = RectWidth(vCmd) * abs(state[SS]),
+                scaledHeight = RectHeight(vCmd) * abs(state[SS])
+            )
+            (scaledWidth == 0 || scaledHeight == 0)
+                ? EvalResult(state, contours, stack, pen)
+                : let(
+                    contour = RectContour(state, scaledWidth, scaledHeight)
+                )
+                EvalResult(
+                    state,
+                    EmitClosedContour(contours, contour, pen),
+                    stack,
+                    pen
+                );
+
+// Handle ROUNDEDRECT.
+//
+// Creates a closed rounded rectangle centered on the current Logo position.
+function EvalRoundedRect(vCmd, state, contours, stack, pen) =
+    (len(vCmd) <= CA3)
+        ? let(
+            _err = SoftError("Malformed ROUNDEDRECT command", vCmd)
+        )
+        EvalResult(state, contours, stack, pen)
+        : (RoundedRectWidth(vCmd) <= 0 || RoundedRectHeight(vCmd) <= 0)
+            ? let(
+                _err = SoftError(
+                    "ROUNDEDRECT width and height must be positive",
+                    vCmd
+                )
+            )
+            EvalResult(state, contours, stack, pen)
+            : (RoundedRectRadius(vCmd) < 0)
+                ? let(
+                    _err = SoftError("ROUNDEDRECT radius must be nonnegative", vCmd)
+                )
+                EvalResult(state, contours, stack, pen)
+                : (
+                    RoundedRectHasExplicitSegments(vCmd)
+                    && RoundedRectExplicitSegments(vCmd) <= 0
+                )
+                    ? let(
+                        _err = SoftError(
+                            "ROUNDEDRECT segment count must be positive",
+                            vCmd
+                        )
+                    )
+                    EvalResult(state, contours, stack, pen)
+                    : let(
+                        scaledWidth = RoundedRectWidth(vCmd) * abs(state[SS]),
+                        scaledHeight = RoundedRectHeight(vCmd) * abs(state[SS]),
+                        scaledRadius = RoundedRectRadius(vCmd) * abs(state[SS])
+                    )
+                    (scaledWidth == 0 || scaledHeight == 0)
+                        ? EvalResult(state, contours, stack, pen)
+                        : let(
+                            segments = RoundedRectSegmentCount(vCmd, state),
+                            contour = RoundedRectContour(
+                                state,
+                                scaledWidth,
+                                scaledHeight,
+                                scaledRadius,
+                                segments
+                            )
+                        )
+                        EvalResult(
+                            state,
+                            EmitClosedContour(contours, contour, pen),
+                            stack,
+                            pen
+                        );
+
 // Handle RUN.
 //
 // Expected recursive use:
@@ -809,6 +1167,14 @@ function EvalOpcode(vCmd, state, contours, stack, pen, maxRec) =
         ? EvalPenDown(vCmd, state, contours, stack, pen)
     : (vCmd[COP] == ARC)
         ? EvalArc(vCmd, state, contours, stack, pen)
+    : (vCmd[COP] == CIRCLE)
+        ? EvalCircle(vCmd, state, contours, stack, pen)
+    : (vCmd[COP] == REGPOLY)
+        ? EvalRegPoly(vCmd, state, contours, stack, pen)
+    : (vCmd[COP] == RECT)
+        ? EvalRect(vCmd, state, contours, stack, pen)
+    : (vCmd[COP] == ROUNDEDRECT)
+        ? EvalRoundedRect(vCmd, state, contours, stack, pen)
     : (vCmd[COP] == REPEAT)
         ? EvalRepeat(vCmd, state, contours, stack, pen, maxRec)
     : let(

@@ -13,12 +13,30 @@ Initial geometry milestone.
 - OpenSCAD-style automatic segment selection using `$fn`, `$fa`, and `$fs`.
 - ARC regression tests for quarter arcs, semicircles, full-circle-ish arcs, pen-up
   arcs, REPEAT, RUN, scaled arcs, and rounded-rectangle construction.
+- Closed shape commands for 3D-printing-oriented geometry:
+  - `[CIRCLE, radius]`
+  - `[CIRCLE, radius, segments]`
+  - `[REGPOLY, sides, radius]`
+  - `[REGPOLY, sides, radius, rotation]`
+  - `[RECT, width, height]`
+  - `[ROUNDEDRECT, width, height, radius]`
+  - `[ROUNDEDRECT, width, height, radius, segments]`
+- Closed-shape regression tests for circles, regular polygons, rectangles,
+  rounded rectangles, pen-up behavior, scaling, and RUN scaling.
+
+### Notes
+
+- `CIRCLE` is a centered closed contour, not classic Logo circle motion.
+  Use `[ARC, radius, 360]` when cursor-style full-loop motion is desired.
+- `ROUNDEDREGPOLY` is intentionally deferred. It needs a clearer corner-rounding
+  model before becoming a first-class command.
 
 ### Known limitations
 
-- No `CIRCLE` helper yet.
-- No `REGPOLY` helper yet.
-- ARC emits polygon contour points; open-stroke rendering is still deferred.
+- Geometry output is still closed-contour `polygon()` output.
+- Open-stroke rendering is deferred.
+- Stroke width, cap style, join style, and miter limits are not implemented yet.
+- Holes are not implemented yet.
 
 ## LogoT-Foundation
 
@@ -65,4 +83,3 @@ Initial stable foundation baseline.
 - No stroke/open-path rendering yet.
 - No holes yet.
 - `polygon()` automatically closes each contour.
-- Geometry commands such as `CIRCLE` and `REGPOLY` are deferred to later `LogoT-Geometry` work.

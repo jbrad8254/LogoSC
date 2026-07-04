@@ -128,8 +128,9 @@ module LogoCheck(condition, msg, value = undef)
     }
 }
 
-// Validate final state and total emitted point count for one ARC command list.
-module LogoCheckArcResult(
+// Validate final state and total emitted point count for one command list.
+module LogoCheckResult(
+    label,
     testName,
     vtCmds,
     expectedState,
@@ -143,14 +144,54 @@ module LogoCheckArcResult(
 
     LogoCheck(
         LogoStateNearlyEqual(state, expectedState, tol),
-        str("ARC validation failed: ", testName, " final state"),
+        str(label, " validation failed: ", testName, " final state"),
         [state, expectedState]
     );
 
     LogoCheck(
         pointCount == expectedPointCount,
-        str("ARC validation failed: ", testName, " point count"),
+        str(label, " validation failed: ", testName, " point count"),
         [pointCount, expectedPointCount, contours]
+    );
+}
+
+// Validate final state and total emitted point count for one ARC command list.
+module LogoCheckArcResult(
+    testName,
+    vtCmds,
+    expectedState,
+    expectedPointCount,
+    tol = 0.001)
+{
+    LogoCheckResult("ARC", testName, vtCmds, expectedState, expectedPointCount, tol);
+}
+
+// Validate final state and total emitted point count for one closed-shape command list.
+module LogoCheckShapeResult(
+    testName,
+    vtCmds,
+    expectedState,
+    expectedPointCount,
+    tol = 0.001)
+{
+    LogoCheckResult("shape", testName, vtCmds, expectedState, expectedPointCount, tol);
+}
+
+// Validate contour lengths exactly, including intentionally sparse current paths.
+module LogoCheckContourLengths(testName, vtCmds, expectedLengths)
+{
+    result = evalLogo(vtCmds);
+    contours = ResultContours(result);
+    actualLengths =
+    [
+        for (i = [0 : len(contours) - 1])
+            len(contours[i])
+    ];
+
+    LogoCheck(
+        actualLengths == expectedLengths,
+        str("contour length validation failed: ", testName),
+        [actualLengths, expectedLengths, contours]
     );
 }
 
@@ -762,13 +803,114 @@ module TestArcSuiteLogo()
     LogoTest("ARC rounded rectangle", roundedRect, [6, ArcY]);
 }
 
+
+// Closed-shape geometry regression suite.
+module TestClosedShapeSuiteLogo()
+{
+    ShapeY = 6;
+
+    circleShape =
+    [
+        [CIRCLE, 8, 24]
+    ];
+
+    regularHex =
+    [
+        [REGPOLY, 6, 8]
+    ];
+
+    rectShape =
+    [
+        [RECT, 20, 10]
+    ];
+
+    rotatedRect =
+    [
+        [DIR, 30],
+        [RECT, 20, 8]
+    ];
+
+    roundedRectShape =
+    [
+        [ROUNDEDRECT, 24, 14, 4, 4]
+    ];
+
+    scaledCircle =
+    [
+        [SCALE, 0.5],
+        [CIRCLE, 16, 16]
+    ];
+
+    LogoCheckShapeResult(
+        "circle",
+        [[CIRCLE, 10, 16]],
+        stateMake(0, 0, 0, 1),
+        16
+    );
+
+    LogoCheckShapeResult(
+        "regular polygon",
+        [[REGPOLY, 6, 10]],
+        stateMake(0, 0, 0, 1),
+        6
+    );
+
+    LogoCheckShapeResult(
+        "rectangle",
+        [[RECT, 20, 8]],
+        stateMake(0, 0, 0, 1),
+        4
+    );
+
+    LogoCheckShapeResult(
+        "rounded rectangle command",
+        [[ROUNDEDRECT, 20, 10, 2, 4]],
+        stateMake(0, 0, 0, 1),
+        20
+    );
+
+    LogoCheckShapeResult(
+        "pen-up circle",
+        [[PENUP], [CIRCLE, 10, 16]],
+        stateMake(0, 0, 0, 1),
+        0
+    );
+
+    LogoCheckShapeResult(
+        "scaled circle",
+        [[SCALE, 2], [CIRCLE, 5, 8]],
+        stateMake(0, 0, 0, 2),
+        8
+    );
+
+    LogoCheckShapeResult(
+        "shape inside RUN",
+        [[RUN, [[RECT, 10, 4]], 2]],
+        stateMake(0, 0, 0, 2),
+        4
+    );
+
+    LogoCheckContourLengths(
+        "shape command does not become the current path",
+        [[CIRCLE, 5, 8], [MOVE, 10]],
+        [8, 1]
+    );
+
+    LogoTest("CIRCLE centered closed contour", circleShape, [0, ShapeY]);
+    LogoTest("REGPOLY hexagon", regularHex, [1, ShapeY]);
+    LogoTest("RECT centered rectangle", rectShape, [2, ShapeY]);
+    LogoTest("RECT rotated by heading", rotatedRect, [3, ShapeY]);
+    LogoTest("ROUNDEDRECT centered", roundedRectShape, [4, ShapeY]);
+    LogoTest("CIRCLE scaled", scaledCircle, [5, ShapeY]);
+}
+
 // Failure-condition regression suite.
 //
 // These tests are supposed to produce [ERROR] messages when HardErrors = false.
 // They should not abort the complete OpenSCAD run unless HardErrors = true.
 module TestFailureSuiteLogo()
 {
-    FailureY = 6;
+    FailureY = 7;
     badOpcode =
     [
         [999, 10]
@@ -817,6 +959,32 @@ module TestFailureSuiteLogo()
     badArcSegments =
     [
         [ARC, 10, 90, 0]
+    ];
+
+
+    malformedCircle =
+    [
+        [CIRCLE]
+    ];
+
+    badCircleSegments =
+    [
+        [CIRCLE, 10, 2]
+    ];
+
+    badRegPolySides =
+    [
+        [REGPOLY, 2, 10]
+    ];
+
+    malformedRect =
+    [
+        [RECT, 10]
+    ];
+
+    badRoundedRectRadius =
+    [
+        [ROUNDEDRECT, 20, 10, -2]
     ];
 
     LogoTest(
@@ -878,6 +1046,36 @@ module TestFailureSuiteLogo()
         badArcSegments,
         [9, FailureY]
     );
+
+    LogoTest(
+        "FAIL expected: malformed CIRCLE missing radius",
+        malformedCircle,
+        [10, FailureY]
+    );
+
+    LogoTest(
+        "FAIL expected: CIRCLE bad segment count",
+        badCircleSegments,
+        [11, FailureY]
+    );
+
+    LogoTest(
+        "FAIL expected: REGPOLY bad side count",
+        badRegPolySides,
+        [12, FailureY]
+    );
+
+    LogoTest(
+        "FAIL expected: malformed RECT missing height",
+        malformedRect,
+        [13, FailureY]
+    );
+
+    LogoTest(
+        "FAIL expected: ROUNDEDRECT negative radius",
+        badRoundedRectRadius,
+        [14, FailureY]
+    );
 }
 
 // Run all current LogoT regression suites.
@@ -889,6 +1087,7 @@ module RunAllLogoTests()
     TestStateFlowSuiteLogo();
     TestPenSuiteLogo();
     TestArcSuiteLogo();
+    TestClosedShapeSuiteLogo();
     TestFailureSuiteLogo();
 }
 

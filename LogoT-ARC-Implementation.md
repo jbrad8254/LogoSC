@@ -193,3 +193,28 @@ The regression suite includes validation checks for:
 
 It also includes visual render tests for several polygon-friendly arc contours,
 plus failure tests for malformed ARC commands.
+
+## Related closed-shape commands
+
+`CIRCLE`, `REGPOLY`, `RECT`, and `ROUNDEDRECT` are closed-contour commands added
+after ARC. They are intentionally CAD/3D-printing-style shape stamps:
+
+- the shape is centered on the current Logo position;
+- the shape creates a separate closed contour when the pen is down;
+- the Logo state is not moved;
+- the heading is not changed;
+- current scale is applied;
+- heading orients `REGPOLY`, `RECT`, and `ROUNDEDRECT`.
+
+This is different from classic Logo circle behavior. In LogoT,
+`[CIRCLE, r]` creates a filled circle centered at the current point. To make the
+Logo cursor walk around a full tangent loop, use:
+
+```scad
+[ARC, r, 360]
+```
+
+Open-stroke rendering remains a separate future rendering problem. It should not
+be approximated as unrelated tiny rectangles for production use. A better later
+design is to convert centerline paths into one or more closed outline polygons
+using explicit stroke width, cap style, join style, and miter-limit rules.
