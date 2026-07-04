@@ -6,6 +6,7 @@
 - `LogoT-Foundation-Tests.scad` — regression and failure test suites.
 - `LogoT-README.md` — this overview.
 - `CHANGELOG.md` — milestone release history.
+- `LogoT-ARC-Implementation.md` — design notes for ARC tessellation.
 
 ## Workflow
 
@@ -23,6 +24,9 @@
 [SCALE,  scaleMultiplier]
 [GOTO,   x, y, heading]
 
+[ARC,    radius, degrees]
+[ARC,    radius, degrees, segments]
+
 [RUN,    cmds]
 [RUN,    cmds, scale]
 [RUN,    cmds, scale, maxRec]
@@ -36,13 +40,21 @@
 [REPEAT, count, cmds]
 ```
 
+## Geometry commands
+
+`ARC` follows a circular arc from the current Logo position and heading. Positive
+angles turn left; negative angles turn right. The optional `segments` argument
+sets the exact number of line segments used for the arc. When omitted, LogoT uses
+OpenSCAD-style `$fn`, `$fa`, and `$fs` controls to choose the segment count.
+
 ## Rendering model
 
 LogoT evaluates command lists into multiple contours. Each contour is rendered with a
 separate `polygon()` call. This supports disconnected filled shapes created with
 `PENUP` and `PENDOWN`.
 
-Holes and open-stroke rendering are intentionally deferred.
+`ARC` is tessellated into contour points before rendering. Holes and open-stroke
+rendering are intentionally deferred.
 
 ## Release history
 

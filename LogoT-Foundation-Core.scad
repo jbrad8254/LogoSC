@@ -23,6 +23,9 @@
 //     [SCALE,  scaleMultiplier]
 //     [GOTO,   x, y, heading]
 //
+//     [ARC,    radius, degrees]
+//     [ARC,    radius, degrees, segments]
+//
 //     [RUN,    cmds]
 //     [RUN,    cmds, scale]
 //     [RUN,    cmds, scale, maxRec]
@@ -36,16 +39,16 @@
 //         this reports a soft error and continues when HardErrors = false.
 //
 //     [PENUP]
-//         Stops adding MOVE/GOTO destinations to the current contour. Logo
+//         Stops adding MOVE/GOTO/ARC destinations to the current contour. Logo
 //         position and heading still change.
 //
 //     [PENDOWN]
 //         Starts a new contour at the current Logo location and resumes adding
-//         MOVE/GOTO destinations.
+//         MOVE/GOTO/ARC destinations.
 //
 //     [REPEAT, count, cmds]
 //         Executes cmds count times. The command body can contain MOVE, TURN,
-//         RUN, PUSH, POP, PENUP, PENDOWN, nested REPEAT, and other supported
+//         RUN, ARC, PUSH, POP, PENUP, PENDOWN, nested REPEAT, and other supported
 //         Logo commands.
 //
 // RUN defaults:
@@ -60,8 +63,16 @@
 
 /* [LogoT Controls] */
 
-// Circle divisions used for any curved geometry in tests.
-$fn = 256;     // [32:32:1024]
+// Circle divisions used for curved geometry. When $fn is greater than zero,
+// it overrides $fa and $fs for automatic ARC tessellation. Set $fn to zero to
+// use OpenSCAD-style $fa/$fs automatic fragment selection.
+$fn = 256;     // [0:32:1024]
+
+// Minimum fragment angle used for automatic ARC tessellation when $fn == 0.
+$fa = 12;      // [1:1:90]
+
+// Minimum fragment size used for automatic ARC tessellation when $fn == 0.
+$fs = 2;       // [0.1:0.1:20]
 
 // Enable hard-stop interpreter errors.
 // false: print [ERROR] and continue the test suite.
@@ -115,6 +126,10 @@ POP     = 7 + 0;  // [POP] restores the most recently pushed Logo state.
 REPEAT  = 8 + 0;  // [REPEAT, count, cmds] executes cmds count times.
 PENUP   = 9 + 0;  // [PENUP] disables point emission while movement continues.
 PENDOWN = 10 + 0; // [PENDOWN] starts a new contour and resumes point emission.
+ARC     = 11 + 0; // [ARC, radius, degrees], [ARC, radius, degrees, segments]
+
+// Mathematical constants.
+LOGOT_PI = 3.141592653589793 + 0;
 
 // -----------------------------------------------------------------------------
 // Logo state indices: [x, y, heading, scale]
@@ -198,6 +213,13 @@ function AddPointToContours(contours, point) =
         concat(CurrentContour(contours), [point])
     );
 
+// Append a point list to the current contour, creating one if needed.
+function AddPointsToContours(contours, points) =
+    ReplaceCurrentContour(
+        contours,
+        concat(CurrentContour(contours), points)
+    );
+
 // Start a new contour at the current Logo state.
 function StartContour(contours, state) =
     concat(contours, [[[state[SX], state[SY]]]]);
@@ -214,6 +236,10 @@ function CountContourPoints(contours, index = 0) =
 // Return the smaller of two scalar values.
 function min2(a, b) =
     (a < b) ? a : b;
+
+// Return the larger of two scalar values.
+function max2(a, b) =
+    (a > b) ? a : b;
 
 // Construct a Logo state vector [x, y, heading, scale].
 function stateMake(x, y, heading, scale) =
@@ -268,9 +294,56 @@ function stateScale(vState, ss) =
     )
     stateMake(x, y, h, s);
 
+// Return the side of the heading vector used as the center of curvature.
+function ArcSign(degrees) =
+    (degrees >= 0) ? 1 : -1;
+
+// Return the center point for an arc beginning at vState.
+function ArcCenter(vState, scaledRadius, degrees) =
+    let(
+        side = ArcSign(degrees),
+        h = vState[SH]
+    )
+    [
+        vState[SX] - side * scaledRadius * sin(h),
+        vState[SY] + side * scaledRadius * cos(h)
+    ];
+
+// Return one tessellated point along an arc.
+function ArcPoint(vState, scaledRadius, degrees, fraction) =
+    let(
+        side = ArcSign(degrees),
+        center = ArcCenter(vState, scaledRadius, degrees),
+        radialAngle = vState[SH] - side * 90 + degrees * fraction
+    )
+    [
+        center[0] + scaledRadius * cos(radialAngle),
+        center[1] + scaledRadius * sin(radialAngle)
+    ];
+
+// Return the tessellated point list for an arc, excluding the starting point.
+function ArcPoints(vState, scaledRadius, degrees, segments) =
+    [
+        for (i = [1 : segments])
+            ArcPoint(vState, scaledRadius, degrees, i / segments)
+    ];
+
+// Low-level Logo state transform: follow a circular arc.
+function stateArc(vState, radius, degrees, scale) =
+    let(
+        scaledRadius = radius * scale,
+        nextPoint = ArcPoint(vState, scaledRadius, degrees, 1)
+    )
+    stateMake(
+        nextPoint[0],
+        nextPoint[1],
+        vState[SH] + degrees,
+        vState[SS]
+    );
+
 
 // -----------------------------------------------------------------------------
-// RUN and REPEAT command helpers
+// RUN, REPEAT, and ARC command helpers
 // -----------------------------------------------------------------------------
 
 // Extract the child command list from a RUN command.
@@ -293,6 +366,46 @@ function RepeatCount(logoCmd) =
 function RepeatCmds(logoCmd) =
     CmdArg(logoCmd, CA2, []);
 
+// Extract the ARC radius.
+function ArcRadius(logoCmd) =
+    CmdArg(logoCmd, CA1, 0);
+
+// Extract the ARC angle in degrees.
+function ArcDegrees(logoCmd) =
+    CmdArg(logoCmd, CA2, 0);
+
+// Return true when an ARC command contains an explicit segment count.
+function ArcHasExplicitSegments(logoCmd) =
+    len(logoCmd) > CA3 && logoCmd[CA3] != undef;
+
+// Extract the explicit ARC segment count, if present.
+function ArcExplicitSegments(logoCmd) =
+    floor(CmdArg(logoCmd, CA3, 0));
+
+// Compute the OpenSCAD-style full-circle fragment count for an effective radius.
+function ArcFullFragments(effectiveRadius) =
+    ($fn > 0)
+        ? max2(3, floor($fn))
+        : ceil(
+            max2(
+                min2(
+                    360 / max2($fa, 0.01),
+                    2 * LOGOT_PI * abs(effectiveRadius) / max2($fs, 0.01)
+                ),
+                5
+            )
+        );
+
+// Compute automatic ARC segment count from OpenSCAD-style fragment controls.
+function ArcAutoSegments(effectiveRadius, degrees) =
+    max2(1, ceil(ArcFullFragments(effectiveRadius) * abs(degrees) / 360));
+
+// Return the effective ARC segment count for a command in the current state.
+function ArcSegmentCount(logoCmd, state) =
+    ArcHasExplicitSegments(logoCmd)
+        ? ArcExplicitSegments(logoCmd)
+        : ArcAutoSegments(ArcRadius(logoCmd) * state[SS], ArcDegrees(logoCmd));
+
 // Convert an opcode to a printable command name.
 function CmdName(op) =
       (op == MOVE)   ? "MOVE"
@@ -306,6 +419,7 @@ function CmdName(op) =
     : (op == REPEAT) ? "REPEAT"
     : (op == PENUP)  ? "PENUP"
     : (op == PENDOWN)? "PENDOWN"
+    : (op == ARC)    ? "ARC"
     : str("UNKNOWN(", op, ")");
 
 // Emit one command-execution trace line from inside a function.
@@ -541,10 +655,58 @@ function EvalPenUp(vCmd, state, contours, stack, pen) =
 // Handle PENDOWN.
 //
 // Starts a new contour at the current Logo location and resumes adding
-// MOVE/GOTO destinations. If the pen is already down, this still starts a new
+// MOVE/GOTO/ARC destinations. If the pen is already down, this still starts a new
 // contour, which is useful for intentionally disconnected polygons.
 function EvalPenDown(vCmd, state, contours, stack, pen) =
     EvalResult(state, StartContour(contours, state), stack, PEN_DOWN);
+
+// Handle ARC.
+//
+// Tessellates a circular arc into contour points. Positive angles turn left;
+// negative angles turn right. The final heading changes by the requested angle.
+function EvalArc(vCmd, state, contours, stack, pen) =
+    (len(vCmd) <= CA2)
+        ? let(
+            _err = SoftError("Malformed ARC command", vCmd)
+        )
+        EvalResult(state, contours, stack, pen)
+        : (ArcRadius(vCmd) < 0)
+            ? let(
+                _err = SoftError("ARC radius must be nonnegative", vCmd)
+            )
+            EvalResult(state, contours, stack, pen)
+            : (ArcHasExplicitSegments(vCmd) && ArcExplicitSegments(vCmd) <= 0)
+                ? let(
+                    _err = SoftError("ARC segment count must be positive", vCmd)
+                )
+                EvalResult(state, contours, stack, pen)
+                : (ArcDegrees(vCmd) == 0)
+                    ? EvalResult(state, contours, stack, pen)
+                    : (ArcRadius(vCmd) == 0 || ArcRadius(vCmd) * state[SS] == 0)
+                        ? EvalResult(
+                            stateTurn(state, ArcDegrees(vCmd)),
+                            contours,
+                            stack,
+                            pen
+                        )
+                        : let(
+                            radius = ArcRadius(vCmd),
+                            degrees = ArcDegrees(vCmd),
+                            scaledRadius = radius * state[SS],
+                            segments = ArcSegmentCount(vCmd, state),
+                            arcPoints = ArcPoints(
+                                state,
+                                scaledRadius,
+                                degrees,
+                                segments
+                            ),
+                            nextState = stateArc(state, radius, degrees, state[SS]),
+                            nextContours =
+                                (pen == PEN_DOWN)
+                                    ? AddPointsToContours(contours, arcPoints)
+                                    : contours
+                        )
+                        EvalResult(nextState, nextContours, stack, pen);
 
 // Handle RUN.
 //
@@ -645,6 +807,8 @@ function EvalOpcode(vCmd, state, contours, stack, pen, maxRec) =
         ? EvalPenUp(vCmd, state, contours, stack, pen)
     : (vCmd[COP] == PENDOWN)
         ? EvalPenDown(vCmd, state, contours, stack, pen)
+    : (vCmd[COP] == ARC)
+        ? EvalArc(vCmd, state, contours, stack, pen)
     : (vCmd[COP] == REPEAT)
         ? EvalRepeat(vCmd, state, contours, stack, pen, maxRec)
     : let(

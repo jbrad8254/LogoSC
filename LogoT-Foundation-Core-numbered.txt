@@ -1,0 +1,958 @@
+0001: // ============================================================================
+0002: // LogoT-Foundation Core
+0003: //
+0004: // Core interpreter and renderer.
+0005: // See LogoT-README.md for overview, command reference, and roadmap.
+0006: // ============================================================================
+0007: 
+0008: // -----------------------------------------------------------------------------
+0009: // LogoT-Foundation
+0010: //
+0011: // OpenSCAD Logo / Logo-style command evaluator.
+0012: // Interpreter uses one Eval* handler function per opcode.
+0013: //
+0014: // This split-file baseline contains core interpreter controls, constants,
+0015: // state functions, trace functions, opcode handlers, and evaluator logic.
+0016: // The companion LogoT-Foundation-Tests.scad file is included at parse time
+0017: // below, with test execution gated by RunLogoTests.
+0018: //
+0019: // Command format:
+0020: //     [MOVE,   len]
+0021: //     [TURN,   deltaHeading]
+0022: //     [DIR,    absoluteHeading]
+0023: //     [SCALE,  scaleMultiplier]
+0024: //     [GOTO,   x, y, heading]
+0025: //
+0026: //     [ARC,    radius, degrees]
+0027: //     [ARC,    radius, degrees, segments]
+0028: //
+0029: //     [RUN,    cmds]
+0030: //     [RUN,    cmds, scale]
+0031: //     [RUN,    cmds, scale, maxRec]
+0032: //
+0033: //     [PUSH]
+0034: //         Saves the current Logo state [x, y, heading, scale] onto the
+0035: //         interpreter state stack.
+0036: //
+0037: //     [POP]
+0038: //         Restores the most recently pushed Logo state. If the stack is empty,
+0039: //         this reports a soft error and continues when HardErrors = false.
+0040: //
+0041: //     [PENUP]
+0042: //         Stops adding MOVE/GOTO/ARC destinations to the current contour. Logo
+0043: //         position and heading still change.
+0044: //
+0045: //     [PENDOWN]
+0046: //         Starts a new contour at the current Logo location and resumes adding
+0047: //         MOVE/GOTO/ARC destinations.
+0048: //
+0049: //     [REPEAT, count, cmds]
+0050: //         Executes cmds count times. The command body can contain MOVE, TURN,
+0051: //         RUN, ARC, PUSH, POP, PENUP, PENDOWN, nested REPEAT, and other supported
+0052: //         Logo commands.
+0053: //
+0054: // RUN defaults:
+0055: //     scale  = 1
+0056: //     maxRec = 2
+0057: //
+0058: // Rendering model:
+0059: //     LogoT now returns multiple contours. Each contour is rendered with a
+0060: //     separate polygon() call. Holes and open-stroke rendering are intentionally
+0061: //     deferred.
+0062: // -----------------------------------------------------------------------------
+0063: 
+0064: /* [LogoT Controls] */
+0065: 
+0066: // Circle divisions used for curved geometry. When $fn is greater than zero,
+0067: // it overrides $fa and $fs for automatic ARC tessellation. Set $fn to zero to
+0068: // use OpenSCAD-style $fa/$fs automatic fragment selection.
+0069: $fn = 256;     // [0:32:1024]
+0070: 
+0071: // Minimum fragment angle used for automatic ARC tessellation when $fn == 0.
+0072: $fa = 12;      // [1:1:90]
+0073: 
+0074: // Minimum fragment size used for automatic ARC tessellation when $fn == 0.
+0075: $fs = 2;       // [0.1:0.1:20]
+0076: 
+0077: // Enable hard-stop interpreter errors.
+0078: // false: print [ERROR] and continue the test suite.
+0079: // true: use assert() and stop immediately on serious interpreter errors.
+0080: HardErrors = false; // [false:true]
+0081: 
+0082: // Trace verbosity.
+0083: //
+0084: // 0 : No trace output.
+0085: // 1 : Major entry/exit messages and errors.
+0086: // 2 : Static command-list trace (TraceCmds) and summary information.
+0087: // 3 : Additional state/contour dumps.
+0088: // 4 : Full instruction-by-instruction execution trace from evalLogo().
+0089: //
+0090: // Higher levels include all lower levels.
+0091: TraceLevel = 2; // [0:4]
+0092: 
+0093: // Global safety limit for RUN command recursion inside evalLogo().
+0094: maxRunRecursions = 5; // [0:20]
+0095: 
+0096: // Default per-RUN recursion limit when RUN is written without maxRec.
+0097: DefaultRunMaxRecursions = 2; // [0:20]
+0098: 
+0099: // Default extrusion height used by LogoTest().
+0100: DefaultTestHeight = 5; // [1:1:20]
+0101: 
+0102: // Run regression tests from LogoT-Foundation-Tests.scad.
+0103: RunLogoTests = true; // [false:true]
+0104: 
+0105: // Non-fatal error helper for use inside functions.
+0106: function ErrorOrZero(msg, value = undef) =
+0107:     HardErrors
+0108:         ? assert(false, msg) 0
+0109:         : echo("[ERROR]", msg, value) 0;
+0110: 
+0111: function SoftError(msg, value = undef) =
+0112:     ErrorOrZero(msg, value);
+0113: 
+0114: // -----------------------------------------------------------------------------
+0115: // Logo command opcodes
+0116: // -----------------------------------------------------------------------------
+0117: // The '+ 0' keeps implementation constants out of the OpenSCAD Customizer.
+0118: MOVE    = 0 + 0;  // [MOVE, len]
+0119: TURN    = 1 + 0;  // [TURN, deltaHeading]
+0120: DIR     = 2 + 0;  // [DIR, absoluteHeading]
+0121: SCALE   = 3 + 0;  // [SCALE, scaleMultiplier]
+0122: GOTO    = 4 + 0;  // [GOTO, x, y, heading]
+0123: RUN     = 5 + 0;  // [RUN, cmds], [RUN, cmds, scale], [RUN, cmds, scale, maxRec]
+0124: PUSH    = 6 + 0;  // [PUSH] saves current Logo state on the stack.
+0125: POP     = 7 + 0;  // [POP] restores the most recently pushed Logo state.
+0126: REPEAT  = 8 + 0;  // [REPEAT, count, cmds] executes cmds count times.
+0127: PENUP   = 9 + 0;  // [PENUP] disables point emission while movement continues.
+0128: PENDOWN = 10 + 0; // [PENDOWN] starts a new contour and resumes point emission.
+0129: ARC     = 11 + 0; // [ARC, radius, degrees], [ARC, radius, degrees, segments]
+0130: 
+0131: // Mathematical constants.
+0132: LOGOT_PI = 3.141592653589793 + 0;
+0133: 
+0134: // -----------------------------------------------------------------------------
+0135: // Logo state indices: [x, y, heading, scale]
+0136: // -----------------------------------------------------------------------------
+0137: SX = 0 + 0;
+0138: SY = 1 + 0;
+0139: SH = 2 + 0;
+0140: SS = 3 + 0;
+0141: 
+0142: // -----------------------------------------------------------------------------
+0143: // Pen state values
+0144: // -----------------------------------------------------------------------------
+0145: PEN_UP   = 0 + 0;
+0146: PEN_DOWN = 1 + 0;
+0147: 
+0148: // -----------------------------------------------------------------------------
+0149: // Command field indices
+0150: // -----------------------------------------------------------------------------
+0151: COP = 0 + 0;
+0152: CA1 = 1 + 0;
+0153: CA2 = 2 + 0;
+0154: CA3 = 3 + 0;
+0155: 
+0156: // -----------------------------------------------------------------------------
+0157: // Evaluator result indices: [state, contours, stack, pen]
+0158: // -----------------------------------------------------------------------------
+0159: ER_STATE    = 0 + 0;
+0160: ER_CONTOURS = 1 + 0;
+0161: ER_STACK    = 2 + 0;
+0162: ER_PEN      = 3 + 0;
+0163: 
+0164: // Access an optional command argument.
+0165: //
+0166: // Returns defaultValue if the requested command field is absent or undef.
+0167: function CmdArg(vCmd, fieldIndex, defaultValue = undef) =
+0168:     (vCmd != undef && len(vCmd) > fieldIndex && vCmd[fieldIndex] != undef)
+0169:         ? vCmd[fieldIndex]
+0170:         : defaultValue;
+0171: 
+0172: // Construct an evaluator result vector [state, contours, stack, pen].
+0173: function EvalResult(state, contours, stack, pen) =
+0174: [
+0175:     state,
+0176:     contours,
+0177:     stack,
+0178:     pen
+0179: ];
+0180: 
+0181: function ResultState(result) =
+0182:     result[ER_STATE];
+0183: 
+0184: function ResultContours(result) =
+0185:     result[ER_CONTOURS];
+0186: 
+0187: function ResultStack(result) =
+0188:     result[ER_STACK];
+0189: 
+0190: function ResultPen(result) =
+0191:     result[ER_PEN];
+0192: 
+0193: // Return the current contour from a contour list.
+0194: function CurrentContour(contours) =
+0195:     (len(contours) == 0)
+0196:         ? []
+0197:         : contours[len(contours) - 1];
+0198: 
+0199: // Replace the current contour in a contour list.
+0200: function ReplaceCurrentContour(contours, contour) =
+0201:     (len(contours) == 0)
+0202:         ? [contour]
+0203:         :
+0204:         [
+0205:             for (i = [0 : len(contours) - 1])
+0206:                 (i == len(contours) - 1) ? contour : contours[i]
+0207:         ];
+0208: 
+0209: // Append a point to the current contour, creating one if needed.
+0210: function AddPointToContours(contours, point) =
+0211:     ReplaceCurrentContour(
+0212:         contours,
+0213:         concat(CurrentContour(contours), [point])
+0214:     );
+0215: 
+0216: // Append a point list to the current contour, creating one if needed.
+0217: function AddPointsToContours(contours, points) =
+0218:     ReplaceCurrentContour(
+0219:         contours,
+0220:         concat(CurrentContour(contours), points)
+0221:     );
+0222: 
+0223: // Start a new contour at the current Logo state.
+0224: function StartContour(contours, state) =
+0225:     concat(contours, [[[state[SX], state[SY]]]]);
+0226: 
+0227: // Count total points across all contours.
+0228: //
+0229: // Expected recursive use:
+0230: //     Calls itself with index + 1 until every contour has been counted.
+0231: function CountContourPoints(contours, index = 0) =
+0232:     (index >= len(contours))
+0233:         ? 0
+0234:         : len(contours[index]) + CountContourPoints(contours, index + 1);
+0235: 
+0236: // Return the smaller of two scalar values.
+0237: function min2(a, b) =
+0238:     (a < b) ? a : b;
+0239: 
+0240: // Return the larger of two scalar values.
+0241: function max2(a, b) =
+0242:     (a > b) ? a : b;
+0243: 
+0244: // Construct a Logo state vector [x, y, heading, scale].
+0245: function stateMake(x, y, heading, scale) =
+0246: [
+0247:     x,
+0248:     y,
+0249:     heading,
+0250:     scale
+0251: ];
+0252: 
+0253: // Create a new absolute Logo state at x/y with heading h and scale s.
+0254: function stateGoto(x, y, h, s = 1) =
+0255:     stateMake(x, y, h, s);
+0256: 
+0257: // Low-level Logo state transform: move by len * scale along the current heading.
+0258: function stateMove(vState, len, scale) =
+0259:     let(
+0260:         h = vState[SH],
+0261:         x = vState[SX] + scale * len * cos(h),
+0262:         y = vState[SY] + scale * len * sin(h),
+0263:         s = vState[SS]
+0264:     )
+0265:     stateMake(x, y, h, s);
+0266: 
+0267: // Low-level Logo state transform: rotate heading by a relative angle.
+0268: function stateTurn(vState, dh) =
+0269:     let(
+0270:         x = vState[SX],
+0271:         y = vState[SY],
+0272:         h = vState[SH] + dh,
+0273:         s = vState[SS]
+0274:     )
+0275:     stateMake(x, y, h, s);
+0276: 
+0277: // Low-level Logo state transform: set the heading to an absolute angle.
+0278: function stateDir(vState, absh) =
+0279:     let(
+0280:         x = vState[SX],
+0281:         y = vState[SY],
+0282:         h = absh,
+0283:         s = vState[SS]
+0284:     )
+0285:     stateMake(x, y, h, s);
+0286: 
+0287: // Low-level Logo state transform: multiply the movement scale.
+0288: function stateScale(vState, ss) =
+0289:     let(
+0290:         x = vState[SX],
+0291:         y = vState[SY],
+0292:         h = vState[SH],
+0293:         s = vState[SS] * ss
+0294:     )
+0295:     stateMake(x, y, h, s);
+0296: 
+0297: // Return the side of the heading vector used as the center of curvature.
+0298: function ArcSign(degrees) =
+0299:     (degrees >= 0) ? 1 : -1;
+0300: 
+0301: // Return the center point for an arc beginning at vState.
+0302: function ArcCenter(vState, scaledRadius, degrees) =
+0303:     let(
+0304:         side = ArcSign(degrees),
+0305:         h = vState[SH]
+0306:     )
+0307:     [
+0308:         vState[SX] - side * scaledRadius * sin(h),
+0309:         vState[SY] + side * scaledRadius * cos(h)
+0310:     ];
+0311: 
+0312: // Return one tessellated point along an arc.
+0313: function ArcPoint(vState, scaledRadius, degrees, fraction) =
+0314:     let(
+0315:         side = ArcSign(degrees),
+0316:         center = ArcCenter(vState, scaledRadius, degrees),
+0317:         radialAngle = vState[SH] - side * 90 + degrees * fraction
+0318:     )
+0319:     [
+0320:         center[0] + scaledRadius * cos(radialAngle),
+0321:         center[1] + scaledRadius * sin(radialAngle)
+0322:     ];
+0323: 
+0324: // Return the tessellated point list for an arc, excluding the starting point.
+0325: function ArcPoints(vState, scaledRadius, degrees, segments) =
+0326:     [
+0327:         for (i = [1 : segments])
+0328:             ArcPoint(vState, scaledRadius, degrees, i / segments)
+0329:     ];
+0330: 
+0331: // Low-level Logo state transform: follow a circular arc.
+0332: function stateArc(vState, radius, degrees, scale) =
+0333:     let(
+0334:         scaledRadius = radius * scale,
+0335:         nextPoint = ArcPoint(vState, scaledRadius, degrees, 1)
+0336:     )
+0337:     stateMake(
+0338:         nextPoint[0],
+0339:         nextPoint[1],
+0340:         vState[SH] + degrees,
+0341:         vState[SS]
+0342:     );
+0343: 
+0344: 
+0345: // -----------------------------------------------------------------------------
+0346: // RUN, REPEAT, and ARC command helpers
+0347: // -----------------------------------------------------------------------------
+0348: 
+0349: // Extract the child command list from a RUN command.
+0350: function RunCmds(logoCmd) =
+0351:     CmdArg(logoCmd, CA1, []);
+0352: 
+0353: // Extract the optional RUN scale; defaults to 1.
+0354: function RunScale(logoCmd) =
+0355:     CmdArg(logoCmd, CA2, 1);
+0356: 
+0357: // Extract the optional RUN recursion limit; defaults to DefaultRunMaxRecursions.
+0358: function RunMaxRec(logoCmd) =
+0359:     CmdArg(logoCmd, CA3, DefaultRunMaxRecursions);
+0360: 
+0361: // Extract the repeat count from a REPEAT command.
+0362: function RepeatCount(logoCmd) =
+0363:     CmdArg(logoCmd, CA1, 0);
+0364: 
+0365: // Extract the child command list from a REPEAT command.
+0366: function RepeatCmds(logoCmd) =
+0367:     CmdArg(logoCmd, CA2, []);
+0368: 
+0369: // Extract the ARC radius.
+0370: function ArcRadius(logoCmd) =
+0371:     CmdArg(logoCmd, CA1, 0);
+0372: 
+0373: // Extract the ARC angle in degrees.
+0374: function ArcDegrees(logoCmd) =
+0375:     CmdArg(logoCmd, CA2, 0);
+0376: 
+0377: // Return true when an ARC command contains an explicit segment count.
+0378: function ArcHasExplicitSegments(logoCmd) =
+0379:     len(logoCmd) > CA3 && logoCmd[CA3] != undef;
+0380: 
+0381: // Extract the explicit ARC segment count, if present.
+0382: function ArcExplicitSegments(logoCmd) =
+0383:     floor(CmdArg(logoCmd, CA3, 0));
+0384: 
+0385: // Compute the OpenSCAD-style full-circle fragment count for an effective radius.
+0386: function ArcFullFragments(effectiveRadius) =
+0387:     ($fn > 0)
+0388:         ? max2(3, floor($fn))
+0389:         : ceil(
+0390:             max2(
+0391:                 min2(
+0392:                     360 / max2($fa, 0.01),
+0393:                     2 * LOGOT_PI * abs(effectiveRadius) / max2($fs, 0.01)
+0394:                 ),
+0395:                 5
+0396:             )
+0397:         );
+0398: 
+0399: // Compute automatic ARC segment count from OpenSCAD-style fragment controls.
+0400: function ArcAutoSegments(effectiveRadius, degrees) =
+0401:     max2(1, ceil(ArcFullFragments(effectiveRadius) * abs(degrees) / 360));
+0402: 
+0403: // Return the effective ARC segment count for a command in the current state.
+0404: function ArcSegmentCount(logoCmd, state) =
+0405:     ArcHasExplicitSegments(logoCmd)
+0406:         ? ArcExplicitSegments(logoCmd)
+0407:         : ArcAutoSegments(ArcRadius(logoCmd) * state[SS], ArcDegrees(logoCmd));
+0408: 
+0409: // Convert an opcode to a printable command name.
+0410: function CmdName(op) =
+0411:       (op == MOVE)   ? "MOVE"
+0412:     : (op == TURN)   ? "TURN"
+0413:     : (op == DIR)    ? "DIR"
+0414:     : (op == SCALE)  ? "SCALE"
+0415:     : (op == GOTO)   ? "GOTO"
+0416:     : (op == RUN)    ? "RUN"
+0417:     : (op == PUSH)   ? "PUSH"
+0418:     : (op == POP)    ? "POP"
+0419:     : (op == REPEAT) ? "REPEAT"
+0420:     : (op == PENUP)  ? "PENUP"
+0421:     : (op == PENDOWN)? "PENDOWN"
+0422:     : (op == ARC)    ? "ARC"
+0423:     : str("UNKNOWN(", op, ")");
+0424: 
+0425: // Emit one command-execution trace line from inside a function.
+0426: function TraceExec(level, index, state, vCmd, tag = "TRACE") =
+0427:     (level <= TraceLevel)
+0428:         ? echo(
+0429:             str("[", tag, "]"),
+0430:             "index=", index,
+0431:             "op=", (vCmd == undef) ? "UNDEF" : CmdName(vCmd[COP]),
+0432:             "pos=", [state[SX], state[SY]],
+0433:             "heading=", state[SH],
+0434:             "scale=", state[SS],
+0435:             "cmd=", vCmd
+0436:           )
+0437:           0
+0438:         : 0;
+0439: 
+0440: // Emit one generic trace message from inside a function.
+0441: function TraceMsg(level, msg, value = undef, tag = "TRACE") =
+0442:     (level <= TraceLevel)
+0443:         ? echo(str("[", tag, "]"), msg, value) 0
+0444:         : 0;
+0445: 
+0446: // Print a static trace line for one command. Used by TraceCmds().
+0447: module TraceCmd(level, index, state, vCmd, indent = "")
+0448: {
+0449:     if (level <= TraceLevel)
+0450:     {
+0451:         echo(
+0452:             indent,
+0453:             "[", index, "] ",
+0454:             (vCmd == undef) ? "UNDEF" : CmdName(vCmd[COP]),
+0455:             " Pos=(",
+0456:             state[SX], ",", state[SY],
+0457:             ") H=", state[SH],
+0458:             " S=", state[SS],
+0459:             " Cmd=", vCmd
+0460:         );
+0461:     }
+0462: }
+0463: 
+0464: // Recursively print the static structure of a command list.
+0465: //
+0466: // Expected recursive use:
+0467: //     Calls itself when a RUN or REPEAT command contains a nonempty child list.
+0468: module TraceCmds(
+0469:     vtCmds,
+0470:     state = stateGoto(0, 0, 0, 1),
+0471:     indent = "",
+0472:     maxRec = DefaultRunMaxRecursions,
+0473:     level = 2)
+0474: {
+0475:     if (maxRec < 0)
+0476:     {
+0477:         echo(indent, "*** Maximum trace recursion exceeded ***");
+0478:     }
+0479:     else if (len(vtCmds) == 0)
+0480:     {
+0481:         echo(indent, "<empty command list>");
+0482:     }
+0483:     else
+0484:     {
+0485:         for (i = [0 : len(vtCmds) - 1])
+0486:         {
+0487:             cmd = vtCmds[i];
+0488:             TraceCmd(level, i, state, cmd, indent);
+0489: 
+0490:             if (cmd[COP] == RUN)
+0491:             {
+0492:                 childCmds = RunCmds(cmd);
+0493: 
+0494:                 if (len(childCmds) == 0)
+0495:                 {
+0496:                     echo(str(indent, "    "), "<empty command list>");
+0497:                 }
+0498:                 else
+0499:                 {
+0500:                     TraceCmds(
+0501:                         childCmds,
+0502:                         state,
+0503:                         str(indent, "    "),
+0504:                         min2(maxRec - 1, RunMaxRec(cmd) - 1),
+0505:                         level
+0506:                     );
+0507:                 }
+0508:             }
+0509:             else if (cmd[COP] == REPEAT)
+0510:             {
+0511:                 echo(
+0512:                     str(indent, "    "),
+0513:                     "REPEAT count=",
+0514:                     RepeatCount(cmd),
+0515:                     " childCmds=",
+0516:                     len(RepeatCmds(cmd))
+0517:                 );
+0518: 
+0519:                 TraceCmds(
+0520:                     RepeatCmds(cmd),
+0521:                     state,
+0522:                     str(indent, "    "),
+0523:                     maxRec,
+0524:                     level
+0525:                 );
+0526:             }
+0527:         }
+0528:     }
+0529: }
+0530: 
+0531: // -----------------------------------------------------------------------------
+0532: // Evaluator
+0533: // -----------------------------------------------------------------------------
+0534: 
+0535: // Handler result format:
+0536: //     EvalResult(nextState, nextContours, nextStack, nextPen)
+0537: //
+0538: // Each opcode handler returns this format so evalLogo() can remain a compact
+0539: // dispatcher. This also keeps opcode-specific behavior localized.
+0540: 
+0541: // Handle MOVE.
+0542: //
+0543: // Moves the Logo. If the pen is down, adds the destination point to the
+0544: // current contour. If the pen is up, only the state changes.
+0545: function EvalMove(vCmd, state, contours, stack, pen) =
+0546:     (len(vCmd) <= CA1)
+0547:         ? let(
+0548:             _err = SoftError("Malformed MOVE command", vCmd)
+0549:         )
+0550:         EvalResult(state, contours, stack, pen)
+0551:         : let(
+0552:             nextState = stateMove(state, CmdArg(vCmd, CA1), state[SS]),
+0553:             nextPoint = [nextState[SX], nextState[SY]],
+0554:             nextContours =
+0555:                 (pen == PEN_DOWN)
+0556:                     ? AddPointToContours(contours, nextPoint)
+0557:                     : contours
+0558:         )
+0559:         EvalResult(nextState, nextContours, stack, pen);
+0560: 
+0561: // Handle GOTO.
+0562: //
+0563: // Sets absolute position and heading, preserving the current movement scale. If
+0564: // the pen is down, the destination point is added to the current contour.
+0565: function EvalGoto(vCmd, state, contours, stack, pen) =
+0566:     (len(vCmd) <= CA3)
+0567:         ? let(
+0568:             _err = SoftError("Malformed GOTO command", vCmd)
+0569:         )
+0570:         EvalResult(state, contours, stack, pen)
+0571:         : let(
+0572:             nextState = stateGoto(
+0573:                 CmdArg(vCmd, CA1),
+0574:                 CmdArg(vCmd, CA2),
+0575:                 CmdArg(vCmd, CA3),
+0576:                 state[SS]
+0577:             ),
+0578:             nextPoint = [nextState[SX], nextState[SY]],
+0579:             nextContours =
+0580:                 (pen == PEN_DOWN)
+0581:                     ? AddPointToContours(contours, nextPoint)
+0582:                     : contours
+0583:         )
+0584:         EvalResult(nextState, nextContours, stack, pen);
+0585: 
+0586: // Handle TURN.
+0587: //
+0588: // Changes heading by a relative angle.
+0589: function EvalTurn(vCmd, state, contours, stack, pen) =
+0590:     (len(vCmd) <= CA1)
+0591:         ? let(
+0592:             _err = SoftError("Malformed TURN command", vCmd)
+0593:         )
+0594:         EvalResult(state, contours, stack, pen)
+0595:         : EvalResult(stateTurn(state, CmdArg(vCmd, CA1)), contours, stack, pen);
+0596: 
+0597: // Handle DIR.
+0598: //
+0599: // Sets heading to an absolute angle.
+0600: function EvalDir(vCmd, state, contours, stack, pen) =
+0601:     (len(vCmd) <= CA1)
+0602:         ? let(
+0603:             _err = SoftError("Malformed DIR command", vCmd)
+0604:         )
+0605:         EvalResult(state, contours, stack, pen)
+0606:         : EvalResult(stateDir(state, CmdArg(vCmd, CA1)), contours, stack, pen);
+0607: 
+0608: // Handle SCALE.
+0609: //
+0610: // Multiplies the current movement scale.
+0611: function EvalScale(vCmd, state, contours, stack, pen) =
+0612:     (len(vCmd) <= CA1)
+0613:         ? let(
+0614:             _err = SoftError("Malformed SCALE command", vCmd)
+0615:         )
+0616:         EvalResult(state, contours, stack, pen)
+0617:         : EvalResult(stateScale(state, CmdArg(vCmd, CA1)), contours, stack, pen);
+0618: 
+0619: // Handle PUSH.
+0620: //
+0621: // Saves the full Logo state [x, y, heading, scale].
+0622: function EvalPush(vCmd, state, contours, stack, pen) =
+0623:     EvalResult(state, contours, concat(stack, [state]), pen);
+0624: 
+0625: // Handle POP.
+0626: //
+0627: // Restores the most recently pushed Logo state. It does not draw a connector
+0628: // line. If the pen is down and the restored state should begin a new polygon,
+0629: // use PENUP before POP and PENDOWN after POP.
+0630: function EvalPop(vCmd, state, contours, stack, pen) =
+0631:     (len(stack) == 0)
+0632:         ? let(
+0633:             _err = SoftError("POP with empty state stack", vCmd)
+0634:         )
+0635:         EvalResult(state, contours, stack, pen)
+0636:         : let(
+0637:             restoredState = stack[len(stack) - 1],
+0638:             nextStack =
+0639:                 (len(stack) <= 1)
+0640:                     ? []
+0641:                     :
+0642:                     [
+0643:                         for (i = [0 : len(stack) - 2])
+0644:                             stack[i]
+0645:                     ]
+0646:         )
+0647:         EvalResult(restoredState, contours, nextStack, pen);
+0648: 
+0649: // Handle PENUP.
+0650: //
+0651: // Stops adding MOVE/GOTO destinations to contours.
+0652: function EvalPenUp(vCmd, state, contours, stack, pen) =
+0653:     EvalResult(state, contours, stack, PEN_UP);
+0654: 
+0655: // Handle PENDOWN.
+0656: //
+0657: // Starts a new contour at the current Logo location and resumes adding
+0658: // MOVE/GOTO/ARC destinations. If the pen is already down, this still starts a new
+0659: // contour, which is useful for intentionally disconnected polygons.
+0660: function EvalPenDown(vCmd, state, contours, stack, pen) =
+0661:     EvalResult(state, StartContour(contours, state), stack, PEN_DOWN);
+0662: 
+0663: // Handle ARC.
+0664: //
+0665: // Tessellates a circular arc into contour points. Positive angles turn left;
+0666: // negative angles turn right. The final heading changes by the requested angle.
+0667: function EvalArc(vCmd, state, contours, stack, pen) =
+0668:     (len(vCmd) <= CA2)
+0669:         ? let(
+0670:             _err = SoftError("Malformed ARC command", vCmd)
+0671:         )
+0672:         EvalResult(state, contours, stack, pen)
+0673:         : (ArcRadius(vCmd) < 0)
+0674:             ? let(
+0675:                 _err = SoftError("ARC radius must be nonnegative", vCmd)
+0676:             )
+0677:             EvalResult(state, contours, stack, pen)
+0678:             : (ArcHasExplicitSegments(vCmd) && ArcExplicitSegments(vCmd) <= 0)
+0679:                 ? let(
+0680:                     _err = SoftError("ARC segment count must be positive", vCmd)
+0681:                 )
+0682:                 EvalResult(state, contours, stack, pen)
+0683:                 : (ArcDegrees(vCmd) == 0)
+0684:                     ? EvalResult(state, contours, stack, pen)
+0685:                     : (ArcRadius(vCmd) == 0 || ArcRadius(vCmd) * state[SS] == 0)
+0686:                         ? EvalResult(
+0687:                             stateTurn(state, ArcDegrees(vCmd)),
+0688:                             contours,
+0689:                             stack,
+0690:                             pen
+0691:                         )
+0692:                         : let(
+0693:                             radius = ArcRadius(vCmd),
+0694:                             degrees = ArcDegrees(vCmd),
+0695:                             scaledRadius = radius * state[SS],
+0696:                             segments = ArcSegmentCount(vCmd, state),
+0697:                             arcPoints = ArcPoints(
+0698:                                 state,
+0699:                                 scaledRadius,
+0700:                                 degrees,
+0701:                                 segments
+0702:                             ),
+0703:                             nextState = stateArc(state, radius, degrees, state[SS]),
+0704:                             nextContours =
+0705:                                 (pen == PEN_DOWN)
+0706:                                     ? AddPointsToContours(contours, arcPoints)
+0707:                                     : contours
+0708:                         )
+0709:                         EvalResult(nextState, nextContours, stack, pen);
+0710: 
+0711: // Handle RUN.
+0712: //
+0713: // Expected recursive use:
+0714: //     Calls evalLogoR() to evaluate the child command list.
+0715: //
+0716: // Notes:
+0717: //     Empty child command lists are legal no-ops. Recursion-limit exhaustion is
+0718: //     also treated as a soft no-op/error so test suites can continue.
+0719: function EvalRun(vCmd, state, contours, stack, pen, maxRec) =
+0720:     let(
+0721:         childCmds = RunCmds(vCmd),
+0722:         localMaxRec = RunMaxRec(vCmd)
+0723:     )
+0724:     (len(childCmds) == 0)
+0725:         ? EvalResult(state, contours, stack, pen)
+0726:         : (maxRec <= 0 || localMaxRec <= 0)
+0727:             ? let(
+0728:                 _err = SoftError("RUN recursion limit reached", vCmd)
+0729:             )
+0730:             EvalResult(state, contours, stack, pen)
+0731:             : let(
+0732:                 nextMaxRec = min2(maxRec - 1, localMaxRec - 1),
+0733:                 nextScale = RunScale(vCmd) * state[SS],
+0734:                 nextState = stateMake(
+0735:                     state[SX],
+0736:                     state[SY],
+0737:                     state[SH],
+0738:                     nextScale
+0739:                 ),
+0740:                 recResult = evalLogoR(
+0741:                     childCmds,
+0742:                     nextState,
+0743:                     0,
+0744:                     nextMaxRec,
+0745:                     [],
+0746:                     stack,
+0747:                     pen
+0748:                 ),
+0749:                 recState = ResultState(recResult),
+0750:                 recContours = ResultContours(recResult),
+0751:                 recStack = ResultStack(recResult),
+0752:                 recPen = ResultPen(recResult),
+0753:                 nextContours = concat(contours, recContours)
+0754:             )
+0755:             EvalResult(recState, nextContours, recStack, recPen);
+0756: 
+0757: // Handle REPEAT.
+0758: //
+0759: // Expected recursive use:
+0760: //     Calls evalRepeatLogo(), which calls evalLogo() once per iteration.
+0761: function EvalRepeat(vCmd, state, contours, stack, pen, maxRec) =
+0762:     (len(vCmd) <= CA2)
+0763:         ? let(
+0764:             _err = SoftError("Malformed REPEAT command", vCmd)
+0765:         )
+0766:         EvalResult(state, contours, stack, pen)
+0767:         : let(
+0768:             repeatCount = RepeatCount(vCmd),
+0769:             childCmds = RepeatCmds(vCmd)
+0770:         )
+0771:         (repeatCount <= 0 || len(childCmds) == 0)
+0772:             ? EvalResult(state, contours, stack, pen)
+0773:             : evalRepeatLogo(
+0774:                 childCmds,
+0775:                 repeatCount,
+0776:                 state,
+0777:                 maxRec,
+0778:                 contours,
+0779:                 stack,
+0780:                 pen
+0781:             );
+0782: 
+0783: // Dispatch one Logo command to its opcode handler.
+0784: function EvalOpcode(vCmd, state, contours, stack, pen, maxRec) =
+0785:       (vCmd == undef)
+0786:         ? let(
+0787:             _err = SoftError("Empty or out-of-range command list", undef)
+0788:         )
+0789:         EvalResult(state, contours, stack, pen)
+0790:     : (vCmd[COP] == MOVE)
+0791:         ? EvalMove(vCmd, state, contours, stack, pen)
+0792:     : (vCmd[COP] == TURN)
+0793:         ? EvalTurn(vCmd, state, contours, stack, pen)
+0794:     : (vCmd[COP] == DIR)
+0795:         ? EvalDir(vCmd, state, contours, stack, pen)
+0796:     : (vCmd[COP] == SCALE)
+0797:         ? EvalScale(vCmd, state, contours, stack, pen)
+0798:     : (vCmd[COP] == GOTO)
+0799:         ? EvalGoto(vCmd, state, contours, stack, pen)
+0800:     : (vCmd[COP] == RUN)
+0801:         ? EvalRun(vCmd, state, contours, stack, pen, maxRec)
+0802:     : (vCmd[COP] == PUSH)
+0803:         ? EvalPush(vCmd, state, contours, stack, pen)
+0804:     : (vCmd[COP] == POP)
+0805:         ? EvalPop(vCmd, state, contours, stack, pen)
+0806:     : (vCmd[COP] == PENUP)
+0807:         ? EvalPenUp(vCmd, state, contours, stack, pen)
+0808:     : (vCmd[COP] == PENDOWN)
+0809:         ? EvalPenDown(vCmd, state, contours, stack, pen)
+0810:     : (vCmd[COP] == ARC)
+0811:         ? EvalArc(vCmd, state, contours, stack, pen)
+0812:     : (vCmd[COP] == REPEAT)
+0813:         ? EvalRepeat(vCmd, state, contours, stack, pen, maxRec)
+0814:     : let(
+0815:         _err = SoftError(str("Invalid Logo command: ", CmdName(vCmd[COP])), vCmd)
+0816:     )
+0817:     EvalResult(state, contours, stack, pen);
+0818: 
+0819: // Evaluate a child Logo command list.
+0820: //
+0821: // Expected recursive use:
+0822: //     Called by EvalRun() when a RUN command expands a child command list.
+0823: //
+0824: // Notes:
+0825: //     Empty command lists are legal no-ops. This is useful for recursive command
+0826: //     generators whose base case returns [].
+0827: function evalLogoR(
+0828:     vtCmds,
+0829:     state,
+0830:     index,
+0831:     maxRec,
+0832:     contours = [],
+0833:     stack = [],
+0834:     pen = PEN_DOWN
+0835: ) =
+0836:     let(
+0837:         _traceEnter = TraceMsg(1, "evalLogoR Enter", maxRunRecursions - maxRec)
+0838:     )
+0839:     (maxRec == undef || maxRec < 0 || maxRec >= 100)
+0840:         ? let(
+0841:             _err = SoftError("Bad recursion depth", maxRec)
+0842:         )
+0843:         EvalResult(state, contours, stack, pen)
+0844:         : let(
+0845:             result = evalLogo(vtCmds, state, index, maxRec, contours, stack, pen),
+0846:             _traceExit = TraceMsg(1, "evalLogoR Exit", maxRunRecursions - maxRec),
+0847:             _traceState = TraceMsg(2, "evalLogoR State", ResultState(result)),
+0848:             _traceContours = TraceMsg(
+0849:                 3,
+0850:                 "evalLogoR Contours",
+0851:                 [len(ResultContours(result)), CountContourPoints(ResultContours(result))]
+0852:             )
+0853:         )
+0854:         result;
+0855: 
+0856: // Evaluate Logo commands into a final Logo state and a contour list.
+0857: //
+0858: // Expected recursive use:
+0859: //     This function calls itself to iterate through a command list. It also calls
+0860: //     evalLogoR() to evaluate RUN child command lists.
+0861: //
+0862: // State stack:
+0863: //     PUSH saves the current Logo state.
+0864: //     POP restores the most recently saved Logo state.
+0865: //
+0866: // Pen state:
+0867: //     PENUP stops point emission.
+0868: //     PENDOWN starts a new contour and resumes point emission.
+0869: //
+0870: // Returns:
+0871: //     EvalResult(finalState, contours, stack, pen)
+0872: //
+0873: // Soft-error behavior:
+0874: //     If HardErrors is false, bad commands are reported with [ERROR] and treated
+0875: //     as no-ops so the full test suite can continue.
+0876: function evalLogo(
+0877:     vtCmds,
+0878:     state = stateGoto(0, 0, 0, 1),
+0879:     index = 0,
+0880:     maxRec = maxRunRecursions,
+0881:     contours = [[]],
+0882:     stack = [],
+0883:     pen = PEN_DOWN
+0884: ) =
+0885:     let(
+0886:         vCmd = (len(vtCmds) == 0 || index >= len(vtCmds)) ? undef : vtCmds[index],
+0887:         _traceIndex = TraceMsg(
+0888:             2,
+0889:             "evalLogo index/maxRec",
+0890:             [index, len(vtCmds), maxRec]
+0891:         ),
+0892:         _traceState = TraceMsg(
+0893:             3,
+0894:             "evalLogo State/Contours/Stack/Pen",
+0895:             [state, contours, stack, pen]
+0896:         ),
+0897:         _traceCmd = (vCmd == undef)
+0898:             ? TraceMsg(1, "Empty or out-of-range command list", index)
+0899:             : TraceExec(4, index, state, vCmd),
+0900:         thisResult = EvalOpcode(vCmd, state, contours, stack, pen, maxRec)
+0901:     )
+0902:     (vCmd == undef)
+0903:         ? thisResult
+0904:         : (index < len(vtCmds) - 1)
+0905:             ? evalLogo(
+0906:                 vtCmds,
+0907:                 ResultState(thisResult),
+0908:                 index + 1,
+0909:                 maxRec,
+0910:                 ResultContours(thisResult),
+0911:                 ResultStack(thisResult),
+0912:                 ResultPen(thisResult)
+0913:             )
+0914:             : let(
+0915:                 _traceReturnState = TraceMsg(2, "evalLogo Returning state", ResultState(thisResult)),
+0916:                 _traceReturnContours = TraceMsg(
+0917:                     3,
+0918:                     "evalLogo Returning contours",
+0919:                     [len(ResultContours(thisResult)), CountContourPoints(ResultContours(thisResult))]
+0920:                 )
+0921:             )
+0922:             thisResult;
+0923: 
+0924: // Evaluate a REPEAT command body count times.
+0925: //
+0926: // Expected recursive use:
+0927: //     Calls itself with count - 1 until count <= 0.
+0928: function evalRepeatLogo(
+0929:     childCmds,
+0930:     count,
+0931:     state,
+0932:     maxRec,
+0933:     contours,
+0934:     stack,
+0935:     pen
+0936: ) =
+0937:     (count <= 0)
+0938:         ? EvalResult(state, contours, stack, pen)
+0939:         : let(
+0940:             result = evalLogo(childCmds, state, 0, maxRec, contours, stack, pen)
+0941:         )
+0942:         evalRepeatLogo(
+0943:             childCmds,
+0944:             count - 1,
+0945:             ResultState(result),
+0946:             maxRec,
+0947:             ResultContours(result),
+0948:             ResultStack(result),
+0949:             ResultPen(result)
+0950:         );
+0951: 
+0952: // -----------------------------------------------------------------------------
+0953: // Optional test-suite include
+0954: // -----------------------------------------------------------------------------
+0955: // OpenSCAD include/use directives are parse-time constructs, so this include is
+0956: // unconditional. Test execution is guarded in LogoT-Foundation-Tests.scad by
+0957: // RunLogoTests.
+0958: include <LogoT-Foundation-Tests.scad>

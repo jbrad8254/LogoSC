@@ -1,5 +1,25 @@
 # LogoT Changelog
 
+## LogoT-Geometry
+
+Initial geometry milestone.
+
+### Added
+
+- `ARC` command:
+  - `[ARC, radius, degrees]`
+  - `[ARC, radius, degrees, segments]`
+- ARC tessellation into contour points.
+- OpenSCAD-style automatic segment selection using `$fn`, `$fa`, and `$fs`.
+- ARC regression tests for quarter arcs, semicircles, full-circle-ish arcs, pen-up
+  arcs, REPEAT, RUN, scaled arcs, and rounded-rectangle construction.
+
+### Known limitations
+
+- No `CIRCLE` helper yet.
+- No `REGPOLY` helper yet.
+- ARC emits polygon contour points; open-stroke rendering is still deferred.
+
 ## LogoT-Foundation
 
 Initial stable foundation baseline.
@@ -45,4 +65,4 @@ Initial stable foundation baseline.
 - No stroke/open-path rendering yet.
 - No holes yet.
 - `polygon()` automatically closes each contour.
-- Geometry commands such as `ARC`, `CIRCLE`, and `REGPOLY` are deferred to `LogoT-Geometry`.
+- Geometry commands such as `CIRCLE` and `REGPOLY` are deferred to later `LogoT-Geometry` work.

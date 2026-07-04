@@ -101,6 +101,59 @@ module LogoTest(testName, vtCmds, testIndex = [0, BasicY], height = DefaultTestH
     echo("");
 }
 
+// Return true when two scalars are approximately equal.
+function LogoNearlyEqual(a, b, tol = 0.001) =
+    abs(a - b) <= tol;
+
+// Return true when two Logo states are approximately equal.
+function LogoStateNearlyEqual(a, b, tol = 0.001) =
+    LogoNearlyEqual(a[SX], b[SX], tol)
+    && LogoNearlyEqual(a[SY], b[SY], tol)
+    && LogoNearlyEqual(a[SH], b[SH], tol)
+    && LogoNearlyEqual(a[SS], b[SS], tol);
+
+// Soft assertion helper for validation-only tests.
+module LogoCheck(condition, msg, value = undef)
+{
+    if (!condition)
+    {
+        if (HardErrors)
+        {
+            assert(condition, str(msg, " ", value));
+        }
+        else
+        {
+            echo("[ERROR]", msg, value);
+        }
+    }
+}
+
+// Validate final state and total emitted point count for one ARC command list.
+module LogoCheckArcResult(
+    testName,
+    vtCmds,
+    expectedState,
+    expectedPointCount,
+    tol = 0.001)
+{
+    result = evalLogo(vtCmds);
+    state = ResultState(result);
+    contours = ResultContours(result);
+    pointCount = CountContourPoints(contours);
+
+    LogoCheck(
+        LogoStateNearlyEqual(state, expectedState, tol),
+        str("ARC validation failed: ", testName, " final state"),
+        [state, expectedState]
+    );
+
+    LogoCheck(
+        pointCount == expectedPointCount,
+        str("ARC validation failed: ", testName, " point count"),
+        [pointCount, expectedPointCount, contours]
+    );
+}
+
 // Basic Logo geometry regression suite.
 module TestBasicSuiteLogo()
 {
@@ -583,13 +636,139 @@ module TestPenSuiteLogo()
     LogoTest("REPEAT disconnected boxes", repeatDisconnected, [3, PenY]);
 }
 
+// ARC geometry regression suite.
+module TestArcSuiteLogo()
+{
+    ArcY = 5;
+
+    quarterArc =
+    [
+        [ARC, 10, 90, 8],
+        [GOTO, 0, 0, 0]
+    ];
+
+    semicircle =
+    [
+        [ARC, 10, 180, 16],
+        [GOTO, 0, 0, 0]
+    ];
+
+    circleish =
+    [
+        [ARC, 10, 360, 32]
+    ];
+
+    repeatArcs =
+    [
+        [REPEAT, 4,
+            [
+                [ARC, 10, 90, 8]
+            ]
+        ]
+    ];
+
+    runArc =
+    [
+        [RUN,
+            [
+                [ARC, 10, 90, 8]
+            ]
+        ],
+        [GOTO, 0, 0, 0]
+    ];
+
+    scaledArc =
+    [
+        [SCALE, 0.5],
+        [ARC, 20, 180, 16],
+        [GOTO, 0, 0, 0]
+    ];
+
+    roundedRect =
+    [
+        [GOTO, 5, 0, 0],
+        [MOVE, 20],
+        [ARC, 5, 90, 4],
+        [MOVE, 6],
+        [ARC, 5, 90, 4],
+        [MOVE, 20],
+        [ARC, 5, 90, 4],
+        [MOVE, 6],
+        [ARC, 5, 90, 4]
+    ];
+
+    LogoCheckArcResult(
+        "quarter arc",
+        [[ARC, 10, 90, 4]],
+        stateMake(10, 10, 90, 1),
+        4
+    );
+
+    LogoCheckArcResult(
+        "semicircle",
+        [[ARC, 10, 180, 4]],
+        stateMake(0, 20, 180, 1),
+        4
+    );
+
+    LogoCheckArcResult(
+        "full-circle-ish arc",
+        [[ARC, 10, 360, 8]],
+        stateMake(0, 0, 360, 1),
+        8
+    );
+
+    LogoCheckArcResult(
+        "pen-up arc",
+        [[PENUP], [ARC, 10, 90, 4]],
+        stateMake(10, 10, 90, 1),
+        0
+    );
+
+    LogoCheckArcResult(
+        "arc inside REPEAT",
+        [[REPEAT, 4, [[ARC, 10, 90, 4]]]],
+        stateMake(0, 0, 360, 1),
+        16
+    );
+
+    LogoCheckArcResult(
+        "arc inside RUN",
+        [[RUN, [[ARC, 10, 90, 4]]]],
+        stateMake(10, 10, 90, 1),
+        4
+    );
+
+    LogoCheckArcResult(
+        "scaled arc",
+        [[SCALE, 2], [ARC, 10, 90, 4]],
+        stateMake(20, 20, 90, 2),
+        4
+    );
+
+    LogoCheckArcResult(
+        "rounded rectangle",
+        roundedRect,
+        stateMake(5, 0, 360, 1),
+        21
+    );
+
+    LogoTest("ARC quarter sector", quarterArc, [0, ArcY]);
+    LogoTest("ARC semicircle sector", semicircle, [1, ArcY]);
+    LogoTest("ARC full-circle-ish", circleish, [2, ArcY]);
+    LogoTest("ARC inside REPEAT", repeatArcs, [3, ArcY]);
+    LogoTest("ARC inside RUN", runArc, [4, ArcY]);
+    LogoTest("ARC scaled", scaledArc, [5, ArcY]);
+    LogoTest("ARC rounded rectangle", roundedRect, [6, ArcY]);
+}
+
 // Failure-condition regression suite.
 //
 // These tests are supposed to produce [ERROR] messages when HardErrors = false.
 // They should not abort the complete OpenSCAD run unless HardErrors = true.
 module TestFailureSuiteLogo()
 {
-    FailureY = 5;
+    FailureY = 6;
     badOpcode =
     [
         [999, 10]
@@ -623,6 +802,21 @@ module TestFailureSuiteLogo()
     malformedRepeat =
     [
         [REPEAT]
+    ];
+
+    malformedArc =
+    [
+        [ARC, 10]
+    ];
+
+    negativeArcRadius =
+    [
+        [ARC, -10, 90, 4]
+    ];
+
+    badArcSegments =
+    [
+        [ARC, 10, 90, 0]
     ];
 
     LogoTest(
@@ -666,6 +860,24 @@ module TestFailureSuiteLogo()
         malformedRepeat,
         [6, FailureY]
     );
+
+    LogoTest(
+        "FAIL expected: malformed ARC missing angle",
+        malformedArc,
+        [7, FailureY]
+    );
+
+    LogoTest(
+        "FAIL expected: ARC negative radius",
+        negativeArcRadius,
+        [8, FailureY]
+    );
+
+    LogoTest(
+        "FAIL expected: ARC bad segment count",
+        badArcSegments,
+        [9, FailureY]
+    );
 }
 
 // Run all current LogoT regression suites.
@@ -676,6 +888,7 @@ module RunAllLogoTests()
     TestRunRecursiveSuiteLogo();
     TestStateFlowSuiteLogo();
     TestPenSuiteLogo();
+    TestArcSuiteLogo();
     TestFailureSuiteLogo();
 }
 
