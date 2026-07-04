@@ -31,22 +31,16 @@ the Y row. Colors cover indices 0 through 9; larger indices use `TestColorMax`.
 [SCALE,       scaleMultiplier]
 [GOTO,        x, y, heading]
 
-[ARC,         radius, degrees]
-[ARC,         radius, degrees, segments]
+[ARC,         radius, degrees[, segments]]
 
-[CIRCLE,      radius]
-[CIRCLE,      radius, segments]
-[REGPOLY,     sides, radius]
-[REGPOLY,     sides, radius, rotation]
+[CIRCLE,      radius[, segments]]
+[REGPOLY,     sides, radius[, rotation]]
 [RECT,        width, height]
-[ROUNDEDRECT, width, height, radius]
-[ROUNDEDRECT, width, height, radius, segments]
+[ROUNDEDRECT, width, height, radius[, segments]]
 
 [HOLE,        cmds]
 
-[RUN,         cmds]
-[RUN,         cmds, scale]
-[RUN,         cmds, scale, maxRec]
+[RUN,         cmds[, scale[, maxRec]]]
 
 [PUSH]
 [POP]

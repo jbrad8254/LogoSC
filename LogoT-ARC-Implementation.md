@@ -13,12 +13,11 @@ segments and appends those generated points to the current contour.
 ## Command syntax
 
 ```scad
-[ARC, radius, degrees]
-[ARC, radius, degrees, segments]
+[ARC, radius, degrees[, segments]]
 ```
 
-The first form uses automatic segment selection. The second form uses the exact
-segment count supplied by the command.
+The optional `segments` field overrides automatic segment selection. When it is
+omitted, LogoT uses OpenSCAD-style `$fn/$fa/$fs` logic.
 
 ## Movement semantics
 
@@ -118,13 +117,7 @@ not to every partial arc. A small nonzero arc can use one segment.
 
 ## Explicit segment override
 
-When the fourth command field is supplied:
-
-```scad
-[ARC, radius, degrees, segments]
-```
-
-`segments` is interpreted as the actual number of line segments along this arc,
+When the optional fourth command field is supplied, `segments` is interpreted as the actual number of line segments along this arc,
 not as a full-circle fragment count.
 
 Examples:

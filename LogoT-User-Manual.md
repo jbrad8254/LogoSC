@@ -378,8 +378,7 @@ part =
 Syntax:
 
 ```scad
-[ARC, radius, degrees]
-[ARC, radius, degrees, segments]
+[ARC, radius, degrees[, segments]]
 ```
 
 Draws a circular arc from the current position, tangent to the current heading.
@@ -420,8 +419,7 @@ circle. `CIRCLE` means something different in LogoT.
 Syntax:
 
 ```scad
-[CIRCLE, radius]
-[CIRCLE, radius, segments]
+[CIRCLE, radius[, segments]]
 ```
 
 Creates a closed filled circle centered at the current Logo position.
@@ -455,8 +453,7 @@ walk a full tangent loop, use:
 Syntax:
 
 ```scad
-[REGPOLY, sides, radius]
-[REGPOLY, sides, radius, rotation]
+[REGPOLY, sides, radius[, rotation]]
 ```
 
 Creates a closed regular polygon centered at the current Logo position.
@@ -523,8 +520,7 @@ rotatedPlate =
 Syntax:
 
 ```scad
-[ROUNDEDRECT, width, height, radius]
-[ROUNDEDRECT, width, height, radius, segments]
+[ROUNDEDRECT, width, height, radius[, segments]]
 ```
 
 Creates a closed rounded rectangle centered at the current Logo position and
@@ -620,9 +616,7 @@ geometry sane; CGAL is not a therapist.
 Syntax:
 
 ```scad
-[RUN, cmds]
-[RUN, cmds, scale]
-[RUN, cmds, scale, maxRec]
+[RUN, cmds[, scale[, maxRec]]]
 ```
 
 Evaluates a child command list from the current state.
