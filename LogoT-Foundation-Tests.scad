@@ -19,28 +19,66 @@
 // Test geometry
 // -----------------------------------------------------------------------------
 
-// Render all contours from an evaluated Logo result.
-//
-// Each contour becomes one polygon() call. This supports disconnected filled
-// shapes. Holes are deliberately not supported yet.
-module RenderContours(contours, height = 5)
-{
-    for (i = [0 : len(contours) - 1])
-    {
-        contour = contours[i];
+// Convert one region into the flat point list required by polygon().
+function RegionRenderPoints(region) =
+    [
+        for (ring = region)
+            for (point = ring)
+                point
+    ];
 
-        if (len(contour) >= 3)
+// Return the starting flat-point index for one ring inside a region.
+function RegionPathStart(region, pathIndex, ringIndex = 0) =
+    (ringIndex >= pathIndex)
+        ? 0
+        : len(region[ringIndex]) + RegionPathStart(region, pathIndex, ringIndex + 1);
+
+// Convert one ring inside a region into polygon() path indices.
+function RegionRenderPath(region, pathIndex) =
+    let(
+        start = RegionPathStart(region, pathIndex),
+        count = len(region[pathIndex])
+    )
+    [
+        for (i = [0 : count - 1])
+            start + i
+    ];
+
+// Convert all rings inside a region into polygon() paths.
+function RegionRenderPaths(region) =
+    [
+        for (pathIndex = [0 : len(region) - 1])
+            if (len(region[pathIndex]) >= 3)
+                RegionRenderPath(region, pathIndex)
+    ];
+
+// Render all regions from an evaluated Logo result.
+//
+// Each region becomes one polygon(points=..., paths=...) call. The first path is
+// the outer boundary; later paths are holes. Regions with only one path behave
+// like the old independent-contour renderer.
+module RenderContours(regions, height = 5)
+{
+    for (i = [0 : len(regions) - 1])
+    {
+        region = regions[i];
+        outer = RegionOuter(region);
+
+        if (len(outer) >= 3)
         {
             linear_extrude(height = height, center = true)
             {
-                polygon(contour);
+                polygon(
+                    points = RegionRenderPoints(region),
+                    paths = RegionRenderPaths(region)
+                );
             }
         }
-        else if (len(contour) > 0)
+        else if (len(outer) > 0)
         {
-            echo("[ERROR]", "Contour has fewer than three points", [i, contour]);
+            echo("[ERROR]", "Region outer has fewer than three points", [i, region]);
 
-            translate(contour[0])
+            translate(outer[0])
             {
                 linear_extrude(height = height, center = true)
                 {
@@ -51,7 +89,7 @@ module RenderContours(contours, height = 5)
     }
 }
 
-// Run one named Logo test and render all resulting contours.
+// Run one named Logo test and render all resulting regions.
 //
 // testIndex is a grid index [xIndex, yIndex], not an absolute drawing position.
 // The grid scale constants below convert that logical index to an OpenSCAD
@@ -177,21 +215,44 @@ module LogoCheckShapeResult(
     LogoCheckResult("shape", testName, vtCmds, expectedState, expectedPointCount, tol);
 }
 
-// Validate contour lengths exactly, including intentionally sparse current paths.
+// Validate outer ring lengths for every nonempty region.
 module LogoCheckContourLengths(testName, vtCmds, expectedLengths)
 {
     result = evalLogo(vtCmds);
-    contours = ResultContours(result);
+    regions = ResultContours(result);
     actualLengths =
     [
-        for (i = [0 : len(contours) - 1])
-            len(contours[i])
+        for (region = regions)
+            if (len(RegionOuter(region)) > 0)
+                len(RegionOuter(region))
     ];
 
     LogoCheck(
         actualLengths == expectedLengths,
         str("contour length validation failed: ", testName),
-        [actualLengths, expectedLengths, contours]
+        [actualLengths, expectedLengths, regions]
+    );
+}
+
+// Validate all ring lengths for every nonempty region.
+module LogoCheckRegionRingLengths(testName, vtCmds, expectedRingLengths)
+{
+    result = evalLogo(vtCmds);
+    regions = ResultContours(result);
+    actualRingLengths =
+    [
+        for (region = regions)
+            if (len(RegionOuter(region)) > 0)
+                [
+                    for (ring = region)
+                        len(ring)
+                ]
+    ];
+
+    LogoCheck(
+        actualRingLengths == expectedRingLengths,
+        str("region ring length validation failed: ", testName),
+        [actualRingLengths, expectedRingLengths, regions]
     );
 }
 
@@ -904,13 +965,131 @@ module TestClosedShapeSuiteLogo()
     LogoTest("CIRCLE scaled", scaledCircle, [5, ShapeY]);
 }
 
+// Region/hole regression suite.
+module TestHoleSuiteLogo()
+{
+    HoleY = 7;
+
+    washer =
+    [
+        [CIRCLE, 14, 32],
+        [HOLE,
+            [
+                [CIRCLE, 5, 16]
+            ]
+        ]
+    ];
+
+    rectWithHole =
+    [
+        [RECT, 26, 14],
+        [HOLE,
+            [
+                [CIRCLE, 4, 12]
+            ]
+        ]
+    ];
+
+    roundedPlate =
+    [
+        [ROUNDEDRECT, 28, 18, 3, 4],
+        [HOLE,
+            [
+                [GOTO, -9, -5, 0],
+                [CIRCLE, 1.5, 8],
+                [GOTO,  9, -5, 0],
+                [CIRCLE, 1.5, 8],
+                [GOTO, -9,  5, 0],
+                [CIRCLE, 1.5, 8],
+                [GOTO,  9,  5, 0],
+                [CIRCLE, 1.5, 8]
+            ]
+        ]
+    ];
+
+    repeatedHoles =
+    [
+        [RECT, 26, 14],
+        [REPEAT, 2,
+            [
+                [HOLE, [[GOTO, -7, 0, 0], [CIRCLE, 2, 8]]],
+                [HOLE, [[GOTO,  7, 0, 0], [CIRCLE, 2, 8]]]
+            ]
+        ]
+    ];
+
+    scaledHole =
+    [
+        [SCALE, 2],
+        [RECT, 12, 6],
+        [HOLE, [[CIRCLE, 1.5, 8]]]
+    ];
+
+    LogoCheckShapeResult(
+        "washer",
+        washer,
+        stateMake(0, 0, 0, 1),
+        48
+    );
+
+    LogoCheckRegionRingLengths(
+        "washer ring lengths",
+        washer,
+        [[32, 16]]
+    );
+
+    LogoCheckShapeResult(
+        "rectangle with circular hole",
+        rectWithHole,
+        stateMake(0, 0, 0, 1),
+        16
+    );
+
+    LogoCheckRegionRingLengths(
+        "rectangle with circular hole ring lengths",
+        rectWithHole,
+        [[4, 12]]
+    );
+
+    LogoCheckShapeResult(
+        "rounded plate with four screw holes",
+        roundedPlate,
+        stateMake(0, 0, 0, 1),
+        52
+    );
+
+    LogoCheckRegionRingLengths(
+        "rounded plate ring lengths",
+        roundedPlate,
+        [[20, 8, 8, 8, 8]]
+    );
+
+    LogoCheckRegionRingLengths(
+        "repeated holes attach to same region",
+        repeatedHoles,
+        [[4, 8, 8, 8, 8]]
+    );
+
+    LogoCheckRegionRingLengths(
+        "scaled hole",
+        scaledHole,
+        [[4, 8]]
+    );
+
+    LogoTest("HOLE washer", washer, [0, HoleY]);
+    LogoTest("HOLE rectangle with circle", rectWithHole, [1, HoleY]);
+    LogoTest("HOLE rounded mounting plate", roundedPlate, [2, HoleY]);
+    LogoTest("HOLE repeated circular holes", repeatedHoles, [3, HoleY]);
+    LogoTest("HOLE scaled", scaledHole, [4, HoleY]);
+}
+
 // Failure-condition regression suite.
 //
 // These tests are supposed to produce [ERROR] messages when HardErrors = false.
 // They should not abort the complete OpenSCAD run unless HardErrors = true.
 module TestFailureSuiteLogo()
 {
-    FailureY = 7;
+    FailureY = 8;
     badOpcode =
     [
         [999, 10]
@@ -985,6 +1164,28 @@ module TestFailureSuiteLogo()
     badRoundedRectRadius =
     [
         [ROUNDEDRECT, 20, 10, -2]
+    ];
+
+    malformedHole =
+    [
+        [HOLE]
+    ];
+
+    holeBeforeOuter =
+    [
+        [HOLE, [[CIRCLE, 3, 8]]]
+    ];
+
+    emptyHoleChild =
+    [
+        [RECT, 10, 10],
+        [HOLE, []]
+    ];
+
+    holeChildNoClosedContour =
+    [
+        [RECT, 10, 10],
+        [HOLE, [[MOVE, 5]]]
     ];
 
     LogoTest(
@@ -1076,6 +1277,30 @@ module TestFailureSuiteLogo()
         badRoundedRectRadius,
         [14, FailureY]
     );
+
+    LogoTest(
+        "FAIL expected: malformed HOLE missing child list",
+        malformedHole,
+        [15, FailureY]
+    );
+
+    LogoTest(
+        "FAIL expected: HOLE before outer region",
+        holeBeforeOuter,
+        [16, FailureY]
+    );
+
+    LogoTest(
+        "FAIL expected: HOLE empty child list",
+        emptyHoleChild,
+        [17, FailureY]
+    );
+
+    LogoTest(
+        "FAIL expected: HOLE child with no closed contour",
+        holeChildNoClosedContour,
+        [18, FailureY]
+    );
 }
 
 // Run all current LogoT regression suites.
@@ -1088,6 +1313,7 @@ module RunAllLogoTests()
     TestPenSuiteLogo();
     TestArcSuiteLogo();
     TestClosedShapeSuiteLogo();
+    TestHoleSuiteLogo();
     TestFailureSuiteLogo();
 }
 

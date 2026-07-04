@@ -34,6 +34,8 @@
 //     [ROUNDEDRECT, width, height, radius]
 //     [ROUNDEDRECT, width, height, radius, segments]
 //
+//     [HOLE, cmds]
+//
 //     [RUN,    cmds]
 //     [RUN,    cmds, scale]
 //     [RUN,    cmds, scale, maxRec]
@@ -64,9 +66,10 @@
 //     maxRec = 2
 //
 // Rendering model:
-//     LogoT now returns multiple contours. Each contour is rendered with a
-//     separate polygon() call. Closed-shape commands emit their own contours.
-//     Holes and open-stroke rendering are intentionally deferred.
+//     LogoT returns regions. Each region is [outer, hole0, hole1, ...].
+//     Regions render through polygon(points=..., paths=...), so holes are
+//     represented by secondary paths inside the same polygon call. Open-stroke
+//     rendering is intentionally deferred.
 // -----------------------------------------------------------------------------
 
 /* [LogoT Controls] */
@@ -147,6 +150,7 @@ CIRCLE      = 12 + 0; // [CIRCLE, radius], [CIRCLE, radius, segments]
 REGPOLY     = 13 + 0; // [REGPOLY, sides, radius], [REGPOLY, sides, radius, rotation]
 RECT        = 14 + 0; // [RECT, width, height]
 ROUNDEDRECT = 15 + 0; // [ROUNDEDRECT, width, height, radius], optional segments
+HOLE        = 16 + 0; // [HOLE, cmds] attaches child contours to the latest region.
 
 // Mathematical constants.
 LOGOT_PI = 3.141592653589793 + 0;
@@ -175,7 +179,7 @@ CA3 = 3 + 0;
 CA4 = 4 + 0;
 
 // -----------------------------------------------------------------------------
-// Evaluator result indices: [state, contours, stack, pen]
+// Evaluator result indices: [state, regions, stack, pen]
 // -----------------------------------------------------------------------------
 ER_STATE    = 0 + 0;
 ER_CONTOURS = 1 + 0;
@@ -190,7 +194,7 @@ function CmdArg(vCmd, fieldIndex, defaultValue = undef) =
         ? vCmd[fieldIndex]
         : defaultValue;
 
-// Construct an evaluator result vector [state, contours, stack, pen].
+// Construct an evaluator result vector [state, regions, stack, pen].
 function EvalResult(state, contours, stack, pen) =
 [
     state,
@@ -211,64 +215,170 @@ function ResultStack(result) =
 function ResultPen(result) =
     result[ER_PEN];
 
-// Return the current contour from a contour list.
-function CurrentContour(contours) =
-    (len(contours) == 0)
-        ? []
-        : contours[len(contours) - 1];
+// Region structure used by the renderer and evaluator names below:
+//     region  = [outerContour, holeContour0, holeContour1, ...]
+//     regions = [region0, region1, ...]
+//
+// A few older helper names still say "contour" because the mutable drawing path
+// is one contour. The container is now a region list, not a raw contour list.
 
-// Replace the current contour in a contour list.
-function ReplaceCurrentContour(contours, contour) =
-    (len(contours) == 0)
-        ? [contour]
-        :
-        [
-            for (i = [0 : len(contours) - 1])
-                (i == len(contours) - 1) ? contour : contours[i]
-        ];
+// Construct one filled region from an outer contour and optional hole contours.
+function MakeRegion(outerContour, holeContours = []) =
+    concat([outerContour], holeContours);
 
-// Append a point to the current contour, creating one if needed.
-function AddPointToContours(contours, point) =
-    ReplaceCurrentContour(
-        contours,
-        concat(CurrentContour(contours), [point])
-    );
+// Return the outer contour from a region.
+function RegionOuter(region) =
+    (len(region) == 0) ? [] : region[0];
 
-// Append a point list to the current contour, creating one if needed.
-function AddPointsToContours(contours, points) =
-    ReplaceCurrentContour(
-        contours,
-        concat(CurrentContour(contours), points)
-    );
-
-// Return all contours before the current mutable contour.
-function ContoursBeforeCurrent(contours) =
-    (len(contours) <= 1)
+// Return all hole contours from a region.
+function RegionHoles(region) =
+    (len(region) <= 1)
         ? []
         :
         [
-            for (i = [0 : len(contours) - 2])
-                contours[i]
+            for (i = [1 : len(region) - 1])
+                region[i]
         ];
 
-// Add a finished closed contour without making it the current mutable contour.
-function AddClosedContourToContours(contours, contour) =
-    (len(contours) == 0)
-        ? [contour, []]
-        : concat(ContoursBeforeCurrent(contours), [contour, CurrentContour(contours)]);
+// Replace a region outer contour while preserving any attached holes.
+function ReplaceRegionOuter(region, outerContour) =
+    MakeRegion(outerContour, RegionHoles(region));
 
-// Start a new contour at the current Logo state.
-function StartContour(contours, state) =
-    concat(contours, [[[state[SX], state[SY]]]]);
+// Return the current mutable contour from the last region.
+function CurrentContour(regions) =
+    (len(regions) == 0)
+        ? []
+        : RegionOuter(regions[len(regions) - 1]);
 
-// Count total points across all contours.
+// Replace the current mutable contour in the last region.
+function ReplaceCurrentContour(regions, contour) =
+    (len(regions) == 0)
+        ? [MakeRegion(contour)]
+        :
+        [
+            for (i = [0 : len(regions) - 1])
+                (i == len(regions) - 1)
+                    ? ReplaceRegionOuter(regions[i], contour)
+                    : regions[i]
+        ];
+
+// Append a point to the current mutable contour, creating one if needed.
+function AddPointToContours(regions, point) =
+    ReplaceCurrentContour(
+        regions,
+        concat(CurrentContour(regions), [point])
+    );
+
+// Append a point list to the current mutable contour, creating one if needed.
+function AddPointsToContours(regions, points) =
+    ReplaceCurrentContour(
+        regions,
+        concat(CurrentContour(regions), points)
+    );
+
+// Return all regions before the current mutable region.
+function RegionsBeforeCurrent(regions) =
+    (len(regions) <= 1)
+        ? []
+        :
+        [
+            for (i = [0 : len(regions) - 2])
+                regions[i]
+        ];
+
+// Add a finished closed outer region and start a fresh mutable path after it.
+//
+// If a mutable path already has points, it is preserved as its own region before
+// the new closed shape. This makes HOLE attach naturally to the latest stamped
+// shape while still preserving partially drawn paths.
+function AddClosedContourToContours(regions, contour) =
+    (len(regions) == 0)
+        ? [MakeRegion(contour), MakeRegion([])]
+        : let(
+            current = regions[len(regions) - 1],
+            keepCurrent = (len(RegionOuter(current)) > 0) ? [current] : []
+        )
+        concat(
+            RegionsBeforeCurrent(regions),
+            keepCurrent,
+            [MakeRegion(contour), MakeRegion([])]
+        );
+
+// Start a new mutable contour at the current Logo state.
+function StartContour(regions, state) =
+    concat(regions, [MakeRegion([[state[SX], state[SY]]])]);
+
+// Count total points across all rings in one region.
+function CountRegionPoints(region, ringIndex = 0) =
+    (ringIndex >= len(region))
+        ? 0
+        : len(region[ringIndex]) + CountRegionPoints(region, ringIndex + 1);
+
+// Count total points across all regions.
 //
 // Expected recursive use:
-//     Calls itself with index + 1 until every contour has been counted.
-function CountContourPoints(contours, index = 0) =
-    (index >= len(contours))
+//     Calls itself with index + 1 until every region has been counted.
+function CountContourPoints(regions, index = 0) =
+    (index >= len(regions))
         ? 0
-        : len(contours[index]) + CountContourPoints(contours, index + 1);
+        : CountRegionPoints(regions[index]) + CountContourPoints(regions, index + 1);
+
+// Find the most recent region that has a usable outer contour.
+function LastDrawableRegionIndex(regions, index = undef) =
+    let(
+        i = (index == undef) ? len(regions) - 1 : index
+    )
+    (i < 0)
+        ? -1
+        : (len(RegionOuter(regions[i])) >= 3)
+            ? i
+            : LastDrawableRegionIndex(regions, i - 1);
+
+// True when a HOLE command can attach to an existing region.
+function HasHoleTargetRegion(regions) =
+    LastDrawableRegionIndex(regions) >= 0;
+
+// Append one hole contour to a specific region.
+function AddHoleToRegion(region, holeContour) =
+    concat(region, [holeContour]);
+
+// Append one hole contour to the most recent drawable region.
+function AddHoleToRegions(regions, holeContour) =
+    let(
+        targetIndex = LastDrawableRegionIndex(regions)
+    )
+    (targetIndex < 0)
+        ? regions
+        :
+        [
+            for (i = [0 : len(regions) - 1])
+                (i == targetIndex)
+                    ? AddHoleToRegion(regions[i], holeContour)
+                    : regions[i]
+        ];
+
+// Append multiple hole contours to the most recent drawable region.
+function AddHolesToRegions(regions, holeContours, index = 0) =
+    (index >= len(holeContours))
+        ? regions
+        : AddHolesToRegions(
+            AddHoleToRegions(regions, holeContours[index]),
+            holeContours,
+            index + 1
+        );
+
+// Extract all closed rings from a region list. Used by HOLE child evaluation.
+function ClosedContoursFromRegions(regions) =
+    [
+        for (region = regions)
+            for (ring = region)
+                if (len(ring) >= 3)
+                    ring
+    ];
+
+// Count closed rings in a region list.
+function CountClosedContours(regions) =
+    len(ClosedContoursFromRegions(regions));
 
 // Return the smaller of two scalar values.
 function min2(a, b) =
@@ -491,6 +601,10 @@ function RepeatCount(logoCmd) =
 function RepeatCmds(logoCmd) =
     CmdArg(logoCmd, CA2, []);
 
+// Extract the child command list from a HOLE command.
+function HoleCmds(logoCmd) =
+    CmdArg(logoCmd, CA1, []);
+
 // Extract the ARC radius.
 function ArcRadius(logoCmd) =
     CmdArg(logoCmd, CA1, 0);
@@ -614,6 +728,7 @@ function CmdName(op) =
     : (op == REGPOLY)    ? "REGPOLY"
     : (op == RECT)       ? "RECT"
     : (op == ROUNDEDRECT)? "ROUNDEDRECT"
+    : (op == HOLE)       ? "HOLE"
     : str("UNKNOWN(", op, ")");
 
 // Emit one command-execution trace line from inside a function.
@@ -718,6 +833,22 @@ module TraceCmds(
                     level
                 );
             }
+            else if (cmd[COP] == HOLE)
+            {
+                echo(
+                    str(indent, "    "),
+                    "HOLE childCmds=",
+                    len(HoleCmds(cmd))
+                );
+
+                TraceCmds(
+                    HoleCmds(cmd),
+                    state,
+                    str(indent, "    "),
+                    maxRec,
+                    level
+                );
+            }
         }
     }
 }
@@ -727,7 +858,7 @@ module TraceCmds(
 // -----------------------------------------------------------------------------
 
 // Handler result format:
-//     EvalResult(nextState, nextContours, nextStack, nextPen)
+//     EvalResult(nextState, nextRegions, nextStack, nextPen)
 //
 // Each opcode handler returns this format so evalLogo() can remain a compact
 // dispatcher. This also keeps opcode-specific behavior localized.
@@ -1066,6 +1197,55 @@ function EvalRoundedRect(vCmd, state, contours, stack, pen) =
                             pen
                         );
 
+// Handle HOLE.
+//
+// Evaluates a child command list as one or more closed contours and attaches
+// those contours as holes to the most recently emitted outer region. The parent
+// Logo state, stack, and pen state are intentionally unchanged.
+function EvalHole(vCmd, state, regions, stack, pen, maxRec) =
+    (len(vCmd) <= CA1)
+        ? let(
+            _err = SoftError("Malformed HOLE command", vCmd)
+        )
+        EvalResult(state, regions, stack, pen)
+        : (!HasHoleTargetRegion(regions))
+            ? let(
+                _err = SoftError("HOLE has no preceding outer region", vCmd)
+            )
+            EvalResult(state, regions, stack, pen)
+            : let(
+                childCmds = HoleCmds(vCmd)
+            )
+            (len(childCmds) == 0)
+                ? let(
+                    _err = SoftError("HOLE child command list is empty", vCmd)
+                )
+                EvalResult(state, regions, stack, pen)
+                : let(
+                    childResult = evalLogoR(
+                        childCmds,
+                        state,
+                        0,
+                        maxRec,
+                        [],
+                        [],
+                        PEN_DOWN
+                    ),
+                    holeContours = ClosedContoursFromRegions(ResultContours(childResult))
+                )
+                (len(holeContours) == 0)
+                    ? let(
+                        _err = SoftError("HOLE child produced no closed contours", vCmd)
+                    )
+                    EvalResult(state, regions, stack, pen)
+                    : EvalResult(
+                        state,
+                        AddHolesToRegions(regions, holeContours),
+                        stack,
+                        pen
+                    );
+
+
 // Handle RUN.
 //
 // Expected recursive use:
@@ -1175,6 +1355,8 @@ function EvalOpcode(vCmd, state, contours, stack, pen, maxRec) =
         ? EvalRect(vCmd, state, contours, stack, pen)
     : (vCmd[COP] == ROUNDEDRECT)
         ? EvalRoundedRect(vCmd, state, contours, stack, pen)
+    : (vCmd[COP] == HOLE)
+        ? EvalHole(vCmd, state, contours, stack, pen, maxRec)
     : (vCmd[COP] == REPEAT)
         ? EvalRepeat(vCmd, state, contours, stack, pen, maxRec)
     : let(
@@ -1219,7 +1401,7 @@ function evalLogoR(
         )
         result;
 
-// Evaluate Logo commands into a final Logo state and a contour list.
+// Evaluate Logo commands into a final Logo state and a region list.
 //
 // Expected recursive use:
 //     This function calls itself to iterate through a command list. It also calls
@@ -1234,7 +1416,7 @@ function evalLogoR(
 //     PENDOWN starts a new contour and resumes point emission.
 //
 // Returns:
-//     EvalResult(finalState, contours, stack, pen)
+//     EvalResult(finalState, regions, stack, pen)
 //
 // Soft-error behavior:
 //     If HardErrors is false, bad commands are reported with [ERROR] and treated
@@ -1244,7 +1426,7 @@ function evalLogo(
     state = stateGoto(0, 0, 0, 1),
     index = 0,
     maxRec = maxRunRecursions,
-    contours = [[]],
+    contours = [MakeRegion([])],
     stack = [],
     pen = PEN_DOWN
 ) =

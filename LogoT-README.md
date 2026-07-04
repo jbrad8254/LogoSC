@@ -7,6 +7,7 @@
 - `LogoT-README.md` — this overview.
 - `CHANGELOG.md` — milestone release history.
 - `LogoT-ARC-Implementation.md` — design notes for ARC tessellation.
+- `LogoT-Holes-Implementation.md` — design notes for regions and holes.
 
 ## Workflow
 
@@ -34,6 +35,8 @@
 [RECT,        width, height]
 [ROUNDEDRECT, width, height, radius]
 [ROUNDEDRECT, width, height, radius, segments]
+
+[HOLE,        cmds]
 
 [RUN,         cmds]
 [RUN,         cmds, scale]
@@ -65,15 +68,27 @@ Logo state or change the heading.
 `[CIRCLE, r]` creates a closed filled circle centered at the current position. To
 make the Logo cursor walk a full tangent loop instead, use `[ARC, r, 360]`.
 
+`HOLE` evaluates its child command list as one or more closed contours and
+attaches those contours as holes to the most recently emitted outer region. This
+supports common 3D-printing shapes such as washers, mounting plates, and rounded
+rectangles with screw holes.
+
 ## Rendering model
 
-LogoT evaluates command lists into multiple contours. Each contour is rendered
-with a separate `polygon()` call. This supports disconnected filled shapes
-created with `PENUP` and `PENDOWN`.
+LogoT evaluates command lists into regions. Each region is a list of closed
+rings:
+
+```text
+[outerContour, holeContour0, holeContour1, ...]
+```
+
+Each region is rendered with one OpenSCAD `polygon(points=..., paths=...)` call.
+The first path is the filled outer boundary; later paths become holes. Regions
+with only one ring behave like the earlier independent-contour renderer.
 
 `ARC` is tessellated into contour points before rendering. Closed-shape commands
-emit separate contour point lists before rendering. Holes and open-stroke
-rendering are intentionally deferred.
+emit separate outer-region contours before rendering. Open-stroke rendering is
+intentionally deferred.
 
 ## Future rendering work
 

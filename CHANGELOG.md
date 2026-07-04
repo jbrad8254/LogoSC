@@ -23,6 +23,12 @@ Initial geometry milestone.
   - `[ROUNDEDRECT, width, height, radius, segments]`
 - Closed-shape regression tests for circles, regular polygons, rectangles,
   rounded rectangles, pen-up behavior, scaling, and RUN scaling.
+- `HOLE` command:
+  - `[HOLE, cmds]`
+- Region-based rendering where each region is `[outer, hole0, hole1, ...]`.
+- OpenSCAD `polygon(points=..., paths=...)` output for regions with holes.
+- Hole regression tests for washers, rectangular plates, rounded mounting plates,
+  repeated holes, scaled holes, and failure cases.
 
 ### Notes
 
@@ -33,10 +39,10 @@ Initial geometry milestone.
 
 ### Known limitations
 
-- Geometry output is still closed-contour `polygon()` output.
+- Geometry output is now closed-region `polygon(points=..., paths=...)` output.
+- Holes are represented as secondary paths inside a region.
 - Open-stroke rendering is deferred.
 - Stroke width, cap style, join style, and miter limits are not implemented yet.
-- Holes are not implemented yet.
 
 ## LogoT-Foundation
 
@@ -81,5 +87,4 @@ Initial stable foundation baseline.
 
 - Filled contours only.
 - No stroke/open-path rendering yet.
-- No holes yet.
 - `polygon()` automatically closes each contour.
