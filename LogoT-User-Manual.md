@@ -600,7 +600,9 @@ Syntax:
 Evaluates a child command list from the current state.
 
 The optional `scale` multiplies the child execution scale. The optional `maxRec`
-limits nested `RUN` recursion.
+limits nested `RUN` recursion. See [Section 9](#9-recursion-and-recursive-patterns)
+for details on `REPEAT`, `RUN`, recursive OpenSCAD command generators, and
+Koch-style fractals.
 
 Example:
 
@@ -737,7 +739,201 @@ part =
 Closed-shape commands also obey pen state. For example, `[PENUP], [CIRCLE, 5]`
 does not emit a circle.
 
-## 9. Practical examples
+## 9. Recursion and recursive patterns
+
+LogoT uses the word "recursion" in a few related but distinct ways. They are
+worth separating because they have different costs and different failure modes.
+
+### 9.1 `REPEAT`: bounded repetition
+
+`REPEAT` is the simplest form. It repeats a child command list a fixed number of
+times:
+
+```scad
+square =
+[
+    [REPEAT, 4,
+        [
+            [MOVE, 10],
+            [TURN, 90]
+        ]
+    ]
+];
+```
+
+Use `REPEAT` when the number of copies is known and the body does not need to
+change structurally from one copy to the next.
+
+Common uses:
+
+- regular polygons;
+- repeated screw holes;
+- decorative radial patterns;
+- simple gear-like or flower-like outlines.
+
+### 9.2 `RUN`: reusable child command lists
+
+`RUN` evaluates another command list from the current Logo state:
+
+```scad
+slot =
+[
+    [ROUNDEDRECT, 12, 4, 2]
+];
+
+plate =
+[
+    [RECT, 50, 20],
+    [HOLE, [[GOTO, -15, 0, 0], [RUN, slot]]],
+    [HOLE, [[GOTO,  15, 0, 0], [RUN, slot]]]
+];
+```
+
+This is not recursion by itself; it is subroutine-like reuse. The child list can
+also be scaled:
+
+```scad
+[RUN, slot, 0.5]
+```
+
+That runs `slot` at half the current scale.
+
+### 9.3 Nested `RUN`: runtime recursion with a limit
+
+A `RUN` body can itself contain another `RUN`. LogoT has a recursion limit so a
+bad command list does not expand forever.
+
+The syntax is:
+
+```scad
+[RUN, cmds, scale, maxRec]
+```
+
+Where:
+
+- `cmds` is the child command list;
+- `scale` multiplies the current scale while the child list runs;
+- `maxRec` limits how deeply that `RUN` may recurse.
+
+The default recursion limit is controlled by:
+
+```scad
+DefaultRunMaxRecursions = 2;
+```
+
+Use an explicit `maxRec` when writing recursive examples or tests. Otherwise the
+example may stop earlier than expected.
+
+### 9.4 Recursive OpenSCAD command generators
+
+For most practical recursive geometry, use an OpenSCAD function that returns a
+LogoT command list. This is usually cleaner than trying to create
+self-referential command vectors.
+
+OpenSCAD self-referential variables are not a reliable foundation for LogoT
+programs. Prefer functions where the depth is an ordinary numeric argument:
+
+```scad
+function SpiralCmds(depth) =
+    (depth <= 0)
+        ? []
+        :
+        [
+            [MOVE, 10],
+            [TURN, 80],
+            [RUN, SpiralCmds(depth - 1), 0.75, depth]
+        ];
+
+spiral =
+[
+    [RUN, SpiralCmds(4), 1.0, 4]
+];
+```
+
+This combines two mechanisms:
+
+1. The OpenSCAD function builds a finite command tree.
+2. LogoT `RUN` evaluates the nested command lists with a runtime recursion guard.
+
+The explicit depth makes the generated command list predictable. The `RUN`
+`maxRec` value is the seat belt. It is less dramatic than debugging infinite
+recursion in OpenSCAD, which is traditionally how one converts coffee into
+regret.
+
+### 9.5 Koch snowflake example
+
+The Koch snowflake is a good example of recursive command-list generation. One
+line segment is replaced by four smaller segments:
+
+```text
+forward, left 60, forward, right 120, forward, left 60, forward
+```
+
+In LogoT, write the segment generator as an OpenSCAD function:
+
+```scad
+function KochSegment(depth, len) =
+    (depth <= 0)
+        ? [[MOVE, len]]
+        : concat(
+            KochSegment(depth - 1, len / 3),
+            [[TURN, 60]],
+            KochSegment(depth - 1, len / 3),
+            [[TURN, -120]],
+            KochSegment(depth - 1, len / 3),
+            [[TURN, 60]],
+            KochSegment(depth - 1, len / 3)
+        );
+```
+
+Then build the three sides of the snowflake:
+
+```scad
+kochSnowflake =
+[
+    [REPEAT, 3,
+        concat(
+            KochSegment(3, 36),
+            [[TURN, -120]]
+        )
+    ]
+];
+```
+
+Render it as a printable filled profile:
+
+```scad
+linear_extrude(height = 1.5, convexity = 10)
+{
+    RenderLogo2D(kochSnowflake);
+}
+```
+
+Notes:
+
+- The snowflake path returns to its starting point after the three repeated
+  sides.
+- `polygon()` closes the path automatically, so the result is a filled region.
+- Depth grows quickly: one side has `4^depth` segments, so the full snowflake
+  has `3 * 4^depth` segments.
+- Depth `3` is already `192` segments. Depth `5` is `3072` segments. OpenSCAD
+  will do it, but it may glare at you.
+
+### 9.6 When to use each mechanism
+
+| Mechanism | Use it for | Avoid it when |
+|---|---|---|
+| `REPEAT` | Fixed repetition with no structural growth | Each iteration needs a different generated body |
+| `RUN` | Reusing a named command list at the current state | You only need a simple one-line command |
+| `RUN` with scale | Reusing a shape at different sizes | You need nonuniform scaling; LogoT scale is uniform |
+| `RUN` with `maxRec` | Nested generated command lists | The same result is simpler with `REPEAT` |
+| OpenSCAD recursive functions | Fractals and depth-controlled structures | The geometry would be clearer as simple explicit commands |
+
+For 3D-printing parts, keep recursion depth modest. Fractals are excellent test
+cases and decorative features, but dense recursive outlines can generate large
+polygons that are slow to preview, render, slice, and print.
+
+## 10. Practical examples
 
 ### Example 1: simple extruded plate
 
@@ -837,7 +1033,7 @@ rotate_extrude(angle = 360, convexity = 10)
 }
 ```
 
-## 10. Error handling and tracing
+## 11. Error handling and tracing
 
 LogoT defaults to soft errors:
 
@@ -866,7 +1062,7 @@ TraceLevel = 4; // full execution trace
 
 Higher levels include lower levels.
 
-## 11. Limitations
+## 12. Limitations
 
 Current limitations:
 
@@ -882,7 +1078,7 @@ Current limitations:
 For now, use closed shapes, `HOLE`, and native OpenSCAD boolean/modeling
 operations to build printable parts.
 
-## 12. Suggested style for LogoT programs
+## 13. Suggested style for LogoT programs
 
 Use named OpenSCAD variables for repeated command lists:
 
