@@ -9,6 +9,7 @@
 - `LogoT-ARC-Implementation.md` — design notes for ARC tessellation.
 - `LogoT-Holes-Implementation.md` — design notes for regions and holes.
 - `LogoT-User-Manual.md` — command reference and practical examples.
+- `LogoT-CheatSheet.md` — compact command and API reference.
 - `LogoT-Examples.scad` — runnable example gallery and 3D-printing demos.
 
 ## Workflow
@@ -44,6 +45,55 @@ Example:
 ```scad
 assert(LogoTVersionAtLeast(2026, 0), "This model requires LogoT 2026.0+");
 ```
+
+## Public API quick reference
+
+LogoT's normal user-facing entry point is `RenderLogo2D()`. The lower-level
+functions are available for tests, diagnostics, or advanced workflows where you
+want to evaluate once and inspect or reuse the generated regions.
+
+| API | Kind | Purpose |
+|---|---|---|
+| `RenderLogo2D(cmds, convexity = 10)` | module | Evaluate a LogoT command list and render the resulting 2D regions. |
+| `evalLogo(cmds)` | function | Evaluate commands into an `EvalResult` without rendering geometry. |
+| `ResultContours(result)` | function | Return the evaluated region list from an `EvalResult`. |
+| `ResultState(result)` | function | Return the final `[x, y, heading, scale]` state. |
+| `RenderContours2D(regions, convexity = 10)` | module | Render an already-evaluated region list. |
+| `RenderRegion2D(region, convexity = 10)` | module | Render one region: outer ring plus any holes. |
+
+`ResultContours()` keeps its historical name, but the value it returns is now a
+region list:
+
+```text
+[
+    [outerContour, holeContour0, holeContour1],
+    [outerContour]
+]
+```
+
+Typical use:
+
+```scad
+part = [[ROUNDEDRECT, 40, 20, 3], [HOLE, [[CIRCLE, 4]]]];
+
+linear_extrude(height = 4, convexity = 10)
+{
+    RenderLogo2D(part);
+}
+```
+
+Advanced inspection:
+
+```scad
+result = evalLogo(part);
+state = ResultState(result);
+regions = ResultContours(result);
+
+RenderContours2D(regions, convexity = 10);
+```
+
+See `LogoT-CheatSheet.md` for a compact syntax summary and
+`LogoT-User-Manual.md` for full examples.
 
 ## Current command format
 
@@ -115,6 +165,7 @@ intentionally deferred.
 
 ## Rendering API
 
+The main public API is summarized earlier under **Public API quick reference**.
 The reusable renderer lives in `LogoT-Foundation-Core.scad`; user models do not
 need to duplicate the test renderer. LogoT intentionally renders 2D regions only.
 Use native OpenSCAD operations around `RenderLogo2D()` for 3D modeling.
@@ -189,6 +240,12 @@ Common join styles are miter, bevel, and round.
 Potential future geometry helpers include automatic path fillets and possibly a
 `ROUNDEDREGPOLY` command. That should wait until the corner-rounding semantics
 are clearer; for now `REGPOLY` plus explicit construction is less magical.
+
+## Cheat sheet
+
+`LogoT-CheatSheet.md` provides a compact command, rendering API, and
+OpenSCAD-wrapper reference. It is intended for quick lookup while writing
+models; use the User Manual for detailed explanations.
 
 ## Examples
 

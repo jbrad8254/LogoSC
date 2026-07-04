@@ -6,6 +6,8 @@ Initial geometry milestone.
 
 ### Added
 
+- Added `LogoT-CheatSheet.md` and promoted rendering/evaluation API documentation.
+
 - `ARC` command:
   - `[ARC, radius, degrees[, segments]]`
 - ARC tessellation into contour points.

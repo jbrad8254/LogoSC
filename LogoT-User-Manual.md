@@ -21,6 +21,7 @@ CHANGELOG.md                      Release history.
 LogoT-ARC-Implementation.md        ARC tessellation design notes.
 LogoT-Holes-Implementation.md     Region/hole design notes.
 LogoT-User-Manual.md              This manual.
+LogoT-CheatSheet.md               Compact command and API reference.
 LogoT-Examples.scad               Runnable example gallery.
 .gitattributes                    LF line-ending policy for Git.
 ```
@@ -95,7 +96,13 @@ those operations outside LogoT keeps the API small and lets OpenSCAD do normal
 OpenSCAD work.
 
 
-## 3. Runnable examples
+## 3. Quick lookup cheat sheet
+
+`LogoT-CheatSheet.md` is the compact reference for command syntax, rendering
+API calls, and common OpenSCAD wrappers used around LogoT output. Use it while
+writing models; return to this manual for full explanations and examples.
+
+## 4. Runnable examples
 
 `LogoT-Examples.scad` is the best place to see the library used as an OpenSCAD
 modeling tool rather than as a test harness. It contains a gallery module plus
@@ -121,7 +128,7 @@ TraceLevel = 0; // [0:4]
 Use it as a cookbook: copy a command list such as `ExampleMountingPlate`, or use
 one of the example rendering modules as a starting point for your own model.
 
-## 4. Coordinate model
+## 5. Coordinate model
 
 LogoT maintains a current state:
 
@@ -157,7 +164,7 @@ from +Z toward the XY plane, positive turns are counterclockwise.
 Movement commands update the current state. Closed-shape commands stamp geometry
 at the current state but do not move the state.
 
-## 5. Rendering model
+## 6. Rendering model
 
 LogoT evaluates commands into **regions**.
 
@@ -180,22 +187,103 @@ OpenSCAD `polygon()` closes each path automatically. LogoT currently targets
 closed printable 2D polygons, not open strokes. Stroke rendering, line width,
 end caps, joins, and miter limits are future work.
 
-## 6. Public rendering API
+## 7. Public rendering and evaluation API
 
-Most users should use only:
+LogoT has two layers:
+
+```text
+command list -> evalLogo() -> EvalResult -> regions -> RenderLogo2D()
+```
+
+Most user models should call only `RenderLogo2D()`. The other APIs are useful
+when you are writing tests, debugging generated paths, or evaluating a command
+list once and rendering or inspecting it later.
+
+### `RenderLogo2D(cmds, convexity = 10)`
+
+Main user-facing renderer.
 
 ```scad
 RenderLogo2D(cmds, convexity = 10);
 ```
 
-Lower-level renderers are available for tests or advanced workflows:
+- `cmds`: LogoT command list.
+- `convexity`: forwarded to each OpenSCAD `polygon()` call.
+- Output: 2D OpenSCAD geometry.
+- Common use: wrap with native OpenSCAD operations such as `linear_extrude()`,
+  `rotate_extrude()`, `offset()`, `translate()`, `scale()`, `union()`, or
+  `difference()`.
+
+Example:
 
 ```scad
-RenderRegion2D(region, convexity = 10);
-RenderContours2D(regions, convexity = 10);
+plate =
+[
+    [ROUNDEDRECT, 60, 30, 4],
+    [HOLE, [[GOTO, -20, 0, 0], [CIRCLE, 3]]],
+    [HOLE, [[GOTO,  20, 0, 0], [CIRCLE, 3]]]
+];
+
+linear_extrude(height = 4, convexity = 10)
+{
+    RenderLogo2D(plate);
+}
 ```
 
-Typical advanced pattern:
+### `evalLogo(cmds)`
+
+Evaluates a command list without rendering geometry.
+
+```scad
+result = evalLogo(cmds);
+```
+
+The full signature is available for recursive/internal use, but user code should
+normally pass only `cmds`:
+
+```scad
+evalLogo(
+    cmds,
+    state = stateGoto(0, 0, 0, 1),
+    index = 0,
+    maxRec = maxRunRecursions,
+    contours = [MakeRegion([])],
+    stack = [],
+    pen = PEN_DOWN
+);
+```
+
+Return value:
+
+```text
+EvalResult(finalState, regions, stack, pen)
+```
+
+### Result accessors
+
+Use these instead of indexing the result vector directly:
+
+```scad
+ResultState(result)     // final [x, y, heading, scale]
+ResultContours(result)  // evaluated region list
+ResultStack(result)     // final PUSH/POP stack
+ResultPen(result)       // final pen state
+```
+
+`ResultContours()` keeps its old name for continuity. It now returns a **region
+list**, not a raw flat list of independent contours:
+
+```text
+regions =
+[
+    [outerContour, holeContour0, holeContour1],
+    [outerContour]
+];
+```
+
+### `RenderContours2D(regions, convexity = 10)`
+
+Renders an already-evaluated region list.
 
 ```scad
 result = evalLogo(part);
@@ -204,10 +292,40 @@ regions = ResultContours(result);
 RenderContours2D(regions, convexity = 10);
 ```
 
+Use this when you want to inspect the evaluated result or avoid re-evaluating a
+large generated command list.
+
+### `RenderRegion2D(region, convexity = 10)`
+
+Renders exactly one region:
+
+```text
+[outerContour, holeContour0, holeContour1, ...]
+```
+
+This is mainly a low-level testing/debugging hook. Normal models should call
+`RenderLogo2D()`.
+
+### OpenSCAD wrapper pattern
+
+LogoT intentionally remains a 2D geometry generator. Use OpenSCAD modules around
+LogoT output for final modeling:
+
+```scad
+color("cyan")
+linear_extrude(height = 4, twist = 20, slices = 24)
+{
+    offset(r = 0.5)
+    {
+        RenderLogo2D(part);
+    }
+}
+```
+
 The old `RenderContours()` compatibility alias has been removed. Use
 `RenderContours2D()` when rendering already-evaluated regions.
 
-## 7. 3D printing workflow
+## 8. 3D printing workflow
 
 ### Linear extrusion
 
@@ -257,7 +375,7 @@ rotate_extrude(angle = 360, convexity = 10)
 }
 ```
 
-## 8. Segment-count controls
+## 9. Segment-count controls
 
 Curved commands use tessellated line segments. If a command supplies an explicit
 segment count, that value overrides OpenSCAD's `$fn`, `$fa`, and `$fs` controls.
@@ -278,7 +396,7 @@ selection:
 `REGPOLY` uses its side count directly and does not consult `$fn`, `$fa`, or
 `$fs`.
 
-## 9. Command reference
+## 10. Command reference
 
 ### `MOVE`
 
@@ -792,7 +910,7 @@ part =
 Closed-shape commands also obey pen state. For example, `[PENUP], [CIRCLE, 5]`
 does not emit a circle.
 
-## 10. Recursion and recursive patterns
+## 11. Recursion and recursive patterns
 
 LogoT uses the word "recursion" in a few related but distinct ways. They are
 worth separating because they have different costs and different failure modes.
@@ -986,7 +1104,7 @@ For 3D-printing parts, keep recursion depth modest. Fractals are excellent test
 cases and decorative features, but dense recursive outlines can generate large
 polygons that are slow to preview, render, slice, and print.
 
-## 11. Practical examples
+## 12. Practical examples
 
 ### Example 1: simple extruded plate
 
@@ -1086,7 +1204,7 @@ rotate_extrude(angle = 360, convexity = 10)
 }
 ```
 
-## 12. Error handling and tracing
+## 13. Error handling and tracing
 
 LogoT defaults to soft errors:
 
@@ -1115,7 +1233,7 @@ TraceLevel = 4; // full execution trace
 
 Higher levels include lower levels.
 
-## 13. Limitations
+## 14. Limitations
 
 Current limitations:
 
@@ -1131,7 +1249,7 @@ Current limitations:
 For now, use closed shapes, `HOLE`, and native OpenSCAD boolean/modeling
 operations to build printable parts.
 
-## 14. Suggested style for LogoT programs
+## 15. Suggested style for LogoT programs
 
 Use named OpenSCAD variables for repeated command lists:
 
