@@ -213,6 +213,35 @@ from +Z toward the XY plane, positive turns are counterclockwise.
 Movement commands update the current state. Closed-shape commands stamp geometry
 at the current state but do not move the state.
 
+### 5.1 Relative drawing vs. absolute layout
+
+Prefer relative commands inside reusable command lists. Use `MOVE`, `TURN`,
+`ARC`, `RUN`, `REPEAT`, and `SCALE` when defining a shape that should inherit
+the caller's position, heading, and scale. Use `GOTO` and `DIR` primarily for
+layout, anchoring, and deterministic setup.
+
+| Situation | Prefer | Reason |
+|---|---|---|
+| Drawing a reusable glyph, shape, or path | `MOVE`, `TURN`, `ARC` | The shape inherits caller position, heading, and scale. |
+| Placing objects in a larger design | `GOTO`, sometimes `DIR` | Layout usually needs explicit positions. |
+| Resetting known state at the start of an example | `GOTO`, `DIR` | The example is deterministic and easy to inspect. |
+| Decorative turtle/path geometry | `MOVE`, `TURN` | This preserves Logo-style relative motion. |
+| CAD-style stamped primitives | `GOTO`, then `CIRCLE`, `RECT`, or `ROUNDEDRECT` | Stamped objects are centered at the current position. |
+
+A good default pattern is absolute setup followed by relative drawing:
+
+```scad
+shape =
+[
+    [GOTO, 0, 0, 0],     // anchor the shape
+    [MOVE, 20],
+    [TURN, 90],
+    [MOVE, 10],
+    [TURN, 90],
+    [MOVE, 20]
+];
+```
+
 ## 6. Rendering model
 
 LogoT evaluates commands into **regions**.
@@ -1300,6 +1329,10 @@ operations to build printable parts.
 
 ## 15. Suggested style for LogoT programs
 
+Favor relative drawing inside reusable command lists. Use `GOTO` and `DIR` for
+layout and setup; use `MOVE`, `TURN`, and `ARC` for the shape body when possible.
+See [Relative drawing vs. absolute layout](#51-relative-drawing-vs-absolute-layout).
+
 Use named OpenSCAD variables for repeated command lists:
 
 ```scad
@@ -1342,6 +1375,7 @@ control smoothness globally.
 - [`PENDOWN`](#penup-and-pendown), [`PENUP`](#penup-and-pendown)
 - [`POP`](#push-and-pop), [`PUSH`](#push-and-pop)
 - [`RECT`](#rect)
+- [Relative drawing vs. absolute layout](#51-relative-drawing-vs-absolute-layout)
 - [`REGPOLY`](#regpoly)
 - [`REPEAT`](#repeat)
 - [`RenderContours2D()`](#rendercontours2dregions-convexity-10)
