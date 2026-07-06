@@ -39,8 +39,9 @@ The user is using Git. Preserve exact project filenames.
 
 Do not create replacement files named `-fixed`, `-v2`, `new`, `copy`, or similar. When a
 project file changes, overwrite/export using the same filename. For multi-file exports,
-prefer a single zip containing exact project filenames. The zip workflow has been much
-more reliable than individual file downloads in the ChatGPT/Windows app.
+default to one combined update zip containing all changed or added project files with
+exact project filenames, suitable for unzipping over the repository. The zip workflow has
+been much more reliable than individual file downloads in the ChatGPT/Windows app.
 
 When exporting multiple files, include a checksum file in the artifact zip if practical,
 but do not assume the checksum file belongs in Git.
@@ -352,7 +353,7 @@ The user prefers:
 - concise but technically precise explanations;
 - small surgical edits;
 - exact filenames;
-- zip bundles for export;
+- one combined update zip per work session, containing exact project filenames;
 - no unnecessary file variants;
 - Git-friendly workflow;
 - relative Logo-style commands inside reusable shapes;
