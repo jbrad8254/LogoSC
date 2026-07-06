@@ -1,5 +1,21 @@
 # LogoT-Foundation
 
+## Table of Contents
+
+- [Current files](#current-files)
+- [Workflow](#workflow)
+- [Versioning](#versioning)
+- [Public API quick reference](#public-api-quick-reference)
+- [Current command format](#current-command-format)
+- [Geometry commands](#geometry-commands)
+- [Rendering model](#rendering-model)
+- [Rendering API](#rendering-api)
+- [Future rendering work](#future-rendering-work)
+- [Cheat sheet](#cheat-sheet)
+- [Examples](#examples)
+- [Release history](#release-history)
+- [Milestone roadmap](#milestone-roadmap)
+
 ## Current files
 
 - `LogoT-Foundation-Core.scad` — core interpreter and renderer.

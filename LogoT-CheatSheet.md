@@ -4,7 +4,7 @@ Compact LogoT `2026.0` reference. Full docs: [`LogoT-User-Manual.md`](LogoT-User
 
 ## Setup
 
-[`include <LogoT-Foundation-Core.scad>`](LogoT-User-Manual.md#1-files)  [`RunLogoTests = false;`](LogoT-User-Manual.md#13-error-handling-and-tracing)  [`TraceLevel = 0;`](LogoT-User-Manual.md#13-error-handling-and-tracing)
+[`include <LogoT-Foundation-Core.scad>`](LogoT-User-Manual.md#setup)  [`RunLogoTests = false;`](LogoT-User-Manual.md#setup)  [`TraceLevel = 0;`](LogoT-User-Manual.md#setup)
 
 ## Version
 

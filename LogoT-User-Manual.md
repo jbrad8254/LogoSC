@@ -9,6 +9,27 @@ LogoT is designed primarily for 3D-printable 2D profiles: plates, panels,
 washers, outlines, rounded rectangles, decorative regions, and profiles that can
 be passed to `linear_extrude()` or `rotate_extrude()`.
 
+## Table of Contents
+
+- [1. Files and setup](#1-files)
+  - [Setup](#setup)
+  - [Library version](#library-version)
+- [2. Core idea](#2-core-idea)
+- [3. Quick lookup cheat sheet](#3-quick-lookup-cheat-sheet)
+- [4. Runnable examples](#4-runnable-examples)
+- [5. Coordinate model](#5-coordinate-model)
+- [6. Rendering model](#6-rendering-model)
+- [7. Public rendering and evaluation API](#7-public-rendering-and-evaluation-api)
+- [8. 3D printing workflow](#8-3d-printing-workflow)
+- [9. Segment-count controls](#9-segment-count-controls)
+- [10. Command reference](#10-command-reference)
+- [11. Recursion and recursive patterns](#11-recursion-and-recursive-patterns)
+- [12. Practical examples](#12-practical-examples)
+- [13. Error handling and tracing](#13-error-handling-and-tracing)
+- [14. Limitations](#14-limitations)
+- [15. Suggested style for LogoT programs](#15-suggested-style-for-logot-programs)
+- [Index](#index)
+
 ## 1. Files
 
 Current project files:
@@ -26,19 +47,47 @@ LogoT-Examples.scad               Runnable example gallery.
 .gitattributes                    LF line-ending policy for Git.
 ```
 
-Open `LogoT-Foundation-Core.scad` in OpenSCAD. Set:
+### Setup
+
+For normal use, put the LogoT core file next to your model and include it from
+OpenSCAD:
+
+```scad
+include <LogoT-Foundation-Core.scad>
+RunLogoTests = false;
+TraceLevel = 0; // [0:4]
+```
+
+The `RunLogoTests` and `TraceLevel` assignments should come **after** the
+`include`. OpenSCAD `include` behaves like textual insertion, so post-include
+assignments override the core file's Customizer defaults without creating a
+second Customizer block or accidentally enabling the regression-test gallery in
+your model.
+
+For ordinary 2D output, wrap a LogoT command list with:
+
+```scad
+RenderLogo2D(cmds);
+```
+
+For 3D printing, use native OpenSCAD operations around the 2D output:
+
+```scad
+linear_extrude(height = 4, center = false, convexity = 10)
+{
+    RenderLogo2D(cmds);
+}
+```
+
+To run the built-in tests, open `LogoT-Foundation-Core.scad` directly in
+OpenSCAD and leave:
 
 ```scad
 RunLogoTests = true;
 ```
 
-to run the regression/visual tests. Set:
-
-```scad
-RunLogoTests = false;
-```
-
-when using LogoT as a library in your own model.
+The runnable gallery in `LogoT-Examples.scad` follows the same include pattern
+and is a good starting point for user models.
 
 ### Library version
 
@@ -1274,3 +1323,45 @@ Prefer explicit segment counts in tests and examples when point counts matter:
 
 Omit segment counts in real models when you want `$fn`, `$fa`, and `$fs` to
 control smoothness globally.
+
+## Index
+
+- [`$fa`](#9-segment-count-controls), [`$fn`](#9-segment-count-controls), [`$fs`](#9-segment-count-controls)
+- [`ARC`](#arc)
+- [`CHANGELOG.md`](#1-files)
+- [`CIRCLE`](#circle)
+- [`DIR`](#dir)
+- [`evalLogo()`](#evallogocmds)
+- [`GOTO`](#goto)
+- [`HOLE`](#hole)
+- [`LogoT-CheatSheet.md`](#3-quick-lookup-cheat-sheet)
+- [`LogoT-Examples.scad`](#4-runnable-examples)
+- [`LogoTVersion`](#library-version)
+- [`LogoTVersionAtLeast()`](#library-version)
+- [`MOVE`](#move)
+- [`PENDOWN`](#penup-and-pendown), [`PENUP`](#penup-and-pendown)
+- [`POP`](#push-and-pop), [`PUSH`](#push-and-pop)
+- [`RECT`](#rect)
+- [`REGPOLY`](#regpoly)
+- [`REPEAT`](#repeat)
+- [`RenderContours2D()`](#rendercontours2dregions-convexity-10)
+- [`RenderLogo2D()`](#renderlogo2dcmds-convexity-10)
+- [`RenderRegion2D()`](#renderregion2dregion-convexity-10)
+- [`ResultContours()`](#result-accessors)
+- [`ResultPen()`](#result-accessors)
+- [`ResultStack()`](#result-accessors)
+- [`ResultState()`](#result-accessors)
+- [`ROUNDEDRECT`](#roundedrect)
+- [`RUN`](#run)
+- [`SCALE`](#scale)
+- [`TURN`](#turn)
+- [Coordinate system](#5-coordinate-model)
+- [Error handling](#13-error-handling-and-tracing)
+- [Holes and regions](#6-rendering-model)
+- [Linear extrusion](#linear-extrusion)
+- [OpenSCAD wrappers](#8-3d-printing-workflow)
+- [Recursion](#11-recursion-and-recursive-patterns)
+- [Rotate extrusion](#rotate-extrusion)
+- [Setup](#setup)
+- [Test grid and tracing](#13-error-handling-and-tracing)
+
