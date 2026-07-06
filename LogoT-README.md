@@ -24,6 +24,7 @@
 - `CHANGELOG.md` — milestone release history.
 - `LogoT-ARC-Implementation.md` — design notes for ARC tessellation.
 - `LogoT-Holes-Implementation.md` — design notes for regions and holes.
+- `LogoT-LSystems-Notes.md` — design notes for L-system examples.
 - `LogoT-User-Manual.md` — command reference and practical examples.
 - `LogoT-CheatSheet.md` — compact command and API reference.
 - `LogoT-Examples.scad` — runnable example gallery and 3D-printing demos.
@@ -266,8 +267,12 @@ models; use the User Manual for detailed explanations.
 ## Examples
 
 `LogoT-Examples.scad` contains a runnable gallery of practical LogoT models. It
-shows 2D profiles, holes, recursive/fractal construction, native OpenSCAD
-`linear_extrude()` and `rotate_extrude()` usage, and the LogoT feature wordmark.
+shows 2D profiles, holes, recursive/fractal construction, L-system-generated
+fractal outlines, native OpenSCAD `linear_extrude()` and `rotate_extrude()`
+usage, and the LogoT feature wordmark.
+
+See `LogoT-LSystems-Notes.md` for the design rationale behind the L-system
+helper examples.
 
 Open the examples file directly in OpenSCAD. By default it renders the full
 example gallery:

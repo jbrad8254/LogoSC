@@ -15,6 +15,8 @@ be passed to `linear_extrude()` or `rotate_extrude()`.
   - [Setup](#setup)
   - [Library version](#library-version)
 - [2. Core idea](#2-core-idea)
+  - [LogoT and BOSL2 turtle](#logot-and-bosl2-turtle)
+  - [Other Logo-like OpenSCAD turtle tools](#other-logo-like-openscad-turtle-tools)
 - [3. Quick lookup cheat sheet](#3-quick-lookup-cheat-sheet)
 - [4. Runnable examples](#4-runnable-examples)
 - [5. Coordinate model](#5-coordinate-model)
@@ -41,6 +43,7 @@ LogoT-README.md                   Project overview and roadmap.
 CHANGELOG.md                      Release history.
 LogoT-ARC-Implementation.md        ARC tessellation design notes.
 LogoT-Holes-Implementation.md     Region/hole design notes.
+LogoT-LSystems-Notes.md           L-system design and example notes.
 LogoT-User-Manual.md              This manual.
 LogoT-CheatSheet.md               Compact command and API reference.
 LogoT-Examples.scad               Runnable example gallery.
@@ -144,6 +147,48 @@ LogoT intentionally renders **2D regions only**. It does not wrap
 those operations outside LogoT keeps the API small and lets OpenSCAD do normal
 OpenSCAD work.
 
+### LogoT and BOSL2 turtle
+
+LogoT overlaps slightly with BOSL2's turtle/path tools, but the two projects
+optimize for different jobs.
+
+BOSL2 is a broad OpenSCAD utility library with extensive shape, path, region,
+attachment, and 3D modeling tools, including turtle-style path helpers. Get
+BOSL2 from the [BelfrySCAD/BOSL2 GitHub repository](https://github.com/BelfrySCAD/BOSL2),
+or from the [OpenSCAD Libraries page](https://openscad.org/libraries.html).
+
+LogoT is deliberately narrower. It evaluates compact Logo-style command lists
+into closed 2D regions suitable for `polygon(points=..., paths=...)`, holes,
+`linear_extrude()`, `rotate_extrude()`, `offset()`, and ordinary OpenSCAD
+composition.
+
+Use BOSL2 when you want its large general-purpose modeling toolkit, attachment
+system, path utilities, or 3D turtle workflows. Use LogoT when you want a small,
+self-contained 2D region generator for reusable plate, panel, washer, outline,
+and profile geometry. They can coexist in the same OpenSCAD model because LogoT
+returns normal OpenSCAD 2D geometry rather than owning the whole modeling stack.
+
+### Other Logo-like OpenSCAD turtle tools
+
+The OpenSCAD ecosystem has several turtle-graphics or Logo-like experiments.
+Most are path generators, drawing helpers, tutorials, or broader CAD libraries
+rather than direct substitutes for LogoT's small 2D-region-and-hole workflow.
+
+| Tool | Where to find it | Plus, relative to LogoT | Minus, relative to LogoT |
+|---|---|---|---|
+| BOSL2 `turtle()` / `turtle3d()` | [BelfrySCAD/BOSL2](https://github.com/BelfrySCAD/BOSL2) | Mature, broad OpenSCAD toolkit; strong path, region, attachment, and 3D workflows. | Larger dependency; optimized for BOSL2 path/modeling workflows rather than a small standalone LogoT region DSL. |
+| StoneAgeLib `turtle.scad` | [Stone-Age-Sculptor/StoneAgeLib](https://github.com/Stone-Age-Sculptor/StoneAgeLib) | Practical 3D-printing library; public-domain/CC0 licensing; turtle usage is described as similar to Python Turtle. | Part of a broader evolving library; not focused on LogoT's closed-region, hole, and compact command-list API. |
+| `phildubach/openscad-turtle` | [phildubach/openscad-turtle](https://github.com/phildubach/openscad-turtle) | Interesting CAD-style commands for lines, arcs, elastic lines, and references to stored prior turtle states. | Small GPL-3.0 project; less evidence of adoption; path construction rather than LogoT-style filled regions with holes. |
+| JustinSDK TurtleSCAD | [JustinSDK/TurtleSCAD](https://github.com/JustinSDK/TurtleSCAD) | Pure OpenSCAD turtle-graphics implementation with example models; historically relevant. | Archived/read-only; no releases; not a current foundation for new LogoT work. |
+| Kit Wallace `turtle.scad` examples | [Turtle Graphics in OpenSCAD](https://www.tumblr.com/kitwallace/112087448494/turtle-graphics-in-openscad) | Compact classic-Logo flavor; useful educational example of recursive OpenSCAD turtle command lists. | Tutorial/demo scale; older and not framed as a maintained LogoT-like CAD-region library. |
+| OpenHome 2D/3D turtle articles | [2D turtle graphics](https://openhome.cc/eGossip/OpenSCAD/TurtleGraphics.html) and [3D turtle graphics](https://openhome.cc/eGossip/OpenSCAD/3DTurtleGraphics.html) | Good implementation notes for turtle state, immutability, and coordinate-frame reasoning in OpenSCAD. | Article/example code rather than a packaged library; not aimed at LogoT's reusable region primitives. |
+| TheHans L-system gist | [L-system implementation in OpenSCAD](https://gist.github.com/thehans/a1494db8046a58832e2ebb10a5908a66) | Useful example of turtle interpretation with stack-style `[` / `]` branching for fractals and plant-like forms. | Specialized L-system interpreter, not a general Logo-style CAD geometry API. |
+
+The practical conclusion is that LogoT does not need to become a general BOSL2
+competitor or a complete Logo clone. Its useful niche is a small, readable,
+Git-friendly OpenSCAD mini-language that produces printable 2D regions and
+region holes, then gets out of OpenSCAD's way.
+
 
 ## 3. Quick lookup cheat sheet
 
@@ -156,8 +201,9 @@ writing models; return to this manual for full explanations and examples.
 `LogoT-Examples.scad` is the best place to see the library used as an OpenSCAD
 modeling tool rather than as a test harness. It contains a gallery module plus
 individual named examples for washers, mounting plates, radial holes, Koch
-snowflake geometry, rotate-extruded profiles, twisted extrusions, a small spiral
-tower, and the LogoT feature wordmark.
+snowflake geometry, L-system-generated fractal outlines, rotate-extruded
+profiles, twisted extrusions, a small spiral tower, and the LogoT feature
+wordmark.
 
 Open `LogoT-Examples.scad` directly in OpenSCAD. The default setting renders the
 full gallery:
@@ -176,6 +222,8 @@ TraceLevel = 0; // [0:4]
 
 Use it as a cookbook: copy a command list such as `ExampleMountingPlate`, or use
 one of the example rendering modules as a starting point for your own model.
+For the L-system examples, see `LogoT-LSystems-Notes.md` for design context
+and limitations.
 
 ## 5. Coordinate model
 

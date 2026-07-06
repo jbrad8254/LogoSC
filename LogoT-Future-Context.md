@@ -26,6 +26,7 @@ LogoT-CheatSheet.md
 CHANGELOG.md
 LogoT-ARC-Implementation.md
 LogoT-Holes-Implementation.md
+LogoT-LSystems-Notes.md
 .gitattributes
 ```
 
@@ -223,8 +224,8 @@ Implemented concepts include:
 - holes: `[HOLE, cmds]`;
 - region rendering through `polygon(points, paths)`;
 - test-grid coloring and row markers;
-- example gallery including a LogoT wordmark, plates, profiles, a spiral tower, and 3D
-  OpenSCAD wrappers around `RenderLogo2D()`.
+- example gallery including a LogoT wordmark, plates, profiles, L-system-generated fractal
+  outlines, a spiral tower, and 3D OpenSCAD wrappers around `RenderLogo2D()`.
 
 The `CIRCLE` command is intentionally CAD-like, not classic Logo-like. It creates a closed
 circle centered at the current state and does not move the Logo state. For classic turtle
@@ -303,6 +304,7 @@ Current docs are split by purpose:
 - `CHANGELOG.md`: release history and milestone notes.
 - `LogoT-ARC-Implementation.md`: arc/segment-count design details.
 - `LogoT-Holes-Implementation.md`: region/hole rendering design details.
+- `LogoT-LSystems-Notes.md`: design notes for L-system example helpers and future fractal examples.
 - `LogoT-Examples.scad`: runnable examples and gallery.
 
 The cheat sheet should stay compact, similar in spirit to the OpenSCAD cheat sheet. It
