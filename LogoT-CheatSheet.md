@@ -1,238 +1,55 @@
 # LogoT Cheat Sheet
 
-Compact reference for LogoT `2026.0`. For full explanations, see
-[`LogoT-User-Manual.md`](LogoT-User-Manual.md),
-[`LogoT-README.md`](LogoT-README.md), and
-[`LogoT-Examples.scad`](LogoT-Examples.scad).
-
-This layout is intentionally similar in spirit to the
-[OpenSCAD cheat sheet](https://openscad.org/cheatsheet/index.html?version=2021.01),
-but this file documents LogoT's command vectors and public API.
+Compact LogoT `2026.0` reference. Full docs: [`LogoT-User-Manual.md`](LogoT-User-Manual.md). Inspired by the compact section style of the [OpenSCAD cheat sheet](https://openscad.org/cheatsheet/index.html?version=2021.01).
 
 ## Setup
 
-```scad
-include <LogoT-Foundation-Core.scad>
-RunLogoTests = false;
-TraceLevel = 0; // [0:4]
-```
-
-For examples, open:
-
-```scad
-LogoT-Examples.scad
-```
+[`include <LogoT-Foundation-Core.scad>`](LogoT-User-Manual.md#1-files)  [`RunLogoTests = false;`](LogoT-User-Manual.md#13-error-handling-and-tracing)  [`TraceLevel = 0;`](LogoT-User-Manual.md#13-error-handling-and-tracing)
 
 ## Version
 
-```scad
-LogoTVersionMajor
-LogoTVersionMinor
-LogoTVersion
-LogoTVersionAtLeast(major, minor)
-```
+[`LogoTVersionMajor`](LogoT-User-Manual.md#library-version)  [`LogoTVersionMinor`](LogoT-User-Manual.md#library-version)  [`LogoTVersion`](LogoT-User-Manual.md#library-version)  [`LogoTVersionAtLeast(major, minor)`](LogoT-User-Manual.md#library-version)
 
-```scad
-assert(LogoTVersionAtLeast(2026, 0), "This model requires LogoT 2026.0+");
-```
+## Command vector syntax
 
-## Command-list syntax
+[`cmds = [[OP, arg...], ...];`](LogoT-User-Manual.md#10-command-reference)  optional trailing fields: `[OP, required[, optional]]`
 
-A LogoT program is an OpenSCAD vector of command vectors:
+## Motion / state
 
-```scad
-part =
-[
-    [ROUNDEDRECT, 60, 30, 4],
-    [HOLE, [[CIRCLE, 5]]]
-];
-```
+[`[MOVE, len]`](LogoT-User-Manual.md#move)  [`[TURN, deltaHeading]`](LogoT-User-Manual.md#turn)  [`[DIR, absoluteHeading]`](LogoT-User-Manual.md#dir)  [`[SCALE, scaleMultiplier]`](LogoT-User-Manual.md#scale)  [`[GOTO, x, y, heading]`](LogoT-User-Manual.md#goto)
 
-Nested square brackets in this cheat sheet mean optional trailing fields:
+## Closed geometry
 
-```scad
-[ARC, radius, degrees[, segments]]
-```
+[`[ARC, radius, degrees[, segments]]`](LogoT-User-Manual.md#arc)  [`[CIRCLE, radius[, segments]]`](LogoT-User-Manual.md#circle)  [`[REGPOLY, sides, radius[, rotation]]`](LogoT-User-Manual.md#regpoly)  [`[RECT, width, height]`](LogoT-User-Manual.md#rect)  [`[ROUNDEDRECT, width, height, radius[, segments]]`](LogoT-User-Manual.md#roundedrect)  [`[HOLE, cmds]`](LogoT-User-Manual.md#hole)
 
-## Motion and state commands
+## Control / structure
 
-| Command | Meaning |
-|---|---|
-| `[MOVE, len]` | Move along current heading; emits a point when pen is down. |
-| `[TURN, deltaHeading]` | Add a relative heading. Positive is counterclockwise about +Z. |
-| `[DIR, absoluteHeading]` | Set absolute heading in degrees. |
-| `[SCALE, scaleMultiplier]` | Multiply the current Logo scale. |
-| `[GOTO, x, y, heading]` | Set absolute position and heading. |
+[`[RUN, cmds[, scale[, maxRec]]]`](LogoT-User-Manual.md#run)  [`[REPEAT, count, cmds]`](LogoT-User-Manual.md#repeat)  [`[PUSH]`](LogoT-User-Manual.md#push-and-pop)  [`[POP]`](LogoT-User-Manual.md#push-and-pop)  [`[PENUP]`](LogoT-User-Manual.md#penup-and-pendown)  [`[PENDOWN]`](LogoT-User-Manual.md#penup-and-pendown)
 
-Coordinate convention: OpenSCAD right-handed coordinates. Heading 0 is +X;
-heading 90 is +Y.
+## Rendering / evaluation API
 
-## Closed geometry commands
+[`RenderLogo2D(cmds, convexity = 10)`](LogoT-User-Manual.md#renderlogo2dcmds-convexity-10)  [`evalLogo(cmds)`](LogoT-User-Manual.md#evallogocmds)  [`ResultState(result)`](LogoT-User-Manual.md#result-accessors)  [`ResultContours(result)`](LogoT-User-Manual.md#result-accessors)  [`ResultStack(result)`](LogoT-User-Manual.md#result-accessors)  [`ResultPen(result)`](LogoT-User-Manual.md#result-accessors)  [`RenderContours2D(regions, convexity = 10)`](LogoT-User-Manual.md#rendercontours2dregions-convexity-10)  [`RenderRegion2D(region, convexity = 10)`](LogoT-User-Manual.md#renderregion2dregion-convexity-10)
 
-| Command | Meaning |
-|---|---|
-| `[ARC, radius, degrees[, segments]]` | Walk a tangent arc from current state; updates position and heading. |
-| `[CIRCLE, radius[, segments]]` | Stamp a closed circle centered at current position. |
-| `[REGPOLY, sides, radius[, rotation]]` | Stamp a regular polygon centered at current position. |
-| `[RECT, width, height]` | Stamp a rectangle centered at current position. |
-| `[ROUNDEDRECT, width, height, radius[, segments]]` | Stamp a rounded rectangle centered at current position. |
-| `[HOLE, cmds]` | Attach child contours as holes to the most recent outer region. |
+## Region data
 
-`CIRCLE` is CAD-style, not classic Logo-style. It does not move the state. Use
-`[ARC, radius, 360]` when you want the Logo cursor to walk a full tangent loop.
+[`region = [outerContour, holeContour0, ...]`](LogoT-User-Manual.md#6-rendering-model)  [`regions = [region0, region1, ...]`](LogoT-User-Manual.md#6-rendering-model)
 
-## Control and structure commands
+## Segment controls
 
-| Command | Meaning |
-|---|---|
-| `[RUN, cmds[, scale[, maxRec]]]` | Evaluate a child command list; optional temporary scale and recursion limit. |
-| `[REPEAT, count, cmds]` | Evaluate a child command list `count` times. |
-| `[PUSH]` | Push current state on the state stack. |
-| `[POP]` | Restore the most recent pushed state. |
-| `[PENUP]` | Stop emitting movement points. |
-| `[PENDOWN]` | Start a new drawable contour. |
+[`$fn`](LogoT-User-Manual.md#9-segment-count-controls)  [`$fa`](LogoT-User-Manual.md#9-segment-count-controls)  [`$fs`](LogoT-User-Manual.md#9-segment-count-controls)  [`segments`](LogoT-User-Manual.md#9-segment-count-controls)
 
-## Segment-count convention
+## Core controls
 
-| Case | Rule |
-|---|---|
-| Explicit `segments` | Overrides `$fn`, `$fa`, and `$fs`. |
-| Omitted `segments` | Uses OpenSCAD-style `$fn`, `$fa`, `$fs` selection. |
-| `ARC` explicit segments | Counts line segments along that arc. |
-| `CIRCLE` explicit segments | Counts full-circle fragments. |
-| `ROUNDEDRECT` explicit segments | Counts segments per rounded corner. |
-| `REGPOLY` | Uses `sides`; does not consult `$fn`, `$fa`, or `$fs`. |
-
-Detailed design note: [`LogoT-ARC-Implementation.md`](LogoT-ARC-Implementation.md).
-
-## Public rendering and evaluation API
-
-| API | Kind | Purpose |
-|---|---|---|
-| `RenderLogo2D(cmds, convexity = 10)` | module | Main user-facing renderer. Evaluates and renders 2D regions. |
-| `evalLogo(cmds)` | function | Evaluate commands without rendering. |
-| `ResultState(result)` | function | Final `[x, y, heading, scale]`. |
-| `ResultContours(result)` | function | Evaluated region list. Historical name; returns regions. |
-| `ResultStack(result)` | function | Final state stack. |
-| `ResultPen(result)` | function | Final pen state. |
-| `RenderContours2D(regions, convexity = 10)` | module | Render already-evaluated regions. |
-| `RenderRegion2D(region, convexity = 10)` | module | Render one region. |
-
-Main pattern:
-
-```scad
-linear_extrude(height = 4, convexity = 10)
-{
-    RenderLogo2D(part);
-}
-```
-
-Advanced pattern:
-
-```scad
-result = evalLogo(part);
-state = ResultState(result);
-regions = ResultContours(result);
-
-RenderContours2D(regions, convexity = 10);
-```
-
-Full docs:
-[User Manual API section](LogoT-User-Manual.md#7-public-rendering-and-evaluation-api).
-
-## Region structure
-
-LogoT renders closed regions:
-
-```text
-region  = [outerContour, holeContour0, holeContour1, ...]
-regions = [region0, region1, ...]
-```
-
-Each region becomes one OpenSCAD `polygon(points=..., paths=...)` call. Holes
-are paths after the outer path. Detailed note:
-[`LogoT-Holes-Implementation.md`](LogoT-Holes-Implementation.md).
-
-## Common OpenSCAD wrappers around LogoT output
-
-LogoT intentionally emits 2D geometry only. Use native OpenSCAD modules around
-`RenderLogo2D()`.
-
-| OpenSCAD wrapper | Common use with LogoT output |
-|---|---|
-| `linear_extrude(height, center, convexity, twist, slices)` | Make printable 3D solids from LogoT 2D regions. |
-| `rotate_extrude(angle, convexity)` | Revolve a LogoT 2D profile around the Z axis. |
-| `offset(r)` | Expand/round a 2D profile; possible basis for crude stroke-like effects. |
-| `offset(delta, chamfer)` | Inset/outset with optional chamfer behavior. |
-| `translate([x, y, z])` | Position LogoT output. |
-| `rotate([x, y, z])` | Rotate LogoT output. |
-| `scale([x, y, z])` | Resize LogoT output. |
-| `color("name")` | Color previews/tests; not part of LogoT geometry semantics. |
-| `union()` | Combine several LogoT outputs. |
-| `difference()` | Subtract 3D features or alternate hole strategies. |
-| `intersection()` | Clip LogoT output. |
-
-OpenSCAD references:
-[cheat sheet](https://openscad.org/cheatsheet/index.html?version=2021.01),
-[2D-to-3D extrusion](https://en.wikibooks.org/wiki/OpenSCAD_User_Manual/2D_to_3D_Extrusion),
-[transformations and offset](https://en.wikibooks.org/wiki/OpenSCAD_User_Manual/Transformations).
-
-Examples:
-
-```scad
-linear_extrude(height = 4, center = false, convexity = 10)
-{
-    RenderLogo2D(part);
-}
-```
-
-```scad
-linear_extrude(height = 10, twist = 45, slices = 32, convexity = 10)
-{
-    RenderLogo2D([[ROUNDEDRECT, 20, 20, 3]]);
-}
-```
-
-```scad
-rotate_extrude(angle = 360, convexity = 10)
-{
-    RenderLogo2D(profileOnPositiveX);
-}
-```
-
-```scad
-offset(r = 0.5)
-{
-    RenderLogo2D(part);
-}
-```
-
-## Global controls
-
-| Variable | Meaning |
-|---|---|
-| `RunLogoTests` | Run regression/visual tests from the core include. |
-| `HardErrors` | Turn soft errors into OpenSCAD `assert()` failures. |
-| `TraceLevel` | Static/execution tracing level, 0 through 4. |
-| `maxRunRecursions` | Global recursion safety limit for `RUN`. |
-| `$fn`, `$fa`, `$fs` | OpenSCAD-style curved-geometry tessellation controls. |
+[`RunLogoTests`](LogoT-User-Manual.md#13-error-handling-and-tracing)  [`HardErrors`](LogoT-User-Manual.md#13-error-handling-and-tracing)  [`TraceLevel`](LogoT-User-Manual.md#13-error-handling-and-tracing)  [`maxRunRecursions`](LogoT-User-Manual.md#run)
 
 ## Test helpers
 
-These are mainly for `LogoT-Foundation-Tests.scad`:
+[`LogoTest(testName, vtCmds, testIndex, height, testColor)`](LogoT-User-Manual.md#13-error-handling-and-tracing)
 
-```scad
-LogoTest(testName, vtCmds, testIndex, height, testColor)
-```
+## Common OpenSCAD wrappers
 
-Visual tests are color-coded by grid index. Test geometry color follows the X
-index; row markers identify Y indices.
+[`linear_extrude(height, center, convexity, twist, slices)`](LogoT-User-Manual.md#linear-extrusion)  [`rotate_extrude(angle, convexity)`](LogoT-User-Manual.md#rotate-extrusion)  [`offset(r)`](LogoT-User-Manual.md#8-3d-printing-workflow)  [`offset(delta, chamfer)`](LogoT-User-Manual.md#8-3d-printing-workflow)  [`translate([x, y, z])`](LogoT-User-Manual.md#8-3d-printing-workflow)  [`rotate([x, y, z])`](LogoT-User-Manual.md#8-3d-printing-workflow)  [`scale([x, y, z])`](LogoT-User-Manual.md#8-3d-printing-workflow)  [`color(name)`](LogoT-User-Manual.md#13-error-handling-and-tracing)  [`union()`](LogoT-User-Manual.md#8-3d-printing-workflow)  [`difference()`](LogoT-User-Manual.md#8-3d-printing-workflow)  [`intersection()`](LogoT-User-Manual.md#8-3d-printing-workflow)
 
-## Further reading
+## More
 
-- [`LogoT-README.md`](LogoT-README.md) — project overview.
-- [`LogoT-User-Manual.md`](LogoT-User-Manual.md) — full command documentation.
-- [`LogoT-Examples.scad`](LogoT-Examples.scad) — runnable examples.
-- [`LogoT-ARC-Implementation.md`](LogoT-ARC-Implementation.md) — arc tessellation.
-- [`LogoT-Holes-Implementation.md`](LogoT-Holes-Implementation.md) — regions and holes.
-- [`CHANGELOG.md`](CHANGELOG.md) — release history.
+[`README`](LogoT-README.md)  [`User Manual`](LogoT-User-Manual.md)  [`Examples`](LogoT-Examples.scad)  [`ARC note`](LogoT-ARC-Implementation.md)  [`Holes note`](LogoT-Holes-Implementation.md)  [`Changelog`](CHANGELOG.md)
