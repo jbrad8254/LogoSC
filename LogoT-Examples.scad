@@ -123,6 +123,106 @@ function KochSnowflake(x, y, side, depth) =
     );
 
 // -----------------------------------------------------------------------------
+// L-system example helpers
+// -----------------------------------------------------------------------------
+// These helpers intentionally live in the examples file rather than in the core
+// interpreter. They show how a small symbol-rewrite layer can generate ordinary
+// LogoT command lists without creating new LogoT opcodes.
+
+LSYS_F     = 100 + 0;
+LSYS_PLUS  = 101 + 0;
+LSYS_MINUS = 102 + 0;
+LSYS_PUSH  = 103 + 0;
+LSYS_POP   = 104 + 0;
+
+LSYS_SYSTEM_KOCH = 0 + 0;
+LSYS_SYSTEM_QUADRATIC_KOCH = 1 + 0;
+
+function LogoTLSystemRule(systemId, symbol) =
+    systemId == LSYS_SYSTEM_KOCH
+        ? (symbol == LSYS_F
+            ? [
+                LSYS_F, LSYS_PLUS, LSYS_F, LSYS_MINUS,
+                LSYS_MINUS, LSYS_F, LSYS_PLUS, LSYS_F
+            ]
+            : [symbol])
+        : systemId == LSYS_SYSTEM_QUADRATIC_KOCH
+            ? (symbol == LSYS_F
+                ? [
+                    LSYS_F, LSYS_MINUS, LSYS_F, LSYS_PLUS,
+                    LSYS_F, LSYS_PLUS, LSYS_F, LSYS_F,
+                    LSYS_MINUS, LSYS_F, LSYS_MINUS, LSYS_F,
+                    LSYS_PLUS, LSYS_F
+                ]
+                : [symbol])
+            : [symbol];
+
+function LogoTLSystemRewrite(systemId, symbols, index = 0) =
+    index >= len(symbols)
+        ? []
+        : concat(
+            LogoTLSystemRule(systemId, symbols[index]),
+            LogoTLSystemRewrite(systemId, symbols, index + 1)
+        );
+
+function LogoTLSystemExpand(systemId, axiom, depth) =
+    depth <= 0
+        ? axiom
+        : LogoTLSystemExpand(
+            systemId,
+            LogoTLSystemRewrite(systemId, axiom),
+            depth - 1
+        );
+
+function LogoTLSystemSymbolCommands(symbol, step, angle) =
+    symbol == LSYS_F
+        ? [[MOVE, step]]
+        : symbol == LSYS_PLUS
+            ? [[TURN, angle]]
+            : symbol == LSYS_MINUS
+                ? [[TURN, -angle]]
+                : symbol == LSYS_PUSH
+                    ? [[PUSH]]
+                    : symbol == LSYS_POP
+                        ? [[POP]]
+                        : [];
+
+function LogoTLSystemCommands(symbols, step, angle, index = 0) =
+    index >= len(symbols)
+        ? []
+        : concat(
+            LogoTLSystemSymbolCommands(symbols[index], step, angle),
+            LogoTLSystemCommands(symbols, step, angle, index + 1)
+        );
+
+function LSystemKochSnowflake(x, y, side, depth) =
+    let(
+        height = side * sqrt(3) / 2,
+        axiom = [
+            LSYS_F, LSYS_MINUS, LSYS_MINUS,
+            LSYS_F, LSYS_MINUS, LSYS_MINUS,
+            LSYS_F
+        ],
+        symbols = LogoTLSystemExpand(LSYS_SYSTEM_KOCH, axiom, depth),
+        step = side / pow(3, depth)
+    )
+    concat(
+        [[GOTO, x - side / 2, y + height / 3, 0]],
+        LogoTLSystemCommands(symbols, step, 60)
+    );
+
+function LSystemQuadraticKochIsland(x, y, side, depth) =
+    let(
+        axiom = [LSYS_F, LSYS_PLUS, LSYS_F, LSYS_PLUS, LSYS_F, LSYS_PLUS, LSYS_F],
+        symbols = LogoTLSystemExpand(LSYS_SYSTEM_QUADRATIC_KOCH, axiom, depth),
+        step = side / pow(4, depth)
+    )
+    concat(
+        [[GOTO, x - side / 2, y - side / 2, 0]],
+        LogoTLSystemCommands(symbols, step, 90)
+    );
+
+// -----------------------------------------------------------------------------
 // Basic practical examples
 // -----------------------------------------------------------------------------
 
@@ -165,6 +265,27 @@ ExampleKochSnowflakePlaque =
 [
     [ROUNDEDRECT, 54, 34, 4, 10],
     [HOLE, KochSnowflake(0, 0, 22, 2)]
+];
+
+ExampleLSystemKochMedallion =
+concat(
+    LSystemKochSnowflake(0, 0, 32, 2),
+    [[HOLE, [[CIRCLE, 4.5, 40]]]]
+);
+
+ExampleLSystemKochHoleDisk =
+[
+    [CIRCLE, 20, 96],
+    [HOLE, LSystemKochSnowflake(0, 0, 24, 2)]
+];
+
+ExampleLSystemQuadraticIsland =
+    LSystemQuadraticKochIsland(0, 0, 30, 2);
+
+ExampleLSystemQuadraticHolePlate =
+[
+    [ROUNDEDRECT, 56, 38, 4, 10],
+    [HOLE, LSystemQuadraticKochIsland(0, 0, 22, 2)]
 ];
 
 // 2D profile intended for native OpenSCAD rotate_extrude(). The profile is on
@@ -588,6 +709,21 @@ module RenderAllLogoExamples()
     RenderKnobProfile3DExample([3, 1], exampleScale = 1.0);
 
     RenderLogoTWordmarkExample([0, 2], exampleScale = 0.58);
+
+    RenderLogoExample("L-system Koch medallion", ExampleLSystemKochMedallion, [0, 3]);
+    RenderLogoExample("L-system Koch hole disk", ExampleLSystemKochHoleDisk, [1, 3]);
+    RenderLogoExample(
+        "L-system quadratic island",
+        ExampleLSystemQuadraticIsland,
+        [2, 3],
+        exampleScale = 0.95
+    );
+    RenderLogoExample(
+        "L-system quadratic hole plate",
+        ExampleLSystemQuadraticHolePlate,
+        [3, 3],
+        exampleScale = 0.85
+    );
 }
 
 if (RunLogoExamples)
