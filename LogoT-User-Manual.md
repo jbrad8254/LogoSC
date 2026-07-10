@@ -124,6 +124,47 @@ assert(LogoTVersionAtLeast(2026, 0), "This model requires LogoT 2026.0+");
 The version is bumped manually for public API or feature milestones. Git remains
 the source of truth for ordinary commit-by-commit source history.
 
+## 2. Quick Start
+
+### Your First LogoT Program
+
+The simplest Logo programs are written using only forward movement and turns. The following program draws an equilateral triangle.
+
+```scad
+include <LogoT-Foundation-Core.scad>
+
+RunLogoTests = false;
+TraceLevel = 0;
+
+triangle =
+[
+    [MOVE, 40],
+    [TURN, 120],
+    [MOVE, 40],
+    [TURN, 120],
+    [MOVE, 40]
+];
+
+RenderLogo2D(triangle);
+```
+
+This example demonstrates the classic Logo programming model.
+
+- `MOVE` advances the turtle in its current direction.
+- `TURN` changes the turtle's heading.
+- With the pen down (the default), movement leaves a trail behind the turtle.
+
+Many traditional Logo programs are written using nothing more than `MOVE`, `TURN`, and `REPEAT`.
+
+### Beyond Classic Logo
+
+Classic Logo approximates circles and rounded shapes by walking many short line segments.
+
+LogoT still supports that style of programming, but it also provides higher-level CAD-oriented drawing primitives including circles, arcs, regular polygons, rectangles, rounded rectangles, and holes. These primitives make common mechanical and 3D-printing geometry much easier to express.
+
+The following example produces a rectangle with rounded corners containing a circular hole.
+
+
 ## 2. Core idea
 
 A LogoT program is an OpenSCAD vector of command vectors:
