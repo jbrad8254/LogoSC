@@ -22,6 +22,15 @@ be passed to `linear_extrude()` or `rotate_extrude()`.
 - [5. Coordinate model](#5-coordinate-model)
 - [6. Rendering model](#6-rendering-model)
 - [7. Public rendering and evaluation API](#7-public-rendering-and-evaluation-api)
+  - [Input command-list format](#71-input-command-list-format)
+  - [Public data formats](#72-public-data-formats)
+  - [`RenderLogo2D()`](#73-renderlogo2d)
+  - [`evalLogo()`](#74-evallogo)
+  - [Evaluator-result accessors](#75-evaluator-result-accessors)
+  - [Region constructor and accessors](#76-region-constructor-and-accessors)
+  - [`RenderContours2D()`](#77-rendercontours2d)
+  - [`RenderRegion2D()`](#78-renderregion2d)
+  - [Choosing an entry point](#79-choosing-an-entry-point)
 - [8. 3D printing workflow](#8-3d-printing-workflow)
 - [9. Segment-count controls](#9-segment-count-controls)
 - [10. Command reference](#10-command-reference)
@@ -292,55 +301,229 @@ shape =
 
 ## 6. Rendering model
 
-LogoT evaluates commands into **regions**.
-
-A region is:
+LogoT evaluates command lists into structured 2D data rather than emitting
+OpenSCAD geometry while each command executes. The public data hierarchy is:
 
 ```text
-[outerContour, holeContour0, holeContour1, ...]
+EvalResult
+└── regions
+    ├── region
+    │   ├── outer contour
+    │   └── zero or more hole contours
+    └── ...
 ```
 
-Each contour is a list of `[x, y]` points. Each region renders as one OpenSCAD
-polygon call:
+Section 7 defines these formats precisely, documents the accessors, and explains
+which rendering entry point to use. The essential distinction is:
 
-```scad
-polygon(points = flatPoints, paths = regionPaths, convexity = convexity);
-```
+- evaluation functions return OpenSCAD values that can be inspected or reused;
+- rendering modules emit 2D OpenSCAD geometry and do not return a value.
 
-The first path is the outer filled contour. Later paths are holes.
-
-OpenSCAD `polygon()` closes each path automatically. LogoT currently targets
-closed printable 2D polygons, not open strokes. Stroke rendering, line width,
-end caps, joins, and miter limits are future work.
+LogoT currently targets closed printable 2D polygons, not open strokes.
+OpenSCAD `polygon()` closes drawable paths automatically. Stroke width, end caps,
+joins, and miter limits are future work.
 
 ## 7. Public rendering and evaluation API
 
-LogoT has two layers:
+LogoT separates evaluation from rendering:
 
 ```text
-command list -> evalLogo() -> EvalResult -> regions -> RenderLogo2D()
+command list
+    │
+    ▼
+evalLogo()
+    │
+    ▼
+EvalResult = [state, regions, stack, pen]
+                         │
+                         ▼
+              RenderContours2D()
 ```
 
-Most user models should call only `RenderLogo2D()`. The other APIs are useful
-when you are writing tests, debugging generated paths, or evaluating a command
-list once and rendering or inspecting it later.
+`RenderLogo2D()` is the normal convenience entry point. It performs both stages:
 
-### `RenderLogo2D(cmds, convexity = 10)`
+```text
+RenderLogo2D(cmds) = RenderContours2D(ResultContours(evalLogo(cmds)))
+```
 
-Main user-facing renderer.
+Use the lower-level functions when generated geometry must be inspected,
+transformed as data, tested, cached in a variable, or rendered more than once.
+
+### 7.1 Input command-list format
+
+The input to `RenderLogo2D()` and `evalLogo()` is an OpenSCAD list of LogoT
+commands:
+
+```scad
+cmds =
+[
+    [GOTO, -20, -10, 0],
+    [MOVE, 40],
+    [TURN, 90],
+    [MOVE, 20],
+    [TURN, 90],
+    [MOVE, 40],
+    [TURN, 90],
+    [MOVE, 20]
+];
+```
+
+Each command is itself a list whose first field is an integer opcode constant.
+Later fields are command arguments. The command reference in Section 10 defines
+each command's exact shape and optional arguments.
+
+An empty command list is legal and evaluates as a no-op:
+
+```scad
+result = evalLogo([]);
+```
+
+### 7.2 Public data formats
+
+#### Point and contour
+
+A point is a two-element coordinate vector:
+
+```text
+point = [x, y]
+```
+
+A contour is an ordered list of points:
+
+```text
+contour = [point0, point1, point2, ...]
+```
+
+A contour requires at least three points to render as a polygon path. The final
+point does not need to repeat the first point; OpenSCAD closes the path.
+
+#### Region
+
+A region contains one outer contour followed by zero or more hole contours:
+
+```text
+region = [outerContour, holeContour0, holeContour1, ...]
+```
+
+Examples:
+
+```scad
+solidRegion =
+[
+    [[0, 0], [40, 0], [40, 20], [0, 20]]
+];
+
+regionWithHole =
+[
+    [[0, 0], [40, 0], [40, 20], [0, 20]],
+    [[10, 5], [10, 15], [30, 15], [30, 5]]
+];
+```
+
+Each region is rendered by one OpenSCAD `polygon()` call with a flattened point
+list and one path per drawable contour. When constructing regions manually, the
+contours must describe valid, non-self-intersecting polygon boundaries suitable
+for OpenSCAD `polygon(points=..., paths=...)`.
+
+#### Region list
+
+The evaluator returns a list of regions:
+
+```text
+regions = [region0, region1, ...]
+```
+
+For example:
+
+```scad
+regions =
+[
+    [outerContour0, holeContour0, holeContour1],
+    [outerContour1]
+];
+```
+
+The evaluator may retain an empty working region such as `[[]]`, commonly at the
+end of a result after a stamped closed shape. This is valid. Rendering modules
+skip an empty outer contour. User code should therefore inspect drawable
+contours rather than assuming every region contains geometry.
+
+#### Logo state
+
+A Logo state is:
+
+```text
+state = [x, y, heading, scale]
+```
+
+The public field-index constants are:
+
+```scad
+state[SX]  // x coordinate
+state[SY]  // y coordinate
+state[SH]  // heading in degrees
+state[SS]  // cumulative movement scale
+```
+
+The default initial state is equivalent to:
+
+```scad
+stateGoto(0, 0, 0, 1)
+```
+
+Headings use the coordinate and turn conventions described in Section 5.
+
+#### State stack
+
+The stack is a list of saved Logo states used by `PUSH` and `POP`:
+
+```text
+stack = [savedState0, savedState1, ...]
+```
+
+The last element is the top of the stack. A normal, balanced command list
+usually returns an empty stack. A nonempty final stack is legal and can be useful
+for diagnostics, although it often indicates unmatched `PUSH` commands.
+
+#### Pen state
+
+The pen state is one of the public constants:
+
+```scad
+PEN_UP
+PEN_DOWN
+```
+
+`PEN_DOWN` is the default. `ResultPen()` reports the state after the final
+command.
+
+#### Evaluator result
+
+`evalLogo()` returns a four-element evaluator result:
+
+```text
+EvalResult = [finalState, regions, finalStack, finalPen]
+```
+
+Do not depend on the numeric field positions. Use the result accessors described
+below.
+
+### 7.3 `RenderLogo2D()`
+
+Main user-facing rendering module:
 
 ```scad
 RenderLogo2D(cmds, convexity = 10);
 ```
 
-- `cmds`: LogoT command list.
-- `convexity`: forwarded to each OpenSCAD `polygon()` call.
-- Output: 2D OpenSCAD geometry.
-- Common use: wrap with native OpenSCAD operations such as `linear_extrude()`,
-  `rotate_extrude()`, `offset()`, `translate()`, `scale()`, `union()`, or
-  `difference()`.
+| Parameter | Format | Meaning |
+|---|---|---|
+| `cmds` | command list | Commands to evaluate from the default initial state. |
+| `convexity` | number | Passed to every generated OpenSCAD `polygon()` call. |
 
-Example:
+The module emits 2D OpenSCAD geometry. It does not return the `EvalResult`.
+Multiple regions are emitted as sibling polygon objects and behave as their
+geometric union when consumed by ordinary OpenSCAD modeling operations.
 
 ```scad
 plate =
@@ -356,16 +539,19 @@ linear_extrude(height = 4, convexity = 10)
 }
 ```
 
-### `evalLogo(cmds)`
+Use `convexity` as an OpenSCAD preview aid; it does not change the evaluated
+point data or the mathematical shape.
 
-Evaluates a command list without rendering geometry.
+### 7.4 `evalLogo()`
+
+Evaluates a command list without emitting geometry:
 
 ```scad
 result = evalLogo(cmds);
 ```
 
-The full signature is available for recursive/internal use, but user code should
-normally pass only `cmds`:
+Normal user code should pass only `cmds`. The complete signature is exposed for
+advanced continuation and evaluator testing:
 
 ```scad
 evalLogo(
@@ -379,63 +565,191 @@ evalLogo(
 );
 ```
 
-Return value:
+| Parameter | Format | Meaning |
+|---|---|---|
+| `cmds` | command list | Command list being evaluated. |
+| `state` | Logo state | Initial or continuation state. |
+| `index` | integer | First command index to execute. Normally `0`. |
+| `maxRec` | integer | Remaining `RUN` recursion allowance. |
+| `contours` | region list | Existing geometry to append to. |
+| `stack` | state list | Existing `PUSH`/`POP` stack. |
+| `pen` | pen constant | Initial or continuation pen state. |
+
+The returned value is:
 
 ```text
-EvalResult(finalState, regions, stack, pen)
+[finalState, regions, finalStack, finalPen]
 ```
 
-### Result accessors
-
-Use these instead of indexing the result vector directly:
+The extended parameters are primarily evaluator plumbing. For ordinary staged
+evaluation, pass the prior result through the accessors:
 
 ```scad
-ResultState(result)     // final [x, y, heading, scale]
-ResultContours(result)  // evaluated region list
-ResultStack(result)     // final PUSH/POP stack
-ResultPen(result)       // final pen state
+first = evalLogo(firstCmds);
+
+second = evalLogo(
+    secondCmds,
+    ResultState(first),
+    0,
+    maxRunRecursions,
+    ResultContours(first),
+    ResultStack(first),
+    ResultPen(first)
+);
 ```
 
-`ResultContours()` keeps its old name for continuity. It now returns a **region
-list**, not a raw flat list of independent contours:
+This continues position, heading, scale, regions, stack, and pen state. Starting
+a fresh `evalLogo(secondCmds)` call would instead reset all of them to defaults.
 
-```text
-regions =
-[
-    [outerContour, holeContour0, holeContour1],
-    [outerContour]
-];
+### 7.5 Evaluator-result accessors
+
+Use these functions instead of indexing an `EvalResult` directly:
+
+```scad
+finalState = ResultState(result);
+regions    = ResultContours(result);
+finalStack = ResultStack(result);
+finalPen   = ResultPen(result);
 ```
 
-### `RenderContours2D(regions, convexity = 10)`
+| Accessor | Return format | Meaning |
+|---|---|---|
+| `ResultState(result)` | `[x, y, heading, scale]` | State after the last evaluated command. |
+| `ResultContours(result)` | region list | All accumulated outer and hole contours. |
+| `ResultStack(result)` | list of states | Remaining `PUSH`/`POP` stack. |
+| `ResultPen(result)` | `PEN_UP` or `PEN_DOWN` | Final pen state. |
 
-Renders an already-evaluated region list.
+`ResultContours()` retains its historical name for source continuity. It returns
+regions, not the older flat list of independent contours.
+
+Example inspection:
+
+```scad
+result = evalLogo(part);
+state = ResultState(result);
+
+finalX       = state[SX];
+finalY       = state[SY];
+finalHeading = state[SH];
+finalScale   = state[SS];
+
+regions = ResultContours(result);
+echo(finalX, finalY, finalHeading, finalScale, len(regions));
+```
+
+### 7.6 Region constructor and accessors
+
+These functions are the supported way to construct or inspect a region without
+assuming its internal indexing:
+
+```scad
+region = MakeRegion(outerContour, holeContours = []);
+outer  = RegionOuter(region);
+holes  = RegionHoles(region);
+```
+
+| Function | Return format | Meaning |
+|---|---|---|
+| `MakeRegion(outerContour, holeContours = [])` | region | Builds one region from an outer contour and a list of hole contours. |
+| `RegionOuter(region)` | contour | Returns the first contour, or `[]` for an empty region. |
+| `RegionHoles(region)` | list of contours | Returns all contours after the outer contour. |
+
+Example:
+
+```scad
+outer = [[0, 0], [50, 0], [50, 30], [0, 30]];
+hole  = [[10, 10], [10, 20], [40, 20], [40, 10]];
+
+region = MakeRegion(outer, [hole]);
+assert(RegionOuter(region) == outer);
+assert(RegionHoles(region) == [hole]);
+```
+
+The lower-level mutation and polygon-path conversion helpers in the core file
+are implementation details rather than stable public data-access APIs.
+
+### 7.7 `RenderContours2D()`
+
+Renders an already-evaluated region list:
+
+```scad
+RenderContours2D(regions, convexity = 10);
+```
+
+| Parameter | Format | Meaning |
+|---|---|---|
+| `regions` | region list | Evaluated or manually constructed regions. |
+| `convexity` | number | Passed to each generated `polygon()` call. |
+
+Typical evaluate-once use:
 
 ```scad
 result = evalLogo(part);
 regions = ResultContours(result);
 
-RenderContours2D(regions, convexity = 10);
+translate([-50, 0])
+{
+    RenderContours2D(regions);
+}
+
+translate([50, 0])
+{
+    offset(r = 1)
+    {
+        RenderContours2D(regions);
+    }
+}
 ```
 
-Use this when you want to inspect the evaluated result or avoid re-evaluating a
-large generated command list.
+This avoids evaluating the same command list twice. It does not clone or alter
+the input regions.
 
-### `RenderRegion2D(region, convexity = 10)`
+### 7.8 `RenderRegion2D()`
 
 Renders exactly one region:
+
+```scad
+RenderRegion2D(region, convexity = 10);
+```
+
+The input must have the form:
 
 ```text
 [outerContour, holeContour0, holeContour1, ...]
 ```
 
-This is mainly a low-level testing/debugging hook. Normal models should call
-`RenderLogo2D()`.
+An empty outer contour emits no geometry. An outer contour containing one or two
+points emits an error marker for diagnostics because it cannot form a polygon.
+This module is mainly useful for tests, custom region filtering, and debugging.
 
-### OpenSCAD wrapper pattern
+```scad
+result = evalLogo(part);
+regions = ResultContours(result);
 
-LogoT intentionally remains a 2D geometry generator. Use OpenSCAD modules around
-LogoT output for final modeling:
+for (region = regions)
+{
+    if (len(RegionOuter(region)) >= 3)
+    {
+        RenderRegion2D(region);
+    }
+}
+```
+
+### 7.9 Choosing an entry point
+
+| Need | Use |
+|---|---|
+| Evaluate and render a normal LogoT model | `RenderLogo2D()` |
+| Inspect final state, stack, pen, or point data | `evalLogo()` plus accessors |
+| Evaluate once and render several times | `evalLogo()` then `RenderContours2D()` |
+| Render manually generated region data | `RenderContours2D()` |
+| Render or debug one selected region | `RenderRegion2D()` |
+| Construct or inspect a region as data | `MakeRegion()`, `RegionOuter()`, `RegionHoles()` |
+
+### 7.10 OpenSCAD wrapper pattern
+
+LogoT intentionally remains a 2D geometry generator. Wrap its output with native
+OpenSCAD modules for final modeling:
 
 ```scad
 color("cyan")
@@ -449,7 +763,7 @@ linear_extrude(height = 4, twist = 20, slices = 24)
 ```
 
 The old `RenderContours()` compatibility alias has been removed. Use
-`RenderContours2D()` when rendering already-evaluated regions.
+`RenderContours2D()` for an already-evaluated region list.
 
 ## 8. 3D printing workflow
 
@@ -1412,7 +1726,7 @@ control smoothness globally.
 - [`CHANGELOG.md`](#1-files)
 - [`CIRCLE`](#circle)
 - [`DIR`](#dir)
-- [`evalLogo()`](#evallogocmds)
+- [`evalLogo()`](#74-evallogo)
 - [`GOTO`](#goto)
 - [`HOLE`](#hole)
 - [`LogoT-CheatSheet.md`](#3-quick-lookup-cheat-sheet)
@@ -1426,13 +1740,13 @@ control smoothness globally.
 - [Relative drawing vs. absolute layout](#51-relative-drawing-vs-absolute-layout)
 - [`REGPOLY`](#regpoly)
 - [`REPEAT`](#repeat)
-- [`RenderContours2D()`](#rendercontours2dregions-convexity-10)
-- [`RenderLogo2D()`](#renderlogo2dcmds-convexity-10)
-- [`RenderRegion2D()`](#renderregion2dregion-convexity-10)
-- [`ResultContours()`](#result-accessors)
-- [`ResultPen()`](#result-accessors)
-- [`ResultStack()`](#result-accessors)
-- [`ResultState()`](#result-accessors)
+- [`RenderContours2D()`](#77-rendercontours2d)
+- [`RenderLogo2D()`](#73-renderlogo2d)
+- [`RenderRegion2D()`](#78-renderregion2d)
+- [`ResultContours()`](#75-evaluator-result-accessors)
+- [`ResultPen()`](#75-evaluator-result-accessors)
+- [`ResultStack()`](#75-evaluator-result-accessors)
+- [`ResultState()`](#75-evaluator-result-accessors)
 - [`ROUNDEDRECT`](#roundedrect)
 - [`RUN`](#run)
 - [`SCALE`](#scale)

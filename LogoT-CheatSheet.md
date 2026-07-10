@@ -28,7 +28,7 @@ Compact LogoT `2026.0` reference. Full docs: [`LogoT-User-Manual.md`](LogoT-User
 
 ## Rendering / evaluation API
 
-[`RenderLogo2D(cmds, convexity = 10)`](LogoT-User-Manual.md#renderlogo2dcmds-convexity-10)  [`evalLogo(cmds)`](LogoT-User-Manual.md#evallogocmds)  [`ResultState(result)`](LogoT-User-Manual.md#result-accessors)  [`ResultContours(result)`](LogoT-User-Manual.md#result-accessors)  [`ResultStack(result)`](LogoT-User-Manual.md#result-accessors)  [`ResultPen(result)`](LogoT-User-Manual.md#result-accessors)  [`RenderContours2D(regions, convexity = 10)`](LogoT-User-Manual.md#rendercontours2dregions-convexity-10)  [`RenderRegion2D(region, convexity = 10)`](LogoT-User-Manual.md#renderregion2dregion-convexity-10)
+[`RenderLogo2D(cmds, convexity = 10)`](LogoT-User-Manual.md#73-renderlogo2d)  [`evalLogo(cmds)`](LogoT-User-Manual.md#74-evallogo)  [`ResultState(result)`](LogoT-User-Manual.md#75-evaluator-result-accessors)  [`ResultContours(result)`](LogoT-User-Manual.md#75-evaluator-result-accessors)  [`ResultStack(result)`](LogoT-User-Manual.md#75-evaluator-result-accessors)  [`ResultPen(result)`](LogoT-User-Manual.md#75-evaluator-result-accessors)  [`MakeRegion(...)`](LogoT-User-Manual.md#76-region-constructor-and-accessors)  [`RegionOuter(region)`](LogoT-User-Manual.md#76-region-constructor-and-accessors)  [`RegionHoles(region)`](LogoT-User-Manual.md#76-region-constructor-and-accessors)  [`RenderContours2D(regions, convexity = 10)`](LogoT-User-Manual.md#77-rendercontours2d)  [`RenderRegion2D(region, convexity = 10)`](LogoT-User-Manual.md#78-renderregion2d)
 
 ## Region data
 

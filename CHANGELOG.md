@@ -4,6 +4,15 @@
 
 Initial geometry milestone.
 
+### Documentation
+
+- Expanded User Manual Section 7 into the canonical public API and data-format
+  reference, including command-list input, evaluator results, state/stack/pen
+  formats, region structure, continuation evaluation, rendering entry points,
+  and result/region accessors.
+- Synchronized the README API table and cheat-sheet links with the expanded
+  accessor documentation.
+
 ### Added
 
 - Added `LogoT-CheatSheet.md` and promoted rendering/evaluation API documentation.

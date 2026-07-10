@@ -73,8 +73,13 @@ want to evaluate once and inspect or reuse the generated regions.
 |---|---|---|
 | `RenderLogo2D(cmds, convexity = 10)` | module | Evaluate a LogoT command list and render the resulting 2D regions. |
 | `evalLogo(cmds)` | function | Evaluate commands into an `EvalResult` without rendering geometry. |
-| `ResultContours(result)` | function | Return the evaluated region list from an `EvalResult`. |
 | `ResultState(result)` | function | Return the final `[x, y, heading, scale]` state. |
+| `ResultContours(result)` | function | Return the evaluated region list from an `EvalResult`. |
+| `ResultStack(result)` | function | Return the final `PUSH`/`POP` state stack. |
+| `ResultPen(result)` | function | Return the final `PEN_UP` or `PEN_DOWN` state. |
+| `MakeRegion(outerContour, holeContours = [])` | function | Construct one region from an outer contour and optional holes. |
+| `RegionOuter(region)` | function | Return a region's outer contour. |
+| `RegionHoles(region)` | function | Return a region's hole-contour list. |
 | `RenderContours2D(regions, convexity = 10)` | module | Render an already-evaluated region list. |
 | `RenderRegion2D(region, convexity = 10)` | module | Render one region: outer ring plus any holes. |
 
