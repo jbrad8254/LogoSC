@@ -20,6 +20,8 @@ Expected current project files include approximately:
 LogoT-Foundation-Core.scad
 LogoT-Foundation-Tests.scad
 LogoT-Examples.scad
+LogoT-Experiments.scad
+README.md
 LogoT-README.md
 LogoT-User-Manual.md
 LogoT-CheatSheet.md
@@ -38,10 +40,11 @@ transfer artifacts unless the user says they are committed project files.
 The user is using Git. Preserve exact project filenames.
 
 Do not create replacement files named `-fixed`, `-v2`, `new`, `copy`, or similar. When a
-project file changes, overwrite/export using the same filename. For multi-file exports,
-default to one combined update zip containing all changed or added project files with
-exact project filenames, suitable for unzipping over the repository. The zip workflow has
-been much more reliable than individual file downloads in the ChatGPT/Windows app.
+project file changes, overwrite/export using the same filename. For every work session, deliver all changed or added project files in one combined update
+zip containing exact repository filenames, suitable for extracting directly over the repo.
+Do not split a session across several update zips unless the user explicitly asks. Preserve
+this rule in future handoff notes. The zip workflow has been much more reliable than
+individual file downloads in the ChatGPT/Windows app.
 
 When exporting multiple files, include a checksum file in the artifact zip if practical,
 but do not assume the checksum file belongs in Git.
@@ -307,25 +310,71 @@ Current docs are split by purpose:
 - `LogoT-Holes-Implementation.md`: region/hole rendering design details.
 - `LogoT-LSystems-Notes.md`: design notes for L-system example helpers and future fractal examples.
 - `LogoT-Examples.scad`: runnable examples and gallery.
+- `LogoT-Experiments.scad`: experimental lab bench for unproven rendering approaches.
+- `README.md`: short GitHub repository landing page.
 
 The cheat sheet should stay compact, similar in spirit to the OpenSCAD cheat sheet. It
 should not become another manual.
 
-## 17. Near-term likely next steps
+## 17. Current release baseline and experiment status
 
-Useful next work, in a conservative order:
+The known-good public baseline is:
 
-1. Make sure all docs mention the current examples and version consistently.
-2. Consider adding `LogoT-Future-Context.md` to the repo or keeping it as a handoff note.
-3. Add a small release tag once the current 2026.0 state is stable.
-4. Review examples for readability, especially whether each example demonstrates something
-   distinct.
-5. Consider procedure/reuse support before stroke rendering.
-6. Consider `offset()` workflows in docs as a possible future path toward 2D stroke-like
-   effects without implementing a full stroke renderer.
-7. Eventually design stroke/open-path rendering with width, caps, joins, and miter limits.
+```text
+GitHub release/tag: v0.2.0-alpha
+Release URL: https://github.com/jbrad8254/LogoT/releases/tag/v0.2.0-alpha
+Status: core tests and example gallery verified by the user before release
+Purpose: stable pre-stroke-rendering baseline
+```
 
-## 18. Deferred feature ideas
+`LogoT-Experiments.scad` was added after that release as a separate lab bench. Keep
+experimental code there until behavior is understood and the user explicitly approves
+promotion into the core.
+
+Stroke experiments completed so far:
+
+1. A reverse-and-append helper converted each outer contour into a doubled-back,
+   nominally zero-width polygon. Holes were warned about and discarded.
+2. OpenSCAD did not render these degenerate zero-area polygons, even when wrapped in
+   `offset()`. Keep this only as a documented negative experiment; it is not a viable
+   implementation path.
+3. A capsule stroke renderer using `hull()` between circles at consecutive points worked
+   and produced visually good round caps, round joins, closed squares, bends, and
+   crossings.
+4. LogoT's region evaluator stores `MOVE` destinations but does not include the initial
+   turtle point in the first contour. For centerline strokes this initially omitted the
+   first segment. Do not modify the evaluator just for strokes. The preferred experimental
+   direction is for `RenderCapsuleStrokeRegions()` to optionally prepend a supplied initial
+   point to the first nonempty contour. Later pen-generated contours should retain their
+   normal semantics.
+
+Current experimental renderer controls include stroke width and circle fragment count.
+The exact API is not final.
+
+## 18. Near-term likely next steps
+
+Follow this conservative order:
+
+1. Keep `v0.2.0-alpha` as the known-good baseline.
+2. Continue work in `LogoT-Experiments.scad`; do not edit core stroke APIs yet.
+3. Consider a debug path renderer before promoting capsule strokes. A useful
+   `DebugLogoPath2D()`-style module would draw small circles at path vertices, thin
+   capsule/hull segments between consecutive points, and distinct start/end markers. It
+   should help diagnose initial-point handling, `PENUP`/`PENDOWN` path breaks, `PUSH`/`POP`,
+   `ARC` tessellation, L-system output, and accidental closure. The user explicitly wants
+   to consider this next.
+4. Add non-rendering geometry-invariant tests for path point counts, pen breaks, stack
+   restoration, arc endpoints, and scaled `RUN` behavior.
+5. Create `LogoT-Strokes-Implementation.md` once the experimental data model and rendering
+   behavior are clearer. Document filled regions versus open centerlines, initial-point
+   policy, hole behavior, capsule rendering, and the failed zero-width approach.
+6. Add additional stroke-oriented L-system examples such as a dragon curve, Hilbert curve,
+   or bracketed tree after path extraction/debugging is stable.
+7. Promote a public `RenderLogoStroke2D()` API only after the experimental renderer and
+   path semantics have been validated. Round caps and round joins are the likely first
+   supported behavior.
+
+## 19. Deferred feature ideas
 
 Potential future features:
 
@@ -346,14 +395,14 @@ Be cautious about wrapping OpenSCAD features unnecessarily. If native OpenSCAD a
 composes cleanly around `RenderLogo2D()`, prefer documentation and examples over new LogoT
 opcodes.
 
-## 19. Current user preferences for this project
+## 20. Current user preferences for this project
 
 The user prefers:
 
 - concise but technically precise explanations;
 - small surgical edits;
 - exact filenames;
-- one combined update zip per work session, containing exact project filenames;
+- one combined exact-filename update zip containing every changed/added file from the session;
 - no unnecessary file variants;
 - Git-friendly workflow;
 - relative Logo-style commands inside reusable shapes;
@@ -363,7 +412,7 @@ The user prefers:
 
 Humor is fine, but keep project artifacts themselves professional and useful.
 
-## 20. Suggested first message in the next chat
+## 21. Suggested first message in the next chat
 
 The user may say something like:
 
