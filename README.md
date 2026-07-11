@@ -1,27 +1,30 @@
-# LogoT
+# LogoSC
 
-LogoT is a small Logo-inspired turtle geometry layer for OpenSCAD. It turns compact command lists into 2D printable regions that can be extruded, subtracted, combined, and otherwise composed with ordinary OpenSCAD code.
+> Formerly **LogoT**. Renamed before 1.0 so the project's OpenSCAD
+> purpose is clear from its name.
 
-LogoT is not trying to be a full Logo language. It is a lightweight OpenSCAD geometry DSL for making reusable 2D shapes, holes, ornaments, plaques, cutouts, and 3D-printing-friendly parts.
+LogoSC is a small Logo-inspired turtle geometry layer for OpenSCAD. It turns compact command lists into 2D printable regions that can be extruded, subtracted, combined, and otherwise composed with ordinary OpenSCAD code.
 
-## What LogoT does
+LogoSC is not trying to be a full Logo language. It is a lightweight OpenSCAD geometry DSL for making reusable 2D shapes, holes, ornaments, plaques, cutouts, and 3D-printing-friendly parts.
+
+## What LogoSC does
 
 
 ## Developer notebook and restart order
 
-`LogoT-Developer-Notebook.md` is the project's living engineering notebook. It
+`LogoSC-Developer-Notebook.md` is the project's living engineering notebook. It
 records design rationale, non-goals, lessons learned, historical milestones,
 workflow rules, regression risks, and future plans that do not belong in the
 public API documentation.
 
-One of its primary uses is to initialize ChatGPT after an old LogoT conversation
+One of its primary uses is to initialize ChatGPT after an old LogoSC conversation
 has been flushed and development resumes in a new chat. For a fresh development
 session, read:
 
-1. `LogoT-Developer-Notebook.md`
+1. `LogoSC-Developer-Notebook.md`
 2. `README.md`
 3. `CHANGELOG.md`
-4. `LogoT-User-Manual.md` and implementation notes as needed
+4. `LogoSC-User-Manual.md` and implementation notes as needed
 
 Then treat the newly uploaded repository ZIP as the sole source of truth.
 
@@ -37,12 +40,12 @@ than replacing older reasoning with shorter summaries.
 
 ## Quick start
 
-Open `LogoT-Examples.scad` in OpenSCAD to see the example gallery.
+Open `LogoSC-Examples.scad` in OpenSCAD to see the example gallery.
 
 For your own model, include the core file and call `RenderLogo2D()`:
 
 ```scad
-include <LogoT-Foundation-Core.scad>
+include <LogoSC-Foundation-Core.scad>
 
 part =
 [
@@ -97,36 +100,36 @@ The current public API version is `2026.0`.
 [PENDOWN]
 ```
 
-See `LogoT-CheatSheet.md` and `LogoT-User-Manual.md` for the complete command reference.
+See `LogoSC-CheatSheet.md` and `LogoSC-User-Manual.md` for the complete command reference.
 
 ## Repository files
 
-- `LogoT-Foundation-Core.scad` — core interpreter and renderer.
-- `LogoT-Foundation-Tests.scad` — regression and failure tests.
-- `LogoT-Examples.scad` — runnable gallery and example models.
-- `LogoT-User-Manual.md` — practical user documentation.
-- `LogoT-Developer-Notebook.md` — engineering history, design rationale, workflow, and ChatGPT restart guide.
-- `LogoT-Future-Context.md` — compatibility pointer to the Developer Notebook.
-- `LogoT-CheatSheet.md` — compact command/API reference.
-- `LogoT-README.md` — detailed project overview and roadmap.
-- `LogoT-ARC-Implementation.md` — arc tessellation design notes.
-- `LogoT-Holes-Implementation.md` — region and hole design notes.
-- `LogoT-LSystems-Notes.md` — L-system design/example notes.
+- `LogoSC-Foundation-Core.scad` — core interpreter and renderer.
+- `LogoSC-Foundation-Tests.scad` — regression and failure tests.
+- `LogoSC-Examples.scad` — runnable gallery and example models.
+- `LogoSC-User-Manual.md` — practical user documentation.
+- `LogoSC-Developer-Notebook.md` — engineering history, design rationale, workflow, and ChatGPT restart guide.
+- `LogoSC-Future-Context.md` — compatibility pointer to the Developer Notebook.
+- `LogoSC-CheatSheet.md` — compact command/API reference.
+- `LogoSC-README.md` — detailed project overview and roadmap.
+- `LogoSC-ARC-Implementation.md` — arc tessellation design notes.
+- `LogoSC-Holes-Implementation.md` — region and hole design notes.
+- `LogoSC-LSystems-Notes.md` — L-system design/example notes.
 - `CHANGELOG.md` — release history.
 
 ## Design philosophy
 
-LogoT keeps the core narrow:
+LogoSC keeps the core narrow:
 
-- LogoT generates 2D regions.
+- LogoSC generates 2D regions.
 - OpenSCAD handles 3D composition.
 - Command lists should stay readable and reusable.
 - Relative movement is preferred inside reusable shapes.
-- Color and material choices stay outside the LogoT geometry core.
+- Color and material choices stay outside the LogoSC geometry core.
 
 ## Current status
 
-LogoT currently focuses on filled 2D region rendering. Stroke/open-path rendering is planned as a future experimental area, especially for L-systems, engraving paths, and decorative centerline geometry.
+LogoSC currently focuses on filled 2D region rendering. Stroke/open-path rendering is planned as a future experimental area, especially for L-systems, engraving paths, and decorative centerline geometry.
 
 ## Requirements
 

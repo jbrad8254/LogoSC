@@ -1,4 +1,4 @@
-# LogoT-Foundation
+# LogoSC-Foundation
 
 ## Table of Contents
 
@@ -19,33 +19,33 @@
 
 ## Current files
 
-- `LogoT-Foundation-Core.scad` — core interpreter and renderer.
-- `LogoT-Foundation-Tests.scad` — regression and failure test suites.
-- `LogoT-README.md` — this overview.
+- `LogoSC-Foundation-Core.scad` — core interpreter and renderer.
+- `LogoSC-Foundation-Tests.scad` — regression and failure test suites.
+- `LogoSC-README.md` — this overview.
 - `CHANGELOG.md` — milestone release history.
-- `LogoT-ARC-Implementation.md` — design notes for ARC tessellation.
-- `LogoT-Holes-Implementation.md` — design notes for regions and holes.
-- `LogoT-LSystems-Notes.md` — design notes for L-system examples.
-- `LogoT-User-Manual.md` — command reference and practical examples.
-- `LogoT-Developer-Notebook.md` — living engineering history and ChatGPT restart guide.
-- `LogoT-Future-Context.md` — compatibility pointer to the Developer Notebook.
-- `LogoT-CheatSheet.md` — compact command and API reference.
-- `LogoT-Examples.scad` — runnable example gallery and 3D-printing demos.
+- `LogoSC-ARC-Implementation.md` — design notes for ARC tessellation.
+- `LogoSC-Holes-Implementation.md` — design notes for regions and holes.
+- `LogoSC-LSystems-Notes.md` — design notes for L-system examples.
+- `LogoSC-User-Manual.md` — command reference and practical examples.
+- `LogoSC-Developer-Notebook.md` — living engineering history and ChatGPT restart guide.
+- `LogoSC-Future-Context.md` — compatibility pointer to the Developer Notebook.
+- `LogoSC-CheatSheet.md` — compact command and API reference.
+- `LogoSC-Examples.scad` — runnable example gallery and 3D-printing demos.
 
 ## Developer notebook
 
-`LogoT-Developer-Notebook.md` is the project's long-term engineering memory. It
+`LogoSC-Developer-Notebook.md` is the project's long-term engineering memory. It
 preserves architecture decisions, historical context, non-goals, lessons
 learned, workflow conventions, known regression risks, open questions, and
 future plans.
 
 Its primary operational use is to initialize ChatGPT after retiring an old chat
-and beginning a new LogoT development session. The recommended reading order is:
+and beginning a new LogoSC development session. The recommended reading order is:
 
-1. `LogoT-Developer-Notebook.md`
+1. `LogoSC-Developer-Notebook.md`
 2. `README.md`
 3. `CHANGELOG.md`
-4. `LogoT-User-Manual.md` and implementation notes as required
+4. `LogoSC-User-Manual.md` and implementation notes as required
 
 After reading, use the newly uploaded repository ZIP as the sole source of truth.
 Preserve dated history in the notebook rather than repeatedly replacing it with
@@ -54,47 +54,47 @@ short summaries.
 
 ## Workflow
 
-1. Open `LogoT-Foundation-Core.scad` in OpenSCAD.
-2. Leave `RunLogoTests = true` to run the regression tests.
-3. Set `RunLogoTests = false` when using the file as a library.
+1. Open `LogoSC-Foundation-Core.scad` in OpenSCAD.
+2. Leave `RunLogoSCests = true` to run the regression tests.
+3. Set `RunLogoSCests = false` when using the file as a library.
 4. Commit stable milestones to Git.
 
 Visual regression tests are color-coded by grid index. Test geometry color follows
-the X index, while small LogoT marker icons to the left of the grid identify
+the X index, while small LogoSC marker icons to the left of the grid identify
 the Y row. Colors cover indices 0 through 9; larger indices use `TestColorMax`.
 
 ## Versioning
 
 Current public API version: `2026.0`.
 
-`LogoT-Foundation-Core.scad` exposes:
+`LogoSC-Foundation-Core.scad` exposes:
 
 ```scad
-LogoTVersionMajor
-LogoTVersionMinor
-LogoTVersion
-LogoTVersionAtLeast(major, minor)
+LogoSCVersionMajor
+LogoSCVersionMinor
+LogoSCVersion
+LogoSCVersionAtLeast(major, minor)
 ```
 
 Version bumps are manual and intended for public API or feature milestones. Git
-commit hashes track ordinary source history; the LogoT version constants are for
+commit hashes track ordinary source history; the LogoSC version constants are for
 user-model compatibility checks.
 
 Example:
 
 ```scad
-assert(LogoTVersionAtLeast(2026, 0), "This model requires LogoT 2026.0+");
+assert(LogoSCVersionAtLeast(2026, 0), "This model requires LogoSC 2026.0+");
 ```
 
 ## Public API quick reference
 
-LogoT's normal user-facing entry point is `RenderLogo2D()`. The lower-level
+LogoSC's normal user-facing entry point is `RenderLogo2D()`. The lower-level
 functions are available for tests, diagnostics, or advanced workflows where you
 want to evaluate once and inspect or reuse the generated regions.
 
 | API | Kind | Purpose |
 |---|---|---|
-| `RenderLogo2D(cmds, convexity = 10)` | module | Evaluate a LogoT command list and render the resulting 2D regions. |
+| `RenderLogo2D(cmds, convexity = 10)` | module | Evaluate a LogoSC command list and render the resulting 2D regions. |
 | `evalLogo(cmds)` | function | Evaluate commands into an `EvalResult` without rendering geometry. |
 | `ResultContours(result)` | function | Return the evaluated region list from an `EvalResult`. |
 | `ResultState(result)` | function | Return the final `[x, y, heading, scale]` state. |
@@ -132,8 +132,8 @@ regions = ResultContours(result);
 RenderContours2D(regions, convexity = 10);
 ```
 
-See `LogoT-CheatSheet.md` for a compact syntax summary and
-`LogoT-User-Manual.md` for full examples.
+See `LogoSC-CheatSheet.md` for a compact syntax summary and
+`LogoSC-User-Manual.md` for full examples.
 
 ## Current command format
 
@@ -168,7 +168,7 @@ See `LogoT-CheatSheet.md` for a compact syntax summary and
 
 `ARC` follows a circular arc from the current Logo position and heading. Positive
 angles turn left; negative angles turn right. The optional `segments` argument
-sets the exact number of line segments used for the arc. When omitted, LogoT uses
+sets the exact number of line segments used for the arc. When omitted, LogoSC uses
 OpenSCAD-style `$fn`, `$fa`, and `$fs` controls to choose the segment count.
 
 `CIRCLE`, `REGPOLY`, `RECT`, and `ROUNDEDRECT` are closed 2D shape commands for
@@ -177,7 +177,7 @@ the current Logo position. They respect the current Logo scale; `REGPOLY`,
 `RECT`, and `ROUNDEDRECT` also respect the current heading. They do not move the
 Logo state or change the heading.
 
-`CIRCLE` is intentionally not the classic Logo circle command. In LogoT,
+`CIRCLE` is intentionally not the classic Logo circle command. In LogoSC,
 `[CIRCLE, r]` creates a closed filled circle centered at the current position. To
 make the Logo cursor walk a full tangent loop instead, use `[ARC, r, 360]`.
 
@@ -188,7 +188,7 @@ rectangles with screw holes.
 
 ## Rendering model
 
-LogoT evaluates command lists into regions. Each region is a list of closed
+LogoSC evaluates command lists into regions. Each region is a list of closed
 rings:
 
 ```text
@@ -206,8 +206,8 @@ intentionally deferred.
 ## Rendering API
 
 The main public API is summarized earlier under **Public API quick reference**.
-The reusable renderer lives in `LogoT-Foundation-Core.scad`; user models do not
-need to duplicate the test renderer. LogoT intentionally renders 2D regions only.
+The reusable renderer lives in `LogoSC-Foundation-Core.scad`; user models do not
+need to duplicate the test renderer. LogoSC intentionally renders 2D regions only.
 Use native OpenSCAD operations around `RenderLogo2D()` for 3D modeling.
 
 ```scad
@@ -269,7 +269,7 @@ and transforms around `RenderLogo2D()` for final 3D parts.
 
 ## Future rendering work
 
-LogoT currently targets closed polygons because that maps cleanly to OpenSCAD and
+LogoSC currently targets closed polygons because that maps cleanly to OpenSCAD and
 3D printing. Open-stroke rendering is deferred to a later rendering milestone.
 
 A future stroke renderer should probably convert centerline paths into closed
@@ -283,18 +283,18 @@ are clearer; for now `REGPOLY` plus explicit construction is less magical.
 
 ## Cheat sheet
 
-`LogoT-CheatSheet.md` provides a compact command, rendering API, and
+`LogoSC-CheatSheet.md` provides a compact command, rendering API, and
 OpenSCAD-wrapper reference. It is intended for quick lookup while writing
 models; use the User Manual for detailed explanations.
 
 ## Examples
 
-`LogoT-Examples.scad` contains a runnable gallery of practical LogoT models. It
+`LogoSC-Examples.scad` contains a runnable gallery of practical LogoSC models. It
 shows 2D profiles, holes, recursive/fractal construction, L-system-generated
 fractal outlines, native OpenSCAD `linear_extrude()` and `rotate_extrude()`
-usage, and the LogoT feature wordmark.
+usage, and the LogoSC feature wordmark.
 
-See `LogoT-LSystems-Notes.md` for the design rationale behind the L-system
+See `LogoSC-LSystems-Notes.md` for the design rationale behind the L-system
 helper examples.
 
 Open the examples file directly in OpenSCAD. By default it renders the full
@@ -305,7 +305,7 @@ RunLogoExamples = true;
 ```
 
 To use one example in another model, include the core file and copy or reuse the
-corresponding command list/module from `LogoT-Examples.scad`. LogoT itself still
+corresponding command list/module from `LogoSC-Examples.scad`. LogoSC itself still
 renders only 2D regions; use ordinary OpenSCAD wrappers for final 3D parts.
 
 ## Release history
@@ -314,9 +314,9 @@ See `CHANGELOG.md`.
 
 ## Milestone roadmap
 
-- LogoT-Foundation
-- LogoT-Geometry
-- LogoT-Language
-- LogoT-Rendering
-- LogoT-Fractals
-- LogoT-1.0
+- LogoSC-Foundation
+- LogoSC-Geometry
+- LogoSC-Language
+- LogoSC-Rendering
+- LogoSC-Fractals
+- LogoSC-1.0

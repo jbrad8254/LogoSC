@@ -1,8 +1,8 @@
 // -----------------------------------------------------------------------------
-// LogoT-Foundation-Tests.scad
+// LogoSC-Foundation-Tests.scad
 //
-// Regression tests for LogoT-Foundation-Core.scad.
-// This file expects LogoT-Foundation-Core.scad to have been included first.
+// Regression tests for LogoSC-Foundation-Core.scad.
+// This file expects LogoSC-Foundation-Core.scad to have been included first.
 // -----------------------------------------------------------------------------
 
 // =============================================================================
@@ -11,14 +11,14 @@
 //
 // This file is intentionally noisy: it exercises the evaluator, RUN command
 // expansion, scaling, recursion limiting, pen-state behavior, and soft-error
-// behavior. Test execution is guarded by RunLogoTests in the core file.
+// behavior. Test execution is guarded by RunLogoSCests in the core file.
 //
 // =============================================================================
 
 // -----------------------------------------------------------------------------
 // Test geometry
 // -----------------------------------------------------------------------------
-// Public render helpers live in LogoT-Foundation-Core.scad. The tests use the
+// Public render helpers live in LogoSC-Foundation-Core.scad. The tests use the
 // same renderer modules that library users call.
 
 BasicY     = 0;
@@ -70,10 +70,10 @@ TestColors =
     TestColor9
 ];
 
-function LogoTestColor(index) =
+function LogoSCestColor(index) =
     index >= 0 && index < len(TestColors) ? TestColors[floor(index)] : TestColorMax;
 
-function LogoTestGridOffset(testIndex) =
+function LogoSCestGridOffset(testIndex) =
 [
     testIndex[0] * TestGridXStep,
     testIndex[1] * TestGridYStep
@@ -82,12 +82,12 @@ function LogoTestGridOffset(testIndex) =
 // Render a colored row marker just left of the visual test grid. The marker
 // color is based on the Y index, so a rendered row can be mapped back to its
 // suite even when the actual test geometry is complex. The marker itself is a
-// tiny LogoT command list, not a special OpenSCAD square, so the visual test
+// tiny LogoSC command list, not a special OpenSCAD square, so the visual test
 // image also exercises the public RenderLogo2D() path.
-module LogoTestRowMarker(yIndex, testColor = undef, height = DefaultTestHeight)
+module LogoSCestRowMarker(yIndex, testColor = undef, height = DefaultTestHeight)
 {
-    useColor = testColor == undef ? LogoTestColor(yIndex) : testColor;
-    offset = LogoTestGridOffset([TestMarkerXIndex, yIndex]);
+    useColor = testColor == undef ? LogoSCestColor(yIndex) : testColor;
+    offset = LogoSCestGridOffset([TestMarkerXIndex, yIndex]);
 
     translate([offset[0], offset[1], 0])
     {
@@ -101,11 +101,11 @@ module LogoTestRowMarker(yIndex, testColor = undef, height = DefaultTestHeight)
     }
 }
 
-module LogoTestRowMarkers()
+module LogoSCestRowMarkers()
 {
     for (yIndex = [BasicY : FailureY])
     {
-        LogoTestRowMarker(yIndex);
+        LogoSCestRowMarker(yIndex);
     }
 }
 
@@ -115,19 +115,19 @@ module LogoTestRowMarkers()
 // The grid scale constants below convert that logical index to an OpenSCAD
 // translation. This makes it easier to map rendered output back to test calls.
 // Test colors default to the X index. Columns past TestColor9 use TestColorMax.
-module LogoTest(
+module LogoSCest(
     testName,
     vtCmds,
     testIndex = [0, BasicY],
     height = DefaultTestHeight,
     testColor = undef)
 {
-    offset = LogoTestGridOffset(testIndex);
-    useColor = testColor == undef ? LogoTestColor(testIndex[0]) : testColor;
+    offset = LogoSCestGridOffset(testIndex);
+    useColor = testColor == undef ? LogoSCestColor(testIndex[0]) : testColor;
 
     echo("");
     echo("============================================================");
-    echo("LogoTest:", testName);
+    echo("LogoSCest:", testName);
     echo("Index:", testIndex);
     echo("Offset:", offset);
     echo("Color:", useColor);
@@ -153,7 +153,7 @@ module LogoTest(
             }
             else
             {
-                echo("[ERROR]", "LogoTest did not produce enough polygon points", [testName, contours]);
+                echo("[ERROR]", "LogoSCest did not produce enough polygon points", [testName, contours]);
 
                 linear_extrude(height = height, center = true)
                 {
@@ -371,13 +371,13 @@ module TestBasicSuiteLogo()
         [MOVE, 8]
     ];
 
-    LogoTest("basic square", square, [0, BasicY]);
-    LogoTest("rectangle", rectangle, [1, BasicY]);
-    LogoTest("triangle", triangle, [2, BasicY]);
-    LogoTest("rotated diamond", diamond, [3, BasicY]);
-    LogoTest("stepped concave polygon", stepped, [4, BasicY]);
-    LogoTest("RUN scaled square x2", runScaled, [5, BasicY]);
-    LogoTest("GOTO rectangle path", gotoShape, [6, BasicY]);
+    LogoSCest("basic square", square, [0, BasicY]);
+    LogoSCest("rectangle", rectangle, [1, BasicY]);
+    LogoSCest("triangle", triangle, [2, BasicY]);
+    LogoSCest("rotated diamond", diamond, [3, BasicY]);
+    LogoSCest("stepped concave polygon", stepped, [4, BasicY]);
+    LogoSCest("RUN scaled square x2", runScaled, [5, BasicY]);
+    LogoSCest("GOTO rectangle path", gotoShape, [6, BasicY]);
 }
 
 // Explicit recursive command generators.
@@ -496,11 +496,11 @@ module TestRunSuiteLogo()
         [RUN, nestedRunBranch, 1.0, 3]
     ];
 
-    LogoTest("RUN default scale/maxRec", runDefault, [0, RunY0]);
-    LogoTest("RUN half scale", runHalfScale, [1, RunY0]);
-    LogoTest("RUN double scale", runDoubleScale, [2, RunY0]);
-    LogoTest("RUN explicit maxRec=4", runExplicitMaxRec, [3, RunY0]);
-    LogoTest("nested RUN tree", nestedRunTree, [4, RunY0]);
+    LogoSCest("RUN default scale/maxRec", runDefault, [0, RunY0]);
+    LogoSCest("RUN half scale", runHalfScale, [1, RunY0]);
+    LogoSCest("RUN double scale", runDoubleScale, [2, RunY0]);
+    LogoSCest("RUN explicit maxRec=4", runExplicitMaxRec, [3, RunY0]);
+    LogoSCest("nested RUN tree", nestedRunTree, [4, RunY0]);
 }
 
 // Recursive RUN regression suite.
@@ -526,11 +526,11 @@ module TestRunRecursiveSuiteLogo()
         [RUN, RecursiveBoxCmds(5), 1.0, 4]
     ];
 
-    LogoTest("recursive box depth 3", recursiveBox, [0, RunY1]);
-    LogoTest("recursive spiral depth 4", recursiveSpiral, [1, RunY1]);
-    LogoTest("recursive shark fin depth 3", recursiveSharkFin, [2, RunY1]);
-    LogoTest("recursive box shallow maxRec=1", recursiveBoxShallow, [3, RunY1]);
-    LogoTest("recursive box deep maxRec=4", recursiveBoxDeep, [4, RunY1]);
+    LogoSCest("recursive box depth 3", recursiveBox, [0, RunY1]);
+    LogoSCest("recursive spiral depth 4", recursiveSpiral, [1, RunY1]);
+    LogoSCest("recursive shark fin depth 3", recursiveSharkFin, [2, RunY1]);
+    LogoSCest("recursive box shallow maxRec=1", recursiveBoxShallow, [3, RunY1]);
+    LogoSCest("recursive box deep maxRec=4", recursiveBoxDeep, [4, RunY1]);
 }
 
 // PUSH/POP and REPEAT regression suite.
@@ -638,12 +638,12 @@ module TestStateFlowSuiteLogo()
         ]
     ];
 
-    LogoTest("PUSH/POP state restore box", stateRestoreBox, [0, StateFlowY]);
-    LogoTest("REPEAT square", repeatedSquare, [1, StateFlowY]);
-    LogoTest("REPEAT triangle", repeatedTriangle, [2, StateFlowY]);
-    LogoTest("REPEAT containing RUN hexagon", repeatWithRun, [3, StateFlowY]);
-    LogoTest("PUSH/POP inside REPEAT box", pushPopInsideRepeatBox, [4, StateFlowY]);
-    LogoTest("nested REPEAT box", nestedRepeatBox, [5, StateFlowY]);
+    LogoSCest("PUSH/POP state restore box", stateRestoreBox, [0, StateFlowY]);
+    LogoSCest("REPEAT square", repeatedSquare, [1, StateFlowY]);
+    LogoSCest("REPEAT triangle", repeatedTriangle, [2, StateFlowY]);
+    LogoSCest("REPEAT containing RUN hexagon", repeatWithRun, [3, StateFlowY]);
+    LogoSCest("PUSH/POP inside REPEAT box", pushPopInsideRepeatBox, [4, StateFlowY]);
+    LogoSCest("nested REPEAT box", nestedRepeatBox, [5, StateFlowY]);
 }
 
 // PENUP/PENDOWN and multiple-contour regression suite.
@@ -754,10 +754,10 @@ module TestPenSuiteLogo()
         ]
     ];
 
-    LogoTest("PENUP/PENDOWN two disconnected squares", twoSquares, [0, PenY]);
-    LogoTest("PENUP/PENDOWN three triangles", threeTriangles, [1, PenY]);
-    LogoTest("PUSH/POP satellite squares with pen control", pushPopSatellites, [2, PenY]);
-    LogoTest("REPEAT disconnected boxes", repeatDisconnected, [3, PenY]);
+    LogoSCest("PENUP/PENDOWN two disconnected squares", twoSquares, [0, PenY]);
+    LogoSCest("PENUP/PENDOWN three triangles", threeTriangles, [1, PenY]);
+    LogoSCest("PUSH/POP satellite squares with pen control", pushPopSatellites, [2, PenY]);
+    LogoSCest("REPEAT disconnected boxes", repeatDisconnected, [3, PenY]);
 }
 
 // ARC geometry regression suite.
@@ -876,13 +876,13 @@ module TestArcSuiteLogo()
         21
     );
 
-    LogoTest("ARC quarter sector", quarterArc, [0, ArcY]);
-    LogoTest("ARC semicircle sector", semicircle, [1, ArcY]);
-    LogoTest("ARC full-circle-ish", circleish, [2, ArcY]);
-    LogoTest("ARC inside REPEAT", repeatArcs, [3, ArcY]);
-    LogoTest("ARC inside RUN", runArc, [4, ArcY]);
-    LogoTest("ARC scaled", scaledArc, [5, ArcY]);
-    LogoTest("ARC rounded rectangle", roundedRect, [6, ArcY]);
+    LogoSCest("ARC quarter sector", quarterArc, [0, ArcY]);
+    LogoSCest("ARC semicircle sector", semicircle, [1, ArcY]);
+    LogoSCest("ARC full-circle-ish", circleish, [2, ArcY]);
+    LogoSCest("ARC inside REPEAT", repeatArcs, [3, ArcY]);
+    LogoSCest("ARC inside RUN", runArc, [4, ArcY]);
+    LogoSCest("ARC scaled", scaledArc, [5, ArcY]);
+    LogoSCest("ARC rounded rectangle", roundedRect, [6, ArcY]);
 }
 
 
@@ -977,12 +977,12 @@ module TestClosedShapeSuiteLogo()
         [8, 1]
     );
 
-    LogoTest("CIRCLE centered closed contour", circleShape, [0, ShapeY]);
-    LogoTest("REGPOLY hexagon", regularHex, [1, ShapeY]);
-    LogoTest("RECT centered rectangle", rectShape, [2, ShapeY]);
-    LogoTest("RECT rotated by heading", rotatedRect, [3, ShapeY]);
-    LogoTest("ROUNDEDRECT centered", roundedRectShape, [4, ShapeY]);
-    LogoTest("CIRCLE scaled", scaledCircle, [5, ShapeY]);
+    LogoSCest("CIRCLE centered closed contour", circleShape, [0, ShapeY]);
+    LogoSCest("REGPOLY hexagon", regularHex, [1, ShapeY]);
+    LogoSCest("RECT centered rectangle", rectShape, [2, ShapeY]);
+    LogoSCest("RECT rotated by heading", rotatedRect, [3, ShapeY]);
+    LogoSCest("ROUNDEDRECT centered", roundedRectShape, [4, ShapeY]);
+    LogoSCest("CIRCLE scaled", scaledCircle, [5, ShapeY]);
 }
 
 // Region/hole regression suite.
@@ -1095,11 +1095,11 @@ module TestHoleSuiteLogo()
         [[4, 8]]
     );
 
-    LogoTest("HOLE washer", washer, [0, HoleY]);
-    LogoTest("HOLE rectangle with circle", rectWithHole, [1, HoleY]);
-    LogoTest("HOLE rounded mounting plate", roundedPlate, [2, HoleY]);
-    LogoTest("HOLE repeated circular holes", repeatedHoles, [3, HoleY]);
-    LogoTest("HOLE scaled", scaledHole, [4, HoleY]);
+    LogoSCest("HOLE washer", washer, [0, HoleY]);
+    LogoSCest("HOLE rectangle with circle", rectWithHole, [1, HoleY]);
+    LogoSCest("HOLE rounded mounting plate", roundedPlate, [2, HoleY]);
+    LogoSCest("HOLE repeated circular holes", repeatedHoles, [3, HoleY]);
+    LogoSCest("HOLE scaled", scaledHole, [4, HoleY]);
 }
 
 // Failure-condition regression suite.
@@ -1206,125 +1206,125 @@ module TestFailureSuiteLogo()
         [HOLE, [[MOVE, 5]]]
     ];
 
-    LogoTest(
+    LogoSCest(
         "FAIL expected: unknown opcode",
         badOpcode,
         [0, FailureY]
     );
 
-    LogoTest(
+    LogoSCest(
         "FAIL expected: empty RUN is no-op",
         emptyProgram,
         [1, FailureY]
     );
 
-    LogoTest(
+    LogoSCest(
         "FAIL expected: RUN recursion limit reached",
         recursionLimit,
         [2, FailureY]
     );
 
-    LogoTest(
+    LogoSCest(
         "FAIL expected: malformed RUN without child list",
         malformedRunNoChildList,
         [3, FailureY]
     );
 
-    LogoTest(
+    LogoSCest(
         "FAIL expected: malformed GOTO missing args",
         gotoMissingArgs,
         [4, FailureY]
     );
 
-    LogoTest(
+    LogoSCest(
         "FAIL expected: POP with empty state stack",
         popEmptyStack,
         [5, FailureY]
     );
 
-    LogoTest(
+    LogoSCest(
         "FAIL expected: malformed REPEAT no child list",
         malformedRepeat,
         [6, FailureY]
     );
 
-    LogoTest(
+    LogoSCest(
         "FAIL expected: malformed ARC missing angle",
         malformedArc,
         [7, FailureY]
     );
 
-    LogoTest(
+    LogoSCest(
         "FAIL expected: ARC negative radius",
         negativeArcRadius,
         [8, FailureY]
     );
 
-    LogoTest(
+    LogoSCest(
         "FAIL expected: ARC bad segment count",
         badArcSegments,
         [9, FailureY]
     );
 
-    LogoTest(
+    LogoSCest(
         "FAIL expected: malformed CIRCLE missing radius",
         malformedCircle,
         [10, FailureY]
     );
 
-    LogoTest(
+    LogoSCest(
         "FAIL expected: CIRCLE bad segment count",
         badCircleSegments,
         [11, FailureY]
     );
 
-    LogoTest(
+    LogoSCest(
         "FAIL expected: REGPOLY bad side count",
         badRegPolySides,
         [12, FailureY]
     );
 
-    LogoTest(
+    LogoSCest(
         "FAIL expected: malformed RECT missing height",
         malformedRect,
         [13, FailureY]
     );
 
-    LogoTest(
+    LogoSCest(
         "FAIL expected: ROUNDEDRECT negative radius",
         badRoundedRectRadius,
         [14, FailureY]
     );
 
-    LogoTest(
+    LogoSCest(
         "FAIL expected: malformed HOLE missing child list",
         malformedHole,
         [15, FailureY]
     );
 
-    LogoTest(
+    LogoSCest(
         "FAIL expected: HOLE before outer region",
         holeBeforeOuter,
         [16, FailureY]
     );
 
-    LogoTest(
+    LogoSCest(
         "FAIL expected: HOLE empty child list",
         emptyHoleChild,
         [17, FailureY]
     );
 
-    LogoTest(
+    LogoSCest(
         "FAIL expected: HOLE child with no closed contour",
         holeChildNoClosedContour,
         [18, FailureY]
     );
 }
 
-// Run all current LogoT regression suites.
-module RunAllLogoTests()
+// Run all current LogoSC regression suites.
+module RunAllLogoSCests()
 {
-    LogoTestRowMarkers();
+    LogoSCestRowMarkers();
 
     TestBasicSuiteLogo();
     TestRunSuiteLogo();
@@ -1337,7 +1337,7 @@ module RunAllLogoTests()
     TestFailureSuiteLogo();
 }
 
-if (RunLogoTests)
+if (RunLogoSCests)
 {
-    RunAllLogoTests();
+    RunAllLogoSCests();
 }

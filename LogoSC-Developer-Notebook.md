@@ -1,8 +1,8 @@
-# LogoT Developer Notebook
+# LogoSC Developer Notebook
 
 ## ChatGPT bootstrap — read this first
 
-This file is the primary long-term engineering memory for the LogoT project.
+This file is the primary long-term engineering memory for the LogoSC project.
 
 Its main purpose is to **initialize ChatGPT after an old conversation has been
 flushed and development resumes in a new chat**. It is also useful to human
@@ -10,12 +10,12 @@ maintainers because it records design rationale, historical decisions, workflow
 rules, lessons learned, deferred ideas, and known regression risks that do not
 belong in the public user documentation.
 
-When starting a new LogoT chat:
+When starting a new LogoSC chat:
 
 1. Read this entire file first.
 2. Read `README.md` for the concise repository overview.
 3. Read `CHANGELOG.md` for release and milestone history.
-4. Read `LogoT-User-Manual.md` and implementation notes as needed for the task.
+4. Read `LogoSC-User-Manual.md` and implementation notes as needed for the task.
 5. Treat the newly uploaded repository ZIP as the sole source of truth.
 6. Ignore remembered files from older chats and the File Library unless the user
    explicitly asks for comparison.
@@ -27,7 +27,7 @@ When starting a new LogoT chat:
     using exact repository filenames.
 
 This bootstrap sequence overrides any conflicting remembered context from older
-LogoT conversations.
+LogoSC conversations.
 
 ---
 
@@ -54,11 +54,11 @@ was previously rejected.
 
 ## 2. Project identity
 
-LogoT is a compact Logo-inspired language embedded in OpenSCAD. It evaluates
+LogoSC (formerly LogoT) is a compact Logo-inspired language embedded in OpenSCAD. It evaluates
 integer-opcode command lists into closed 2D polygonal regions suitable for CAD
 modeling and 3D printing.
 
-LogoT generates 2D region data. Native OpenSCAD remains responsible for:
+LogoSC generates 2D region data. Native OpenSCAD remains responsible for:
 
 - `linear_extrude()`;
 - `rotate_extrude()`;
@@ -68,7 +68,7 @@ LogoT generates 2D region data. Native OpenSCAD remains responsible for:
 - colors and materials; and
 - final 3D modeling.
 
-LogoT is not intended to become a complete Logo implementation or a replacement
+LogoSC is not intended to become a complete Logo implementation or a replacement
 for OpenSCAD.
 
 ---
@@ -133,7 +133,7 @@ returns a region list.
 
 ## 5. Core design principles
 
-- Keep LogoT small and readable.
+- Keep LogoSC small and readable.
 - Generate closed 2D polygonal regions.
 - Keep evaluation functional and data-oriented.
 - Keep rendering separate from evaluation.
@@ -153,15 +153,15 @@ returns a region list.
 These decisions should not be repeatedly reopened without a compelling new
 reason.
 
-- LogoT is not a replacement for OpenSCAD.
+- LogoSC is not a replacement for OpenSCAD.
 - Do not wrap `linear_extrude()`, `rotate_extrude()`, `union()`,
   `difference()`, `intersection()`, `offset()`, `color()`, or ordinary
-  transforms in LogoT.
+  transforms in LogoSC.
 - Do not add public API merely to save one or two lines of normal OpenSCAD.
 - Do not let stroke rendering replace or complicate the normal filled-region
   renderer.
 - Full Logo language compatibility is not a current goal.
-- Text/font rendering is not a first-class LogoT feature.
+- Text/font rendering is not a first-class LogoSC feature.
 - Multi-color manufacturing semantics are outside the current scope.
 - `ROUNDEDREGPOLY` remains deferred until its corner-rounding semantics are
   clear.
@@ -171,7 +171,7 @@ reason.
 
 ## 7. Documentation architecture and conventions
 
-`LogoT-User-Manual.md` is the primary public manual.
+`LogoSC-User-Manual.md` is the primary public manual.
 
 Section 7 of the manual is the canonical description of:
 
@@ -231,10 +231,38 @@ source of truth.
 
 ## 9. Lessons learned
 
+### 2026-07-10 — Project renamed from LogoT to LogoSC
+
+Previous state:
+
+- The project was named LogoT.
+- The name conveyed Logo/turtle ancestry but did not clearly identify OpenSCAD.
+
+Reason for change:
+
+- LogoSC communicates the OpenSCAD target directly.
+- `LogoOSC` was rejected because it suggests Open Sound Control.
+- `LogoS` was rejected as too ambiguous.
+- The project is still pre-1.0, making this the least disruptive time to rename.
+
+Decision:
+
+- Rename the repository and all `LogoT-*` project files to `LogoSC-*`.
+- Rename symbols beginning with the project prefix `LogoT` to `LogoSC`.
+- Preserve generic APIs such as `RenderLogo2D()` and `evalLogo()`.
+
+Consequences:
+
+- Existing include paths must change.
+- Version constants move to `LogoSCVersion*`.
+- Historical records may continue to use LogoT for pre-rename milestones.
+- Public API version advances to `2026.1`.
+
+
 ### 2026-07-10 — Documentation baseline regressions
 
 Several documentation updates accidentally started from an older
-`LogoT-User-Manual.md`, causing previously accepted Quick Start and Section 7
+`LogoSC-User-Manual.md`, causing previously accepted Quick Start and Section 7
 changes to disappear.
 
 Permanent rule:
@@ -335,7 +363,7 @@ changes, verify links, headings, code examples, and retained accepted content.
 
 Near-term candidates:
 
-- prototype the stroke/debug renderer in `LogoT-Experiments.scad`;
+- prototype the stroke/debug renderer in `LogoSC-Experiments.scad`;
 - document recursion and generated command lists more fully;
 - continue L-system documentation and examples;
 - add useful screenshots without cluttering the repository root;
@@ -357,13 +385,13 @@ Current examples:
 - Which debug annotations are useful without overwhelming OpenSCAD preview?
 - Should a future stroke implementation remain entirely experimental, or should
   a small stable diagnostic API eventually move into the core?
-- What validation, if any, should LogoT perform for invalid or overlapping holes?
+- What validation, if any, should LogoSC perform for invalid or overlapping holes?
 
 Append conclusions with dates rather than deleting the original question.
 
 ---
 
-## 14. User preferences specific to LogoT
+## 14. User preferences specific to LogoSC
 
 - One combined update ZIP per work session.
 - Exact repository filenames.
@@ -371,9 +399,9 @@ Append conclusions with dates rather than deleting the original question.
 - Prefer `TURN` over `DIR` and `MOVE` over `GOTO` inside reusable examples.
 - Use `GOTO`/`DIR` for deterministic layout where appropriate.
 - Right-handed coordinates; positive turns are counterclockwise around +Z.
-- Keep `TraceLevel = 0` and `RunLogoTests = false` below the include in normal
+- Keep `TraceLevel = 0` and `RunLogoSCests = false` below the include in normal
   user examples.
-- Keep 3D operations outside the LogoT core.
+- Keep 3D operations outside the LogoSC core.
 - Preserve history and design rationale in this notebook.
 - Use the repository snapshot plus this notebook to restart development in a new
   chat.
@@ -383,15 +411,15 @@ Append conclusions with dates rather than deleting the original question.
 ## 15. Historical handoff record from the pre-notebook file
 
 The following material is retained from the earlier
-`LogoT-Future-Context.md`. It remains useful historical context. Where this
+`LogoSC-Future-Context.md`. It remains useful historical context. Where this
 section conflicts with a newer dated decision above, the newer decision wins.
 
 <details>
-<summary>Legacy LogoT Future Context and Handoff Notes</summary>
+<summary>Legacy LogoSC Future Context and Handoff Notes</summary>
 
-# LogoT Future Context and Handoff Notes
+# LogoSC Future Context and Handoff Notes
 
-This note is for a future ChatGPT session continuing the LogoT OpenSCAD project from a
+This note is for a future ChatGPT session continuing the LogoSC OpenSCAD project from a
 clean repository snapshot. It is intentionally different from the project README, user
 manual, changelog, and implementation notes. Those files describe what the library is and
 how to use it. This file describes the project intent, editing workflow, design priorities,
@@ -403,23 +431,23 @@ Use the user-uploaded repository snapshot as the only source of truth.
 
 Do not use older files from ChatGPT File Library, previous chats, generated sandbox files,
 or similarly named historical exports unless the user explicitly asks for comparison.
-Older LogoT/Turtle versions caused confusion earlier.
+Older LogoSC/Turtle versions caused confusion earlier.
 
 Expected current project files include approximately:
 
 ```text
-LogoT-Foundation-Core.scad
-LogoT-Foundation-Tests.scad
-LogoT-Examples.scad
-LogoT-Experiments.scad
+LogoSC-Foundation-Core.scad
+LogoSC-Foundation-Tests.scad
+LogoSC-Examples.scad
+LogoSC-Experiments.scad
 README.md
-LogoT-README.md
-LogoT-User-Manual.md
-LogoT-CheatSheet.md
+LogoSC-README.md
+LogoSC-User-Manual.md
+LogoSC-CheatSheet.md
 CHANGELOG.md
-LogoT-ARC-Implementation.md
-LogoT-Holes-Implementation.md
-LogoT-LSystems-Notes.md
+LogoSC-ARC-Implementation.md
+LogoSC-Holes-Implementation.md
+LogoSC-LSystems-Notes.md
 .gitattributes
 ```
 
@@ -460,17 +488,17 @@ names. The safest pattern is:
 4. Rebuild a zip with exact project filenames.
 5. Provide the zip as the primary download.
 
-The individual `/mnt/data/LogoT-Foundation-Core.scad` file has sometimes appeared stale
+The individual `/mnt/data/LogoSC-Foundation-Core.scad` file has sometimes appeared stale
 relative to the current zip bundle. Verify content from the active working directory before
 making claims.
 
 ## 4. Project identity
 
-LogoT is an OpenSCAD Logo-style geometry generator for creating 2D printable regions that
+LogoSC is an OpenSCAD Logo-style geometry generator for creating 2D printable regions that
 can be passed to native OpenSCAD operations such as `linear_extrude()`, `rotate_extrude()`,
 `offset()`, `difference()`, `union()`, `translate()`, `scale()`, and `color()`.
 
-LogoT should remain a 2D region generator. OpenSCAD should remain responsible for 3D
+LogoSC should remain a 2D region generator. OpenSCAD should remain responsible for 3D
 composition.
 
 The main user-facing render function is:
@@ -502,17 +530,17 @@ unless the user explicitly decides to reverse that design choice.
 
 ## 5. Versioning policy
 
-LogoT currently uses a manual Major.Minor style library version in core, approximately:
+LogoSC currently uses a manual Major.Minor style library version in core, approximately:
 
 ```scad
-LogoTVersionMajor = 2026 + 0;
-LogoTVersionMinor = 0 + 0;
-LogoTVersion = str(LogoTVersionMajor, ".", LogoTVersionMinor);
+LogoSCVersionMajor = 2026 + 0;
+LogoSCVersionMinor = 0 + 0;
+LogoSCVersion = str(LogoSCVersionMajor, ".", LogoSCVersionMinor);
 
-function LogoTVersionAtLeast(major, minor) = ...;
+function LogoSCVersionAtLeast(major, minor) = ...;
 ```
 
-Do not auto-update the version on every edit/export. Git tracks every commit. The LogoT
+Do not auto-update the version on every edit/export. Git tracks every commit. The LogoSC
 version should be bumped only for public API/feature milestones, especially changes that
 users might want to test against.
 
@@ -532,14 +560,14 @@ Primary goals:
 Non-goals for now:
 
 - Full Logo language compatibility.
-- Text/font rendering as a first-class LogoT feature.
+- Text/font rendering as a first-class LogoSC feature.
 - Multi-color manufacturing semantics.
 - Open stroke rendering with caps/joins.
 - Boolean modeling wrappers that duplicate OpenSCAD.
 
 ## 7. Current conceptual model
 
-LogoT command lists evaluate into a result containing:
+LogoSC command lists evaluate into a result containing:
 
 - final Logo state;
 - region/contour geometry;
@@ -600,7 +628,7 @@ practical. Keep `GOTO` for layout and hole placement.
 
 ## 10. Coordinate and turn conventions
 
-LogoT uses OpenSCAD's right-handed coordinate system. In the standard LogoT test/example
+LogoSC uses OpenSCAD's right-handed coordinate system. In the standard LogoSC test/example
 view, +X appears left and +Y appears upward. Positive relative turns are right-handed
 rotations about the +Z axis; viewed from +Z toward the XY plane, positive turns are
 counterclockwise.
@@ -619,7 +647,7 @@ Implemented concepts include:
 - holes: `[HOLE, cmds]`;
 - region rendering through `polygon(points, paths)`;
 - test-grid coloring and row markers;
-- example gallery including a LogoT wordmark, plates, profiles, L-system-generated fractal
+- example gallery including a LogoSC wordmark, plates, profiles, L-system-generated fractal
   outlines, a spiral tower, and 3D OpenSCAD wrappers around `RenderLogo2D()`.
 
 The `CIRCLE` command is intentionally CAD-like, not classic Logo-like. It creates a closed
@@ -642,7 +670,7 @@ Curved geometry should follow this rule:
 - `ROUNDEDRECT` explicit segments count each rounded corner.
 - `REGPOLY` uses side count directly and does not consult `$fn`, `$fa`, or `$fs`.
 
-Details belong in `LogoT-ARC-Implementation.md`, not in the README.
+Details belong in `LogoSC-ARC-Implementation.md`, not in the README.
 
 ## 13. Holes design
 
@@ -652,12 +680,12 @@ Holes are implemented by polygon paths, not OpenSCAD `difference()`.
 most recently emitted outer region. It should not move or alter the parent state. Child
 commands can create multiple contours, and those can become multiple holes.
 
-For 3D modeling, users may still wrap LogoT output in OpenSCAD `difference()` when they
-want to subtract non-LogoT objects such as cylinders, imported meshes, or other solids.
+For 3D modeling, users may still wrap LogoSC output in OpenSCAD `difference()` when they
+want to subtract non-LogoSC objects such as cylinders, imported meshes, or other solids.
 
 ## 14. Color design
 
-Color should remain outside LogoT geometry semantics.
+Color should remain outside LogoSC geometry semantics.
 
 Do not add color to:
 
@@ -673,17 +701,17 @@ and screenshots, not 3D-printing semantics.
 ## 15. Test suite conventions
 
 The core includes tests unconditionally because OpenSCAD `include <>` cannot be reliably
-conditionalized. Actual test execution is guarded by `RunLogoTests`.
+conditionalized. Actual test execution is guarded by `RunLogoSCests`.
 
 Important OpenSCAD include pattern for examples/user files:
 
 ```scad
-include <LogoT-Foundation-Core.scad>
-RunLogoTests = false;
+include <LogoSC-Foundation-Core.scad>
+RunLogoSCests = false;
 TraceLevel = 0; // [0:4]
 ```
 
-Do not put `RunLogoTests = false;` before the include. Doing so has previously polluted or
+Do not put `RunLogoSCests = false;` before the include. Doing so has previously polluted or
 confused the Customizer behavior.
 
 The test grid uses logical grid indices, not absolute positions. Row markers and X-index
@@ -693,15 +721,15 @@ colors make the test output more readable.
 
 Current docs are split by purpose:
 
-- `LogoT-README.md`: overview, file list, public API quick reference, roadmap.
-- `LogoT-User-Manual.md`: full user documentation, setup, command reference, workflows.
-- `LogoT-CheatSheet.md`: compact one-page-style reference with method signatures and links.
+- `LogoSC-README.md`: overview, file list, public API quick reference, roadmap.
+- `LogoSC-User-Manual.md`: full user documentation, setup, command reference, workflows.
+- `LogoSC-CheatSheet.md`: compact one-page-style reference with method signatures and links.
 - `CHANGELOG.md`: release history and milestone notes.
-- `LogoT-ARC-Implementation.md`: arc/segment-count design details.
-- `LogoT-Holes-Implementation.md`: region/hole rendering design details.
-- `LogoT-LSystems-Notes.md`: design notes for L-system example helpers and future fractal examples.
-- `LogoT-Examples.scad`: runnable examples and gallery.
-- `LogoT-Experiments.scad`: experimental lab bench for unproven rendering approaches.
+- `LogoSC-ARC-Implementation.md`: arc/segment-count design details.
+- `LogoSC-Holes-Implementation.md`: region/hole rendering design details.
+- `LogoSC-LSystems-Notes.md`: design notes for L-system example helpers and future fractal examples.
+- `LogoSC-Examples.scad`: runnable examples and gallery.
+- `LogoSC-Experiments.scad`: experimental lab bench for unproven rendering approaches.
 - `README.md`: short GitHub repository landing page.
 
 The cheat sheet should stay compact, similar in spirit to the OpenSCAD cheat sheet. It
@@ -713,12 +741,12 @@ The known-good public baseline is:
 
 ```text
 GitHub release/tag: v0.2.0-alpha
-Release URL: https://github.com/jbrad8254/LogoT/releases/tag/v0.2.0-alpha
+Release URL: https://github.com/jbrad8254/LogoSC/releases/tag/v0.2.0-alpha
 Status: core tests and example gallery verified by the user before release
 Purpose: stable pre-stroke-rendering baseline
 ```
 
-`LogoT-Experiments.scad` was added after that release as a separate lab bench. Keep
+`LogoSC-Experiments.scad` was added after that release as a separate lab bench. Keep
 experimental code there until behavior is understood and the user explicitly approves
 promotion into the core.
 
@@ -732,7 +760,7 @@ Stroke experiments completed so far:
 3. A capsule stroke renderer using `hull()` between circles at consecutive points worked
    and produced visually good round caps, round joins, closed squares, bends, and
    crossings.
-4. LogoT's region evaluator stores `MOVE` destinations but does not include the initial
+4. LogoSC's region evaluator stores `MOVE` destinations but does not include the initial
    turtle point in the first contour. For centerline strokes this initially omitted the
    first segment. Do not modify the evaluator just for strokes. The preferred experimental
    direction is for `RenderCapsuleStrokeRegions()` to optionally prepend a supplied initial
@@ -747,7 +775,7 @@ The exact API is not final.
 Follow this conservative order:
 
 1. Keep `v0.2.0-alpha` as the known-good baseline.
-2. Continue work in `LogoT-Experiments.scad`; do not edit core stroke APIs yet.
+2. Continue work in `LogoSC-Experiments.scad`; do not edit core stroke APIs yet.
 3. Consider a debug path renderer before promoting capsule strokes. A useful
    `DebugLogoPath2D()`-style module would draw small circles at path vertices, thin
    capsule/hull segments between consecutive points, and distinct start/end markers. It
@@ -756,7 +784,7 @@ Follow this conservative order:
    to consider this next.
 4. Add non-rendering geometry-invariant tests for path point counts, pen breaks, stack
    restoration, arc endpoints, and scaled `RUN` behavior.
-5. Create `LogoT-Strokes-Implementation.md` once the experimental data model and rendering
+5. Create `LogoSC-Strokes-Implementation.md` once the experimental data model and rendering
    behavior are clearer. Document filled regions versus open centerlines, initial-point
    policy, hole behavior, capsule rendering, and the failed zero-width approach.
 6. Add additional stroke-oriented L-system examples such as a dragon curve, Hilbert curve,
@@ -770,7 +798,7 @@ Follow this conservative order:
 Potential future features:
 
 - first-class procedures or named command-list helpers;
-- variables or parameters in the LogoT language;
+- variables or parameters in the LogoSC language;
 - better reusable shape libraries;
 - automatic fillets;
 - `ROUNDEDREGPOLY`, but only after defining clear corner-rounding semantics;
@@ -783,7 +811,7 @@ Potential future features:
 - documentation for slicer/3D-printing tolerances.
 
 Be cautious about wrapping OpenSCAD features unnecessarily. If native OpenSCAD already
-composes cleanly around `RenderLogo2D()`, prefer documentation and examples over new LogoT
+composes cleanly around `RenderLogo2D()`, prefer documentation and examples over new LogoSC
 opcodes.
 
 ## 20. Current user preferences for this project
@@ -797,7 +825,7 @@ The user prefers:
 - no unnecessary file variants;
 - Git-friendly workflow;
 - relative Logo-style commands inside reusable shapes;
-- OpenSCAD-native 3D composition outside LogoT;
+- OpenSCAD-native 3D composition outside LogoSC;
 - clear documentation and cheat sheets;
 - practical 3D-printing examples.
 
@@ -808,8 +836,8 @@ Humor is fine, but keep project artifacts themselves professional and useful.
 The user may say something like:
 
 ```text
-We are continuing the LogoT project. Use the uploaded repository zip as the source of
-truth. Ignore older versions from prior chats and File Library. Read LogoT-Future-Context.md
+We are continuing the LogoSC project. Use the uploaded repository zip as the source of
+truth. Ignore older versions from prior chats and File Library. Read LogoSC-Future-Context.md
 for project handoff notes before making changes.
 ```
 

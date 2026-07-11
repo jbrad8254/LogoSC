@@ -1,13 +1,13 @@
 // ============================================================================
-// LogoT-Examples.scad
+// LogoSC-Examples.scad
 //
-// Practical examples for LogoT.
+// Practical examples for LogoSC.
 //
 // This file is meant to be opened directly in OpenSCAD. It imports the current
-// LogoT core, defines several named command lists, and renders a small gallery
+// LogoSC core, defines several named command lists, and renders a small gallery
 // with RenderAllLogoExamples().
 //
-// LogoT itself generates 2D regions. Use native OpenSCAD operations such as
+// LogoSC itself generates 2D regions. Use native OpenSCAD operations such as
 // linear_extrude(), rotate_extrude(), scale(), translate(), union(), and
 // difference() around RenderLogo2D() for actual 3D modeling.
 // ============================================================================
@@ -15,8 +15,8 @@
 // Keep the regression-test grid and trace output out of the examples view when
 // this file is opened directly. OpenSCAD include behaves like textual insertion,
 // so these settings live after the include to override core Customizer defaults.
-include <LogoT-Foundation-Core.scad>
-RunLogoTests = false;
+include <LogoSC-Foundation-Core.scad>
+RunLogoSCests = false;
 TraceLevel = 0; // [0:4]
 
 // -----------------------------------------------------------------------------
@@ -92,7 +92,7 @@ function LogoStampedRoundedRect(x, y, width, height, radius, segments = 8) =
     [ROUNDEDRECT, width, height, radius, segments]
 ];
 
-// Recursive Koch segment generator. It emits LogoT movement commands. The caller
+// Recursive Koch segment generator. It emits LogoSC movement commands. The caller
 // is responsible for placing the starting point and heading.
 function KochSegment(depth, len) =
     depth <= 0
@@ -127,7 +127,7 @@ function KochSnowflake(x, y, side, depth) =
 // -----------------------------------------------------------------------------
 // These helpers intentionally live in the examples file rather than in the core
 // interpreter. They show how a small symbol-rewrite layer can generate ordinary
-// LogoT command lists without creating new LogoT opcodes.
+// LogoSC command lists without creating new LogoSC opcodes.
 
 LSYS_F     = 100 + 0;
 LSYS_PLUS  = 101 + 0;
@@ -138,7 +138,7 @@ LSYS_POP   = 104 + 0;
 LSYS_SYSTEM_KOCH = 0 + 0;
 LSYS_SYSTEM_QUADRATIC_KOCH = 1 + 0;
 
-function LogoTLSystemRule(systemId, symbol) =
+function LogoSCLSystemRule(systemId, symbol) =
     systemId == LSYS_SYSTEM_KOCH
         ? (symbol == LSYS_F
             ? [
@@ -157,24 +157,24 @@ function LogoTLSystemRule(systemId, symbol) =
                 : [symbol])
             : [symbol];
 
-function LogoTLSystemRewrite(systemId, symbols, index = 0) =
+function LogoSCLSystemRewrite(systemId, symbols, index = 0) =
     index >= len(symbols)
         ? []
         : concat(
-            LogoTLSystemRule(systemId, symbols[index]),
-            LogoTLSystemRewrite(systemId, symbols, index + 1)
+            LogoSCLSystemRule(systemId, symbols[index]),
+            LogoSCLSystemRewrite(systemId, symbols, index + 1)
         );
 
-function LogoTLSystemExpand(systemId, axiom, depth) =
+function LogoSCLSystemExpand(systemId, axiom, depth) =
     depth <= 0
         ? axiom
-        : LogoTLSystemExpand(
+        : LogoSCLSystemExpand(
             systemId,
-            LogoTLSystemRewrite(systemId, axiom),
+            LogoSCLSystemRewrite(systemId, axiom),
             depth - 1
         );
 
-function LogoTLSystemSymbolCommands(symbol, step, angle) =
+function LogoSCLSystemSymbolCommands(symbol, step, angle) =
     symbol == LSYS_F
         ? [[MOVE, step]]
         : symbol == LSYS_PLUS
@@ -187,12 +187,12 @@ function LogoTLSystemSymbolCommands(symbol, step, angle) =
                         ? [[POP]]
                         : [];
 
-function LogoTLSystemCommands(symbols, step, angle, index = 0) =
+function LogoSCLSystemCommands(symbols, step, angle, index = 0) =
     index >= len(symbols)
         ? []
         : concat(
-            LogoTLSystemSymbolCommands(symbols[index], step, angle),
-            LogoTLSystemCommands(symbols, step, angle, index + 1)
+            LogoSCLSystemSymbolCommands(symbols[index], step, angle),
+            LogoSCLSystemCommands(symbols, step, angle, index + 1)
         );
 
 function LSystemKochSnowflake(x, y, side, depth) =
@@ -203,23 +203,23 @@ function LSystemKochSnowflake(x, y, side, depth) =
             LSYS_F, LSYS_MINUS, LSYS_MINUS,
             LSYS_F
         ],
-        symbols = LogoTLSystemExpand(LSYS_SYSTEM_KOCH, axiom, depth),
+        symbols = LogoSCLSystemExpand(LSYS_SYSTEM_KOCH, axiom, depth),
         step = side / pow(3, depth)
     )
     concat(
         [[GOTO, x - side / 2, y + height / 3, 0]],
-        LogoTLSystemCommands(symbols, step, 60)
+        LogoSCLSystemCommands(symbols, step, 60)
     );
 
 function LSystemQuadraticKochIsland(x, y, side, depth) =
     let(
         axiom = [LSYS_F, LSYS_PLUS, LSYS_F, LSYS_PLUS, LSYS_F, LSYS_PLUS, LSYS_F],
-        symbols = LogoTLSystemExpand(LSYS_SYSTEM_QUADRATIC_KOCH, axiom, depth),
+        symbols = LogoSCLSystemExpand(LSYS_SYSTEM_QUADRATIC_KOCH, axiom, depth),
         step = side / pow(4, depth)
     )
     concat(
         [[GOTO, x - side / 2, y - side / 2, 0]],
-        LogoTLSystemCommands(symbols, step, 90)
+        LogoSCLSystemCommands(symbols, step, 90)
     );
 
 // -----------------------------------------------------------------------------
@@ -332,7 +332,7 @@ ExampleTwistedRoundedSquare =
 ];
 
 // Reusable tile for the spiral tower example. The 3D module below arranges many
-// copies of this LogoT-generated 2D part in a rising spiral.
+// copies of this LogoSC-generated 2D part in a rising spiral.
 ExampleSpiralTowerTile =
 [
     [ROUNDEDRECT, 10, 5, 1.2, 5],
@@ -346,13 +346,13 @@ ExampleSpiralTowerCore =
 ];
 
 // -----------------------------------------------------------------------------
-// LogoT feature wordmark
+// LogoSC feature wordmark
 // -----------------------------------------------------------------------------
 // Nominal wordmark size: approximately 100 units wide.
 // Resize with native OpenSCAD scale(), not by parameterizing the glyphs.
 
 // Local-origin glyph command lists. The wordmark renderer below positions glyphs
-// with native OpenSCAD translate() calls. That keeps LogoT geometry focused on
+// with native OpenSCAD translate() calls. That keeps LogoSC geometry focused on
 // shape construction while OpenSCAD handles layout and scaling.
 LogoGlyphL =
 [
@@ -445,7 +445,7 @@ module RenderLogoGlyphT2D(convexity = LogoExampleConvexity)
     }
 }
 
-module RenderLogoTFeatureWordmark2D(convexity = LogoExampleConvexity)
+module RenderLogoSCFeatureWordmark2D(convexity = LogoExampleConvexity)
 {
     RenderLogo2D(LogoGlyphL, convexity = convexity);
 
@@ -511,13 +511,13 @@ module RenderLogoExample(
 
 // Render the wordmark as a 2D extruded badge. The wordmark is designed around
 // 100 units wide; the gallery scales it down to fit a cell.
-module RenderLogoTWordmarkExample(index = [0, 2], exampleScale = 0.55)
+module RenderLogoSCWordmarkExample(index = [0, 2], exampleScale = 0.55)
 {
     offset = LogoExampleGridOffset(index);
 
     echo("");
     echo("============================================================");
-    echo("LogoExample:", "LogoT feature wordmark");
+    echo("LogoExample:", "LogoSC feature wordmark");
     echo("Index:", index);
     echo("Offset:", offset);
     echo("Scale:", exampleScale);
@@ -536,7 +536,7 @@ module RenderLogoTWordmarkExample(index = [0, 2], exampleScale = 0.55)
             {
                 scale([exampleScale, exampleScale])
                 {
-                    RenderLogoTFeatureWordmark2D(convexity = LogoExampleConvexity);
+                    RenderLogoSCFeatureWordmark2D(convexity = LogoExampleConvexity);
                 }
             }
         }
@@ -567,8 +567,8 @@ module RenderKnobProfile3D(angle = 360)
     }
 }
 
-// Standalone 3D use case: a rising spiral made from repeated LogoT tiles.
-module RenderLogoTSpiralTower3D(
+// Standalone 3D use case: a rising spiral made from repeated LogoSC tiles.
+module RenderLogoSCSpiralTower3D(
     stepCount = 14,
     radiusStart = 5.5,
     radiusStep = 0.8,
@@ -641,14 +641,14 @@ module RenderTwistedRoundedSquare3DExample(index = [0, 1], exampleScale = 1.0)
     }
 }
 
-// Gallery wrapper for the standalone LogoT spiral tower example.
-module RenderLogoTSpiralTower3DExample(index = [1, 1], exampleScale = 1.0)
+// Gallery wrapper for the standalone LogoSC spiral tower example.
+module RenderLogoSCSpiralTower3DExample(index = [1, 1], exampleScale = 1.0)
 {
     offset = LogoExampleGridOffset(index);
 
     echo("");
     echo("============================================================");
-    echo("LogoExample:", "LogoT spiral tower 3D");
+    echo("LogoExample:", "LogoSC spiral tower 3D");
     echo("Index:", index);
     echo("Offset:", offset);
     echo("Scale:", exampleScale);
@@ -659,7 +659,7 @@ module RenderLogoTSpiralTower3DExample(index = [1, 1], exampleScale = 1.0)
     {
         scale([exampleScale, exampleScale, exampleScale])
         {
-            RenderLogoTSpiralTower3D();
+            RenderLogoSCSpiralTower3D();
         }
     }
 }
@@ -690,7 +690,7 @@ module RenderKnobProfile3DExample(index = [3, 1], exampleScale = 1.0)
     }
 }
 
-// Gallery routine similar in spirit to LogoTest(): render all examples at once.
+// Gallery routine similar in spirit to LogoSCest(): render all examples at once.
 module RenderAllLogoExamples()
 {
     RenderLogoExample("washer", ExampleWasher, [0, 0]);
@@ -699,7 +699,7 @@ module RenderAllLogoExamples()
     RenderLogoExample("Koch snowflake plaque", ExampleKochSnowflakePlaque, [3, 0], exampleScale = 0.85);
 
     RenderTwistedRoundedSquare3DExample([0, 1], exampleScale = 1.0);
-    RenderLogoTSpiralTower3DExample([1, 1], exampleScale = 1.0);
+    RenderLogoSCSpiralTower3DExample([1, 1], exampleScale = 1.0);
     RenderLogoExample(
         "rotate-extrude knob profile",
         ExampleKnobProfile,
@@ -708,7 +708,7 @@ module RenderAllLogoExamples()
     );
     RenderKnobProfile3DExample([3, 1], exampleScale = 1.0);
 
-    RenderLogoTWordmarkExample([0, 2], exampleScale = 0.58);
+    RenderLogoSCWordmarkExample([0, 2], exampleScale = 0.58);
 
     RenderLogoExample("L-system Koch medallion", ExampleLSystemKochMedallion, [0, 3]);
     RenderLogoExample("L-system Koch hole disk", ExampleLSystemKochHoleDisk, [1, 3]);

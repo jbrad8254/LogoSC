@@ -1,12 +1,12 @@
-# LogoT L-System Notes
+# LogoSC L-System Notes
 
 ## Purpose
 
-This note describes how L-systems fit into LogoT examples and future planning.
-It is not a new public API specification. LogoT remains a small OpenSCAD
+This note describes how L-systems fit into LogoSC examples and future planning.
+It is not a new public API specification. LogoSC remains a small OpenSCAD
 geometry DSL that evaluates command lists into closed 2D regions.
 
-L-systems are useful in LogoT because they generate long turtle-style command
+L-systems are useful in LogoSC because they generate long turtle-style command
 sequences from compact recursive rules. They are especially good for fractal
 boundaries, decorative outlines, branching patterns, and examples that stress
 recursive command-list construction.
@@ -28,9 +28,9 @@ Rule:  F -> F+F--F+F
 ```
 
 After a fixed number of expansion passes, the final symbols are interpreted as
-LogoT commands:
+LogoSC commands:
 
-| Symbol | LogoT command meaning |
+| Symbol | LogoSC command meaning |
 |---|---|
 | `F` | `[MOVE, step]` |
 | `+` | `[TURN, angle]` |
@@ -42,14 +42,14 @@ The examples use integer symbols rather than string characters because that
 keeps the OpenSCAD code simple and avoids depending on string-processing quirks.
 The idea is the same.
 
-## Why this fits LogoT
+## Why this fits LogoSC
 
-LogoT already has the main turtle operations needed by common L-systems:
+LogoSC already has the main turtle operations needed by common L-systems:
 
 - relative movement through `MOVE`;
 - relative heading changes through `TURN`;
 - stack-based branching through `PUSH` and `POP`;
-- command-list reuse through ordinary OpenSCAD functions and LogoT `RUN`;
+- command-list reuse through ordinary OpenSCAD functions and LogoSC `RUN`;
 - closed-region rendering through `RenderLogo2D()`.
 
 The main missing piece is symbol rewriting. For now, that belongs in examples or
@@ -64,18 +64,18 @@ There are two useful patterns.
   logic.
 - **Generic symbol rewrite helpers** separate grammar expansion from turtle
   interpretation. Their weakness is that they add a second mini-language beside
-  LogoT.
+  LogoSC.
 
-`LogoT-Examples.scad` now contains a small generic L-system helper used only by
+`LogoSC-Examples.scad` now contains a small generic L-system helper used only by
 the examples. It demonstrates the technique without making L-systems part of the
-public LogoT command language.
+public LogoSC command language.
 
 ## Examples that fit well
 
 ### Koch snowflake / Koch medallion
 
-This is the best starter L-system for LogoT. It produces a closed boundary and
-therefore works naturally with LogoT's current filled-region renderer. It can be
+This is the best starter L-system for LogoSC. It produces a closed boundary and
+therefore works naturally with LogoSC's current filled-region renderer. It can be
 used as a solid ornament, a medallion with a central hole, or a decorative hole
 inside a plate.
 
@@ -109,12 +109,12 @@ closed polygons.
 
 These curves are visually strong and good stress tests for recursion and command
 length. Most are naturally open centerline curves, so they are better future
-examples after LogoT has a stroke renderer or a documented `offset()` workflow
+examples after LogoSC has a stroke renderer or a documented `offset()` workflow
 for thickened paths.
 
 ## Examples that should not use L-systems
 
-Use simple LogoT or OpenSCAD loops for ordinary repetition. L-systems are usually
+Use simple LogoSC or OpenSCAD loops for ordinary repetition. L-systems are usually
 not worth the extra machinery for:
 
 - regular polygons;
@@ -150,11 +150,11 @@ When in doubt, reduce depth first.
 
 For now:
 
-- keep L-system helpers in `LogoT-Examples.scad` or example-specific files;
-- do not add new core LogoT opcodes for L-systems;
+- keep L-system helpers in `LogoSC-Examples.scad` or example-specific files;
+- do not add new core LogoSC opcodes for L-systems;
 - do not make L-system rewriting part of `RenderLogo2D()`;
-- prefer closed-boundary examples that work with LogoT's current region model;
+- prefer closed-boundary examples that work with LogoSC's current region model;
 - defer open centerline examples until stroke/open-path rendering is designed.
 
-That keeps LogoT focused: the core remains a 2D region generator, while L-systems
+That keeps LogoSC focused: the core remains a 2D region generator, while L-systems
 serve as a compact way to generate interesting command lists.

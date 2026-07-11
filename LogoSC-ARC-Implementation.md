@@ -1,13 +1,13 @@
-# LogoT ARC Implementation Notes
+# LogoSC ARC Implementation Notes
 
 ## Purpose
 
-`ARC` adds curved Logo movement while preserving the existing LogoT architecture:
+`ARC` adds curved Logo movement while preserving the existing LogoSC architecture:
 commands are evaluated into contour point lists, and rendering still happens later
 through `polygon()` calls.
 
 OpenSCAD does not provide a path-level operation such as "append this arc to an
-existing polygon contour." LogoT therefore tessellates arcs into short straight
+existing polygon contour." LogoSC therefore tessellates arcs into short straight
 segments and appends those generated points to the current contour.
 
 ## Command syntax
@@ -17,7 +17,7 @@ segments and appends those generated points to the current contour.
 ```
 
 The optional `segments` field overrides automatic segment selection. When it is
-omitted, LogoT uses OpenSCAD-style `$fn/$fa/$fs` logic.
+omitted, LogoSC uses OpenSCAD-style `$fn/$fa/$fs` logic.
 
 ## Movement semantics
 
@@ -52,7 +52,7 @@ ends near:
 
 ## Arc geometry
 
-For nonzero radius and nonzero angle, LogoT computes the center of curvature from
+For nonzero radius and nonzero angle, LogoSC computes the center of curvature from
 the current heading and the turn direction.
 
 ```text
@@ -74,7 +74,7 @@ point = [
 ]
 ```
 
-The starting point is not duplicated. LogoT appends only points for:
+The starting point is not duplicated. LogoSC appends only points for:
 
 ```text
 i = 1..segments
@@ -85,7 +85,7 @@ than explicitly emitting the starting point.
 
 ## Automatic segment selection
 
-LogoT follows OpenSCAD's `$fn`, `$fa`, and `$fs` resolution model as closely as is
+LogoSC follows OpenSCAD's `$fn`, `$fa`, and `$fs` resolution model as closely as is
 useful for an arc command.
 
 OpenSCAD's full-circle fragment selection can be summarized as:
@@ -102,7 +102,7 @@ else:
     )
 ```
 
-LogoT applies that rule to the effective rendered radius, then scales the result
+LogoSC applies that rule to the effective rendered radius, then scales the result
 by the absolute arc angle:
 
 ```text
@@ -200,7 +200,7 @@ after ARC. They are intentionally CAD/3D-printing-style shape stamps:
 - current scale is applied;
 - heading orients `REGPOLY`, `RECT`, and `ROUNDEDRECT`.
 
-This is different from classic Logo circle behavior. In LogoT,
+This is different from classic Logo circle behavior. In LogoSC,
 `[CIRCLE, r]` creates a filled circle centered at the current point. To make the
 Logo cursor walk around a full tangent loop, use:
 

@@ -1,11 +1,11 @@
-# LogoT User Manual
+# LogoSC User Manual
 
-LogoT is a small Logo-style geometry language embedded in OpenSCAD. It evaluates
+LogoSC is a small Logo-style geometry language embedded in OpenSCAD. It evaluates
 integer-opcode command lists into closed 2D regions that can be rendered with
 OpenSCAD `polygon(points=..., paths=...)` and then used directly in ordinary
 OpenSCAD modeling operations.
 
-LogoT is designed primarily for 3D-printable 2D profiles: plates, panels,
+LogoSC is designed primarily for 3D-printable 2D profiles: plates, panels,
 washers, outlines, rounded rectangles, decorative regions, and profiles that can
 be passed to `linear_extrude()` or `rotate_extrude()`.
 
@@ -15,7 +15,7 @@ be passed to `linear_extrude()` or `rotate_extrude()`.
   - [Setup](#setup)
   - [Library version](#library-version)
 - [2. Core idea](#2-core-idea)
-  - [LogoT and BOSL2 turtle](#logot-and-bosl2-turtle)
+  - [LogoSC and BOSL2 turtle](#logot-and-bosl2-turtle)
   - [Other Logo-like OpenSCAD turtle tools](#other-logo-like-openscad-turtle-tools)
 - [3. Quick lookup cheat sheet](#3-quick-lookup-cheat-sheet)
 - [4. Runnable examples](#4-runnable-examples)
@@ -38,7 +38,7 @@ be passed to `linear_extrude()` or `rotate_extrude()`.
 - [12. Practical examples](#12-practical-examples)
 - [13. Error handling and tracing](#13-error-handling-and-tracing)
 - [14. Limitations](#14-limitations)
-- [15. Suggested style for LogoT programs](#15-suggested-style-for-logot-programs)
+- [15. Suggested style for LogoSC programs](#15-suggested-style-for-logot-programs)
 - [Index](#index)
 
 ## 1. Files
@@ -46,46 +46,46 @@ be passed to `linear_extrude()` or `rotate_extrude()`.
 Current project files:
 
 ```text
-LogoT-Foundation-Core.scad        Core interpreter, geometry, and 2D renderer.
-LogoT-Foundation-Tests.scad       Regression and visual tests.
-LogoT-README.md                   Project overview and roadmap.
+LogoSC-Foundation-Core.scad        Core interpreter, geometry, and 2D renderer.
+LogoSC-Foundation-Tests.scad       Regression and visual tests.
+LogoSC-README.md                   Project overview and roadmap.
 CHANGELOG.md                      Release history.
-LogoT-ARC-Implementation.md        ARC tessellation design notes.
-LogoT-Holes-Implementation.md     Region/hole design notes.
-LogoT-LSystems-Notes.md           L-system design and example notes.
-LogoT-User-Manual.md              This manual.
-LogoT-Developer-Notebook.md       Engineering history, design rationale, workflow,
+LogoSC-ARC-Implementation.md        ARC tessellation design notes.
+LogoSC-Holes-Implementation.md     Region/hole design notes.
+LogoSC-LSystems-Notes.md           L-system design and example notes.
+LogoSC-User-Manual.md              This manual.
+LogoSC-Developer-Notebook.md       Engineering history, design rationale, workflow,
                                   lessons learned, and ChatGPT restart guide.
-LogoT-Future-Context.md           Compatibility pointer to the Developer Notebook.
-LogoT-CheatSheet.md               Compact command and API reference.
-LogoT-Examples.scad               Runnable example gallery.
+LogoSC-Future-Context.md           Compatibility pointer to the Developer Notebook.
+LogoSC-CheatSheet.md               Compact command and API reference.
+LogoSC-Examples.scad               Runnable example gallery.
 .gitattributes                    LF line-ending policy for Git.
 ```
 
 ### Setup
 
-For normal use, put the LogoT core file next to your model and include it from
+For normal use, put the LogoSC core file next to your model and include it from
 OpenSCAD:
 
 ```scad
-include <LogoT-Foundation-Core.scad>
-RunLogoTests = false;
+include <LogoSC-Foundation-Core.scad>
+RunLogoSCests = false;
 TraceLevel = 0; // [0:4]
 ```
 
 The Developer Notebook is maintainer documentation rather than part of the
 public API. Its main purpose is to preserve historical engineering context
 and reinitialize ChatGPT when development resumes in a new conversation.
-Maintainers should read it before changing the project; ordinary LogoT users
+Maintainers should read it before changing the project; ordinary LogoSC users
 can ignore it.
 
-The `RunLogoTests` and `TraceLevel` assignments should come **after** the
+The `RunLogoSCests` and `TraceLevel` assignments should come **after** the
 `include`. OpenSCAD `include` behaves like textual insertion, so post-include
 assignments override the core file's Customizer defaults without creating a
 second Customizer block or accidentally enabling the regression-test gallery in
 your model.
 
-For ordinary 2D output, wrap a LogoT command list with:
+For ordinary 2D output, wrap a LogoSC command list with:
 
 ```scad
 RenderLogo2D(cmds);
@@ -100,34 +100,34 @@ linear_extrude(height = 4, center = false, convexity = 10)
 }
 ```
 
-To run the built-in tests, open `LogoT-Foundation-Core.scad` directly in
+To run the built-in tests, open `LogoSC-Foundation-Core.scad` directly in
 OpenSCAD and leave:
 
 ```scad
-RunLogoTests = true;
+RunLogoSCests = true;
 ```
 
-The runnable gallery in `LogoT-Examples.scad` follows the same include pattern
+The runnable gallery in `LogoSC-Examples.scad` follows the same include pattern
 and is a good starting point for user models.
 
 ### Library version
 
-Current public API version: `2026.0`.
+Current public API version: `2026.1`.
 
 The core file exposes version constants and a helper for user-model compatibility
 checks:
 
 ```scad
-LogoTVersionMajor
-LogoTVersionMinor
-LogoTVersion
-LogoTVersionAtLeast(major, minor)
+LogoSCVersionMajor
+LogoSCVersionMinor
+LogoSCVersion
+LogoSCVersionAtLeast(major, minor)
 ```
 
 Example:
 
 ```scad
-assert(LogoTVersionAtLeast(2026, 0), "This model requires LogoT 2026.0+");
+assert(LogoSCVersionAtLeast(2026, 1), "This model requires LogoSC 2026.1+");
 ```
 
 The version is bumped manually for public API or feature milestones. Git remains
@@ -135,14 +135,14 @@ the source of truth for ordinary commit-by-commit source history.
 
 ## 2. Quick Start
 
-### Your First LogoT Program
+### Your First LogoSC Program
 
 The simplest Logo programs are written using only forward movement and turns. The following program draws an equilateral triangle.
 
 ```scad
-include <LogoT-Foundation-Core.scad>
+include <LogoSC-Foundation-Core.scad>
 
-RunLogoTests = false;
+RunLogoSCests = false;
 TraceLevel = 0;
 
 triangle =
@@ -161,9 +161,9 @@ RenderLogo2D(triangle);
 
 ![Figure 2-1](images/quickstart-triangle.png)
 
-*Figure 2-1. Three `MOVE` commands and two `TURN` commands produce a filled equilateral triangle. LogoT generates closed 2D polygonal regions suitable for OpenSCAD modeling operations.*
+*Figure 2-1. Three `MOVE` commands and two `TURN` commands produce a filled equilateral triangle. LogoSC generates closed 2D polygonal regions suitable for OpenSCAD modeling operations.*
 
-Although the turtle walks only three line segments, **LogoT produces a filled equilateral triangle**, not just three independent lines.
+Although the turtle walks only three line segments, **LogoSC produces a filled equilateral triangle**, not just three independent lines.
 
 > **Note:** A future stroke-rendering API will primarily support debugging and educational visualization.
 >
@@ -173,7 +173,7 @@ Although the turtle walks only three line segments, **LogoT produces a filled eq
 
 Classic Logo approximates curves using many short line segments.
 
-LogoT also provides CAD-oriented primitives including circles, arcs, regular polygons, rectangles, rounded rectangles, and holes.
+LogoSC also provides CAD-oriented primitives including circles, arcs, regular polygons, rectangles, rounded rectangles, and holes.
 
 ```scad
 part =
@@ -189,12 +189,12 @@ RenderLogo2D(part);
 
 ![Figure 2-2](images/quickstart-plate-hole.png)
 
-*Figure 2-2. Two LogoT commands generate a rectangular plate with a centered circular hole suitable for extrusion into a 3D-printable part.*
+*Figure 2-2. Two LogoSC commands generate a rectangular plate with a centered circular hole suitable for extrusion into a 3D-printable part.*
 
 
 ## 3. Core idea
 
-A LogoT program is an OpenSCAD vector of command vectors:
+A LogoSC program is an OpenSCAD vector of command vectors:
 
 ```scad
 part =
@@ -219,14 +219,14 @@ linear_extrude(height = 4, center = false, convexity = 10)
 }
 ```
 
-LogoT intentionally renders **2D regions only**. It does not wrap
+LogoSC intentionally renders **2D regions only**. It does not wrap
 `linear_extrude()`, `rotate_extrude()`, `difference()`, or `union()`. Keeping
-those operations outside LogoT keeps the API small and lets OpenSCAD do normal
+those operations outside LogoSC keeps the API small and lets OpenSCAD do normal
 OpenSCAD work.
 
-### LogoT and BOSL2 turtle
+### LogoSC and BOSL2 turtle
 
-LogoT overlaps slightly with BOSL2's turtle/path tools, but the two projects
+LogoSC overlaps slightly with BOSL2's turtle/path tools, but the two projects
 optimize for different jobs.
 
 BOSL2 is a broad OpenSCAD utility library with extensive shape, path, region,
@@ -234,34 +234,34 @@ attachment, and 3D modeling tools, including turtle-style path helpers. Get
 BOSL2 from the [BelfrySCAD/BOSL2 GitHub repository](https://github.com/BelfrySCAD/BOSL2),
 or from the [OpenSCAD Libraries page](https://openscad.org/libraries.html).
 
-LogoT is deliberately narrower. It evaluates compact Logo-style command lists
+LogoSC is deliberately narrower. It evaluates compact Logo-style command lists
 into closed 2D regions suitable for `polygon(points=..., paths=...)`, holes,
 `linear_extrude()`, `rotate_extrude()`, `offset()`, and ordinary OpenSCAD
 composition.
 
 Use BOSL2 when you want its large general-purpose modeling toolkit, attachment
-system, path utilities, or 3D turtle workflows. Use LogoT when you want a small,
+system, path utilities, or 3D turtle workflows. Use LogoSC when you want a small,
 self-contained 2D region generator for reusable plate, panel, washer, outline,
-and profile geometry. They can coexist in the same OpenSCAD model because LogoT
+and profile geometry. They can coexist in the same OpenSCAD model because LogoSC
 returns normal OpenSCAD 2D geometry rather than owning the whole modeling stack.
 
 ### Other Logo-like OpenSCAD turtle tools
 
 The OpenSCAD ecosystem has several turtle-graphics or Logo-like experiments.
 Most are path generators, drawing helpers, tutorials, or broader CAD libraries
-rather than direct substitutes for LogoT's small 2D-region-and-hole workflow.
+rather than direct substitutes for LogoSC's small 2D-region-and-hole workflow.
 
-| Tool | Where to find it | Plus, relative to LogoT | Minus, relative to LogoT |
+| Tool | Where to find it | Plus, relative to LogoSC | Minus, relative to LogoSC |
 |---|---|---|---|
-| BOSL2 `turtle()` / `turtle3d()` | [BelfrySCAD/BOSL2](https://github.com/BelfrySCAD/BOSL2) | Mature, broad OpenSCAD toolkit; strong path, region, attachment, and 3D workflows. | Larger dependency; optimized for BOSL2 path/modeling workflows rather than a small standalone LogoT region DSL. |
-| StoneAgeLib `turtle.scad` | [Stone-Age-Sculptor/StoneAgeLib](https://github.com/Stone-Age-Sculptor/StoneAgeLib) | Practical 3D-printing library; public-domain/CC0 licensing; turtle usage is described as similar to Python Turtle. | Part of a broader evolving library; not focused on LogoT's closed-region, hole, and compact command-list API. |
-| `phildubach/openscad-turtle` | [phildubach/openscad-turtle](https://github.com/phildubach/openscad-turtle) | Interesting CAD-style commands for lines, arcs, elastic lines, and references to stored prior turtle states. | Small GPL-3.0 project; less evidence of adoption; path construction rather than LogoT-style filled regions with holes. |
-| JustinSDK TurtleSCAD | [JustinSDK/TurtleSCAD](https://github.com/JustinSDK/TurtleSCAD) | Pure OpenSCAD turtle-graphics implementation with example models; historically relevant. | Archived/read-only; no releases; not a current foundation for new LogoT work. |
-| Kit Wallace `turtle.scad` examples | [Turtle Graphics in OpenSCAD](https://www.tumblr.com/kitwallace/112087448494/turtle-graphics-in-openscad) | Compact classic-Logo flavor; useful educational example of recursive OpenSCAD turtle command lists. | Tutorial/demo scale; older and not framed as a maintained LogoT-like CAD-region library. |
-| OpenHome 2D/3D turtle articles | [2D turtle graphics](https://openhome.cc/eGossip/OpenSCAD/TurtleGraphics.html) and [3D turtle graphics](https://openhome.cc/eGossip/OpenSCAD/3DTurtleGraphics.html) | Good implementation notes for turtle state, immutability, and coordinate-frame reasoning in OpenSCAD. | Article/example code rather than a packaged library; not aimed at LogoT's reusable region primitives. |
+| BOSL2 `turtle()` / `turtle3d()` | [BelfrySCAD/BOSL2](https://github.com/BelfrySCAD/BOSL2) | Mature, broad OpenSCAD toolkit; strong path, region, attachment, and 3D workflows. | Larger dependency; optimized for BOSL2 path/modeling workflows rather than a small standalone LogoSC region DSL. |
+| StoneAgeLib `turtle.scad` | [Stone-Age-Sculptor/StoneAgeLib](https://github.com/Stone-Age-Sculptor/StoneAgeLib) | Practical 3D-printing library; public-domain/CC0 licensing; turtle usage is described as similar to Python Turtle. | Part of a broader evolving library; not focused on LogoSC's closed-region, hole, and compact command-list API. |
+| `phildubach/openscad-turtle` | [phildubach/openscad-turtle](https://github.com/phildubach/openscad-turtle) | Interesting CAD-style commands for lines, arcs, elastic lines, and references to stored prior turtle states. | Small GPL-3.0 project; less evidence of adoption; path construction rather than LogoSC-style filled regions with holes. |
+| JustinSDK TurtleSCAD | [JustinSDK/TurtleSCAD](https://github.com/JustinSDK/TurtleSCAD) | Pure OpenSCAD turtle-graphics implementation with example models; historically relevant. | Archived/read-only; no releases; not a current foundation for new LogoSC work. |
+| Kit Wallace `turtle.scad` examples | [Turtle Graphics in OpenSCAD](https://www.tumblr.com/kitwallace/112087448494/turtle-graphics-in-openscad) | Compact classic-Logo flavor; useful educational example of recursive OpenSCAD turtle command lists. | Tutorial/demo scale; older and not framed as a maintained LogoSC-like CAD-region library. |
+| OpenHome 2D/3D turtle articles | [2D turtle graphics](https://openhome.cc/eGossip/OpenSCAD/TurtleGraphics.html) and [3D turtle graphics](https://openhome.cc/eGossip/OpenSCAD/3DTurtleGraphics.html) | Good implementation notes for turtle state, immutability, and coordinate-frame reasoning in OpenSCAD. | Article/example code rather than a packaged library; not aimed at LogoSC's reusable region primitives. |
 | TheHans L-system gist | [L-system implementation in OpenSCAD](https://gist.github.com/thehans/a1494db8046a58832e2ebb10a5908a66) | Useful example of turtle interpretation with stack-style `[` / `]` branching for fractals and plant-like forms. | Specialized L-system interpreter, not a general Logo-style CAD geometry API. |
 
-The practical conclusion is that LogoT does not need to become a general BOSL2
+The practical conclusion is that LogoSC does not need to become a general BOSL2
 competitor or a complete Logo clone. Its useful niche is a small, readable,
 Git-friendly OpenSCAD mini-language that produces printable 2D regions and
 region holes, then gets out of OpenSCAD's way.
@@ -269,20 +269,20 @@ region holes, then gets out of OpenSCAD's way.
 
 ## 3. Quick lookup cheat sheet
 
-`LogoT-CheatSheet.md` is the compact reference for command syntax, rendering
-API calls, and common OpenSCAD wrappers used around LogoT output. Use it while
+`LogoSC-CheatSheet.md` is the compact reference for command syntax, rendering
+API calls, and common OpenSCAD wrappers used around LogoSC output. Use it while
 writing models; return to this manual for full explanations and examples.
 
 ## 4. Runnable examples
 
-`LogoT-Examples.scad` is the best place to see the library used as an OpenSCAD
+`LogoSC-Examples.scad` is the best place to see the library used as an OpenSCAD
 modeling tool rather than as a test harness. It contains a gallery module plus
 individual named examples for washers, mounting plates, radial holes, Koch
 snowflake geometry, L-system-generated fractal outlines, rotate-extruded
-profiles, twisted extrusions, a small spiral tower, and the LogoT feature
+profiles, twisted extrusions, a small spiral tower, and the LogoSC feature
 wordmark.
 
-Open `LogoT-Examples.scad` directly in OpenSCAD. The default setting renders the
+Open `LogoSC-Examples.scad` directly in OpenSCAD. The default setting renders the
 full gallery:
 
 ```scad
@@ -292,19 +292,19 @@ RunLogoExamples = true;
 The examples file includes the core and suppresses test/tracing output with:
 
 ```scad
-include <LogoT-Foundation-Core.scad>
-RunLogoTests = false;
+include <LogoSC-Foundation-Core.scad>
+RunLogoSCests = false;
 TraceLevel = 0; // [0:4]
 ```
 
 Use it as a cookbook: copy a command list such as `ExampleMountingPlate`, or use
 one of the example rendering modules as a starting point for your own model.
-For the L-system examples, see `LogoT-LSystems-Notes.md` for design context
+For the L-system examples, see `LogoSC-LSystems-Notes.md` for design context
 and limitations.
 
 ## 5. Coordinate model
 
-LogoT maintains a current state:
+LogoSC maintains a current state:
 
 ```text
 [x, y, heading, scale]
@@ -329,7 +329,7 @@ heading 180 points along -X
 heading 270 points along -Y
 ```
 
-LogoT uses OpenSCAD's right-handed coordinate system. In the standard LogoT
+LogoSC uses OpenSCAD's right-handed coordinate system. In the standard LogoSC
 test/example view, +X appears to the left and +Y appears upward; avoid assuming
 a left-handed screen-coordinate convention when reasoning about turns and arcs.
 Positive relative turns are right-handed rotations about the +Z axis. Viewed
@@ -369,7 +369,7 @@ shape =
 
 ## 6. Rendering model
 
-LogoT evaluates command lists into structured 2D data rather than emitting
+LogoSC evaluates command lists into structured 2D data rather than emitting
 OpenSCAD geometry while each command executes. The public data hierarchy is:
 
 ```text
@@ -387,13 +387,13 @@ which rendering entry point to use. The essential distinction is:
 - evaluation functions return OpenSCAD values that can be inspected or reused;
 - rendering modules emit 2D OpenSCAD geometry and do not return a value.
 
-LogoT currently targets closed printable 2D polygons, not open strokes.
+LogoSC currently targets closed printable 2D polygons, not open strokes.
 OpenSCAD `polygon()` closes drawable paths automatically. Stroke width, end caps,
 joins, and miter limits are future work.
 
 ## 7. Public rendering and evaluation API
 
-LogoT separates evaluation from rendering:
+LogoSC separates evaluation from rendering:
 
 ```text
 command list
@@ -419,7 +419,7 @@ transformed as data, tested, cached in a variable, or rendered more than once.
 
 ### 7.1 Input command-list format
 
-The input to `RenderLogo2D()` and `evalLogo()` is an OpenSCAD list of LogoT
+The input to `RenderLogo2D()` and `evalLogo()` is an OpenSCAD list of LogoSC
 commands:
 
 ```scad
@@ -587,7 +587,7 @@ RenderLogo2D(cmds, convexity = 10);
 | Parameter | Format | Meaning |
 |---|---|---|
 | `cmds` | command list | Commands to evaluate from the default initial state. |
-| `convexity` | integer | Preview hint passed unchanged to OpenSCAD `polygon()`. Does not alter LogoT geometry. |
+| `convexity` | integer | Preview hint passed unchanged to OpenSCAD `polygon()`. Does not alter LogoSC geometry. |
 
 The module emits 2D OpenSCAD geometry. It does not return the `EvalResult`.
 Multiple regions are emitted as sibling polygon objects and behave as their
@@ -613,7 +613,7 @@ point data or the mathematical shape.
 #### About the `convexity` parameter
 
 The `convexity` parameter is passed unchanged to OpenSCAD's `polygon()` module.
-It does **not** change the geometry generated by LogoT. Instead, it is a preview
+It does **not** change the geometry generated by LogoSC. Instead, it is a preview
 hint used by OpenSCAD's **Preview (F5)** renderer.
 
 In OpenSCAD terminology, `convexity` is an upper bound on the number of
@@ -621,7 +621,7 @@ front-facing polygon surfaces that a viewing ray may intersect. This helps the
 preview renderer determine visible surfaces for complex models. It does **not**
 affect the final CGAL render (**F6**) or exported STL files.
 
-For most LogoT models, the default value:
+For most LogoSC models, the default value:
 
 ```scad
 convexity = 10;
@@ -635,7 +635,7 @@ multiple overlapping extrusions, or highly concave models.
 
 Changing `convexity` does **not** affect:
 
-- LogoT-generated points
+- LogoSC-generated points
 - Polygon topology
 - Tessellation quality
 - Exported STL files
@@ -841,7 +841,7 @@ for (region = regions)
 
 | Need | Use |
 |---|---|
-| Evaluate and render a normal LogoT model | `RenderLogo2D()` |
+| Evaluate and render a normal LogoSC model | `RenderLogo2D()` |
 | Inspect final state, stack, pen, or point data | `evalLogo()` plus accessors |
 | Evaluate once and render several times | `evalLogo()` then `RenderContours2D()` |
 | Render manually generated region data | `RenderContours2D()` |
@@ -850,7 +850,7 @@ for (region = regions)
 
 ### 7.10 OpenSCAD wrapper pattern
 
-LogoT intentionally remains a 2D geometry generator. Wrap its output with native
+LogoSC intentionally remains a 2D geometry generator. Wrap its output with native
 OpenSCAD modules for final modeling:
 
 ```scad
@@ -928,7 +928,7 @@ segment count, that value overrides OpenSCAD's `$fn`, `$fa`, and `$fs` controls.
 [ROUNDEDRECT, 40, 20, 4, 6]  // 6 segments per rounded corner
 ```
 
-If the segment count is omitted, LogoT uses OpenSCAD-style automatic fragment
+If the segment count is omitted, LogoSC uses OpenSCAD-style automatic fragment
 selection:
 
 - `$fn > 0` sets the full-circle fragment count.
@@ -1103,7 +1103,7 @@ loop =
 ```
 
 `ARC` is the command to use when you want the Logo cursor to walk around a
-circle. `CIRCLE` means something different in LogoT.
+circle. `CIRCLE` means something different in LogoSC.
 
 ### `CIRCLE`
 
@@ -1131,7 +1131,7 @@ washerOuter =
 ];
 ```
 
-Important: this is not the classic Logo circle behavior. In LogoT,
+Important: this is not the classic Logo circle behavior. In LogoSC,
 `[CIRCLE, r]` is a CAD-style closed shape centered at the current position. To
 walk a full tangent loop, use:
 
@@ -1298,7 +1298,7 @@ multiHolePlate =
 ];
 ```
 
-LogoT does not currently validate whether holes are fully inside the outer
+LogoSC does not currently validate whether holes are fully inside the outer
 region, whether holes overlap, or whether regions are self-intersecting. Keep
 geometry sane; CGAL is not a therapist.
 
@@ -1454,7 +1454,7 @@ does not emit a circle.
 
 ## 11. Recursion and recursive patterns
 
-LogoT uses the word "recursion" in a few related but distinct ways. They are
+LogoSC uses the word "recursion" in a few related but distinct ways. They are
 worth separating because they have different costs and different failure modes.
 
 ### 9.1 `REPEAT`: bounded repetition
@@ -1513,7 +1513,7 @@ That runs `slot` at half the current scale.
 
 ### 9.3 Nested `RUN`: runtime recursion with a limit
 
-A `RUN` body can itself contain another `RUN`. LogoT has a recursion limit so a
+A `RUN` body can itself contain another `RUN`. LogoSC has a recursion limit so a
 bad command list does not expand forever.
 
 The syntax is:
@@ -1540,10 +1540,10 @@ example may stop earlier than expected.
 ### 9.4 Recursive OpenSCAD command generators
 
 For most practical recursive geometry, use an OpenSCAD function that returns a
-LogoT command list. This is usually cleaner than trying to create
+LogoSC command list. This is usually cleaner than trying to create
 self-referential command vectors.
 
-OpenSCAD self-referential variables are not a reliable foundation for LogoT
+OpenSCAD self-referential variables are not a reliable foundation for LogoSC
 programs. Prefer functions where the depth is an ordinary numeric argument:
 
 ```scad
@@ -1566,7 +1566,7 @@ spiral =
 This combines two mechanisms:
 
 1. The OpenSCAD function builds a finite command tree.
-2. LogoT `RUN` evaluates the nested command lists with a runtime recursion guard.
+2. LogoSC `RUN` evaluates the nested command lists with a runtime recursion guard.
 
 The explicit depth makes the generated command list predictable. The `RUN`
 `maxRec` value is the seat belt. It is less dramatic than debugging infinite
@@ -1582,7 +1582,7 @@ line segment is replaced by four smaller segments:
 forward, left 60, forward, right 120, forward, left 60, forward
 ```
 
-In LogoT, write the segment generator as an OpenSCAD function:
+In LogoSC, write the segment generator as an OpenSCAD function:
 
 ```scad
 function KochSegment(depth, len) =
@@ -1638,7 +1638,7 @@ Notes:
 |---|---|---|
 | `REPEAT` | Fixed repetition with no structural growth | Each iteration needs a different generated body |
 | `RUN` | Reusing a named command list at the current state | You only need a simple one-line command |
-| `RUN` with scale | Reusing a shape at different sizes | You need nonuniform scaling; LogoT scale is uniform |
+| `RUN` with scale | Reusing a shape at different sizes | You need nonuniform scaling; LogoSC scale is uniform |
 | `RUN` with `maxRec` | Nested generated command lists | The same result is simpler with `REPEAT` |
 | OpenSCAD recursive functions | Fractals and depth-controlled structures | Simpler explicit commands would be clearer |
 
@@ -1651,8 +1651,8 @@ polygons that are slow to preview, render, slice, and print.
 ### Example 1: simple extruded plate
 
 ```scad
-include <LogoT-Foundation-Core.scad>
-RunLogoTests = false;
+include <LogoSC-Foundation-Core.scad>
+RunLogoSCests = false;
 
 plate =
 [
@@ -1668,8 +1668,8 @@ linear_extrude(height = 3, convexity = 10)
 ### Example 2: rounded mounting plate
 
 ```scad
-include <LogoT-Foundation-Core.scad>
-RunLogoTests = false;
+include <LogoSC-Foundation-Core.scad>
+RunLogoSCests = false;
 
 mountingPlate =
 [
@@ -1748,7 +1748,7 @@ rotate_extrude(angle = 360, convexity = 10)
 
 ## 13. Error handling and tracing
 
-LogoT defaults to soft errors:
+LogoSC defaults to soft errors:
 
 ```scad
 HardErrors = false;
@@ -1779,19 +1779,19 @@ Higher levels include lower levels.
 
 Current limitations:
 
-- LogoT targets closed 2D regions, not open strokes.
+- LogoSC targets closed 2D regions, not open strokes.
 - No stroke width, caps, joins, or miter limits yet.
 - No automatic path filleting yet.
 - No `ROUNDEDREGPOLY` yet.
 - No variable/procedure system beyond OpenSCAD variables and `RUN` child lists.
 - Holes are attached to the most recently emitted outer region.
-- Hole containment and hole overlap are not validated by LogoT.
+- Hole containment and hole overlap are not validated by LogoSC.
 - `polygon()` closes paths automatically.
 
 For now, use closed shapes, `HOLE`, and native OpenSCAD boolean/modeling
 operations to build printable parts.
 
-## 15. Suggested style for LogoT programs
+## 15. Suggested style for LogoSC programs
 
 Favor relative drawing inside reusable command lists. Use `GOTO` and `DIR` for
 layout and setup; use `MOVE`, `TURN`, and `ARC` for the shape body when possible.
@@ -1831,10 +1831,10 @@ control smoothness globally.
 - [`evalLogo()`](#74-evallogo)
 - [`GOTO`](#goto)
 - [`HOLE`](#hole)
-- [`LogoT-CheatSheet.md`](#3-quick-lookup-cheat-sheet)
-- [`LogoT-Examples.scad`](#4-runnable-examples)
-- [`LogoTVersion`](#library-version)
-- [`LogoTVersionAtLeast()`](#library-version)
+- [`LogoSC-CheatSheet.md`](#3-quick-lookup-cheat-sheet)
+- [`LogoSC-Examples.scad`](#4-runnable-examples)
+- [`LogoSCVersion`](#library-version)
+- [`LogoSCVersionAtLeast()`](#library-version)
 - [`MOVE`](#move)
 - [`PENDOWN`](#penup-and-pendown), [`PENUP`](#penup-and-pendown)
 - [`POP`](#push-and-pop), [`PUSH`](#push-and-pop)

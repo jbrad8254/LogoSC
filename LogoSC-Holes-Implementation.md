@@ -1,8 +1,8 @@
-# LogoT Holes and Regions Implementation
+# LogoSC Holes and Regions Implementation
 
 ## Rationale
 
-LogoT originally rendered every contour as a separate OpenSCAD `polygon()` call.
+LogoSC originally rendered every contour as a separate OpenSCAD `polygon()` call.
 That model works for disconnected filled islands, but it cannot represent a hole
 inside a filled island. A circular mounting hole, for example, would render as a
 separate filled disk instead of subtracting material from the plate.
@@ -10,16 +10,16 @@ separate filled disk instead of subtracting material from the plate.
 For 3D-printing-oriented geometry, holes should be part of the same 2D region as
 their surrounding outer boundary. OpenSCAD's `polygon()` supports this directly
 with its `paths` argument: the first path is the outer boundary and later paths
-inside it are interpreted as holes. LogoT therefore represents holes with
+inside it are interpreted as holes. LogoSC therefore represents holes with
 `polygon(points=..., paths=...)`, not with boolean `difference()` at this layer.
 
 Boolean `difference()` is still useful later, especially for higher-level 3D
-modeling, but the 2D LogoT evaluator should first produce clean region data.
+modeling, but the 2D LogoSC evaluator should first produce clean region data.
 That keeps the interpreter functional and makes the rendering model explicit.
 
 ## Data model
 
-LogoT now treats evaluated geometry as a list of regions:
+LogoSC now treats evaluated geometry as a list of regions:
 
 ```text
 regions = [
@@ -72,7 +72,7 @@ For a region such as:
 ]
 ```
 
-LogoT flattens the points:
+LogoSC flattens the points:
 
 ```text
 points = outer + hole0 + hole1
@@ -174,7 +174,7 @@ A single `HOLE` command can attach multiple child contours:
 ]
 ```
 
-The child evaluation may produce temporary non-closed movement paths. LogoT only
+The child evaluation may produce temporary non-closed movement paths. LogoSC only
 attaches child rings with at least three points as holes.
 
 ## Examples
@@ -239,7 +239,7 @@ clearance holes.
 
 ## Validation policy
 
-LogoT currently validates command structure, not full polygon topology.
+LogoSC currently validates command structure, not full polygon topology.
 
 Validated cases:
 
@@ -256,7 +256,7 @@ Deferred topology checks:
 - winding orientation;
 - self-intersections.
 
-Those conditions are left to OpenSCAD/CGAL for now. LogoT may add geometric
+Those conditions are left to OpenSCAD/CGAL for now. LogoSC may add geometric
 validity checks later if they become useful.
 
 ## Why not `difference()` here?
@@ -273,7 +273,7 @@ difference()
 ```
 
 That is reasonable for downstream 3D modeling, but it is not the cleanest
-representation for LogoT's 2D evaluator. Region data is more compact, easier to
+representation for LogoSC's 2D evaluator. Region data is more compact, easier to
 test, and maps directly to OpenSCAD's polygon path model.
 
 Keeping holes in the region structure also leaves `difference()` free for later
@@ -284,5 +284,5 @@ non-planar features.
 
 Open strokes are still separate from holes. A future stroke renderer should
 convert centerline paths into closed outline polygons with explicit stroke width,
-cap style, join style, and miter limit. That belongs in a later LogoT-Rendering
+cap style, join style, and miter limit. That belongs in a later LogoSC-Rendering
 milestone, not in the holes implementation.

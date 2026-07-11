@@ -1,20 +1,20 @@
 // ============================================================================
-// LogoT-Foundation Core
+// LogoSC-Foundation Core
 //
 // Core interpreter and renderer.
-// See LogoT-README.md for overview, command reference, and roadmap.
+// See LogoSC-README.md for overview, command reference, and roadmap.
 // ============================================================================
 
 // -----------------------------------------------------------------------------
-// LogoT-Foundation
+// LogoSC-Foundation
 //
 // OpenSCAD Logo / Logo-style command evaluator.
 // Interpreter uses one Eval* handler function per opcode.
 //
 // This split-file baseline contains core interpreter controls, constants,
 // state functions, trace functions, opcode handlers, and evaluator logic.
-// The companion LogoT-Foundation-Tests.scad file is included at parse time
-// below, with test execution gated by RunLogoTests.
+// The companion LogoSC-Foundation-Tests.scad file is included at parse time
+// below, with test execution gated by RunLogoSCests.
 //
 // Command format:
 //     [MOVE,   len]
@@ -60,28 +60,28 @@
 //     maxRec = 2
 //
 // Rendering model:
-//     LogoT returns regions. Each region is [outer, hole0, hole1, ...].
+//     LogoSC returns regions. Each region is [outer, hole0, hole1, ...].
 //     Regions render through polygon(points=..., paths=...), so holes are
 //     represented by secondary paths inside the same polygon call. Open-stroke
 //     rendering is intentionally deferred.
 // -----------------------------------------------------------------------------
-// LogoT library version
+// LogoSC library version
 // -----------------------------------------------------------------------------
 // Public API version. Bump manually on feature/API milestones; Git records
-// normal per-commit source history. Use LogoTVersionAtLeast() in downstream
-// models when a model requires a minimum LogoT API version.
-LogoTVersionMajor = 2026 + 0;
-LogoTVersionMinor = 0 + 0;
-LogoTVersion = str(LogoTVersionMajor, ".", LogoTVersionMinor);
+// normal per-commit source history. Use LogoSCVersionAtLeast() in downstream
+// models when a model requires a minimum LogoSC API version.
+LogoSCVersionMajor = 2026 + 0;
+LogoSCVersionMinor = 1 + 0;
+LogoSCVersion = str(LogoSCVersionMajor, ".", LogoSCVersionMinor);
 
-function LogoTVersionAtLeast(major, minor) =
-    (LogoTVersionMajor > major)
+function LogoSCVersionAtLeast(major, minor) =
+    (LogoSCVersionMajor > major)
         ? true
-        : (LogoTVersionMajor == major && LogoTVersionMinor >= minor);
+        : (LogoSCVersionMajor == major && LogoSCVersionMinor >= minor);
 
 // -----------------------------------------------------------------------------
 
-/* [LogoT Controls] */
+/* [LogoSC Controls] */
 
 // Circle divisions used for curved geometry. When $fn is greater than zero,
 // it overrides $fa and $fs for automatic ARC tessellation. Set $fn to zero to
@@ -124,11 +124,11 @@ maxRunRecursions = 5; // [0:20]
 // Default per-RUN recursion limit when RUN is written without maxRec.
 DefaultRunMaxRecursions = 2; // [0:20]
 
-// Default extrusion height used by LogoTest().
+// Default extrusion height used by LogoSCest().
 DefaultTestHeight = 5; // [1:1:20]
 
-// Run regression tests from LogoT-Foundation-Tests.scad.
-RunLogoTests = true; // [false:true]
+// Run regression tests from LogoSC-Foundation-Tests.scad.
+RunLogoSCests = true; // [false:true]
 
 // Non-fatal error helper for use inside functions.
 function ErrorOrZero(msg, value = undef) =
@@ -393,12 +393,12 @@ function CountClosedContours(regions) =
 // -----------------------------------------------------------------------------
 // Rendering helpers and public 2D renderer modules
 // -----------------------------------------------------------------------------
-// LogoT's evaluator returns regions, not OpenSCAD geometry. These helpers turn
+// LogoSC's evaluator returns regions, not OpenSCAD geometry. These helpers turn
 // evaluated regions into 2D polygon() output. User models can wrap RenderLogo2D()
 // in native OpenSCAD linear_extrude(), rotate_extrude(), difference(), union(),
 // translate(), and related modeling operations.
 //
-// LogoT intentionally does not wrap OpenSCAD's extrusion operators. Keeping the
+// LogoSC intentionally does not wrap OpenSCAD's extrusion operators. Keeping the
 // public renderer 2D-only avoids forwarding every extrusion parameter and leaves
 // 3D composition under normal OpenSCAD control.
 
@@ -435,7 +435,7 @@ function RegionRenderPaths(region) =
                 RegionRenderPath(region, pathIndex)
     ];
 
-// Render one evaluated LogoT region as a 2D polygon.
+// Render one evaluated LogoSC region as a 2D polygon.
 module RenderRegion2D(region, convexity = 10)
 {
     outer = RegionOuter(region);
@@ -459,7 +459,7 @@ module RenderRegion2D(region, convexity = 10)
     }
 }
 
-// Render all evaluated LogoT regions as 2D polygons.
+// Render all evaluated LogoSC regions as 2D polygons.
 module RenderContours2D(regions, convexity = 10)
 {
     for (i = [0 : len(regions) - 1])
@@ -469,7 +469,7 @@ module RenderContours2D(regions, convexity = 10)
 }
 
 
-// Evaluate a LogoT command list and render the resulting 2D regions.
+// Evaluate a LogoSC command list and render the resulting 2D regions.
 module RenderLogo2D(cmds, convexity = 10)
 {
     result = evalLogo(cmds);
@@ -1597,6 +1597,6 @@ function evalRepeatLogo(
 // Optional test-suite include
 // -----------------------------------------------------------------------------
 // OpenSCAD include/use directives are parse-time constructs, so this include is
-// unconditional. Test execution is guarded in LogoT-Foundation-Tests.scad by
-// RunLogoTests.
-include <LogoT-Foundation-Tests.scad>
+// unconditional. Test execution is guarded in LogoSC-Foundation-Tests.scad by
+// RunLogoSCests.
+include <LogoSC-Foundation-Tests.scad>

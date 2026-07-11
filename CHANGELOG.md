@@ -1,4 +1,51 @@
-# LogoT Changelog
+# LogoSC Changelog
+
+## Unreleased — Project renamed to LogoSC
+
+LogoT has been renamed **LogoSC** to make the OpenSCAD target immediately clear.
+
+### Renamed
+
+- Repository: `LogoT` → `LogoSC` (the GitHub repository will be renamed after
+  this source change is committed).
+- All project files named `LogoT-*` → `LogoSC-*`.
+- Project-specific public version symbols:
+  - `LogoTVersionMajor` → `LogoSCVersionMajor`
+  - `LogoTVersionMinor` → `LogoSCVersionMinor`
+  - `LogoTVersion` → `LogoSCVersion`
+  - `LogoTVersionAtLeast()` → `LogoSCVersionAtLeast()`
+- Project-prefixed internal/example helpers named `LogoT...` → `LogoSC...`.
+
+### Preserved APIs
+
+The main Logo programming APIs remain unchanged:
+
+- `RenderLogo2D()`
+- `RenderContours2D()`
+- `RenderRegion2D()`
+- `evalLogo()`
+- `ResultState()`, `ResultContours()`, `ResultStack()`, `ResultPen()`
+- `MakeRegion()`, `RegionOuter()`, `RegionHoles()`
+- all command opcodes, including `MOVE`, `TURN`, `ARC`, `CIRCLE`, and `HOLE`
+
+### Changed
+
+- Public API version advanced from `2026.0` to `2026.1`.
+- Includes and documentation links now use `LogoSC-*` filenames.
+- Historical entries below retain the LogoT name because that was the project
+  name when those milestones occurred.
+
+### Migration
+
+```scad
+// Old
+include <LogoT-Foundation-Core.scad>
+LogoTVersionAtLeast(2026, 0);
+
+// New
+include <LogoSC-Foundation-Core.scad>
+LogoSCVersionAtLeast(2026, 1);
+```
 
 ## Documentation and Developer Context
 

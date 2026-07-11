@@ -1,10 +1,10 @@
 // ============================================================================
-// LogoT-Experiments.scad
+// LogoSC-Experiments.scad
 //
-// Experimental and exploratory tests for LogoT.
+// Experimental and exploratory tests for LogoSC.
 //
 // This file is meant to be opened directly in OpenSCAD. It imports the current
-// LogoT core, defines small experimental command lists, and renders them with
+// LogoSC core, defines small experimental command lists, and renders them with
 // RenderAllLogoExperiments().
 //
 // Keep experimental work here until it is stable enough to move into the core,
@@ -15,8 +15,8 @@
 // when this file is opened directly. OpenSCAD include behaves like textual
 // insertion, so these settings live after the include to override core
 // Customizer defaults.
-include <LogoT-Foundation-Core.scad>
-RunLogoTests = false;
+include <LogoSC-Foundation-Core.scad>
+RunLogoSCests = false;
 TraceLevel = 0; // [0:4]
 
 // -----------------------------------------------------------------------------
@@ -77,7 +77,7 @@ function LogoExperimentGridOffset(index) =
 // Returns the input point list followed by the same points in reverse order.
 // The repeated endpoint and start point are intentional: this creates the
 // zero-area, doubled-back polygon used by the experimental stroke test.
-function LogoTReverseAppendPoints(points) =
+function LogoSCReverseAppendPoints(points) =
     len(points) == 0
         ? []
         : concat(
@@ -88,7 +88,7 @@ function LogoTReverseAppendPoints(points) =
 // Report that stroke conversion cannot preserve holes. In normal experiment
 // mode the holes are discarded after a warning; HardErrors converts the same
 // condition into an assertion failure.
-function LogoTWarnDiscardedStrokeHoles(region) =
+function LogoSCWarnDiscardedStrokeHoles(region) =
     len(region) <= 1
         ? 0
         : HardErrors
@@ -106,20 +106,20 @@ function LogoTWarnDiscardedStrokeHoles(region) =
                 len(region) - 1
             ) 0;
 
-// Convert evaluated LogoT regions into zero-width doubled-back regions.
+// Convert evaluated LogoSC regions into zero-width doubled-back regions.
 //
 // Input is normally ResultContours(evalLogo(cmds)). Each region's outer
 // contour is reverse-appended and all hole contours are intentionally dropped.
 // Complexity: O(P + H), where P is the number of outer points and H is the
 // number of hole contours inspected.
-// Precondition: regions uses LogoT's [outer, hole0, ...] region structure.
+// Precondition: regions uses LogoSC's [outer, hole0, ...] region structure.
 // Postcondition: every returned region contains exactly one doubled-back outer
 // contour and no holes.
-function LogoTReverseAppendRegions(regions) =
+function LogoSCReverseAppendRegions(regions) =
 [
     for (region = regions)
-        let(_warning = LogoTWarnDiscardedStrokeHoles(region))
-            MakeRegion(LogoTReverseAppendPoints(RegionOuter(region)))
+        let(_warning = LogoSCWarnDiscardedStrokeHoles(region))
+            MakeRegion(LogoSCReverseAppendPoints(RegionOuter(region)))
 ];
 
 
@@ -172,16 +172,16 @@ module RenderCapsuleStrokePath(
 
 // Return the index of the first region with a nonempty outer contour.
 // Complexity: O(R), where R is the number of regions.
-// Precondition: regions uses LogoT's region structure.
+// Precondition: regions uses LogoSC's region structure.
 // Postcondition: returns -1 if no nonempty outer contour exists.
-function LogoTFirstNonemptyRegionIndex(regions, index = 0) =
+function LogoSCFirstNonemptyRegionIndex(regions, index = 0) =
     index >= len(regions)
         ? -1
         : len(RegionOuter(regions[index])) > 0
             ? index
-            : LogoTFirstNonemptyRegionIndex(regions, index + 1);
+            : LogoSCFirstNonemptyRegionIndex(regions, index + 1);
 
-// Render evaluated LogoT regions as capsule strokes using each region's outer
+// Render evaluated LogoSC regions as capsule strokes using each region's outer
 // contour as a centerline. Hole contours are warned about and discarded.
 //
 // The normal filled-region evaluator records MOVE destinations but does not
@@ -190,7 +190,7 @@ function LogoTFirstNonemptyRegionIndex(regions, index = 0) =
 // contour. Later contours created by PENUP/PENDOWN already include their own
 // starting point and are left unchanged.
 // Complexity: O(P + R) hull operations/search across P points and R regions.
-// Precondition: regions uses LogoT's [outer, hole0, ...] region structure.
+// Precondition: regions uses LogoSC's [outer, hole0, ...] region structure.
 // Postcondition: emits stroked 2D geometry for every nonempty outer contour.
 module RenderCapsuleStrokeRegions(
     regions,
@@ -200,13 +200,13 @@ module RenderCapsuleStrokeRegions(
     initialPoint = [0, 0])
 {
     firstRegionIndex = addInitialPoint
-        ? LogoTFirstNonemptyRegionIndex(regions)
+        ? LogoSCFirstNonemptyRegionIndex(regions)
         : -1;
 
     for (regionIndex = [0 : len(regions) - 1])
     {
         region = regions[regionIndex];
-        _warning = LogoTWarnDiscardedStrokeHoles(region);
+        _warning = LogoSCWarnDiscardedStrokeHoles(region);
         outer = RegionOuter(region);
         strokePoints = regionIndex == firstRegionIndex
             ? concat([initialPoint], outer)
@@ -223,7 +223,7 @@ module RenderCapsuleStrokeRegions(
 // Experimental command lists
 // -----------------------------------------------------------------------------
 
-// Minimal smoke test: draw a 30 x 30 square using only relative LogoT movement
+// Minimal smoke test: draw a 30 x 30 square using only relative LogoSC movement
 // and turns. The final TURN restores the original heading.
 ExperimentSquare =
 [
@@ -336,7 +336,7 @@ module RenderLogoReverseAppendExperiment(
         ? LogoExperimentColor(index[0])
         : experimentColor;
     result = evalLogo(cmds);
-    strokeRegions = LogoTReverseAppendRegions(ResultContours(result));
+    strokeRegions = LogoSCReverseAppendRegions(ResultContours(result));
 
     echo("");
     echo("============================================================");
@@ -375,7 +375,7 @@ module RenderLogoReverseAppendExperiment(
 // geometry reference implementation for comparison with the failed zero-width
 // reverse-append polygon experiment.
 // Complexity: O(P) hull operations across P evaluated path points.
-// Precondition: cmds is a valid LogoT command list and width is positive.
+// Precondition: cmds is a valid LogoSC command list and width is positive.
 // Postcondition: emits extruded capsule-stroke geometry at the requested grid cell.
 module RenderLogoCapsuleExperiment(
     experimentName,
