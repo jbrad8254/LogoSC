@@ -54,7 +54,7 @@ was previously rejected.
 
 ## 2. Project identity
 
-LogoSC (formerly LogoT) is a compact Logo-inspired language embedded in OpenSCAD. It evaluates
+LogoSC is a compact Logo-inspired language embedded in OpenSCAD. It evaluates
 integer-opcode command lists into closed 2D polygonal regions suitable for CAD
 modeling and 3D printing.
 
@@ -95,9 +95,9 @@ Major implemented features include:
 - regression/failure tests and example galleries;
 - expanded public API documentation;
 - Quick Start examples with screenshots stored under `images/`.
-- Project renamed from LogoT to LogoSC.
+- LogoSC identity finalized before external use.
 - LogoSC wordmark and gear icon added under `images/`.
-- Cheat Sheet typo fixed: `RunLogoSCests` restored to `RunLogoTests`.
+- Cheat Sheet setup variable restored to `RunLogoTests`.
 - Test-control variable consistency restored across core, tests, examples, and docs: live references use `RunLogoTests`.
 
 Append new milestones here. Do not rewrite this section as only the latest state.
@@ -239,7 +239,7 @@ source of truth.
 
 Verified state before the next chat restart:
 
-- Project renamed from LogoT to LogoSC.
+- LogoSC identity finalized before external use.
 - Generic programming APIs intentionally preserved:
   - `RenderLogo2D()`
   - `RenderContours2D()`
@@ -260,9 +260,8 @@ Verified state before the next chat restart:
 
 Lessons:
 
-- Do not blindly replace `LogoT` with `LogoSC` inside unrelated identifiers.
-  `RunLogoTests` is a test-control variable and must remain `RunLogoTests`, not
-  `RunLogoSCests`.
+- Do not mechanically alter unrelated identifiers during project-identity cleanup.
+  `RunLogoTests` is a test-control variable and must remain `RunLogoTests`.
 - When adding image references to Markdown, verify both sides:
   1. the Markdown link exists; and
   2. the PNG file is physically present in the ZIP under the referenced path.
@@ -270,33 +269,37 @@ Lessons:
   assets were included.
 
 
-### 2026-07-10 — Project renamed from LogoT to LogoSC
+### 2026-07-10 — LogoSC project identity finalized
 
 Previous state:
 
-- The project was named LogoT.
-- The name conveyed Logo/turtle ancestry but did not clearly identify OpenSCAD.
+- The project had a pre-release working name.
+- The working name conveyed Logo/turtle ancestry but did not clearly identify
+  OpenSCAD.
 
 Reason for change:
 
 - LogoSC communicates the OpenSCAD target directly.
 - `LogoOSC` was rejected because it suggests Open Sound Control.
 - `LogoS` was rejected as too ambiguous.
-- The project is still pre-1.0, making this the least disruptive time to rename.
+- The project is still pre-1.0, making this the least disruptive time to finalize
+  the name.
 
 Decision:
 
-- Rename the repository and all `LogoT-*` project files to `LogoSC-*`.
-- Rename symbols beginning with the project prefix `LogoT` to `LogoSC`.
+- Use LogoSC consistently as the repository and project identity.
+- Use `LogoSC-*` project filenames.
+- Use `LogoSCVersion*` for project-specific version symbols.
 - Preserve generic APIs such as `RenderLogo2D()` and `evalLogo()`.
 
 Consequences:
 
-- Existing include paths must change.
-- Version constants move to `LogoSCVersion*`.
-- Historical records may continue to use LogoT for pre-rename milestones.
+- Include paths use `LogoSC-*` filenames.
+- Version constants use `LogoSCVersion*`.
 - Public API version advances to `2026.1`.
-
+- Because there are no external users yet, documentation should not preserve or
+  advertise the discarded working name unless the user explicitly asks for a
+  comparison.
 
 ### 2026-07-10 — Documentation baseline regressions
 

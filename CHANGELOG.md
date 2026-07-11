@@ -1,5 +1,14 @@
 # LogoSC Changelog
 
+## Unreleased — old working-name references removed
+
+### Changed
+
+- Removed public and historical documentation references to the discarded
+  pre-release working name.
+- `RunLogoTests` remains unchanged because it is the live test-control variable,
+  not a project-name reference.
+
 ## Unreleased — test-control variable consistency patch
 
 ### Fixed
@@ -14,7 +23,7 @@
 ### Fixed
 
 - Restored the setup variable name `RunLogoTests` in `LogoSC-CheatSheet.md`.
-  A mechanical project rename had incorrectly changed it to `RunLogoSCests`.
+  A mechanical identifier cleanup had changed it incorrectly.
 
 ## Unreleased — Gear icon image added
 
@@ -32,21 +41,20 @@
 - Added the wordmark image to the top of `README.md`.
 - Added the wordmark image to the top of `LogoSC-User-Manual.md`.
 
-## Unreleased — Project renamed to LogoSC
+## Unreleased — LogoSC project identity finalized
 
-LogoT has been renamed **LogoSC** to make the OpenSCAD target immediately clear.
+LogoSC is the sole project name used by the repository and documentation.
 
-### Renamed
+### Changed
 
-- Repository: `LogoT` → `LogoSC` (the GitHub repository will be renamed after
-  this source change is committed).
-- All project files named `LogoT-*` → `LogoSC-*`.
-- Project-specific public version symbols:
-  - `LogoTVersionMajor` → `LogoSCVersionMajor`
-  - `LogoTVersionMinor` → `LogoSCVersionMinor`
-  - `LogoTVersion` → `LogoSCVersion`
-  - `LogoTVersionAtLeast()` → `LogoSCVersionAtLeast()`
-- Project-prefixed internal/example helpers named `LogoT...` → `LogoSC...`.
+- Repository naming, source filenames, and documentation links now use `LogoSC`
+  and `LogoSC-*` naming.
+- Project-specific public version symbols use:
+  - `LogoSCVersionMajor`
+  - `LogoSCVersionMinor`
+  - `LogoSCVersion`
+  - `LogoSCVersionAtLeast()`
+- Project-prefixed internal/example helpers use `LogoSC...`.
 
 ### Preserved APIs
 
@@ -64,17 +72,10 @@ The main Logo programming APIs remain unchanged:
 
 - Public API version advanced from `2026.0` to `2026.1`.
 - Includes and documentation links now use `LogoSC-*` filenames.
-- Historical entries below retain the LogoT name because that was the project
-  name when those milestones occurred.
 
-### Migration
+### Current include pattern
 
 ```scad
-// Old
-include <LogoT-Foundation-Core.scad>
-LogoTVersionAtLeast(2026, 0);
-
-// New
 include <LogoSC-Foundation-Core.scad>
 LogoSCVersionAtLeast(2026, 1);
 ```
@@ -83,11 +84,11 @@ LogoSCVersionAtLeast(2026, 1);
 
 ### Added
 
-- `LogoT-Developer-Notebook.md`, a living engineering notebook containing
+- `LogoSC-Developer-Notebook.md`, a living engineering notebook containing
   project history, design rationale, non-goals, lessons learned, workflow rules,
   regression risks, roadmap items, and a ChatGPT restart/bootstrap sequence.
 - Recommended restart reading order:
-  1. `LogoT-Developer-Notebook.md`
+  1. `LogoSC-Developer-Notebook.md`
   2. `README.md`
   3. `CHANGELOG.md`
   4. User manual and implementation notes as needed
@@ -96,18 +97,18 @@ LogoSCVersionAtLeast(2026, 1);
 
 - Updated repository overview documents and the User Manual to reference the
   Developer Notebook and explain why it exists.
-- Converted `LogoT-Future-Context.md` into a compatibility/bootstrap pointer.
+- Converted `LogoSC-Future-Context.md` into a compatibility/bootstrap pointer.
   Its previous detailed contents are preserved inside the Developer Notebook.
 - Established a policy of preserving dated historical context rather than
   replacing earlier decisions with compressed summaries.
 
-## LogoT-Geometry
+## LogoSC Geometry
 
 Initial geometry milestone.
 
 ### Added
 
-- Added `LogoT-CheatSheet.md` and promoted rendering/evaluation API documentation.
+- Added `LogoSC-CheatSheet.md` and promoted rendering/evaluation API documentation.
 
 - `ARC` command:
   - `[ARC, radius, degrees[, segments]]`
@@ -126,25 +127,25 @@ Initial geometry milestone.
   - `[HOLE, cmds]`
 - Region-based rendering where each region is `[outer, hole0, hole1, ...]`.
 - OpenSCAD `polygon(points=..., paths=...)` output for regions with holes.
-- Reusable 2D rendering API moved into `LogoT-Foundation-Core.scad`:
+- Reusable 2D rendering API moved into `LogoSC-Foundation-Core.scad`:
   - `RenderRegion2D()`
   - `RenderContours2D()`
   - `RenderLogo2D()`
 - Native OpenSCAD `linear_extrude()` and `rotate_extrude()` are intentionally
-  left to user models rather than wrapped by LogoT.
+  left to user models rather than wrapped by LogoSC.
 - Hole regression tests for washers, rectangular plates, rounded mounting plates,
   repeated holes, scaled holes, and failure cases.
-- Visual regression-test colors based on grid X index, with colored LogoT
+- Visual regression-test colors based on grid X index, with colored LogoSC
   marker icons identifying Y-index rows left of the test grid.
 - Public API version constants and compatibility helper:
-  - `LogoTVersionMajor = 2026`
-  - `LogoTVersionMinor = 0`
-  - `LogoTVersion = "2026.0"`
-  - `LogoTVersionAtLeast(major, minor)`
+  - `LogoSCVersionMajor = 2026`
+  - `LogoSCVersionMinor = 0`
+  - `LogoSCVersion = "2026.0"`
+  - `LogoSCVersionAtLeast(major, minor)`
 
-- `LogoT-Examples.scad` runnable example gallery, including washers, mounting
+- `LogoSC-Examples.scad` runnable example gallery, including washers, mounting
   plates, radial hole patterns, Koch geometry, twist/rotate extrusions, a spiral
-  tower, and the LogoT feature wordmark.
+  tower, and the LogoSC feature wordmark.
 
 ### Removed
 
@@ -165,7 +166,7 @@ Initial geometry milestone.
 - Open-stroke rendering is deferred.
 - Stroke width, cap style, join style, and miter limits are not implemented yet.
 
-## LogoT-Foundation
+## LogoSC Foundation
 
 Initial stable foundation baseline.
 
@@ -185,7 +186,7 @@ Initial stable foundation baseline.
 - `evalLogo()` main evaluator.
 - `evalLogoR()` recursive child-list evaluator.
 - `evalRepeatLogo()` repeat evaluator.
-- `LogoTest()` test harness.
+- Regression test harness.
 - Reusable 2D renderer.
 - Core commands:
   - `MOVE`
