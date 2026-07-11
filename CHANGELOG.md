@@ -1,5 +1,13 @@
 # LogoSC Changelog
 
+## Unreleased — Wordmark image added
+
+### Added
+
+- Added `images/logosc-wordmark.png` as the project wordmark image.
+- Added the wordmark image to the top of `README.md`.
+- Added the wordmark image to the top of `LogoSC-User-Manual.md`.
+
 ## Unreleased — Project renamed to LogoSC
 
 LogoT has been renamed **LogoSC** to make the OpenSCAD target immediately clear.

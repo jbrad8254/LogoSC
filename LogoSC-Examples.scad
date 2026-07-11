@@ -31,7 +31,7 @@ LogoExampleXStep = 80;
 LogoExampleYStep = 60;
 LogoExampleLabelYOffset = -26;
 
-LogoExampleWordmarkWidth = 100;
+LogoExampleWordmarkWidth = 126;
 LogoExampleWordmarkHeight = 36;
 
 LogoExampleColor0 = "red";
@@ -348,7 +348,7 @@ ExampleSpiralTowerCore =
 // -----------------------------------------------------------------------------
 // LogoSC feature wordmark
 // -----------------------------------------------------------------------------
-// Nominal wordmark size: approximately 100 units wide.
+// Nominal wordmark size: approximately 126 units wide.
 // Resize with native OpenSCAD scale(), not by parameterizing the glyphs.
 
 // Local-origin glyph command lists. The wordmark renderer below positions glyphs
@@ -392,29 +392,52 @@ LogoGlyphGTail1 =
     [ROUNDEDRECT, 12, 4, 2, 6]
 ];
 
-function LogoGlyphKochOOuter(side = 15, depth = 2) =
+function LogoGlyphKochOOuter(side = 18, depth = 2) =
     KochSnowflake(0, 0, side, depth);
 
-function LogoGlyphKochOHole(radius = 3, segments = 32) =
+function LogoGlyphKochOHole(radius = 4, segments = 36) =
 [
     [GOTO, 0, 0, 0],
     [CIRCLE, radius, segments]
 ];
 
+// Gear-like O: a Koch snowflake outline with a larger center hole.
+// This keeps the mark as filled region geometry; no stroke API is used.
 LogoGlyphKochO =
     concat(
         LogoGlyphKochOOuter(),
         [[HOLE, LogoGlyphKochOHole()]]
     );
 
-LogoGlyphTBar =
+// The S and C use overlapping filled rounded rectangles rather than a stroke
+// renderer. This keeps the wordmark entirely within LogoSC's normal region API.
+//
+// The S is built from three horizontal lozenges plus two alternating vertical
+// connectors. The C uses broad rounded terminals and a left spine, giving the
+// final two letters a related mechanical/"machined badge" appearance.
+LogoGlyphSCrossbar =
 [
-    [ROUNDEDRECT, 18, 5, 1.5, 5]
+    [ROUNDEDRECT, 17, 4, 2, 6]
 ];
 
-LogoGlyphTStem =
+LogoGlyphSConnector =
 [
-    [ROUNDEDRECT, 5, 24, 1.5, 5]
+    [ROUNDEDRECT, 4, 11, 2, 6]
+];
+
+LogoGlyphCTerminal =
+[
+    [ROUNDEDRECT, 16, 4, 2, 6]
+];
+
+LogoGlyphCSpine =
+[
+    [ROUNDEDRECT, 4, 24, 2, 6]
+];
+
+LogoGlyphCEndCap =
+[
+    [CIRCLE, 2, 20]
 ];
 
 module RenderLogoGlyphG2D(convexity = LogoExampleConvexity)
@@ -432,16 +455,53 @@ module RenderLogoGlyphG2D(convexity = LogoExampleConvexity)
     }
 }
 
-module RenderLogoGlyphT2D(convexity = LogoExampleConvexity)
+module RenderLogoGlyphS2D(convexity = LogoExampleConvexity)
 {
-    translate([0, 10])
+    // Three rounded crossbars.
+    for (y = [-10, 0, 10])
     {
-        RenderLogo2D(LogoGlyphTBar, convexity = convexity);
+        translate([0, y])
+        {
+            RenderLogo2D(LogoGlyphSCrossbar, convexity = convexity);
+        }
     }
 
-    translate([0, -2])
+    // Alternating connectors create the classic S path as a filled region.
+    translate([-6.5, 5])
     {
-        RenderLogo2D(LogoGlyphTStem, convexity = convexity);
+        RenderLogo2D(LogoGlyphSConnector, convexity = convexity);
+    }
+
+    translate([6.5, -5])
+    {
+        RenderLogo2D(LogoGlyphSConnector, convexity = convexity);
+    }
+}
+
+module RenderLogoGlyphC2D(convexity = LogoExampleConvexity)
+{
+    // Rounded top and bottom terminals.
+    for (y = [-10, 10])
+    {
+        translate([0, y])
+        {
+            RenderLogo2D(LogoGlyphCTerminal, convexity = convexity);
+        }
+    }
+
+    // Left spine joins the terminals into a solid open C.
+    translate([-6, 0])
+    {
+        RenderLogo2D(LogoGlyphCSpine, convexity = convexity);
+    }
+
+    // Circular terminal caps emphasize that the right side is intentionally open.
+    for (y = [-10, 10])
+    {
+        translate([8, y])
+        {
+            RenderLogo2D(LogoGlyphCEndCap, convexity = convexity);
+        }
     }
 }
 
@@ -466,7 +526,12 @@ module RenderLogoSCFeatureWordmark2D(convexity = LogoExampleConvexity)
 
     translate([92, 16])
     {
-        RenderLogoGlyphT2D(convexity = convexity);
+        RenderLogoGlyphS2D(convexity = convexity);
+    }
+
+    translate([112, 16])
+    {
+        RenderLogoGlyphC2D(convexity = convexity);
     }
 }
 
@@ -510,8 +575,8 @@ module RenderLogoExample(
 }
 
 // Render the wordmark as a 2D extruded badge. The wordmark is designed around
-// 100 units wide; the gallery scales it down to fit a cell.
-module RenderLogoSCWordmarkExample(index = [0, 2], exampleScale = 0.55)
+// 126 units wide; the gallery scales it down to fit a cell.
+module RenderLogoSCWordmarkExample(index = [0, 2], exampleScale = 0.46)
 {
     offset = LogoExampleGridOffset(index);
 
@@ -708,7 +773,7 @@ module RenderAllLogoExamples()
     );
     RenderKnobProfile3DExample([3, 1], exampleScale = 1.0);
 
-    RenderLogoSCWordmarkExample([0, 2], exampleScale = 0.58);
+    RenderLogoSCWordmarkExample([0, 2], exampleScale = 0.46);
 
     RenderLogoExample("L-system Koch medallion", ExampleLSystemKochMedallion, [0, 3]);
     RenderLogoExample("L-system Koch hole disk", ExampleLSystemKochHoleDisk, [1, 3]);

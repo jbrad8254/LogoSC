@@ -3,6 +3,8 @@
 > Formerly **LogoT**. Renamed before 1.0 so the project's OpenSCAD
 > purpose is clear from its name.
 
+![LogoSC wordmark](images/logosc-wordmark.png)
+
 LogoSC is a small Logo-inspired turtle geometry layer for OpenSCAD. It turns compact command lists into 2D printable regions that can be extruded, subtracted, combined, and otherwise composed with ordinary OpenSCAD code.
 
 LogoSC is not trying to be a full Logo language. It is a lightweight OpenSCAD geometry DSL for making reusable 2D shapes, holes, ornaments, plaques, cutouts, and 3D-printing-friendly parts.

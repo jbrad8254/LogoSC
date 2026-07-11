@@ -1,5 +1,7 @@
 # LogoSC User Manual
 
+![LogoSC wordmark](images/logosc-wordmark.png)
+
 LogoSC is a small Logo-style geometry language embedded in OpenSCAD. It evaluates
 integer-opcode command lists into closed 2D regions that can be rendered with
 OpenSCAD `polygon(points=..., paths=...)` and then used directly in ordinary
