@@ -1,10 +1,13 @@
 # LogoSC Cheat Sheet
 
+<img src="images/logosc-gear-icon.png" alt="LogoSC gear icon" width="72" align="right">
+
+
 Compact LogoSC `2026.1` reference. Full docs: [`LogoSC-User-Manual.md`](LogoSC-User-Manual.md). Inspired by the compact section style of the [OpenSCAD cheat sheet](https://openscad.org/cheatsheet/index.html?version=2021.01).
 
 ## Setup
 
-[`include <LogoSC-Foundation-Core.scad>`](LogoSC-User-Manual.md#setup)  [`RunLogoSCests = false;`](LogoSC-User-Manual.md#setup)  [`TraceLevel = 0;`](LogoSC-User-Manual.md#setup)
+[`include <LogoSC-Foundation-Core.scad>`](LogoSC-User-Manual.md#setup)  [`RunLogoTests = false;`](LogoSC-User-Manual.md#setup)  [`TraceLevel = 0;`](LogoSC-User-Manual.md#setup)
 
 ## Version
 
