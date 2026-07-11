@@ -14,15 +14,14 @@ be passed to `linear_extrude()` or `rotate_extrude()`.
 - [1. Files and setup](#1-files)
   - [Setup](#setup)
   - [Library version](#library-version)
-- [2. Quick Start](#2-quick-start)
-- [3. Core idea](#3-core-idea)
+- [2. Core idea](#2-core-idea)
   - [LogoT and BOSL2 turtle](#logot-and-bosl2-turtle)
   - [Other Logo-like OpenSCAD turtle tools](#other-logo-like-openscad-turtle-tools)
-- [4. Quick lookup cheat sheet](#3-quick-lookup-cheat-sheet)
-- [5. Runnable examples](#4-runnable-examples)
-- [6. Coordinate model](#5-coordinate-model)
-- [7. Rendering model](#6-rendering-model)
-- [8. Public rendering and evaluation API](#7-public-rendering-and-evaluation-api)
+- [3. Quick lookup cheat sheet](#3-quick-lookup-cheat-sheet)
+- [4. Runnable examples](#4-runnable-examples)
+- [5. Coordinate model](#5-coordinate-model)
+- [6. Rendering model](#6-rendering-model)
+- [7. Public rendering and evaluation API](#7-public-rendering-and-evaluation-api)
   - [Input command-list format](#71-input-command-list-format)
   - [Public data formats](#72-public-data-formats)
   - [`RenderLogo2D()`](#73-renderlogo2d)
@@ -32,14 +31,14 @@ be passed to `linear_extrude()` or `rotate_extrude()`.
   - [`RenderContours2D()`](#77-rendercontours2d)
   - [`RenderRegion2D()`](#78-renderregion2d)
   - [Choosing an entry point](#79-choosing-an-entry-point)
-- [9. 3D printing workflow](#8-3d-printing-workflow)
-- [10. Segment-count controls](#9-segment-count-controls)
-- [11. Command reference](#10-command-reference)
-- [12. Recursion and recursive patterns](#11-recursion-and-recursive-patterns)
-- [13. Practical examples](#12-practical-examples)
-- [14. Error handling and tracing](#13-error-handling-and-tracing)
-- [15. Limitations](#14-limitations)
-- [16. Suggested style for LogoT programs](#15-suggested-style-for-logot-programs)
+- [8. 3D printing workflow](#8-3d-printing-workflow)
+- [9. Segment-count controls](#9-segment-count-controls)
+- [10. Command reference](#10-command-reference)
+- [11. Recursion and recursive patterns](#11-recursion-and-recursive-patterns)
+- [12. Practical examples](#12-practical-examples)
+- [13. Error handling and tracing](#13-error-handling-and-tracing)
+- [14. Limitations](#14-limitations)
+- [15. Suggested style for LogoT programs](#15-suggested-style-for-logot-programs)
 - [Index](#index)
 
 ## 1. Files
@@ -125,7 +124,6 @@ assert(LogoTVersionAtLeast(2026, 0), "This model requires LogoT 2026.0+");
 The version is bumped manually for public API or feature milestones. Git remains
 the source of truth for ordinary commit-by-commit source history.
 
-
 ## 2. Quick Start
 
 ### Your First LogoT Program
@@ -150,28 +148,39 @@ triangle =
 RenderLogo2D(triangle);
 ```
 
-Although the turtle walks only three line segments, **LogoT produces a filled equilateral triangle**, not just three independent lines. LogoT is designed to generate closed 2D polygonal regions for OpenSCAD modeling operations such as `linear_extrude()`, `rotate_extrude()`, `offset()`, `difference()`, and `union()`.
+**Result**
 
-This demonstrates the classic Logo programming model:
+![Figure 2-1](images/quickstart-triangle.png)
 
-- `MOVE` advances the turtle.
-- `TURN` changes its heading.
-- With the pen down, movement leaves a trail.
-- When evaluation completes, the contour becomes a filled polygon.
+*Figure 2-1. Three `MOVE` commands and two `TURN` commands produce a filled equilateral triangle. LogoT generates closed 2D polygonal regions suitable for OpenSCAD modeling operations.*
 
-Many traditional Logo programs use only `MOVE`, `TURN`, and `REPEAT`.
+Although the turtle walks only three line segments, **LogoT produces a filled equilateral triangle**, not just three independent lines.
 
-> **Note:** A future stroke-rendering API will render command lists as line drawings for debugging and educational visualization. Filled polygonal regions are the primary output for CAD and 3D-printing workflows.
+> **Note:** A future stroke-rendering API will primarily support debugging and educational visualization.
 >
-> **TODO:** Add a link to the future Stroke Rendering API section.
+> **TODO:** Add a cross-reference to the future Stroke Rendering API.
 
 ### Beyond Classic Logo
 
-Classic Logo approximates curves with many line segments.
+Classic Logo approximates curves using many short line segments.
 
-LogoT also provides CAD-oriented primitives including circles, arcs, regular polygons, rectangles, rounded rectangles, and holes. These produce the same filled polygonal regions that would otherwise require many movement commands.
+LogoT also provides CAD-oriented primitives including circles, arcs, regular polygons, rectangles, rounded rectangles, and holes.
 
-The following example produces a rectangle with rounded corners containing a circular hole.
+```scad
+part =
+[
+    [RECT, 60, 30],
+    [HOLE, [[CIRCLE, 5]]]
+];
+
+RenderLogo2D(part);
+```
+
+**Result**
+
+![Figure 2-2](images/quickstart-plate-hole.png)
+
+*Figure 2-2. Two LogoT commands generate a rectangular plate with a centered circular hole suitable for extrusion into a 3D-printable part.*
 
 
 ## 3. Core idea
@@ -249,13 +258,13 @@ Git-friendly OpenSCAD mini-language that produces printable 2D regions and
 region holes, then gets out of OpenSCAD's way.
 
 
-## 4. Quick lookup cheat sheet
+## 3. Quick lookup cheat sheet
 
 `LogoT-CheatSheet.md` is the compact reference for command syntax, rendering
 API calls, and common OpenSCAD wrappers used around LogoT output. Use it while
 writing models; return to this manual for full explanations and examples.
 
-## 5. Runnable examples
+## 4. Runnable examples
 
 `LogoT-Examples.scad` is the best place to see the library used as an OpenSCAD
 modeling tool rather than as a test harness. It contains a gallery module plus
@@ -284,7 +293,7 @@ one of the example rendering modules as a starting point for your own model.
 For the L-system examples, see `LogoT-LSystems-Notes.md` for design context
 and limitations.
 
-## 6. Coordinate model
+## 5. Coordinate model
 
 LogoT maintains a current state:
 
@@ -349,7 +358,7 @@ shape =
 ];
 ```
 
-## 7. Rendering model
+## 6. Rendering model
 
 LogoT evaluates command lists into structured 2D data rather than emitting
 OpenSCAD geometry while each command executes. The public data hierarchy is:
@@ -373,7 +382,7 @@ LogoT currently targets closed printable 2D polygons, not open strokes.
 OpenSCAD `polygon()` closes drawable paths automatically. Stroke width, end caps,
 joins, and miter limits are future work.
 
-## 8. Public rendering and evaluation API
+## 7. Public rendering and evaluation API
 
 LogoT separates evaluation from rendering:
 
@@ -815,7 +824,7 @@ linear_extrude(height = 4, twist = 20, slices = 24)
 The old `RenderContours()` compatibility alias has been removed. Use
 `RenderContours2D()` for an already-evaluated region list.
 
-## 9. 3D printing workflow
+## 8. 3D printing workflow
 
 ### Linear extrusion
 
@@ -865,7 +874,7 @@ rotate_extrude(angle = 360, convexity = 10)
 }
 ```
 
-## 10. Segment-count controls
+## 9. Segment-count controls
 
 Curved commands use tessellated line segments. If a command supplies an explicit
 segment count, that value overrides OpenSCAD's `$fn`, `$fa`, and `$fs` controls.
@@ -886,7 +895,7 @@ selection:
 `REGPOLY` uses its side count directly and does not consult `$fn`, `$fa`, or
 `$fs`.
 
-## 11. Command reference
+## 10. Command reference
 
 ### `MOVE`
 
@@ -1400,7 +1409,7 @@ part =
 Closed-shape commands also obey pen state. For example, `[PENUP], [CIRCLE, 5]`
 does not emit a circle.
 
-## 12. Recursion and recursive patterns
+## 11. Recursion and recursive patterns
 
 LogoT uses the word "recursion" in a few related but distinct ways. They are
 worth separating because they have different costs and different failure modes.
@@ -1594,7 +1603,7 @@ For 3D-printing parts, keep recursion depth modest. Fractals are excellent test
 cases and decorative features, but dense recursive outlines can generate large
 polygons that are slow to preview, render, slice, and print.
 
-## 13. Practical examples
+## 12. Practical examples
 
 ### Example 1: simple extruded plate
 
@@ -1694,7 +1703,7 @@ rotate_extrude(angle = 360, convexity = 10)
 }
 ```
 
-## 14. Error handling and tracing
+## 13. Error handling and tracing
 
 LogoT defaults to soft errors:
 
@@ -1723,7 +1732,7 @@ TraceLevel = 4; // full execution trace
 
 Higher levels include lower levels.
 
-## 15. Limitations
+## 14. Limitations
 
 Current limitations:
 
@@ -1739,7 +1748,7 @@ Current limitations:
 For now, use closed shapes, `HOLE`, and native OpenSCAD boolean/modeling
 operations to build printable parts.
 
-## 16. Suggested style for LogoT programs
+## 15. Suggested style for LogoT programs
 
 Favor relative drawing inside reusable command lists. Use `GOTO` and `DIR` for
 layout and setup; use `MOVE`, `TURN`, and `ARC` for the shape body when possible.
