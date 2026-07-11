@@ -1,17 +1,30 @@
 # LogoT Changelog
 
+## Documentation and Developer Context
+
+### Added
+
+- `LogoT-Developer-Notebook.md`, a living engineering notebook containing
+  project history, design rationale, non-goals, lessons learned, workflow rules,
+  regression risks, roadmap items, and a ChatGPT restart/bootstrap sequence.
+- Recommended restart reading order:
+  1. `LogoT-Developer-Notebook.md`
+  2. `README.md`
+  3. `CHANGELOG.md`
+  4. User manual and implementation notes as needed
+
+### Changed
+
+- Updated repository overview documents and the User Manual to reference the
+  Developer Notebook and explain why it exists.
+- Converted `LogoT-Future-Context.md` into a compatibility/bootstrap pointer.
+  Its previous detailed contents are preserved inside the Developer Notebook.
+- Established a policy of preserving dated historical context rather than
+  replacing earlier decisions with compressed summaries.
+
 ## LogoT-Geometry
 
 Initial geometry milestone.
-
-### Documentation
-
-- Expanded User Manual Section 7 into the canonical public API and data-format
-  reference, including command-list input, evaluator results, state/stack/pen
-  formats, region structure, continuation evaluation, rendering entry points,
-  and result/region accessors.
-- Synchronized the README API table and cheat-sheet links with the expanded
-  accessor documentation.
 
 ### Added
 

@@ -54,6 +54,9 @@ LogoT-ARC-Implementation.md        ARC tessellation design notes.
 LogoT-Holes-Implementation.md     Region/hole design notes.
 LogoT-LSystems-Notes.md           L-system design and example notes.
 LogoT-User-Manual.md              This manual.
+LogoT-Developer-Notebook.md       Engineering history, design rationale, workflow,
+                                  lessons learned, and ChatGPT restart guide.
+LogoT-Future-Context.md           Compatibility pointer to the Developer Notebook.
 LogoT-CheatSheet.md               Compact command and API reference.
 LogoT-Examples.scad               Runnable example gallery.
 .gitattributes                    LF line-ending policy for Git.
@@ -69,6 +72,12 @@ include <LogoT-Foundation-Core.scad>
 RunLogoTests = false;
 TraceLevel = 0; // [0:4]
 ```
+
+The Developer Notebook is maintainer documentation rather than part of the
+public API. Its main purpose is to preserve historical engineering context
+and reinitialize ChatGPT when development resumes in a new conversation.
+Maintainers should read it before changing the project; ordinary LogoT users
+can ignore it.
 
 The `RunLogoTests` and `TraceLevel` assignments should come **after** the
 `include`. OpenSCAD `include` behaves like textual insertion, so post-include

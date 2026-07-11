@@ -6,6 +6,29 @@ LogoT is not trying to be a full Logo language. It is a lightweight OpenSCAD geo
 
 ## What LogoT does
 
+
+## Developer notebook and restart order
+
+`LogoT-Developer-Notebook.md` is the project's living engineering notebook. It
+records design rationale, non-goals, lessons learned, historical milestones,
+workflow rules, regression risks, and future plans that do not belong in the
+public API documentation.
+
+One of its primary uses is to initialize ChatGPT after an old LogoT conversation
+has been flushed and development resumes in a new chat. For a fresh development
+session, read:
+
+1. `LogoT-Developer-Notebook.md`
+2. `README.md`
+3. `CHANGELOG.md`
+4. `LogoT-User-Manual.md` and implementation notes as needed
+
+Then treat the newly uploaded repository ZIP as the sole source of truth.
+
+The notebook is intentionally historical. Add dated decisions and lessons rather
+than replacing older reasoning with shorter summaries.
+
+
 - Evaluates turtle-style command lists such as `MOVE`, `TURN`, `ARC`, `RUN`, and `REPEAT`.
 - Creates filled 2D regions using commands such as `CIRCLE`, `RECT`, `ROUNDEDRECT`, and `REGPOLY`.
 - Supports region holes through `HOLE`.
@@ -82,6 +105,8 @@ See `LogoT-CheatSheet.md` and `LogoT-User-Manual.md` for the complete command re
 - `LogoT-Foundation-Tests.scad` — regression and failure tests.
 - `LogoT-Examples.scad` — runnable gallery and example models.
 - `LogoT-User-Manual.md` — practical user documentation.
+- `LogoT-Developer-Notebook.md` — engineering history, design rationale, workflow, and ChatGPT restart guide.
+- `LogoT-Future-Context.md` — compatibility pointer to the Developer Notebook.
 - `LogoT-CheatSheet.md` — compact command/API reference.
 - `LogoT-README.md` — detailed project overview and roadmap.
 - `LogoT-ARC-Implementation.md` — arc tessellation design notes.

@@ -3,6 +3,7 @@
 ## Table of Contents
 
 - [Current files](#current-files)
+- [Developer notebook](#developer-notebook)
 - [Workflow](#workflow)
 - [Versioning](#versioning)
 - [Public API quick reference](#public-api-quick-reference)
@@ -26,8 +27,30 @@
 - `LogoT-Holes-Implementation.md` — design notes for regions and holes.
 - `LogoT-LSystems-Notes.md` — design notes for L-system examples.
 - `LogoT-User-Manual.md` — command reference and practical examples.
+- `LogoT-Developer-Notebook.md` — living engineering history and ChatGPT restart guide.
+- `LogoT-Future-Context.md` — compatibility pointer to the Developer Notebook.
 - `LogoT-CheatSheet.md` — compact command and API reference.
 - `LogoT-Examples.scad` — runnable example gallery and 3D-printing demos.
+
+## Developer notebook
+
+`LogoT-Developer-Notebook.md` is the project's long-term engineering memory. It
+preserves architecture decisions, historical context, non-goals, lessons
+learned, workflow conventions, known regression risks, open questions, and
+future plans.
+
+Its primary operational use is to initialize ChatGPT after retiring an old chat
+and beginning a new LogoT development session. The recommended reading order is:
+
+1. `LogoT-Developer-Notebook.md`
+2. `README.md`
+3. `CHANGELOG.md`
+4. `LogoT-User-Manual.md` and implementation notes as required
+
+After reading, use the newly uploaded repository ZIP as the sole source of truth.
+Preserve dated history in the notebook rather than repeatedly replacing it with
+short summaries.
+
 
 ## Workflow
 
@@ -73,13 +96,8 @@ want to evaluate once and inspect or reuse the generated regions.
 |---|---|---|
 | `RenderLogo2D(cmds, convexity = 10)` | module | Evaluate a LogoT command list and render the resulting 2D regions. |
 | `evalLogo(cmds)` | function | Evaluate commands into an `EvalResult` without rendering geometry. |
-| `ResultState(result)` | function | Return the final `[x, y, heading, scale]` state. |
 | `ResultContours(result)` | function | Return the evaluated region list from an `EvalResult`. |
-| `ResultStack(result)` | function | Return the final `PUSH`/`POP` state stack. |
-| `ResultPen(result)` | function | Return the final `PEN_UP` or `PEN_DOWN` state. |
-| `MakeRegion(outerContour, holeContours = [])` | function | Construct one region from an outer contour and optional holes. |
-| `RegionOuter(region)` | function | Return a region's outer contour. |
-| `RegionHoles(region)` | function | Return a region's hole-contour list. |
+| `ResultState(result)` | function | Return the final `[x, y, heading, scale]` state. |
 | `RenderContours2D(regions, convexity = 10)` | module | Render an already-evaluated region list. |
 | `RenderRegion2D(region, convexity = 10)` | module | Render one region: outer ring plus any holes. |
 

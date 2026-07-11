@@ -1,227 +1,847 @@
-
 # LogoT Developer Notebook
-### Long-Term Project Context and Chat Restart Guide
 
-## Purpose
+## ChatGPT bootstrap — read this first
 
-This document is the long-term engineering notebook for the LogoT project.
+This file is the primary long-term engineering memory for the LogoT project.
 
-Its primary purpose is **to reinitialize ChatGPT after an old chat has been
-retired and a new chat has been started**. Read this document before making any
-changes. It captures the project's architecture, design rationale, conventions,
-workflow, lessons learned, and deferred ideas so that work resumes from the
-same mental model rather than reconstructing it from memory.
+Its main purpose is to **initialize ChatGPT after an old conversation has been
+flushed and development resumes in a new chat**. It is also useful to human
+maintainers because it records design rationale, historical decisions, workflow
+rules, lessons learned, deferred ideas, and known regression risks that do not
+belong in the public user documentation.
 
-Treat this notebook as a **living document**. Add to it over time; do not trim
-it unless obsolete information is being replaced.
+When starting a new LogoT chat:
 
----
+1. Read this entire file first.
+2. Read `README.md` for the concise repository overview.
+3. Read `CHANGELOG.md` for release and milestone history.
+4. Read `LogoT-User-Manual.md` and implementation notes as needed for the task.
+5. Treat the newly uploaded repository ZIP as the sole source of truth.
+6. Ignore remembered files from older chats and the File Library unless the user
+   explicitly asks for comparison.
+7. Make incremental changes only.
+8. Preserve historical context rather than replacing it with shorter summaries.
+9. Verify that previously accepted documentation and code have not regressed
+   before packaging an update.
+10. Deliver all changed and added files from the work session in one combined ZIP
+    using exact repository filenames.
 
-# 1. Project Summary
-
-LogoT is a compact Logo-inspired language embedded in OpenSCAD for generating
-closed **2D polygonal regions** suitable for CAD modeling and 3D printing.
-
-LogoT evaluates command lists into region data. OpenSCAD performs all 3D
-operations such as extrusion, booleans, transforms, colors, and offsets.
-
-Core philosophy:
-
-- Small API.
-- Readable command lists.
-- Reusable geometry.
-- OpenSCAD remains responsible for modeling.
+This bootstrap sequence overrides any conflicting remembered context from older
+LogoT conversations.
 
 ---
 
-# 2. Stable Public API
+## 1. Purpose and maintenance policy
 
-Rendering:
-- RenderLogo2D()
-- RenderContours2D()
-- RenderRegion2D()
+This is a living engineering notebook, not a concise release summary. It should
+grow as the project develops.
 
-Evaluation:
-- evalLogo()
+Preserve historical context whenever practical. When a design decision changes,
+record:
 
-Accessors:
-- ResultState()
-- ResultContours()
-- ResultStack()
-- ResultPen()
+- the earlier decision;
+- the reason it was made;
+- what new information caused it to change;
+- the replacement decision; and
+- the date or milestone at which the change occurred.
 
-Region helpers:
-- MakeRegion()
-- RegionOuter()
-- RegionHoles()
-
-Avoid breaking these without a version bump.
+Do not delete older reasoning merely because a newer decision supersedes it.
+Mark superseded material clearly. The history is useful when restarting a chat,
+onboarding a contributor, or investigating why an apparently attractive design
+was previously rejected.
 
 ---
 
-# 3. Design Philosophy
+## 2. Project identity
 
-- Generate regions, not meshes.
-- Favor clarity over cleverness.
-- CAD usefulness takes priority over perfect historical Logo compatibility.
-- Keep OpenSCAD wrappers outside LogoT.
+LogoT is a compact Logo-inspired language embedded in OpenSCAD. It evaluates
+integer-opcode command lists into closed 2D polygonal regions suitable for CAD
+modeling and 3D printing.
 
----
+LogoT generates 2D region data. Native OpenSCAD remains responsible for:
 
-# 4. Non-Goals
+- `linear_extrude()`;
+- `rotate_extrude()`;
+- `offset()`;
+- boolean composition;
+- transforms;
+- colors and materials; and
+- final 3D modeling.
 
-- Do not replace OpenSCAD.
-- Do not wrap linear_extrude(), rotate_extrude(), union(), difference(),
-  offset(), color(), transforms, etc.
-- Do not let the stroke renderer replace the region renderer.
-- Avoid API bloat.
-
----
-
-# 5. Documentation Conventions
-
-The User Manual is the primary document.
-
-Structure:
-
-1. Setup
-2. Quick Start
-3. Concepts
-4. Cheat Sheet
-5. Examples
-6. API
-7. Advanced Topics
-
-Section 7 is the canonical API reference.
-
-Store screenshots in:
-
-    images/
-
-using relative Markdown links.
+LogoT is not intended to become a complete Logo implementation or a replacement
+for OpenSCAD.
 
 ---
 
-# 6. Packaging Rules
+## 3. Current baseline and milestones
 
+Known stable milestone:
+
+- GitHub release `v0.2.0-alpha`.
+- Public API version `2026.0`.
+
+Major implemented features include:
+
+- integer opcodes;
+- named state and result indices;
+- `MOVE`, `TURN`, `DIR`, `SCALE`, `GOTO`, `RUN`, `REPEAT`, `PUSH`, `POP`,
+  `PENUP`, and `PENDOWN`;
+- tessellated `ARC`;
+- `CIRCLE`, `REGPOLY`, `RECT`, and `ROUNDEDRECT`;
+- region holes through `HOLE`;
+- multiple regions and contours;
+- separate evaluation and rendering;
+- public evaluator-result and region accessors;
+- regression/failure tests and example galleries;
+- expanded public API documentation;
+- Quick Start examples with screenshots stored under `images/`.
+
+Append new milestones here. Do not rewrite this section as only the latest state.
+
+---
+
+## 4. Stable public API
+
+### Rendering modules
+
+- `RenderLogo2D()`
+- `RenderContours2D()`
+- `RenderRegion2D()`
+
+### Evaluation
+
+- `evalLogo()`
+
+### Evaluator-result accessors
+
+- `ResultState()`
+- `ResultContours()`
+- `ResultStack()`
+- `ResultPen()`
+
+### Region helpers
+
+- `MakeRegion()`
+- `RegionOuter()`
+- `RegionHoles()`
+
+Avoid breaking these APIs without a deliberate version bump and documentation
+update. `ResultContours()` retains its historical name even though it now
+returns a region list.
+
+---
+
+## 5. Core design principles
+
+- Keep LogoT small and readable.
+- Generate closed 2D polygonal regions.
+- Keep evaluation functional and data-oriented.
+- Keep rendering separate from evaluation.
+- Prefer relative commands such as `MOVE`, `TURN`, and `ARC` inside reusable
+  command lists.
+- Use absolute commands such as `GOTO` and `DIR` primarily for layout and known
+  setup.
+- Use CAD primitives where they make mechanical geometry clearer.
+- Let OpenSCAD perform ordinary OpenSCAD work.
+- Prefer surgical edits over broad rewrites.
+- Preserve exact public and repository filenames.
+
+---
+
+## 6. Non-goals and deliberately deferred ideas
+
+These decisions should not be repeatedly reopened without a compelling new
+reason.
+
+- LogoT is not a replacement for OpenSCAD.
+- Do not wrap `linear_extrude()`, `rotate_extrude()`, `union()`,
+  `difference()`, `intersection()`, `offset()`, `color()`, or ordinary
+  transforms in LogoT.
+- Do not add public API merely to save one or two lines of normal OpenSCAD.
+- Do not let stroke rendering replace or complicate the normal filled-region
+  renderer.
+- Full Logo language compatibility is not a current goal.
+- Text/font rendering is not a first-class LogoT feature.
+- Multi-color manufacturing semantics are outside the current scope.
+- `ROUNDEDREGPOLY` remains deferred until its corner-rounding semantics are
+  clear.
+- Open-stroke width, cap, join, and miter APIs remain experimental/future work.
+
+---
+
+## 7. Documentation architecture and conventions
+
+`LogoT-User-Manual.md` is the primary public manual.
+
+Section 7 of the manual is the canonical description of:
+
+- public rendering APIs;
+- `evalLogo()` input and output;
+- `EvalResult`;
+- region, contour, and point formats;
+- evaluator-result accessors; and
+- region constructor/accessor APIs.
+
+Documentation should increasingly function as an engineering guide rather than
+only an API reference.
+
+Quick Start examples should show code and rendered output.
+
+Store documentation images in:
+
+```text
+images/
+```
+
+Use relative Markdown references such as:
+
+```markdown
+![Figure 2-1](images/quickstart-triangle.png)
+```
+
+Do not rename accepted image files casually because the Markdown links are part
+of the repository contract.
+
+---
+
+## 8. Repository and packaging workflow
+
+The user uses Git. Preserve exact project filenames.
+
+For each work session:
+
+1. Start from the most recent user-uploaded repository ZIP or explicitly
+   user-approved working file.
+2. Extract it into one working tree.
+3. Apply all changes there.
+4. Verify the requested changes.
+5. Verify unrelated accepted content has not regressed.
+6. Deliver one combined update ZIP containing every changed or added project
+   file from that session.
+7. Use exact repository paths so the ZIP can be extracted over the repository.
+8. Do not use `-fixed`, `-new`, `-v2`, or similar names inside the project.
+9. Use LF line endings.
+10. Include a checksum file as a transfer artifact when practical, but do not
+    assume it belongs in Git.
+
+The repository ZIP, not chat memory or similarly named sandbox files, is the
+source of truth.
+
+---
+
+## 9. Lessons learned
+
+### 2026-07-10 — Documentation baseline regressions
+
+Several documentation updates accidentally started from an older
+`LogoT-User-Manual.md`, causing previously accepted Quick Start and Section 7
+changes to disappear.
+
+Permanent rule:
+
+- Never reconstruct or patch documentation from an older copy.
+- Start from the latest user-approved repository or document.
+- Chain multiple changes in one chat from the latest generated working copy.
+- Before packaging, explicitly verify important accepted sections and figure
+  links remain present.
+
+Useful verification checks include:
+
+- requested heading/text exists;
+- `## 2. Quick Start` still exists;
+- both Quick Start image links still exist;
+- Section 7 API material still exists;
+- changed sections differ as intended;
+- unrelated sections are byte-for-byte unchanged when practical.
+
+### 2026-07-10 — Generated-file claims require inspection
+
+Do not claim an archive contains a requested edit merely because the generation
+script completed. Open the generated file or inspect the ZIP contents and test
+for the expected material first.
+
+### 2026-07-10 — Preserve the rich handoff record
+
+A short generated Future Context file lost valuable architecture and workflow
+details. The project benefits more from a growing engineering notebook than from
+an aggressively compressed summary.
+
+### File-handling lesson
+
+The Windows ChatGPT app and browser layers can display numbered duplicate file
+names. Do not infer authority from a UI display name. Confirm content from the
+active extracted working tree.
+
+---
+
+## 10. Stroke and debug-rendering direction
+
+A separate stroke/debug renderer is a strong candidate for the next experimental
+feature.
+
+Primary purposes:
+
+- visualize turtle motion;
+- debug generated command lists;
+- inspect recursion and L-systems;
+- show `PENUP`/`PENDOWN` behavior;
+- distinguish path construction from filled-region output; and
+- optionally show direction/state markers.
+
+Strokes are less useful than filled regions for the project's primary CAD and
+3D-printing use cases. Keep stroke rendering separate from the stable region
+renderer.
+
+The Quick Start manual currently contains a TODO to link to the future stroke
+API documentation once the API exists.
+
+Potential debug-drawing concepts to evaluate:
+
+- centerline path rendering;
+- start/end markers;
+- heading arrows;
+- command-index labels;
+- pen-up travel visualization;
+- contour/region color coding;
+- state-stack markers; and
+- optional point-index display.
+
+Do not promote experimental stroke APIs into the stable core until their data
+contract and usefulness are clear.
+
+---
+
+## 11. Testing and regression risks
+
+Known regression risks:
+
+- stale documentation baselines;
+- renaming files in a Git-managed project;
+- changing the shape of `EvalResult`;
+- confusing a flat contour list with the current region-list format;
+- reintroducing 3D wrapper APIs;
+- promoting experimental APIs too early;
+- using absolute commands throughout examples where relative commands would be
+  reusable;
+- unintentionally changing test-grid layout or color conventions; and
+- splitting one work session across several update ZIPs.
+
+Run or inspect the regression tests after core changes. For documentation-only
+changes, verify links, headings, code examples, and retained accepted content.
+
+---
+
+## 12. Current roadmap
+
+Near-term candidates:
+
+- prototype the stroke/debug renderer in `LogoT-Experiments.scad`;
+- document recursion and generated command lists more fully;
+- continue L-system documentation and examples;
+- add useful screenshots without cluttering the repository root;
+- improve cross-references and table-of-contents consistency;
+- add CAD primitives only when they clearly reduce complexity; and
+- prepare a later alpha milestone after experimental work stabilizes.
+
+---
+
+## 13. Open questions
+
+Record unresolved questions here rather than relying on chat history.
+
+Current examples:
+
+- What is the smallest useful public stroke API?
+- Should stroke rendering consume commands, evaluated path events, or region
+  contours?
+- Which debug annotations are useful without overwhelming OpenSCAD preview?
+- Should a future stroke implementation remain entirely experimental, or should
+  a small stable diagnostic API eventually move into the core?
+- What validation, if any, should LogoT perform for invalid or overlapping holes?
+
+Append conclusions with dates rather than deleting the original question.
+
+---
+
+## 14. User preferences specific to LogoT
+
+- One combined update ZIP per work session.
 - Exact repository filenames.
-- One combined ZIP per work session.
-- Only changed files in update ZIP.
-- Repository ZIP is authoritative.
+- ZIPs should be suitable for extracting directly over the repository.
+- Prefer `TURN` over `DIR` and `MOVE` over `GOTO` inside reusable examples.
+- Use `GOTO`/`DIR` for deterministic layout where appropriate.
+- Right-handed coordinates; positive turns are counterclockwise around +Z.
+- Keep `TraceLevel = 0` and `RunLogoTests = false` below the include in normal
+  user examples.
+- Keep 3D operations outside the LogoT core.
+- Preserve history and design rationale in this notebook.
+- Use the repository snapshot plus this notebook to restart development in a new
+  chat.
 
 ---
 
-# 7. Workflow
+## 15. Historical handoff record from the pre-notebook file
 
-Preferred workflow:
+The following material is retained from the earlier
+`LogoT-Future-Context.md`. It remains useful historical context. Where this
+section conflicts with a newer dated decision above, the newer decision wins.
 
-1. User commits changes.
-2. Repository ZIP uploaded.
-3. Read this notebook.
-4. Use uploaded repository as source of truth.
-5. Produce incremental updates.
+<details>
+<summary>Legacy LogoT Future Context and Handoff Notes</summary>
+
+# LogoT Future Context and Handoff Notes
+
+This note is for a future ChatGPT session continuing the LogoT OpenSCAD project from a
+clean repository snapshot. It is intentionally different from the project README, user
+manual, changelog, and implementation notes. Those files describe what the library is and
+how to use it. This file describes the project intent, editing workflow, design priorities,
+known pitfalls, and likely next steps.
+
+## 1. Source of truth for the next chat
+
+Use the user-uploaded repository snapshot as the only source of truth.
+
+Do not use older files from ChatGPT File Library, previous chats, generated sandbox files,
+or similarly named historical exports unless the user explicitly asks for comparison.
+Older LogoT/Turtle versions caused confusion earlier.
+
+Expected current project files include approximately:
+
+```text
+LogoT-Foundation-Core.scad
+LogoT-Foundation-Tests.scad
+LogoT-Examples.scad
+LogoT-Experiments.scad
+README.md
+LogoT-README.md
+LogoT-User-Manual.md
+LogoT-CheatSheet.md
+CHANGELOG.md
+LogoT-ARC-Implementation.md
+LogoT-Holes-Implementation.md
+LogoT-LSystems-Notes.md
+.gitattributes
+```
+
+There may also be checksum files or generated zip artifacts. Treat checksum files as
+transfer artifacts unless the user says they are committed project files.
+
+## 2. Naming and export rules
+
+The user is using Git. Preserve exact project filenames.
+
+Do not create replacement files named `-fixed`, `-v2`, `new`, `copy`, or similar. When a
+project file changes, overwrite/export using the same filename. For every work session, deliver all changed or added project files in one combined update
+zip containing exact repository filenames, suitable for extracting directly over the repo.
+Do not split a session across several update zips unless the user explicitly asks. Preserve
+this rule in future handoff notes. The zip workflow has been much more reliable than
+individual file downloads in the ChatGPT/Windows app.
+
+When exporting multiple files, include a checksum file in the artifact zip if practical,
+but do not assume the checksum file belongs in Git.
+
+Use LF line endings. The repository should include:
+
+```text
+*.scad text eol=lf
+*.md   text eol=lf
+*.txt  text eol=lf
+```
+
+## 3. Known ChatGPT / file-handling pitfalls
+
+The ChatGPT Windows app and browser download layers have previously created duplicate
+file names, numbered files, and temporary files. Do not infer source truth from UI display
+names. The safest pattern is:
+
+1. User uploads a clean zip snapshot.
+2. Extract it into a working directory.
+3. Patch files there.
+4. Rebuild a zip with exact project filenames.
+5. Provide the zip as the primary download.
+
+The individual `/mnt/data/LogoT-Foundation-Core.scad` file has sometimes appeared stale
+relative to the current zip bundle. Verify content from the active working directory before
+making claims.
+
+## 4. Project identity
+
+LogoT is an OpenSCAD Logo-style geometry generator for creating 2D printable regions that
+can be passed to native OpenSCAD operations such as `linear_extrude()`, `rotate_extrude()`,
+`offset()`, `difference()`, `union()`, `translate()`, `scale()`, and `color()`.
+
+LogoT should remain a 2D region generator. OpenSCAD should remain responsible for 3D
+composition.
+
+The main user-facing render function is:
+
+```scad
+RenderLogo2D(cmds, convexity = 10);
+```
+
+Users can then write:
+
+```scad
+linear_extrude(height = 4)
+{
+    RenderLogo2D(cmds);
+}
+```
+
+or:
+
+```scad
+rotate_extrude(angle = 360)
+{
+    RenderLogo2D(profileCmds);
+}
+```
+
+Do not reintroduce `RenderLogoLinear()`, `RenderLogoRotate()`, or extrusion wrapper APIs
+unless the user explicitly decides to reverse that design choice.
+
+## 5. Versioning policy
+
+LogoT currently uses a manual Major.Minor style library version in core, approximately:
+
+```scad
+LogoTVersionMajor = 2026 + 0;
+LogoTVersionMinor = 0 + 0;
+LogoTVersion = str(LogoTVersionMajor, ".", LogoTVersionMinor);
+
+function LogoTVersionAtLeast(major, minor) = ...;
+```
+
+Do not auto-update the version on every edit/export. Git tracks every commit. The LogoT
+version should be bumped only for public API/feature milestones, especially changes that
+users might want to test against.
+
+## 6. Core design goals
+
+Primary goals:
+
+- Generate useful 2D geometry for OpenSCAD and 3D printing.
+- Preserve a Logo-like programming style where reusable shapes use relative motion.
+- Keep the interpreter functional and data-oriented rather than emitting geometry directly
+  during evaluation.
+- Keep API names using `Logo`, not `Turtle`.
+- Keep low-level state functions named around `state*` conventions already established.
+- Keep documentation practical and example-driven.
+- Prefer small surgical edits over broad regex refactors.
+
+Non-goals for now:
+
+- Full Logo language compatibility.
+- Text/font rendering as a first-class LogoT feature.
+- Multi-color manufacturing semantics.
+- Open stroke rendering with caps/joins.
+- Boolean modeling wrappers that duplicate OpenSCAD.
+
+## 7. Current conceptual model
+
+LogoT command lists evaluate into a result containing:
+
+- final Logo state;
+- region/contour geometry;
+- stack state;
+- pen state;
+- error state.
+
+A region is conceptually:
+
+```text
+[outerContour, holeContour0, holeContour1, ...]
+```
+
+Rendering uses OpenSCAD `polygon(points = ..., paths = ...)` so holes are represented by
+polygon paths rather than by `difference()`.
+
+The current renderer should expose:
+
+```scad
+RenderLogo2D(cmds, convexity = 10);
+RenderContours2D(regions, convexity = 10);
+RenderRegion2D(region, convexity = 10);
+```
+
+`RenderContours()` compatibility alias was intentionally removed to reduce future churn.
+
+## 8. Command design conventions
+
+Document and implement optional arguments as single command forms, not multiple overload
+entries. Use notation such as:
+
+```scad
+[ARC, radius, degrees[, segments]]
+[CIRCLE, radius[, segments]]
+[REGPOLY, sides, radius[, rotation]]
+[ROUNDEDRECT, width, height, radius[, segments]]
+[RUN, cmds[, scale[, maxRec]]]
+```
+
+Commands should use soft errors by default unless `HardErrors` is enabled. OpenSCAD
+`assert()` stops the whole run, so soft errors are important for test visibility.
+
+## 9. Relative drawing style
+
+The user prefers relative drawing commands inside reusable command lists.
+
+Rule of thumb:
+
+| Situation | Prefer | Reason |
+|---|---|---|
+| Reusable shape/path/glyph | `MOVE`, `TURN`, `ARC` | Inherits caller position/heading/scale |
+| Absolute layout/anchoring | `GOTO`, sometimes `DIR` | Explicit positioning |
+| Starting a deterministic example | `GOTO` with heading | Known initial state |
+| Stamped CAD-style primitives | `GOTO`, then `CIRCLE`/`RECT`/etc. | Shapes are centered at current state |
+
+Examples were updated to remove internal `DIR` usage and prefer relative `TURN` where
+practical. Keep `GOTO` for layout and hole placement.
+
+## 10. Coordinate and turn conventions
+
+LogoT uses OpenSCAD's right-handed coordinate system. In the standard LogoT test/example
+view, +X appears left and +Y appears upward. Positive relative turns are right-handed
+rotations about the +Z axis; viewed from +Z toward the XY plane, positive turns are
+counterclockwise.
+
+This matters because left-handed screen coordinate assumptions have bitten the user before.
+
+## 11. Geometry feature status
+
+Implemented concepts include:
+
+- motion/state: `MOVE`, `TURN`, `DIR`, `SCALE`, `GOTO`;
+- structure: `RUN`, `REPEAT`, `PUSH`, `POP`;
+- pen control: `PENUP`, `PENDOWN`;
+- curves: `ARC` with OpenSCAD-like segment selection;
+- closed shape stamps: `CIRCLE`, `REGPOLY`, `RECT`, `ROUNDEDRECT`;
+- holes: `[HOLE, cmds]`;
+- region rendering through `polygon(points, paths)`;
+- test-grid coloring and row markers;
+- example gallery including a LogoT wordmark, plates, profiles, L-system-generated fractal
+  outlines, a spiral tower, and 3D OpenSCAD wrappers around `RenderLogo2D()`.
+
+The `CIRCLE` command is intentionally CAD-like, not classic Logo-like. It creates a closed
+circle centered at the current state and does not move the Logo state. For classic turtle
+full-loop behavior, use:
+
+```scad
+[ARC, radius, 360]
+```
+
+## 12. Segment-count convention
+
+Curved geometry should follow this rule:
+
+- Explicit segment arguments override `$fn`, `$fa`, and `$fs`.
+- Omitted segment arguments use OpenSCAD-style automatic selection.
+- `$fn > 0` gives the full-circle fragment count; otherwise `$fa` and `$fs` apply.
+- `ARC` explicit segments count the arc itself.
+- `CIRCLE` explicit segments count the full circle.
+- `ROUNDEDRECT` explicit segments count each rounded corner.
+- `REGPOLY` uses side count directly and does not consult `$fn`, `$fa`, or `$fs`.
+
+Details belong in `LogoT-ARC-Implementation.md`, not in the README.
+
+## 13. Holes design
+
+Holes are implemented by polygon paths, not OpenSCAD `difference()`.
+
+`[HOLE, cmds]` evaluates child commands and attaches the child contours as holes to the
+most recently emitted outer region. It should not move or alter the parent state. Child
+commands can create multiple contours, and those can become multiple holes.
+
+For 3D modeling, users may still wrap LogoT output in OpenSCAD `difference()` when they
+want to subtract non-LogoT objects such as cylinders, imported meshes, or other solids.
+
+## 14. Color design
+
+Color should remain outside LogoT geometry semantics.
+
+Do not add color to:
+
+- command lists;
+- evaluated regions;
+- core rendering data;
+- `RenderLogo2D()`.
+
+Color is currently useful in the test/example presentation layer through OpenSCAD
+`color()` wrappers. Test colors are based on grid position. This is for visual debugging
+and screenshots, not 3D-printing semantics.
+
+## 15. Test suite conventions
+
+The core includes tests unconditionally because OpenSCAD `include <>` cannot be reliably
+conditionalized. Actual test execution is guarded by `RunLogoTests`.
+
+Important OpenSCAD include pattern for examples/user files:
+
+```scad
+include <LogoT-Foundation-Core.scad>
+RunLogoTests = false;
+TraceLevel = 0; // [0:4]
+```
+
+Do not put `RunLogoTests = false;` before the include. Doing so has previously polluted or
+confused the Customizer behavior.
+
+The test grid uses logical grid indices, not absolute positions. Row markers and X-index
+colors make the test output more readable.
+
+## 16. Documentation status and doc roles
+
+Current docs are split by purpose:
+
+- `LogoT-README.md`: overview, file list, public API quick reference, roadmap.
+- `LogoT-User-Manual.md`: full user documentation, setup, command reference, workflows.
+- `LogoT-CheatSheet.md`: compact one-page-style reference with method signatures and links.
+- `CHANGELOG.md`: release history and milestone notes.
+- `LogoT-ARC-Implementation.md`: arc/segment-count design details.
+- `LogoT-Holes-Implementation.md`: region/hole rendering design details.
+- `LogoT-LSystems-Notes.md`: design notes for L-system example helpers and future fractal examples.
+- `LogoT-Examples.scad`: runnable examples and gallery.
+- `LogoT-Experiments.scad`: experimental lab bench for unproven rendering approaches.
+- `README.md`: short GitHub repository landing page.
+
+The cheat sheet should stay compact, similar in spirit to the OpenSCAD cheat sheet. It
+should not become another manual.
+
+## 17. Current release baseline and experiment status
+
+The known-good public baseline is:
+
+```text
+GitHub release/tag: v0.2.0-alpha
+Release URL: https://github.com/jbrad8254/LogoT/releases/tag/v0.2.0-alpha
+Status: core tests and example gallery verified by the user before release
+Purpose: stable pre-stroke-rendering baseline
+```
+
+`LogoT-Experiments.scad` was added after that release as a separate lab bench. Keep
+experimental code there until behavior is understood and the user explicitly approves
+promotion into the core.
+
+Stroke experiments completed so far:
+
+1. A reverse-and-append helper converted each outer contour into a doubled-back,
+   nominally zero-width polygon. Holes were warned about and discarded.
+2. OpenSCAD did not render these degenerate zero-area polygons, even when wrapped in
+   `offset()`. Keep this only as a documented negative experiment; it is not a viable
+   implementation path.
+3. A capsule stroke renderer using `hull()` between circles at consecutive points worked
+   and produced visually good round caps, round joins, closed squares, bends, and
+   crossings.
+4. LogoT's region evaluator stores `MOVE` destinations but does not include the initial
+   turtle point in the first contour. For centerline strokes this initially omitted the
+   first segment. Do not modify the evaluator just for strokes. The preferred experimental
+   direction is for `RenderCapsuleStrokeRegions()` to optionally prepend a supplied initial
+   point to the first nonempty contour. Later pen-generated contours should retain their
+   normal semantics.
+
+Current experimental renderer controls include stroke width and circle fragment count.
+The exact API is not final.
+
+## 18. Near-term likely next steps
+
+Follow this conservative order:
+
+1. Keep `v0.2.0-alpha` as the known-good baseline.
+2. Continue work in `LogoT-Experiments.scad`; do not edit core stroke APIs yet.
+3. Consider a debug path renderer before promoting capsule strokes. A useful
+   `DebugLogoPath2D()`-style module would draw small circles at path vertices, thin
+   capsule/hull segments between consecutive points, and distinct start/end markers. It
+   should help diagnose initial-point handling, `PENUP`/`PENDOWN` path breaks, `PUSH`/`POP`,
+   `ARC` tessellation, L-system output, and accidental closure. The user explicitly wants
+   to consider this next.
+4. Add non-rendering geometry-invariant tests for path point counts, pen breaks, stack
+   restoration, arc endpoints, and scaled `RUN` behavior.
+5. Create `LogoT-Strokes-Implementation.md` once the experimental data model and rendering
+   behavior are clearer. Document filled regions versus open centerlines, initial-point
+   policy, hole behavior, capsule rendering, and the failed zero-width approach.
+6. Add additional stroke-oriented L-system examples such as a dragon curve, Hilbert curve,
+   or bracketed tree after path extraction/debugging is stable.
+7. Promote a public `RenderLogoStroke2D()` API only after the experimental renderer and
+   path semantics have been validated. Round caps and round joins are the likely first
+   supported behavior.
+
+## 19. Deferred feature ideas
+
+Potential future features:
+
+- first-class procedures or named command-list helpers;
+- variables or parameters in the LogoT language;
+- better reusable shape libraries;
+- automatic fillets;
+- `ROUNDEDREGPOLY`, but only after defining clear corner-rounding semantics;
+- stroke/open-path renderer;
+- cap styles: butt, square, round;
+- join styles: miter, bevel, round;
+- miter limits;
+- hole containment/validity checks;
+- explicit examples of `offset()` for thickened paths or clearances;
+- documentation for slicer/3D-printing tolerances.
+
+Be cautious about wrapping OpenSCAD features unnecessarily. If native OpenSCAD already
+composes cleanly around `RenderLogo2D()`, prefer documentation and examples over new LogoT
+opcodes.
+
+## 20. Current user preferences for this project
+
+The user prefers:
+
+- concise but technically precise explanations;
+- small surgical edits;
+- exact filenames;
+- one combined exact-filename update zip containing every changed/added file from the session;
+- no unnecessary file variants;
+- Git-friendly workflow;
+- relative Logo-style commands inside reusable shapes;
+- OpenSCAD-native 3D composition outside LogoT;
+- clear documentation and cheat sheets;
+- practical 3D-printing examples.
+
+Humor is fine, but keep project artifacts themselves professional and useful.
+
+## 21. Suggested first message in the next chat
+
+The user may say something like:
+
+```text
+We are continuing the LogoT project. Use the uploaded repository zip as the source of
+truth. Ignore older versions from prior chats and File Library. Read LogoT-Future-Context.md
+for project handoff notes before making changes.
+```
+
+Future assistant: obey that. Do not try to resurrect old sandbox files.
+
+
+</details>
 
 ---
 
-# 8. Lessons Learned
+## 16. Journal template for future entries
 
-## Documentation regressions
+Use this format for significant changes:
 
-Always edit the latest user-approved repository or document.
+```text
+### YYYY-MM-DD — Topic
 
-Never regenerate documentation from an older copy.
+Previous state:
+- ...
 
-Verify previously accepted sections remain present before packaging.
+Reason for change:
+- ...
 
-## Verification
+Decision:
+- ...
 
-Before delivering documentation:
+Consequences:
+- ...
 
-- Verify requested changes exist.
-- Verify unrelated sections remain unchanged.
-- Verify screenshots and links still exist.
+Files/API affected:
+- ...
 
-## Repository synchronization
-
-If uncertainty exists about the current baseline, stop and ask for the latest
-repository ZIP or latest working document.
-
----
-
-# 9. Current Architecture
-
-- Integer opcodes.
-- Region-based evaluator.
-- Separate evaluation and rendering.
-- Multiple contours and holes.
-- Public accessor APIs.
-- Rendering modules separate from evaluation.
-
----
-
-# 10. Current Roadmap
-
-- Stroke/debug renderer.
-- More examples.
-- More screenshots.
-- Continue documentation polish.
-- L-system improvements.
-- Additional CAD primitives when justified.
-
----
-
-# 11. Stroke Rendering
-
-Keep stroke rendering as a separate API.
-
-Purpose:
-
-- Debugging.
-- Educational visualization.
-- Turtle-path inspection.
-- PENUP/PENDOWN visualization.
-
-Never complicate the primary region renderer.
-
----
-
-# 12. Milestones
-
-- v0.2.0-alpha released.
-- Expanded API documentation.
-- Added Quick Start.
-- Added screenshot-based documentation.
-
-Update this section after each release.
-
----
-
-# 13. Open Questions
-
-Track unresolved design questions here instead of relying on chat history.
-
----
-
-# 14. Common Regression Risks
-
-- Editing stale documentation.
-- Renaming repository files.
-- Accidentally changing public API.
-- Mixing experimental features into stable interfaces.
-
----
-
-# 15. User Preferences (LogoT Project)
-
-- Exact filenames only.
-- Git-friendly updates.
-- Combined ZIP per session.
-- Favor MOVE/TURN in examples where appropriate.
-- Use rounded engineering documentation style.
-
----
-
-# 16. Next Suggested Tasks
-
-Maintain this list as priorities evolve.
-
+Follow-up:
+- ...
+```
