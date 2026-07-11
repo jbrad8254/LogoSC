@@ -1,5 +1,20 @@
 # LogoSC Changelog
 
+## Unreleased — Cheat Sheet rename typo fixed
+
+### Fixed
+
+- Restored the setup variable name `RunLogoTests` in `LogoSC-CheatSheet.md`.
+  A mechanical project rename had incorrectly changed it to `RunLogoSCests`.
+
+## Unreleased — Gear icon image added
+
+### Added
+
+- Added `images/logosc-gear-icon.png` as the standalone LogoSC gear icon.
+- Added the gear icon as a small right-aligned thumbnail near the top of `README.md`.
+- Added the gear icon to the upper-right corner of `LogoSC-CheatSheet.md`.
+
 ## Unreleased — Wordmark image added
 
 ### Added

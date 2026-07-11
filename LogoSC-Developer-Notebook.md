@@ -95,6 +95,9 @@ Major implemented features include:
 - regression/failure tests and example galleries;
 - expanded public API documentation;
 - Quick Start examples with screenshots stored under `images/`.
+- Project renamed from LogoT to LogoSC.
+- LogoSC wordmark and gear icon added under `images/`.
+- Cheat Sheet typo fixed: `RunLogoSCests` restored to `RunLogoTests`.
 
 Append new milestones here. Do not rewrite this section as only the latest state.
 
@@ -230,6 +233,41 @@ source of truth.
 ---
 
 ## 9. Lessons learned
+
+### 2026-07-10 — LogoSC rename and visual identity stabilized
+
+Verified state before the next chat restart:
+
+- Project renamed from LogoT to LogoSC.
+- Generic programming APIs intentionally preserved:
+  - `RenderLogo2D()`
+  - `RenderContours2D()`
+  - `RenderRegion2D()`
+  - `evalLogo()`
+  - result and region accessors
+  - command opcodes
+- Project-specific version symbols renamed to `LogoSCVersion*`.
+- Public API version advanced to `2026.1`.
+- Git repository rename still needs to be performed outside ChatGPT after source
+  rename changes are committed.
+- Wordmark in `LogoSC-Examples.scad` now spells LogoSC.
+- Gear-like O in the wordmark was enlarged and verified by user-rendered output.
+- `images/logosc-wordmark.png` added for README and User Manual.
+- `images/logosc-gear-icon.png` added for README thumbnail and Cheat Sheet icon.
+- README, User Manual, Cheat Sheet, and examples were verified after the rename.
+- The user verified examples and tests still run as expected after the rename.
+
+Lessons:
+
+- Do not blindly replace `LogoT` with `LogoSC` inside unrelated identifiers.
+  `RunLogoTests` is a test-control variable and must remain `RunLogoTests`, not
+  `RunLogoSCests`.
+- When adding image references to Markdown, verify both sides:
+  1. the Markdown link exists; and
+  2. the PNG file is physically present in the ZIP under the referenced path.
+- For future ZIP generation, inspect the archive contents before claiming image
+  assets were included.
+
 
 ### 2026-07-10 — Project renamed from LogoT to LogoSC
 
