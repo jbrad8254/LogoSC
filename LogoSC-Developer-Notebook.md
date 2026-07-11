@@ -78,7 +78,7 @@ for OpenSCAD.
 Known stable milestone:
 
 - GitHub release `v0.2.0-alpha`.
-- Public API version `2026.0`.
+- Current source snapshot public API version `2026.1`.
 
 Major implemented features include:
 
@@ -98,6 +98,7 @@ Major implemented features include:
 - Project renamed from LogoT to LogoSC.
 - LogoSC wordmark and gear icon added under `images/`.
 - Cheat Sheet typo fixed: `RunLogoSCests` restored to `RunLogoTests`.
+- Test-control variable consistency restored across core, tests, examples, and docs: live references use `RunLogoTests`.
 
 Append new milestones here. Do not rewrite this section as only the latest state.
 
@@ -437,7 +438,7 @@ Append conclusions with dates rather than deleting the original question.
 - Prefer `TURN` over `DIR` and `MOVE` over `GOTO` inside reusable examples.
 - Use `GOTO`/`DIR` for deterministic layout where appropriate.
 - Right-handed coordinates; positive turns are counterclockwise around +Z.
-- Keep `TraceLevel = 0` and `RunLogoSCests = false` below the include in normal
+- Keep `TraceLevel = 0` and `RunLogoTests = false` below the include in normal
   user examples.
 - Keep 3D operations outside the LogoSC core.
 - Preserve history and design rationale in this notebook.
@@ -739,17 +740,17 @@ and screenshots, not 3D-printing semantics.
 ## 15. Test suite conventions
 
 The core includes tests unconditionally because OpenSCAD `include <>` cannot be reliably
-conditionalized. Actual test execution is guarded by `RunLogoSCests`.
+conditionalized. Actual test execution is guarded by `RunLogoTests`.
 
 Important OpenSCAD include pattern for examples/user files:
 
 ```scad
 include <LogoSC-Foundation-Core.scad>
-RunLogoSCests = false;
+RunLogoTests = false;
 TraceLevel = 0; // [0:4]
 ```
 
-Do not put `RunLogoSCests = false;` before the include. Doing so has previously polluted or
+Do not put `RunLogoTests = false;` before the include. Doing so has previously polluted or
 confused the Customizer behavior.
 
 The test grid uses logical grid indices, not absolute positions. Row markers and X-index

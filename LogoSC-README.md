@@ -55,8 +55,8 @@ short summaries.
 ## Workflow
 
 1. Open `LogoSC-Foundation-Core.scad` in OpenSCAD.
-2. Leave `RunLogoSCests = true` to run the regression tests.
-3. Set `RunLogoSCests = false` when using the file as a library.
+2. Leave `RunLogoTests = true` to run the regression tests.
+3. Set `RunLogoTests = false` when using the file as a library.
 4. Commit stable milestones to Git.
 
 Visual regression tests are color-coded by grid index. Test geometry color follows
@@ -65,7 +65,7 @@ the Y row. Colors cover indices 0 through 9; larger indices use `TestColorMax`.
 
 ## Versioning
 
-Current public API version: `2026.0`.
+Current public API version: `2026.1`.
 
 `LogoSC-Foundation-Core.scad` exposes:
 
@@ -83,7 +83,7 @@ user-model compatibility checks.
 Example:
 
 ```scad
-assert(LogoSCVersionAtLeast(2026, 0), "This model requires LogoSC 2026.0+");
+assert(LogoSCVersionAtLeast(2026, 1), "This model requires LogoSC 2026.1+");
 ```
 
 ## Public API quick reference

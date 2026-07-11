@@ -16,7 +16,7 @@
 // this file is opened directly. OpenSCAD include behaves like textual insertion,
 // so these settings live after the include to override core Customizer defaults.
 include <LogoSC-Foundation-Core.scad>
-RunLogoSCests = false;
+RunLogoTests = false;
 TraceLevel = 0; // [0:4]
 
 // -----------------------------------------------------------------------------

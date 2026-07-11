@@ -1,5 +1,14 @@
 # LogoSC Changelog
 
+## Unreleased — test-control variable consistency patch
+
+### Fixed
+
+- Restored live test-control variable references to `RunLogoTests` across core,
+  tests, examples, and user-facing documentation.
+- Updated README public API version references to match the core `2026.1`
+  version constants.
+
 ## Unreleased — Cheat Sheet rename typo fixed
 
 ### Fixed

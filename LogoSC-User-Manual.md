@@ -71,7 +71,7 @@ OpenSCAD:
 
 ```scad
 include <LogoSC-Foundation-Core.scad>
-RunLogoSCests = false;
+RunLogoTests = false;
 TraceLevel = 0; // [0:4]
 ```
 
@@ -81,7 +81,7 @@ and reinitialize ChatGPT when development resumes in a new conversation.
 Maintainers should read it before changing the project; ordinary LogoSC users
 can ignore it.
 
-The `RunLogoSCests` and `TraceLevel` assignments should come **after** the
+The `RunLogoTests` and `TraceLevel` assignments should come **after** the
 `include`. OpenSCAD `include` behaves like textual insertion, so post-include
 assignments override the core file's Customizer defaults without creating a
 second Customizer block or accidentally enabling the regression-test gallery in
@@ -106,7 +106,7 @@ To run the built-in tests, open `LogoSC-Foundation-Core.scad` directly in
 OpenSCAD and leave:
 
 ```scad
-RunLogoSCests = true;
+RunLogoTests = true;
 ```
 
 The runnable gallery in `LogoSC-Examples.scad` follows the same include pattern
@@ -144,7 +144,7 @@ The simplest Logo programs are written using only forward movement and turns. Th
 ```scad
 include <LogoSC-Foundation-Core.scad>
 
-RunLogoSCests = false;
+RunLogoTests = false;
 TraceLevel = 0;
 
 triangle =
@@ -295,7 +295,7 @@ The examples file includes the core and suppresses test/tracing output with:
 
 ```scad
 include <LogoSC-Foundation-Core.scad>
-RunLogoSCests = false;
+RunLogoTests = false;
 TraceLevel = 0; // [0:4]
 ```
 
@@ -1654,7 +1654,7 @@ polygons that are slow to preview, render, slice, and print.
 
 ```scad
 include <LogoSC-Foundation-Core.scad>
-RunLogoSCests = false;
+RunLogoTests = false;
 
 plate =
 [
@@ -1671,7 +1671,7 @@ linear_extrude(height = 3, convexity = 10)
 
 ```scad
 include <LogoSC-Foundation-Core.scad>
-RunLogoSCests = false;
+RunLogoTests = false;
 
 mountingPlate =
 [

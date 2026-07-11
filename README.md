@@ -79,7 +79,7 @@ RenderContours2D(regions, convexity = 10);
 RenderRegion2D(region, convexity = 10);
 ```
 
-The current public API version is `2026.0`.
+The current public API version is `2026.1`.
 
 ## Command examples
 

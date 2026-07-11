@@ -43,7 +43,7 @@ Compact LogoSC `2026.1` reference. Full docs: [`LogoSC-User-Manual.md`](LogoSC-U
 
 ## Core controls
 
-[`RunLogoSCests`](LogoSC-User-Manual.md#13-error-handling-and-tracing)  [`HardErrors`](LogoSC-User-Manual.md#13-error-handling-and-tracing)  [`TraceLevel`](LogoSC-User-Manual.md#13-error-handling-and-tracing)  [`maxRunRecursions`](LogoSC-User-Manual.md#run)
+[`RunLogoTests`](LogoSC-User-Manual.md#13-error-handling-and-tracing)  [`HardErrors`](LogoSC-User-Manual.md#13-error-handling-and-tracing)  [`TraceLevel`](LogoSC-User-Manual.md#13-error-handling-and-tracing)  [`maxRunRecursions`](LogoSC-User-Manual.md#run)
 
 ## Test helpers
 

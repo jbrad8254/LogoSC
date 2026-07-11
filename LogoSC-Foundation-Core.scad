@@ -14,7 +14,7 @@
 // This split-file baseline contains core interpreter controls, constants,
 // state functions, trace functions, opcode handlers, and evaluator logic.
 // The companion LogoSC-Foundation-Tests.scad file is included at parse time
-// below, with test execution gated by RunLogoSCests.
+// below, with test execution gated by RunLogoTests.
 //
 // Command format:
 //     [MOVE,   len]
@@ -128,7 +128,7 @@ DefaultRunMaxRecursions = 2; // [0:20]
 DefaultTestHeight = 5; // [1:1:20]
 
 // Run regression tests from LogoSC-Foundation-Tests.scad.
-RunLogoSCests = true; // [false:true]
+RunLogoTests = true; // [false:true]
 
 // Non-fatal error helper for use inside functions.
 function ErrorOrZero(msg, value = undef) =
@@ -1598,5 +1598,5 @@ function evalRepeatLogo(
 // -----------------------------------------------------------------------------
 // OpenSCAD include/use directives are parse-time constructs, so this include is
 // unconditional. Test execution is guarded in LogoSC-Foundation-Tests.scad by
-// RunLogoSCests.
+// RunLogoTests.
 include <LogoSC-Foundation-Tests.scad>
