@@ -835,6 +835,307 @@ Follow this conservative order:
    path semantics have been validated. Round caps and round joins are the likely first
    supported behavior.
 
+
+### 2026-07-11 — Experimental debug renderer design and placement
+
+Previous state:
+
+- Capsule stroke experiments lived in `LogoSC-Experiments.scad`.
+- The preferred debug direction was still conceptual: show low-level path behavior before
+  promoting any true stroke/open-path API.
+
+Reason for change:
+
+- The user clarified that the immediate goal is debugging only, not manufacturable stroke
+  geometry.
+- The debug renderer should be easy for downstream clients to use from a single include file,
+  so it belongs in `LogoSC-Foundation-Core.scad` rather than a separate optional file.
+- It should expose low-level execution behavior: movement, pen-up movement, arc tessellation,
+  closed primitive tessellation, `RUN`/`REPEAT`, and stack effects.
+
+Decision:
+
+- Add a preview-only debug event evaluator in the core.
+- Use Option B from the design discussion: record command/eval debug events directly rather
+  than deriving debug paths from final filled contours.
+- Render debug geometry as z-centered 3D capsules and point-marker cylinders.
+- Keep the normal filled-region evaluator and `RenderLogo2D()` semantics unchanged.
+- Keep Customizer-facing debug toggles in the client/example file because OpenSCAD Customizer
+  reliably exposes variables from the opened file, not necessarily from included library files.
+
+Consequences:
+
+- Debug rendering can show pen-up moves, primitive edges, arc tessellation, and command
+  endpoints that final contour output intentionally hides or transforms.
+- Debug rendering is explicitly preview/diagnostic geometry. It is not a supported STL/export
+  or manufacturing path.
+- Full README/User Manual/Cheat Sheet documentation should wait until the user verifies the
+  OpenSCAD output visually.
+
+Files/API affected:
+
+- `LogoSC-Foundation-Core.scad`
+  - `evalLogoDebug()`
+  - `ResultDebugSegments()`
+  - `ResultDebugPoints()`
+  - `RenderLogoDebug()`
+  - helper modules for capsule segments and point markers
+- `LogoSC-Examples.scad`
+  - optional Customizer-controlled debug overlay demo
+
+Follow-up:
+
+- User should verify the debug overlay in OpenSCAD.
+- After verification, add compact user-facing documentation and decide whether this remains
+  experimental or becomes a versioned public diagnostic API.
+
+
+### 2026-07-11 — Debug renderer first visual-tuning pass
+
+Previous state:
+
+- The first debug renderer demo proved that the event-based renderer ran in OpenSCAD.
+- The demo used one relatively dense crossing example and separate capsule/point visibility
+  checkboxes.
+- Segment and point defaults were too large for comfortable low-level command inspection.
+
+Reason for change:
+
+- The user wants the debug renderer to be a practical command-level inspection overlay.
+- Simple, non-crossing examples make it easier to validate each behavior before combining
+  movement, pen-up moves, arcs, and primitives.
+- Customizer controls should be grouped with `/* [Heading] */` comments so the OpenSCAD
+  Customizer can collapse related parameters.
+
+Decision:
+
+- Keep the debug renderer in `LogoSC-Foundation-Core.scad` and retain the event-based
+  Option B implementation.
+- Reduce default debug segment and point marker radii to roughly 20% of the first pass.
+- Use zero-capable size controls for demo line width and point radius instead of separate
+  show/hide checkboxes for segments and points.
+- Keep debug geometry z-centered. If radius/size is zero, draw nothing rather than asserting.
+- Use a brighter magenta-centered debug palette, with dim magenta pen-up moves and darker
+  green `GOTO` segments.
+- Make the demo selectable from a small stepped set: triangle, right angle, pen-up gap, arc
+  loop, and primitives.
+
+Consequences:
+
+- OpenSCAD Customizer has fewer debug checkboxes and more direct size controls.
+- The debug overlay remains preview-only and undocumented in public-facing docs until the
+  visual behavior is accepted.
+- Existing `RenderLogo2D()` and filled-region behavior remain unchanged.
+
+Files/API affected:
+
+- `LogoSC-Foundation-Core.scad`
+  - smaller `RenderLogoDebug()` defaults
+  - zero-size tolerant capsule/point marker rendering
+  - updated default debug colors
+- `LogoSC-Examples.scad`
+  - grouped Customizer sections
+  - stepped debug demo command lists
+  - line-width control mapped to segment radius internally
+
+Follow-up:
+
+- User should verify the smaller magenta overlay, grouped Customizer controls, and each stepped
+  demo selection in OpenSCAD.
+
+
+### 2026-07-11 — Debug renderer naming and pen-up visibility tuning
+
+Previous state:
+
+- The second debug-renderer pass worked in OpenSCAD, but the demo Customizer variable
+  names were long because they followed a full `LogoSCDebugDemo*` / `ShowLogoSCDebugDemo*`
+  pattern.
+- Pen-up move capsules used a dim desaturated magenta that was too dark against the
+  OpenSCAD background and hard to distinguish where paths overlap.
+
+Reason for change:
+
+- The debug demo controls live in `LogoSC-Examples.scad`, not the reusable core API, so
+  they can be shorter without weakening the library naming convention.
+- Pen-up motion is diagnostic information and should be visible but visually secondary.
+
+Decision:
+
+- Keep the public/core debug API names descriptive, especially `RenderLogoDebug()`.
+- Shorten only the example/customizer-facing demo variables to compact `DebugDemo*` names.
+- Use a pale pink RGBA pen-up color so pen-up movement can be semi-transparent without
+  changing the opacity of normal movement, point, start, or end markers.
+- Add a `penUpHeightScale` debug-renderer parameter with default `0.75`, making pen-up
+  capsules 25% shorter than normal capsules.
+
+Consequences:
+
+- The Customizer is less cluttered and easier to scan.
+- Pen-up moves should be easier to see against the OpenSCAD background and less dominant
+  when overlapping other debug segments.
+- Public filled-region rendering remains unchanged.
+
+Files/API affected:
+
+- `LogoSC-Foundation-Core.scad`
+  - `RenderLogoDebugSegments(..., penUpHeightScale = 0.75)`
+  - `RenderLogoDebug(..., penUpHeightScale = 0.75)`
+  - pale pink semi-transparent default `penUpColor`
+- `LogoSC-Examples.scad`
+  - shortened debug demo Customizer variables
+  - `RenderDebugDemo()` helper name for the example-only demo
+
+Follow-up:
+
+- User should verify whether OpenSCAD preview alpha compositing makes pen-up movement
+  clearer; if transparency sorting is visually noisy, keep the pale pink color and tune
+  height/radius instead.
+
+
+### 2026-07-11 — Debug renderer overlap and example tuning
+
+Previous state:
+
+- The shortened `DebugDemo*` controls worked in OpenSCAD.
+- The pale pink pen-up color was still too hard to read where it overlapped normal
+  movement or primitive debug segments.
+- The closed-triangle demo was useful, but it did not expose the distinction between
+  turtle endpoint closure and filled polygon closure.
+- Primitive and normal movement colors were too similar.
+
+Reason for change:
+
+- Pen-up moves should remain visible in overlaps while still reading as secondary
+  diagnostic information.
+- Co-located start/end points need to show both markers; otherwise closed paths hide the
+  green start marker under the red end marker.
+- The debug demo should include side-by-side examples that reveal how the same conceptual
+  triangle can be built from turtle movement or from a centered primitive.
+
+Decision:
+
+- Keep pen-up color pale pink but increase its alpha to `0.75`.
+- Reduce default pen-up capsule height to 50% of normal segment height.
+- Change primitive debug segments to a darker purple so they are clearly separate from
+  bright magenta movement segments.
+- Render the final debug point 10% wider and 10% shorter than ordinary point markers so
+  a closed path shows as a red end cylinder with a green start tip protruding.
+- Add an open-triangle demo immediately after the closed-triangle demo. Its final move is
+  deliberately short, so the debug endpoint differs from the start while the filled 2D
+  polygon still closes visually.
+- Add a stroke-vs-primitive triangle demo: one same-size equilateral triangle is built
+  from `MOVE`/`TURN`, and another is built as a centered `REGPOLY` primitive.
+
+Consequences:
+
+- Debug overlays should make overlap cases and closed-path endpoints easier to inspect.
+- The open-triangle demo exposes an unresolved design question: should filled 2D polygon
+  creation keep implicitly closing open contours, or should LogoSC warn/fail/offer explicit
+  closure policy controls? Do not fix this blindly; review it separately.
+
+Files/API affected:
+
+- `LogoSC-Foundation-Core.scad`
+  - default `penUpColor` alpha changed to `0.75`
+  - default `penUpHeightScale` changed to `0.50`
+  - default `primitiveColor` changed to darker purple
+  - `RenderLogoDebugPointMarkers()` now has end-point radius/height scale parameters
+- `LogoSC-Examples.scad`
+  - added open-triangle debug demo
+  - added stroke-vs-primitive triangle debug demo
+
+Follow-up:
+
+- Verify the endpoint marker layering in OpenSCAD preview.
+- Revisit the open-contour/implicit-filled-polygon closure issue after the debug renderer
+  behavior is stable.
+
+### 2026-07-11 — Debug renderer crossing-line demo and endpoint tuning
+
+Previous state:
+
+- End-point markers were 10% wider and 10% shorter than normal point markers.
+- The debug demo set included closed/open triangles, right-angle movement, pen-up movement,
+  an arc loop, primitive examples, and a stroke-vs-primitive triangle.
+
+Reason for change:
+
+- In closed paths, the red end marker could still hide too much of the lime start marker.
+- Crossing/self-intersecting contour order is an important LogoSC failure mode. The debug
+  overlay should make those accidental crossings obvious before users try to interpret the
+  filled 2D result.
+
+Decision:
+
+- Make end-point markers 10% wider and 15% shorter than default point markers. A co-located
+  start/end point should read as a red cylinder with a visible lime tip.
+- Add a crossed-rectangle demo where the lower two rectangle corners are swapped in path
+  order, producing a classic bow-tie/self-intersecting contour.
+- Keep this as a debug/demo addition only; do not change contour validation or filled-region
+  semantics yet.
+
+Consequences:
+
+- Closed-path start/end co-location should be easier to inspect visually.
+- The debug demo set now includes a deliberate crossing-line case for validating that the
+  debug renderer exposes unexpected path order.
+
+Files/API affected:
+
+- `LogoSC-Foundation-Core.scad`
+  - default `endPointHeightScale` changed from `0.90` to `0.85`
+- `LogoSC-Examples.scad`
+  - added `ExampleDebugCrossedRectangleCommands`
+  - expanded `DebugDemoExample` selections
+
+Follow-up:
+
+- When public docs are updated, add a User Manual section on crossing-line/self-intersecting
+  contours and how `RenderLogoDebug()` helps diagnose them.
+- Separately revisit whether LogoSC should warn, fail, or provide policy controls for
+  self-intersecting or open contours.
+
+
+
+### 2026-07-11 — Debug renderer start-marker tuning
+
+Previous state:
+
+- Co-located closed-path start/end markers were handled by making the red end marker
+  wider and shorter than the normal point marker.
+
+Reason for change:
+
+- The lime start marker was still harder to see than desired in closed paths.
+- Making the start marker taller gives it a cleaner visible tip when the red end marker
+  is drawn at the same XY position.
+
+Decision:
+
+- Restore end-point radius and height scales to normal point-marker size.
+- Make the start-point marker 15% taller and 5% narrower than ordinary point markers.
+- Keep the start marker lime and the end marker red.
+
+Consequences:
+
+- A closed-path co-location should appear as a normal red end cylinder with a narrower
+  lime start tip protruding through it.
+- The endpoint defaults are simpler again; the special-case visibility rule belongs to
+  the start marker.
+
+Files/API affected:
+
+- `LogoSC-Foundation-Core.scad`
+  - added `startPointRadiusScale` and `startPointHeightScale` debug point-marker
+    parameters
+  - restored `endPointRadiusScale` and `endPointHeightScale` defaults to `1.00`
+
+Follow-up:
+
+- Verify marker layering visually in OpenSCAD preview.
+
+
 ## 19. Deferred feature ideas
 
 Potential future features:

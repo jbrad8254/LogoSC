@@ -1,5 +1,86 @@
 # LogoSC Changelog
 
+## Unreleased — debug renderer start-marker tuning
+
+### Changed
+
+- Restored debug end-point marker radius/height defaults to normal point-marker size.
+- Changed debug start-point markers to be 15% taller and 5% narrower than normal
+  point markers so co-located closed paths leave a visible lime start marker through
+  the red end marker.
+
+## Unreleased — debug renderer crossing example and endpoint tuning
+
+### Changed
+
+- Changed debug end-point markers from 10% shorter to 15% shorter than normal point
+  markers so co-located start/end points leave more of the lime start marker visible.
+
+### Added
+
+- Added a crossed-rectangle debug demo with the lower two rectangle corners swapped in
+  the polygon path order. This intentionally self-intersecting case demonstrates how
+  the debug overlay makes unexpected crossing lines visible.
+
+### Notes
+
+- When user-facing documentation is updated, add a User Manual section explaining
+  crossing-line/self-intersecting contours and how the debug renderer is intended to
+  expose them.
+
+## Unreleased — debug renderer overlap and example tuning
+
+### Changed
+
+- Changed default pen-up debug capsules to 50% of normal segment height and
+  increased their default alpha to `0.75` for better visibility in overlaps.
+- Changed the primitive debug segment color to a darker purple so primitive-generated
+  edges are easier to distinguish from normal `MOVE` segments.
+- Changed end-point debug markers to be 10% wider and 10% shorter than normal point
+  markers so co-located start/end points show as a red cylinder with a green tip.
+
+### Added
+
+- Added an open-triangle debug demo immediately after the closed-triangle demo to
+  show the difference between the turtle endpoint and the filled polygon closure.
+- Added a stroke-vs-primitive triangle debug demo showing the same triangle constructed
+  from `MOVE`/`TURN` commands and as a centered `REGPOLY` primitive.
+
+## Unreleased — debug renderer naming and pen-up visibility tuning
+
+### Changed
+
+- Shortened debug-demo Customizer variable names in `LogoSC-Examples.scad` from
+  `LogoSCDebugDemo*`/`ShowLogoSCDebugDemo*` to compact `DebugDemo*` names.
+- Changed the default pen-up debug color to pale semi-transparent pink so pen-up
+  moves remain visible without overpowering normal movement segments.
+- Added `penUpHeightScale` to the debug renderer path so pen-up capsules can be
+  rendered shorter than normal capsules; the default scale is `0.75`.
+
+## Unreleased — experimental debug renderer
+
+### Added
+
+- Added preview-only debug event extraction and rendering to `LogoSC-Foundation-Core.scad`.
+- Added `RenderLogoDebug()` for z-centered 3D capsule/point-marker overlays.
+- Added an optional Customizer-controlled debug overlay demo to `LogoSC-Examples.scad`.
+
+### Changed
+
+- Reduced default debug segment and point marker sizes for less cluttered previews.
+- Shifted the default debug palette toward bright magenta, with dim magenta pen-up
+  moves, darker green `GOTO` segments, and lime/red start/end markers.
+- Grouped example Customizer controls under collapsible headings.
+- Replaced the initial crossing debug demo with stepped non-crossing examples for
+  simpler visual verification.
+- Replaced demo capsule/point visibility checkboxes with zero-capable size controls.
+
+### Notes
+
+- This is a diagnostic renderer, not a manufacturable stroke/solid-output API.
+- README, User Manual, and Cheat Sheet documentation are intentionally deferred until
+  OpenSCAD visual verification.
+
 ## Unreleased — old working-name references removed
 
 ### Changed

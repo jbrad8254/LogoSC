@@ -64,6 +64,12 @@
 //     Regions render through polygon(points=..., paths=...), so holes are
 //     represented by secondary paths inside the same polygon call. Open-stroke
 //     rendering is intentionally deferred.
+//
+// Debug rendering model:
+//     LogoSC also provides a preview-only debug renderer that records command
+//     execution events directly. It draws z-centered 3D capsules and point
+//     markers so low-level MOVE/GOTO/ARC/primitive behavior can be inspected
+//     independently of final filled-region output.
 // -----------------------------------------------------------------------------
 // LogoSC library version
 // -----------------------------------------------------------------------------
@@ -474,6 +480,881 @@ module RenderLogo2D(cmds, convexity = 10)
 {
     result = evalLogo(cmds);
     RenderContours2D(ResultContours(result), convexity);
+}
+
+
+// -----------------------------------------------------------------------------
+// Preview-only debug event extraction and renderer
+// -----------------------------------------------------------------------------
+// These helpers are for visual debugging, not manufacturable model generation.
+// They use a separate command-event evaluator instead of deriving paths from
+// filled contours, so pen-up movement, primitive tessellation, RUN/REPEAT
+// expansion, and command endpoints can be inspected directly.
+
+// Debug segment kinds. These are implementation-facing values used by
+// RenderLogoDebug(); callers should prefer the public renderer parameters over
+// depending on the numeric values.
+DEBUG_SEG_MOVE      = 0 + 0;
+DEBUG_SEG_GOTO      = 1 + 0;
+DEBUG_SEG_ARC       = 2 + 0;
+DEBUG_SEG_PRIMITIVE = 3 + 0;
+
+// Debug segment record indices:
+//     [kind, fromPoint, toPoint, pen, opcode]
+DS_KIND = 0 + 0;
+DS_FROM = 1 + 0;
+DS_TO   = 2 + 0;
+DS_PEN  = 3 + 0;
+DS_OP   = 4 + 0;
+
+// Debug evaluator result indices:
+//     [state, stack, pen, segments, points]
+DR_STATE    = 0 + 0;
+DR_STACK    = 1 + 0;
+DR_PEN      = 2 + 0;
+DR_SEGMENTS = 3 + 0;
+DR_POINTS   = 4 + 0;
+
+function DebugPointFromState(state) =
+[
+    state[SX],
+    state[SY]
+];
+
+function DebugSegmentFromPoints(kind, fromPoint, toPoint, pen, op) =
+[
+    kind,
+    fromPoint,
+    toPoint,
+    pen,
+    op
+];
+
+function DebugSegmentFromStates(kind, fromState, toState, pen, op) =
+    DebugSegmentFromPoints(
+        kind,
+        DebugPointFromState(fromState),
+        DebugPointFromState(toState),
+        pen,
+        op
+    );
+
+function DebugResult(state, stack, pen, segments, points) =
+[
+    state,
+    stack,
+    pen,
+    segments,
+    points
+];
+
+function ResultDebugState(result) =
+    result[DR_STATE];
+
+function ResultDebugStack(result) =
+    result[DR_STACK];
+
+function ResultDebugPen(result) =
+    result[DR_PEN];
+
+function ResultDebugSegments(result) =
+    result[DR_SEGMENTS];
+
+function ResultDebugPoints(result) =
+    result[DR_POINTS];
+
+// Convert an open point path into debug segments.
+function DebugOpenPathSegments(points, kind, pen, op) =
+    (len(points) < 2)
+        ? []
+        :
+        [
+            for (i = [0 : len(points) - 2])
+                DebugSegmentFromPoints(kind, points[i], points[i + 1], pen, op)
+        ];
+
+// Convert a closed point path into debug segments, including the closing edge.
+function DebugClosedPathSegments(points, kind, pen, op) =
+    (len(points) < 2)
+        ? []
+        :
+        [
+            for (i = [0 : len(points) - 1])
+                DebugSegmentFromPoints(
+                    kind,
+                    points[i],
+                    points[(i + 1) % len(points)],
+                    pen,
+                    op
+                )
+        ];
+
+function DebugAppendStationaryPoint(state, stack, pen, segments, points) =
+    DebugResult(state, stack, pen, segments, concat(points, [DebugPointFromState(state)]));
+
+function DebugEvalMove(vCmd, state, stack, pen, segments, points) =
+    (len(vCmd) <= CA1)
+        ? let(_err = SoftError("Malformed MOVE command", vCmd))
+        DebugResult(state, stack, pen, segments, points)
+        : let(
+            nextState = stateMove(state, CmdArg(vCmd, CA1), state[SS]),
+            nextSegment = DebugSegmentFromStates(
+                DEBUG_SEG_MOVE,
+                state,
+                nextState,
+                pen,
+                MOVE
+            )
+        )
+        DebugResult(
+            nextState,
+            stack,
+            pen,
+            concat(segments, [nextSegment]),
+            concat(points, [DebugPointFromState(nextState)])
+        );
+
+function DebugEvalGoto(vCmd, state, stack, pen, segments, points) =
+    (len(vCmd) <= CA3)
+        ? let(_err = SoftError("Malformed GOTO command", vCmd))
+        DebugResult(state, stack, pen, segments, points)
+        : let(
+            nextState = stateGoto(
+                CmdArg(vCmd, CA1),
+                CmdArg(vCmd, CA2),
+                CmdArg(vCmd, CA3),
+                state[SS]
+            ),
+            nextSegment = DebugSegmentFromStates(
+                DEBUG_SEG_GOTO,
+                state,
+                nextState,
+                pen,
+                GOTO
+            )
+        )
+        DebugResult(
+            nextState,
+            stack,
+            pen,
+            concat(segments, [nextSegment]),
+            concat(points, [DebugPointFromState(nextState)])
+        );
+
+function DebugEvalTurn(vCmd, state, stack, pen, segments, points) =
+    (len(vCmd) <= CA1)
+        ? let(_err = SoftError("Malformed TURN command", vCmd))
+        DebugResult(state, stack, pen, segments, points)
+        : DebugAppendStationaryPoint(
+            stateTurn(state, CmdArg(vCmd, CA1)),
+            stack,
+            pen,
+            segments,
+            points
+        );
+
+function DebugEvalDir(vCmd, state, stack, pen, segments, points) =
+    (len(vCmd) <= CA1)
+        ? let(_err = SoftError("Malformed DIR command", vCmd))
+        DebugResult(state, stack, pen, segments, points)
+        : DebugAppendStationaryPoint(
+            stateDir(state, CmdArg(vCmd, CA1)),
+            stack,
+            pen,
+            segments,
+            points
+        );
+
+function DebugEvalScale(vCmd, state, stack, pen, segments, points) =
+    (len(vCmd) <= CA1)
+        ? let(_err = SoftError("Malformed SCALE command", vCmd))
+        DebugResult(state, stack, pen, segments, points)
+        : DebugAppendStationaryPoint(
+            stateScale(state, CmdArg(vCmd, CA1)),
+            stack,
+            pen,
+            segments,
+            points
+        );
+
+function DebugEvalPush(vCmd, state, stack, pen, segments, points) =
+    DebugAppendStationaryPoint(state, concat(stack, [state]), pen, segments, points);
+
+function DebugEvalPop(vCmd, state, stack, pen, segments, points) =
+    (len(stack) == 0)
+        ? let(_err = SoftError("POP with empty state stack", vCmd))
+        DebugResult(state, stack, pen, segments, points)
+        : let(
+            restoredState = stack[len(stack) - 1],
+            nextStack =
+                (len(stack) <= 1)
+                    ? []
+                    :
+                    [
+                        for (i = [0 : len(stack) - 2])
+                            stack[i]
+                    ]
+        )
+        DebugAppendStationaryPoint(restoredState, nextStack, pen, segments, points);
+
+function DebugEvalPenUp(vCmd, state, stack, pen, segments, points) =
+    DebugAppendStationaryPoint(state, stack, PEN_UP, segments, points);
+
+function DebugEvalPenDown(vCmd, state, stack, pen, segments, points) =
+    DebugAppendStationaryPoint(state, stack, PEN_DOWN, segments, points);
+
+function DebugEvalArc(vCmd, state, stack, pen, segments, points) =
+    (len(vCmd) <= CA2)
+        ? let(_err = SoftError("Malformed ARC command", vCmd))
+        DebugResult(state, stack, pen, segments, points)
+        : (ArcRadius(vCmd) < 0)
+            ? let(_err = SoftError("ARC radius must be nonnegative", vCmd))
+            DebugResult(state, stack, pen, segments, points)
+            : (ArcHasExplicitSegments(vCmd) && ArcExplicitSegments(vCmd) <= 0)
+                ? let(_err = SoftError("ARC segment count must be positive", vCmd))
+                DebugResult(state, stack, pen, segments, points)
+                : (ArcDegrees(vCmd) == 0)
+                    ? DebugResult(state, stack, pen, segments, points)
+                    : (ArcRadius(vCmd) == 0 || ArcRadius(vCmd) * state[SS] == 0)
+                        ? DebugAppendStationaryPoint(
+                            stateTurn(state, ArcDegrees(vCmd)),
+                            stack,
+                            pen,
+                            segments,
+                            points
+                        )
+                        : let(
+                            radius = ArcRadius(vCmd),
+                            degrees = ArcDegrees(vCmd),
+                            scaledRadius = radius * state[SS],
+                            arcSegments = ArcSegmentCount(vCmd, state),
+                            arcPoints = ArcPoints(state, scaledRadius, degrees, arcSegments),
+                            pathPoints = concat([DebugPointFromState(state)], arcPoints),
+                            nextState = stateArc(state, radius, degrees, state[SS])
+                        )
+                        DebugResult(
+                            nextState,
+                            stack,
+                            pen,
+                            concat(
+                                segments,
+                                DebugOpenPathSegments(pathPoints, DEBUG_SEG_ARC, pen, ARC)
+                            ),
+                            concat(points, arcPoints)
+                        );
+
+function DebugEvalCircle(vCmd, state, stack, pen, segments, points) =
+    (len(vCmd) <= CA1)
+        ? let(_err = SoftError("Malformed CIRCLE command", vCmd))
+        DebugResult(state, stack, pen, segments, points)
+        : (CircleRadius(vCmd) < 0)
+            ? let(_err = SoftError("CIRCLE radius must be nonnegative", vCmd))
+            DebugResult(state, stack, pen, segments, points)
+            : (CircleHasExplicitSegments(vCmd) && CircleExplicitSegments(vCmd) < 3)
+                ? let(_err = SoftError("CIRCLE segment count must be at least 3", vCmd))
+                DebugResult(state, stack, pen, segments, points)
+                : let(
+                    scaledRadius = CircleRadius(vCmd) * abs(state[SS])
+                )
+                (scaledRadius == 0)
+                    ? DebugResult(state, stack, pen, segments, points)
+                    : let(
+                        contour = CircleContour(
+                            state,
+                            scaledRadius,
+                            CircleSegmentCount(vCmd, state)
+                        )
+                    )
+                    DebugResult(
+                        state,
+                        stack,
+                        pen,
+                        concat(
+                            segments,
+                            DebugClosedPathSegments(
+                                contour,
+                                DEBUG_SEG_PRIMITIVE,
+                                pen,
+                                CIRCLE
+                            )
+                        ),
+                        concat(points, contour)
+                    );
+
+function DebugEvalRegPoly(vCmd, state, stack, pen, segments, points) =
+    (len(vCmd) <= CA2)
+        ? let(_err = SoftError("Malformed REGPOLY command", vCmd))
+        DebugResult(state, stack, pen, segments, points)
+        : (RegPolySides(vCmd) < 3)
+            ? let(_err = SoftError("REGPOLY side count must be at least 3", vCmd))
+            DebugResult(state, stack, pen, segments, points)
+            : (RegPolyRadius(vCmd) < 0)
+                ? let(_err = SoftError("REGPOLY radius must be nonnegative", vCmd))
+                DebugResult(state, stack, pen, segments, points)
+                : let(
+                    scaledRadius = RegPolyRadius(vCmd) * abs(state[SS])
+                )
+                (scaledRadius == 0)
+                    ? DebugResult(state, stack, pen, segments, points)
+                    : let(
+                        contour = RegPolyContour(
+                            state,
+                            scaledRadius,
+                            RegPolySides(vCmd),
+                            RegPolyRotation(vCmd)
+                        )
+                    )
+                    DebugResult(
+                        state,
+                        stack,
+                        pen,
+                        concat(
+                            segments,
+                            DebugClosedPathSegments(
+                                contour,
+                                DEBUG_SEG_PRIMITIVE,
+                                pen,
+                                REGPOLY
+                            )
+                        ),
+                        concat(points, contour)
+                    );
+
+function DebugEvalRect(vCmd, state, stack, pen, segments, points) =
+    (len(vCmd) <= CA2)
+        ? let(_err = SoftError("Malformed RECT command", vCmd))
+        DebugResult(state, stack, pen, segments, points)
+        : (RectWidth(vCmd) <= 0 || RectHeight(vCmd) <= 0)
+            ? let(_err = SoftError("RECT width and height must be positive", vCmd))
+            DebugResult(state, stack, pen, segments, points)
+            : let(
+                scaledWidth = RectWidth(vCmd) * abs(state[SS]),
+                scaledHeight = RectHeight(vCmd) * abs(state[SS])
+            )
+            (scaledWidth == 0 || scaledHeight == 0)
+                ? DebugResult(state, stack, pen, segments, points)
+                : let(
+                    contour = RectContour(state, scaledWidth, scaledHeight)
+                )
+                DebugResult(
+                    state,
+                    stack,
+                    pen,
+                    concat(
+                        segments,
+                        DebugClosedPathSegments(contour, DEBUG_SEG_PRIMITIVE, pen, RECT)
+                    ),
+                    concat(points, contour)
+                );
+
+function DebugEvalRoundedRect(vCmd, state, stack, pen, segments, points) =
+    (len(vCmd) <= CA3)
+        ? let(_err = SoftError("Malformed ROUNDEDRECT command", vCmd))
+        DebugResult(state, stack, pen, segments, points)
+        : (RoundedRectWidth(vCmd) <= 0 || RoundedRectHeight(vCmd) <= 0)
+            ? let(
+                _err = SoftError(
+                    "ROUNDEDRECT width and height must be positive",
+                    vCmd
+                )
+            )
+            DebugResult(state, stack, pen, segments, points)
+            : (RoundedRectRadius(vCmd) < 0)
+                ? let(_err = SoftError("ROUNDEDRECT radius must be nonnegative", vCmd))
+                DebugResult(state, stack, pen, segments, points)
+                : (
+                    RoundedRectHasExplicitSegments(vCmd)
+                    && RoundedRectExplicitSegments(vCmd) <= 0
+                )
+                    ? let(
+                        _err = SoftError(
+                            "ROUNDEDRECT segment count must be positive",
+                            vCmd
+                        )
+                    )
+                    DebugResult(state, stack, pen, segments, points)
+                    : let(
+                        scaledWidth = RoundedRectWidth(vCmd) * abs(state[SS]),
+                        scaledHeight = RoundedRectHeight(vCmd) * abs(state[SS]),
+                        scaledRadius = RoundedRectRadius(vCmd) * abs(state[SS])
+                    )
+                    (scaledWidth == 0 || scaledHeight == 0)
+                        ? DebugResult(state, stack, pen, segments, points)
+                        : let(
+                            contour = RoundedRectContour(
+                                state,
+                                scaledWidth,
+                                scaledHeight,
+                                scaledRadius,
+                                RoundedRectSegmentCount(vCmd, state)
+                            )
+                        )
+                        DebugResult(
+                            state,
+                            stack,
+                            pen,
+                            concat(
+                                segments,
+                                DebugClosedPathSegments(
+                                    contour,
+                                    DEBUG_SEG_PRIMITIVE,
+                                    pen,
+                                    ROUNDEDRECT
+                                )
+                            ),
+                            concat(points, contour)
+                        );
+
+function DebugEvalHole(vCmd, state, stack, pen, segments, points, maxRec) =
+    (len(vCmd) <= CA1)
+        ? let(_err = SoftError("Malformed HOLE command", vCmd))
+        DebugResult(state, stack, pen, segments, points)
+        : let(
+            childCmds = HoleCmds(vCmd)
+        )
+        (len(childCmds) == 0)
+            ? let(_err = SoftError("HOLE child command list is empty", vCmd))
+            DebugResult(state, stack, pen, segments, points)
+            : let(
+                childResult = evalLogoDebug(
+                    childCmds,
+                    state,
+                    0,
+                    maxRec,
+                    [],
+                    PEN_DOWN,
+                    [],
+                    []
+                )
+            )
+            DebugResult(
+                state,
+                stack,
+                pen,
+                concat(segments, ResultDebugSegments(childResult)),
+                concat(points, ResultDebugPoints(childResult))
+            );
+
+function DebugEvalRun(vCmd, state, stack, pen, segments, points, maxRec) =
+    let(
+        childCmds = RunCmds(vCmd),
+        localMaxRec = RunMaxRec(vCmd)
+    )
+    (len(childCmds) == 0)
+        ? DebugResult(state, stack, pen, segments, points)
+        : (maxRec <= 0 || localMaxRec <= 0)
+            ? let(_err = SoftError("RUN recursion limit reached", vCmd))
+            DebugResult(state, stack, pen, segments, points)
+            : let(
+                nextMaxRec = min2(maxRec - 1, localMaxRec - 1),
+                nextScale = RunScale(vCmd) * state[SS],
+                nextState = stateMake(state[SX], state[SY], state[SH], nextScale),
+                childResult = evalLogoDebug(
+                    childCmds,
+                    nextState,
+                    0,
+                    nextMaxRec,
+                    stack,
+                    pen,
+                    [],
+                    []
+                )
+            )
+            DebugResult(
+                ResultDebugState(childResult),
+                ResultDebugStack(childResult),
+                ResultDebugPen(childResult),
+                concat(segments, ResultDebugSegments(childResult)),
+                concat(points, ResultDebugPoints(childResult))
+            );
+
+function DebugEvalRepeat(vCmd, state, stack, pen, segments, points, maxRec) =
+    (len(vCmd) <= CA2)
+        ? let(_err = SoftError("Malformed REPEAT command", vCmd))
+        DebugResult(state, stack, pen, segments, points)
+        : let(
+            repeatCount = RepeatCount(vCmd),
+            childCmds = RepeatCmds(vCmd)
+        )
+        (repeatCount <= 0 || len(childCmds) == 0)
+            ? DebugResult(state, stack, pen, segments, points)
+            : evalRepeatLogoDebug(
+                childCmds,
+                repeatCount,
+                state,
+                maxRec,
+                stack,
+                pen,
+                segments,
+                points
+            );
+
+function DebugEvalOpcode(vCmd, state, stack, pen, segments, points, maxRec) =
+      (vCmd == undef)
+        ? let(_err = SoftError("Empty or out-of-range command list", undef))
+        DebugResult(state, stack, pen, segments, points)
+    : (vCmd[COP] == MOVE)
+        ? DebugEvalMove(vCmd, state, stack, pen, segments, points)
+    : (vCmd[COP] == TURN)
+        ? DebugEvalTurn(vCmd, state, stack, pen, segments, points)
+    : (vCmd[COP] == DIR)
+        ? DebugEvalDir(vCmd, state, stack, pen, segments, points)
+    : (vCmd[COP] == SCALE)
+        ? DebugEvalScale(vCmd, state, stack, pen, segments, points)
+    : (vCmd[COP] == GOTO)
+        ? DebugEvalGoto(vCmd, state, stack, pen, segments, points)
+    : (vCmd[COP] == RUN)
+        ? DebugEvalRun(vCmd, state, stack, pen, segments, points, maxRec)
+    : (vCmd[COP] == PUSH)
+        ? DebugEvalPush(vCmd, state, stack, pen, segments, points)
+    : (vCmd[COP] == POP)
+        ? DebugEvalPop(vCmd, state, stack, pen, segments, points)
+    : (vCmd[COP] == PENUP)
+        ? DebugEvalPenUp(vCmd, state, stack, pen, segments, points)
+    : (vCmd[COP] == PENDOWN)
+        ? DebugEvalPenDown(vCmd, state, stack, pen, segments, points)
+    : (vCmd[COP] == ARC)
+        ? DebugEvalArc(vCmd, state, stack, pen, segments, points)
+    : (vCmd[COP] == CIRCLE)
+        ? DebugEvalCircle(vCmd, state, stack, pen, segments, points)
+    : (vCmd[COP] == REGPOLY)
+        ? DebugEvalRegPoly(vCmd, state, stack, pen, segments, points)
+    : (vCmd[COP] == RECT)
+        ? DebugEvalRect(vCmd, state, stack, pen, segments, points)
+    : (vCmd[COP] == ROUNDEDRECT)
+        ? DebugEvalRoundedRect(vCmd, state, stack, pen, segments, points)
+    : (vCmd[COP] == HOLE)
+        ? DebugEvalHole(vCmd, state, stack, pen, segments, points, maxRec)
+    : (vCmd[COP] == REPEAT)
+        ? DebugEvalRepeat(vCmd, state, stack, pen, segments, points, maxRec)
+    : let(
+        _err = SoftError(str("Invalid Logo command: ", CmdName(vCmd[COP])), vCmd)
+    )
+    DebugResult(state, stack, pen, segments, points);
+
+// Evaluate LogoSC commands into preview-only debug events.
+//
+// Unlike evalLogo(), this records execution events directly instead of final
+// filled contours. The result is intended for RenderLogoDebug() and related
+// diagnostics. It is not a substitute for RenderLogo2D().
+function evalLogoDebug(
+    vtCmds,
+    state = stateGoto(0, 0, 0, 1),
+    index = 0,
+    maxRec = maxRunRecursions,
+    stack = [],
+    pen = PEN_DOWN,
+    segments = [],
+    points = undef
+) =
+    let(
+        startPoints = points == undef ? [DebugPointFromState(state)] : points,
+        vCmd = (len(vtCmds) == 0 || index >= len(vtCmds)) ? undef : vtCmds[index],
+        thisResult = DebugEvalOpcode(
+            vCmd,
+            state,
+            stack,
+            pen,
+            segments,
+            startPoints,
+            maxRec
+        )
+    )
+    (vCmd == undef)
+        ? thisResult
+        : (index < len(vtCmds) - 1)
+            ? evalLogoDebug(
+                vtCmds,
+                ResultDebugState(thisResult),
+                index + 1,
+                maxRec,
+                ResultDebugStack(thisResult),
+                ResultDebugPen(thisResult),
+                ResultDebugSegments(thisResult),
+                ResultDebugPoints(thisResult)
+            )
+            : thisResult;
+
+function evalRepeatLogoDebug(
+    childCmds,
+    count,
+    state,
+    maxRec,
+    stack,
+    pen,
+    segments,
+    points
+) =
+    (count <= 0)
+        ? DebugResult(state, stack, pen, segments, points)
+        : let(
+            result = evalLogoDebug(
+                childCmds,
+                state,
+                0,
+                maxRec,
+                stack,
+                pen,
+                segments,
+                points
+            )
+        )
+        evalRepeatLogoDebug(
+            childCmds,
+            count - 1,
+            ResultDebugState(result),
+            maxRec,
+            ResultDebugStack(result),
+            ResultDebugPen(result),
+            ResultDebugSegments(result),
+            ResultDebugPoints(result)
+        );
+
+function DebugSegmentVisible(segment, showPenUpMoves) =
+    showPenUpMoves || segment[DS_PEN] == PEN_DOWN;
+
+function DebugSegmentColor(
+    segment,
+    moveColor,
+    gotoColor,
+    arcColor,
+    primitiveColor,
+    penUpColor) =
+    (segment[DS_PEN] == PEN_UP)
+        ? penUpColor
+        : (segment[DS_KIND] == DEBUG_SEG_GOTO)
+            ? gotoColor
+            : (segment[DS_KIND] == DEBUG_SEG_ARC)
+                ? arcColor
+                : (segment[DS_KIND] == DEBUG_SEG_PRIMITIVE)
+                    ? primitiveColor
+                    : moveColor;
+
+function DebugPointColor(index, pointCount, pointColor, startColor, endColor) =
+    (index == 0)
+        ? startColor
+        : (index == pointCount - 1)
+            ? endColor
+            : pointColor;
+
+function DebugPointRadius(index, pointCount, pointRadius, startPointRadiusScale, endPointRadiusScale) =
+    (index == 0)
+        ? pointRadius * startPointRadiusScale
+        : (index == pointCount - 1 && pointCount > 1)
+            ? pointRadius * endPointRadiusScale
+            : pointRadius;
+
+function DebugPointHeight(index, pointCount, pointHeight, startPointHeightScale, endPointHeightScale) =
+    (index == 0)
+        ? pointHeight * startPointHeightScale
+        : (index == pointCount - 1 && pointCount > 1)
+            ? pointHeight * endPointHeightScale
+            : pointHeight;
+
+module RenderLogoDebugCapsule(
+    fromPoint,
+    toPoint,
+    radius,
+    height,
+    z = 0,
+    fn = 16)
+{
+    if (radius > 0)
+    {
+        assert(height > 0, "Debug capsule height must be positive");
+
+        if (fromPoint == toPoint)
+        {
+            translate([fromPoint[0], fromPoint[1], z])
+            {
+                cylinder(h = height, r = radius, center = true, $fn = fn);
+            }
+        }
+        else
+        {
+            hull()
+            {
+                translate([fromPoint[0], fromPoint[1], z])
+                {
+                    cylinder(h = height, r = radius, center = true, $fn = fn);
+                }
+
+                translate([toPoint[0], toPoint[1], z])
+                {
+                    cylinder(h = height, r = radius, center = true, $fn = fn);
+                }
+            }
+        }
+    }
+}
+
+module RenderLogoDebugSegments(
+    segments,
+    segmentRadius = 0.15,
+    segmentHeight = 1,
+    showPenUpMoves = true,
+    z = 0,
+    fn = 16,
+    moveColor = [1.0, 0.0, 0.90],
+    gotoColor = [0.0, 0.40, 0.12],
+    arcColor = [0.95, 0.0, 1.0],
+    primitiveColor = [0.42, 0.0, 0.75],
+    penUpColor = [1.0, 0.80, 0.90, 0.75],
+    penUpHeightScale = 0.50)
+{
+    if (len(segments) > 0)
+    {
+        for (i = [0 : len(segments) - 1])
+        {
+            segment = segments[i];
+
+            if (DebugSegmentVisible(segment, showPenUpMoves))
+            {
+                color(
+                    DebugSegmentColor(
+                        segment,
+                        moveColor,
+                        gotoColor,
+                        arcColor,
+                        primitiveColor,
+                        penUpColor
+                    )
+                )
+                {
+                    RenderLogoDebugCapsule(
+                        segment[DS_FROM],
+                        segment[DS_TO],
+                        segmentRadius,
+                        segmentHeight * ((segment[DS_PEN] == PEN_UP) ? penUpHeightScale : 1),
+                        z = z,
+                        fn = fn
+                    );
+                }
+            }
+        }
+    }
+}
+
+module RenderLogoDebugPointMarkers(
+    points,
+    pointRadius = 0.30,
+    pointHeight = 2,
+    z = 0,
+    fn = 20,
+    pointColor = [1.0, 0.0, 1.0],
+    startColor = "Lime",
+    endColor = "Red",
+    startPointRadiusScale = 0.95,
+    startPointHeightScale = 1.15,
+    endPointRadiusScale = 1.00,
+    endPointHeightScale = 1.00)
+{
+    if (pointRadius > 0)
+    {
+        assert(pointHeight > 0, "Debug point height must be positive");
+
+        if (len(points) > 0)
+        {
+            for (i = [0 : len(points) - 1])
+            {
+                point = points[i];
+
+                color(DebugPointColor(i, len(points), pointColor, startColor, endColor))
+                {
+                    translate([point[0], point[1], z])
+                    {
+                        cylinder(
+                            h = DebugPointHeight(
+                                i,
+                                len(points),
+                                pointHeight,
+                                startPointHeightScale,
+                                endPointHeightScale
+                            ),
+                            r = DebugPointRadius(
+                                i,
+                                len(points),
+                                pointRadius,
+                                startPointRadiusScale,
+                                endPointRadiusScale
+                            ),
+                            center = true,
+                            $fn = fn
+                        );
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Evaluate and render a preview-only debug overlay for a LogoSC command list.
+//
+// Segments and points are z-centered so changing segmentHeight/pointHeight makes
+// the markers protrude through or above normal extruded RenderLogo2D() output
+// without needing extra z translation.
+module RenderLogoDebug(
+    cmds,
+    segmentRadius = 0.15,
+    pointRadius = 0.30,
+    segmentHeight = 1,
+    pointHeight = 2,
+    showSegments = true,
+    showPoints = true,
+    showPenUpMoves = true,
+    z = 0,
+    fn = 16,
+    moveColor = [1.0, 0.0, 0.90],
+    gotoColor = [0.0, 0.40, 0.12],
+    arcColor = [0.95, 0.0, 1.0],
+    primitiveColor = [0.42, 0.0, 0.75],
+    penUpColor = [1.0, 0.80, 0.90, 0.75],
+    penUpHeightScale = 0.50,
+    pointColor = [1.0, 0.0, 1.0],
+    startColor = "Lime",
+    endColor = "Red",
+    startPointRadiusScale = 0.95,
+    startPointHeightScale = 1.15,
+    endPointRadiusScale = 1.00,
+    endPointHeightScale = 1.00)
+{
+    debugResult = evalLogoDebug(cmds);
+
+    if (showSegments)
+    {
+        RenderLogoDebugSegments(
+            ResultDebugSegments(debugResult),
+            segmentRadius = segmentRadius,
+            segmentHeight = segmentHeight,
+            showPenUpMoves = showPenUpMoves,
+            z = z,
+            fn = fn,
+            moveColor = moveColor,
+            gotoColor = gotoColor,
+            arcColor = arcColor,
+            primitiveColor = primitiveColor,
+            penUpColor = penUpColor,
+            penUpHeightScale = penUpHeightScale
+        );
+    }
+
+    if (showPoints)
+    {
+        RenderLogoDebugPointMarkers(
+            ResultDebugPoints(debugResult),
+            pointRadius = pointRadius,
+            pointHeight = pointHeight,
+            z = z,
+            fn = fn,
+            pointColor = pointColor,
+            startColor = startColor,
+            endColor = endColor,
+            startPointRadiusScale = startPointRadiusScale,
+            startPointHeightScale = startPointHeightScale,
+            endPointRadiusScale = endPointRadiusScale,
+            endPointHeightScale = endPointHeightScale
+        );
+    }
 }
 
 // Return the smaller of two scalar values.

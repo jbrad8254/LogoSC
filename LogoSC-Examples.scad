@@ -23,6 +23,22 @@ TraceLevel = 0; // [0:4]
 // Example controls
 // -----------------------------------------------------------------------------
 
+/* [LogoSC Debug Demo] */
+
+// Preview-only debug-renderer demo controls. These are deliberately kept in the
+// example/client file so OpenSCAD Customizer can expose them as checkboxes.
+DebugDemo = false; // [false:true]
+DebugDemoFilled = true; // [false:true]
+DebugDemoPenUp = true; // [false:true]
+
+DebugDemoExample = 0; // [0:Closed, 1:Open, 2:Right, 3:PenUp, 4:Arc, 5:StrokePrim, 6:Prims]
+DebugDemoLineWidth = 0.30; // [0:0.05:4]
+DebugDemoPointRadius = 0.30; // [0:0.05:4]
+DebugDemoLineHeight = 4; // [0.5:0.5:12]
+DebugDemoPointHeight = 7; // [0.5:0.5:12]
+
+/* [Logo Examples] */
+
 RunLogoExamples = true;
 
 LogoExampleHeight = 3;
@@ -31,8 +47,12 @@ LogoExampleXStep = 80;
 LogoExampleYStep = 60;
 LogoExampleLabelYOffset = -26;
 
+/* [Logo Example Wordmark] */
+
 LogoExampleWordmarkWidth = 126;
 LogoExampleWordmarkHeight = 36;
+
+/* [Logo Example Colors] */
 
 LogoExampleColor0 = "red";
 LogoExampleColor1 = "orange";
@@ -91,6 +111,123 @@ function LogoStampedRoundedRect(x, y, width, height, radius, segments = 8) =
     [GOTO, x, y, 0],
     [ROUNDEDRECT, width, height, radius, segments]
 ];
+
+// Stepped command lists used by the optional debug-renderer demo. They start
+// with simple non-crossing shapes so individual MOVE/TURN/primitive events are
+// easier to verify before trying denser examples.
+ExampleDebugTriangleCommands =
+[
+    [MOVE, 24],
+    [TURN, 120],
+    [MOVE, 24],
+    [TURN, 120],
+    [MOVE, 24]
+];
+
+// This intentionally leaves the final side short. The filled 2D polygon still
+// closes the contour, while the debug renderer shows that the turtle endpoint
+// did not return to the start point. Keep this as a visible design question.
+ExampleDebugOpenTriangleCommands =
+[
+    [MOVE, 24],
+    [TURN, 120],
+    [MOVE, 24],
+    [TURN, 120],
+    [MOVE, 20]
+];
+
+ExampleDebugRightAngleCommands =
+[
+    [MOVE, 26],
+    [TURN, 90],
+    [MOVE, 16],
+    [TURN, 90],
+    [MOVE, 26],
+    [TURN, 90],
+    [MOVE, 16]
+];
+
+ExampleDebugPenUpGapCommands =
+[
+    [MOVE, 14],
+    [TURN, 90],
+    [MOVE, 14],
+    [TURN, 90],
+    [MOVE, 14],
+    [TURN, 90],
+    [MOVE, 14],
+    [PENUP],
+    [TURN, 90],
+    [MOVE, 24],
+    [PENDOWN],
+    [MOVE, 12],
+    [TURN, 120],
+    [MOVE, 12],
+    [TURN, 120],
+    [MOVE, 12]
+];
+
+ExampleDebugArcLoopCommands =
+[
+    [MOVE, 22],
+    [ARC, 8, 180, 12],
+    [MOVE, 22],
+    [ARC, 8, 180, 12]
+];
+
+ExampleDebugPrimitiveCommands =
+[
+    [PENUP],
+    [GOTO, -22, 0, 0],
+    [PENDOWN],
+    [CIRCLE, 6, 24],
+    [PENUP],
+    [GOTO, 0, 0, 0],
+    [PENDOWN],
+    [RECT, 12, 10],
+    [PENUP],
+    [GOTO, 22, 0, 0],
+    [PENDOWN],
+    [REGPOLY, 5, 7, 18],
+    [PENUP],
+    [GOTO, 44, 0, 0],
+    [PENDOWN],
+    [ROUNDEDRECT, 14, 10, 2, 4]
+];
+
+// Same-size equilateral triangles, constructed two ways. The left triangle is
+// a stroked turtle path; the right triangle is a REGPOLY primitive centered on
+// the current turtle point. The GOTO marker makes the primitive center visible.
+ExampleDebugStrokePrimitiveTriangleCommands =
+[
+    [PENUP],
+    [GOTO, -36, -24 / (2 * sqrt(3)), 0],
+    [PENDOWN],
+    [MOVE, 24],
+    [TURN, 120],
+    [MOVE, 24],
+    [TURN, 120],
+    [MOVE, 24],
+    [PENUP],
+    [GOTO, 24, 0, 0],
+    [PENDOWN],
+    [REGPOLY, 3, 24 / sqrt(3), -150]
+];
+
+function ExampleDebugRendererCommands(index) =
+    index == 1
+        ? ExampleDebugOpenTriangleCommands
+        : index == 2
+            ? ExampleDebugRightAngleCommands
+            : index == 3
+                ? ExampleDebugPenUpGapCommands
+                : index == 4
+                    ? ExampleDebugArcLoopCommands
+                    : index == 5
+                        ? ExampleDebugStrokePrimitiveTriangleCommands
+                        : index == 6
+                            ? ExampleDebugPrimitiveCommands
+                            : ExampleDebugTriangleCommands;
 
 // Recursive Koch segment generator. It emits LogoSC movement commands. The caller
 // is responsible for placing the starting point and heading.
@@ -755,6 +892,54 @@ module RenderKnobProfile3DExample(index = [3, 1], exampleScale = 1.0)
     }
 }
 
+// Optional standalone preview for the debug renderer. Open this file directly in
+// OpenSCAD and enable DebugDemo in Customizer to see the filled output
+// and colored debug capsules/points overlaid.
+module RenderDebugDemo(index = [2, 2], exampleScale = 1.0)
+{
+    offset = LogoExampleGridOffset(index);
+    cmds = ExampleDebugRendererCommands(DebugDemoExample);
+
+    echo("");
+    echo("============================================================");
+    echo("LogoExample:", "debug renderer overlay");
+    echo("Index:", index);
+    echo("Offset:", offset);
+    echo("Scale:", exampleScale);
+    echo("Debug demo example:", DebugDemoExample);
+    echo("============================================================");
+
+    translate([offset[0], offset[1], 0])
+    {
+        scale([exampleScale, exampleScale, exampleScale])
+        {
+            if (DebugDemoFilled)
+            {
+                color("Gold")
+                {
+                    linear_extrude(
+                        height = LogoExampleHeight,
+                        center = true,
+                        convexity = LogoExampleConvexity
+                    )
+                    {
+                        RenderLogo2D(cmds, convexity = LogoExampleConvexity);
+                    }
+                }
+            }
+
+            RenderLogoDebug(
+                cmds,
+                segmentRadius = DebugDemoLineWidth / 2,
+                pointRadius = DebugDemoPointRadius,
+                segmentHeight = DebugDemoLineHeight,
+                pointHeight = DebugDemoPointHeight,
+                showPenUpMoves = DebugDemoPenUp
+            );
+        }
+    }
+}
+
 // Gallery routine similar in spirit to LogoSCest(): render all examples at once.
 module RenderAllLogoExamples()
 {
@@ -794,4 +979,9 @@ module RenderAllLogoExamples()
 if (RunLogoExamples)
 {
     RenderAllLogoExamples();
+}
+
+if (DebugDemo)
+{
+    RenderDebugDemo();
 }
