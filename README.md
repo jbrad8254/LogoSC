@@ -44,13 +44,12 @@ Open `LogoSC-Examples.scad` in OpenSCAD to see the example gallery. The top-leve
 LogoSCRunMode = "Examples"; // [NoDemo, Examples, Debug, Tests]
 ```
 
-Use `Examples` for the normal gallery, `Debug` for the debug-visualization demo, `Tests` for the regression grid, and `NoDemo` or a blank string when you want the file to load without the foundation tests or demos being displayed by default.
+Use `Examples` for the normal gallery, `Debug` for the debug-visualization demo, and `Tests` for the regression grid. `NoDemo` or a blank string explicitly suppresses automatic output in the examples file. Ordinary user models can omit `LogoSCRunMode`; tests do not run unless explicitly selected.
 
-For your own model, include the core file, suppress automatic demos/tests, and call `RenderLogo2D()`. This first example intentionally uses only `MOVE` and `TURN`:
+For your own model, include the core file and call `RenderLogo2D()`. This first example intentionally uses only `MOVE` and `TURN`:
 
 ```scad
 include <LogoSC-Foundation-Core.scad>
-LogoSCRunMode = "NoDemo";
 TraceLevel = 0;
 
 triangle =
@@ -62,7 +61,7 @@ triangle =
     [MOVE, 40]
 ];
 
-linear_extrude(height = 4, convexity = 10)
+linear_extrude(height = 4, center = true, convexity = 10)
 {
     RenderLogo2D(triangle);
 }
@@ -73,19 +72,16 @@ linear_extrude(height = 4, convexity = 10)
 When filled output looks wrong, render the same command list with `RenderLogoDebug()`. It draws preview-only capsules and point markers that show the actual turtle path, including command order, start/end markers, pen-up moves, crossing lines, and unclosed polygons.
 
 ```scad
-color("Gold")
+linear_extrude(height = 4, center = true, convexity = 10)
 {
-    linear_extrude(height = 2, center = true, convexity = 10)
-    {
-        RenderLogo2D(triangle);
-    }
+    RenderLogo2D(triangle);
 }
 
 RenderLogoDebug(
     triangle,
     segmentRadius = 0.15,
     pointRadius = 0.30,
-    segmentHeight = 4,
+    segmentHeight = 5,
     pointHeight = 7
 );
 ```

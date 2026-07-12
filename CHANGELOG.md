@@ -14,6 +14,11 @@
   mode suppresses the test grid.
 - Removed the active `RunLogoTests` compatibility gate from the core/test path in
   favor of the unified `LogoSCRunMode` selector.
+- Removed now-unneeded `LogoSCRunMode = "NoDemo"` assignments from ordinary
+  Quick Start snippets; tests still run only when `LogoSCRunMode` is explicitly
+  set to `"Tests"`.
+- Updated Quick Start overlay snippets to use centered extrusion and a taller
+  debug segment height so z-centered debug capsules remain visible.
 
 ## Unreleased — debug renderer documentation
 

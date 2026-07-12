@@ -7,7 +7,7 @@ Compact LogoSC `2026.1` reference. Full docs: [`LogoSC-User-Manual.md`](LogoSC-U
 
 ## Setup
 
-[`include <LogoSC-Foundation-Core.scad>`](LogoSC-User-Manual.md#setup)  [`LogoSCRunMode = "NoDemo";`](LogoSC-User-Manual.md#setup) or `""`  [`TraceLevel = 0;`](LogoSC-User-Manual.md#setup)
+[`include <LogoSC-Foundation-Core.scad>`](LogoSC-User-Manual.md#setup)  [`TraceLevel = 0;`](LogoSC-User-Manual.md#setup)  optional [`LogoSCRunMode`](LogoSC-User-Manual.md#setup) for examples/debug/tests
 
 ## Version
 

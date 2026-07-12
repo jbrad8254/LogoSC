@@ -73,7 +73,6 @@ OpenSCAD:
 
 ```scad
 include <LogoSC-Foundation-Core.scad>
-LogoSCRunMode = "NoDemo"; // [NoDemo, Examples, Debug, Tests]
 TraceLevel = 0; // [0:4]
 ```
 
@@ -83,23 +82,23 @@ and reinitialize ChatGPT when development resumes in a new conversation.
 Maintainers should read it before changing the project; ordinary LogoSC users
 can ignore it.
 
-The `LogoSCRunMode` and `TraceLevel` assignments should come **after** the
-`include`. OpenSCAD `include` behaves like textual insertion, so post-include
-assignments override the core file's defaults without accidentally enabling the
-regression-test gallery in your model.
+`TraceLevel` should come **after** the `include`. OpenSCAD `include`
+behaves like textual insertion, so post-include assignments override the core
+file's defaults.
 
-`LogoSCRunMode` is the preferred top-level selector:
+`LogoSCRunMode` is the preferred top-level selector for example/demo/test files:
 
 | Value | Meaning |
 |---|---|
-| `NoDemo` | Suppress automatic examples, debug demos, and tests. Use this in ordinary user models. |
+| `NoDemo` | Suppress automatic examples, debug demos, and tests when you want an explicit no-output mode. |
 | `""` | Also suppress automatic examples, debug demos, and tests. Useful when you want an explicit blank state. |
 | `Examples` | Render the example gallery when using `LogoSC-Examples.scad`. |
 | `Debug` | Render the debug-visualization demo when using `LogoSC-Examples.scad`. |
 | `Tests` | Render the regression-test grid. |
 
 The foundation tests run only when `LogoSCRunMode` is explicitly set to
-`"Tests"`. Ordinary user models should use `"NoDemo"` or a blank string.
+`"Tests"`. Ordinary user models can usually omit `LogoSCRunMode` entirely; use
+`"NoDemo"` or a blank string only when you want an explicit no-output selector.
 
 For ordinary 2D output, wrap a LogoSC command list with:
 
@@ -161,7 +160,6 @@ The simplest Logo programs are written using only forward movement and turns. Th
 ```scad
 include <LogoSC-Foundation-Core.scad>
 
-LogoSCRunMode = "NoDemo";
 TraceLevel = 0;
 
 triangle =
@@ -189,19 +187,16 @@ Although the turtle walks only three line segments, **LogoSC produces a filled e
 To inspect the same triangle path, render the filled output and the debug overlay together:
 
 ```scad
-color("Gold")
+linear_extrude(height = 4, center = true, convexity = 10)
 {
-    linear_extrude(height = 2, center = true, convexity = 10)
-    {
-        RenderLogo2D(triangle);
-    }
+    RenderLogo2D(triangle);
 }
 
 RenderLogoDebug(
     triangle,
     segmentRadius = 0.15,
     pointRadius = 0.30,
-    segmentHeight = 4,
+    segmentHeight = 5,
     pointHeight = 7
 );
 ```
@@ -930,19 +925,16 @@ cmds =
     [MOVE, 30]
 ];
 
-color("Gold")
+linear_extrude(height = 4, center = true, convexity = 10)
 {
-    linear_extrude(height = 2, center = true, convexity = 10)
-    {
-        RenderLogo2D(cmds);
-    }
+    RenderLogo2D(cmds);
 }
 
 RenderLogoDebug(
     cmds,
     segmentRadius = 0.15,
     pointRadius = 0.30,
-    segmentHeight = 4,
+    segmentHeight = 5,
     pointHeight = 7
 );
 ```
@@ -1785,7 +1777,6 @@ polygons that are slow to preview, render, slice, and print.
 
 ```scad
 include <LogoSC-Foundation-Core.scad>
-LogoSCRunMode = "NoDemo";
 
 plate =
 [
@@ -1802,7 +1793,6 @@ linear_extrude(height = 3, convexity = 10)
 
 ```scad
 include <LogoSC-Foundation-Core.scad>
-LogoSCRunMode = "NoDemo";
 
 mountingPlate =
 [

@@ -1345,3 +1345,16 @@ Follow-up:
 - If external users appear later and need compatibility shims, revisit whether to
   support old run-control variables in a separate migration section. For now,
   there are no known external users, so keeping the selector simple is preferred.
+
+
+### 2026-07-12 - Quick Start snippet cleanup
+
+Follow-up documentation correction after user verification:
+
+- Ordinary user snippets no longer need `LogoSCRunMode = "NoDemo"`; tests only
+  run when `LogoSCRunMode` is explicitly set to `"Tests"`.
+- Quick Start extrusion examples should use `center = true` when shown with
+  `RenderLogoDebug()`, because debug capsules are z-centered.
+- Quick Start debug snippets should use a slightly taller segment height than
+  the filled polygon so the overlay remains visible.
+
