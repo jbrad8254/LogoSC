@@ -17,7 +17,7 @@ be passed to `linear_extrude()` or `rotate_extrude()`.
   - [Setup](#setup)
   - [Library version](#library-version)
 - [2. Core idea](#2-core-idea)
-  - [LogoSC and BOSL2 turtle](#logot-and-bosl2-turtle)
+  - [LogoSC and BOSL2 turtle](#logosc-and-bosl2-turtle)
   - [Other Logo-like OpenSCAD turtle tools](#other-logo-like-openscad-turtle-tools)
 - [3. Quick lookup cheat sheet](#3-quick-lookup-cheat-sheet)
 - [4. Runnable examples](#4-runnable-examples)
@@ -33,6 +33,8 @@ be passed to `linear_extrude()` or `rotate_extrude()`.
   - [`RenderContours2D()`](#77-rendercontours2d)
   - [`RenderRegion2D()`](#78-renderregion2d)
   - [Choosing an entry point](#79-choosing-an-entry-point)
+  - [Debug visualization](#710-debug-visualization)
+  - [OpenSCAD wrapper pattern](#711-openscad-wrapper-pattern)
 - [8. 3D printing workflow](#8-3d-printing-workflow)
 - [9. Segment-count controls](#9-segment-count-controls)
 - [10. Command reference](#10-command-reference)
@@ -40,7 +42,7 @@ be passed to `linear_extrude()` or `rotate_extrude()`.
 - [12. Practical examples](#12-practical-examples)
 - [13. Error handling and tracing](#13-error-handling-and-tracing)
 - [14. Limitations](#14-limitations)
-- [15. Suggested style for LogoSC programs](#15-suggested-style-for-logot-programs)
+- [15. Suggested style for LogoSC programs](#15-suggested-style-for-logosc-programs)
 - [Index](#index)
 
 ## 1. Files
@@ -71,7 +73,7 @@ OpenSCAD:
 
 ```scad
 include <LogoSC-Foundation-Core.scad>
-RunLogoTests = false;
+LogoSCRunMode = "NoDemo"; // [NoDemo, Examples, Debug, Tests]
 TraceLevel = 0; // [0:4]
 ```
 
@@ -81,11 +83,22 @@ and reinitialize ChatGPT when development resumes in a new conversation.
 Maintainers should read it before changing the project; ordinary LogoSC users
 can ignore it.
 
-The `RunLogoTests` and `TraceLevel` assignments should come **after** the
+The `LogoSCRunMode` and `TraceLevel` assignments should come **after** the
 `include`. OpenSCAD `include` behaves like textual insertion, so post-include
-assignments override the core file's Customizer defaults without creating a
-second Customizer block or accidentally enabling the regression-test gallery in
-your model.
+assignments override the core file's defaults without accidentally enabling the
+regression-test gallery in your model.
+
+`LogoSCRunMode` is the preferred top-level selector:
+
+| Value | Meaning |
+|---|---|
+| `NoDemo` | Suppress automatic examples, debug demos, and tests. Use this in ordinary user models. |
+| `Examples` | Render the example gallery when using `LogoSC-Examples.scad`. |
+| `Debug` | Render the debug-visualization demo when using `LogoSC-Examples.scad`. |
+| `Tests` | Render the regression-test grid. |
+
+`RunLogoTests` remains as a compatibility gate for older models and internal test
+files, but new examples should prefer `LogoSCRunMode`.
 
 For ordinary 2D output, wrap a LogoSC command list with:
 
@@ -102,12 +115,15 @@ linear_extrude(height = 4, center = false, convexity = 10)
 }
 ```
 
-To run the built-in tests, open `LogoSC-Foundation-Core.scad` directly in
-OpenSCAD and leave:
+To run the built-in tests, either open `LogoSC-Examples.scad` and select:
 
 ```scad
-RunLogoTests = true;
+LogoSCRunMode = "Tests";
 ```
+
+or open `LogoSC-Foundation-Core.scad` directly. Core-only use defaults to the
+regression-test grid unless the caller overrides `LogoSCRunMode` or
+`RunLogoTests`.
 
 The runnable gallery in `LogoSC-Examples.scad` follows the same include pattern
 and is a good starting point for user models.
@@ -144,7 +160,7 @@ The simplest Logo programs are written using only forward movement and turns. Th
 ```scad
 include <LogoSC-Foundation-Core.scad>
 
-RunLogoTests = false;
+LogoSCRunMode = "NoDemo";
 TraceLevel = 0;
 
 triangle =
@@ -167,9 +183,7 @@ RenderLogo2D(triangle);
 
 Although the turtle walks only three line segments, **LogoSC produces a filled equilateral triangle**, not just three independent lines.
 
-> **Note:** A future stroke-rendering API will primarily support debugging and educational visualization.
->
-> **TODO:** Add a cross-reference to the future Stroke Rendering API.
+> **Debug tip:** `RenderLogoDebug()` can overlay colored capsules and point markers on this same command list. It is useful when you need to see the actual turtle path rather than only the filled polygon result.
 
 ### Beyond Classic Logo
 
@@ -284,18 +298,22 @@ snowflake geometry, L-system-generated fractal outlines, rotate-extruded
 profiles, twisted extrusions, a small spiral tower, and the LogoSC feature
 wordmark.
 
-Open `LogoSC-Examples.scad` directly in OpenSCAD. The default setting renders the
-full gallery:
+Open `LogoSC-Examples.scad` directly in OpenSCAD. The top-level Customizer
+selector controls what is rendered:
 
 ```scad
-RunLogoExamples = true;
+LogoSCRunMode = "Examples"; // [NoDemo, Examples, Debug, Tests]
 ```
 
-The examples file includes the core and suppresses test/tracing output with:
+Use `Examples` for the gallery, `Debug` for the debug-visualization demo,
+`Tests` for the regression grid, and `NoDemo` for no automatic preview output.
+
+The examples file includes the core, selects the normal gallery by default, and
+keeps routine example previews quiet unless tracing is explicitly raised:
 
 ```scad
 include <LogoSC-Foundation-Core.scad>
-RunLogoTests = false;
+LogoSCRunMode = "Examples"; // [NoDemo, Examples, Debug, Tests]
 TraceLevel = 0; // [0:4]
 ```
 
@@ -389,9 +407,10 @@ which rendering entry point to use. The essential distinction is:
 - evaluation functions return OpenSCAD values that can be inspected or reused;
 - rendering modules emit 2D OpenSCAD geometry and do not return a value.
 
-LogoSC currently targets closed printable 2D polygons, not open strokes.
-OpenSCAD `polygon()` closes drawable paths automatically. Stroke width, end caps,
-joins, and miter limits are future work.
+LogoSC currently targets closed printable 2D polygons for final geometry.
+OpenSCAD `polygon()` closes drawable paths automatically. `RenderLogoDebug()` is
+provided for preview-only path inspection, but manufacturable stroke width, end
+caps, joins, and miter limits are future work.
 
 ## 7. Public rendering and evaluation API
 
@@ -847,10 +866,96 @@ for (region = regions)
 | Inspect final state, stack, pen, or point data | `evalLogo()` plus accessors |
 | Evaluate once and render several times | `evalLogo()` then `RenderContours2D()` |
 | Render manually generated region data | `RenderContours2D()` |
-| Render or debug one selected region | `RenderRegion2D()` |
+| Render or inspect one selected region | `RenderRegion2D()` |
+| Inspect command-path order, crossings, pen-up motion, and endpoints | `RenderLogoDebug()` |
 | Construct or inspect a region as data | `MakeRegion()`, `RegionOuter()`, `RegionHoles()` |
 
-### 7.10 OpenSCAD wrapper pattern
+### 7.10 Debug visualization
+
+`RenderLogoDebug()` renders a preview-only 3D diagnostic overlay for a LogoSC
+command list:
+
+```scad
+RenderLogoDebug(cmds);
+```
+
+It records command/evaluation events directly instead of reconstructing geometry
+from the final region contours. That matters because final `polygon()` output can
+hide the path order that produced the shape. The debug renderer draws:
+
+- colored capsules for `MOVE`, `GOTO`, `ARC`, and primitive-generated segments;
+- pale pink capsules for pen-up movement when `showPenUpMoves = true`;
+- point-marker cylinders at command points;
+- lime start markers and red end markers.
+
+The debug geometry is z-centered. Increasing the capsule or point height makes
+it protrude through a normal extruded `RenderLogo2D()` preview without requiring
+extra Z translations.
+
+Typical overlay pattern:
+
+```scad
+cmds =
+[
+    [MOVE, 30],
+    [TURN, 120],
+    [MOVE, 30],
+    [TURN, 120],
+    [MOVE, 30]
+];
+
+color("Gold")
+{
+    linear_extrude(height = 2, center = true, convexity = 10)
+    {
+        RenderLogo2D(cmds);
+    }
+}
+
+RenderLogoDebug(
+    cmds,
+    segmentRadius = 0.15,
+    pointRadius = 0.30,
+    segmentHeight = 4,
+    pointHeight = 7
+);
+```
+
+Use the debug overlay when filled output looks surprising. The most common cases
+are crossing lines and unclosed contours.
+
+**Crossing lines / self-intersections.** A polygon with points in the wrong order
+can cross itself. The filled result may look invalid, ambiguous, or simply wrong.
+The debug capsules show the actual point-to-point order, making swapped corners
+or unexpected traversal order visible before you chase the wrong problem.
+
+**Unclosed polygons.** OpenSCAD `polygon()` closes each path automatically. That
+means a LogoSC contour whose turtle endpoint does not return to its start point
+can still produce a filled shape. The debug overlay shows this clearly: the red
+end marker will not sit on the lime start marker, and the implicit closing edge
+is not shown as a command segment because the turtle did not actually draw it.
+
+**Primitive placement.** Closed primitives such as `CIRCLE`, `RECT`,
+`ROUNDEDRECT`, and `REGPOLY` are stamped at the current turtle state. The debug
+primitive color makes their generated edges visible and helps distinguish a
+centered primitive from a hand-walked turtle polygon.
+
+In `LogoSC-Examples.scad`, set:
+
+```scad
+LogoSCRunMode = "Debug";
+```
+
+Then use `DebugDemoExample` to step through the closed triangle, open triangle,
+crossed rectangle, ordinary rectangle, pen-up gap, arc loop, stroke-vs-primitive
+triangle, and primitive demos. `DebugDemoOverlay` toggles the debug capsules and
+points; `DebugDemoFilled` toggles the filled 2D preview.
+
+`RenderLogoDebug()` is not intended to produce STL-ready geometry. It is a visual
+inspection tool. For final parts, continue to use `RenderLogo2D()` plus native
+OpenSCAD operations.
+
+### 7.11 OpenSCAD wrapper pattern
 
 LogoSC intentionally remains a 2D geometry generator. Wrap its output with native
 OpenSCAD modules for final modeling:
@@ -1654,7 +1759,7 @@ polygons that are slow to preview, render, slice, and print.
 
 ```scad
 include <LogoSC-Foundation-Core.scad>
-RunLogoTests = false;
+LogoSCRunMode = "NoDemo";
 
 plate =
 [
@@ -1671,7 +1776,7 @@ linear_extrude(height = 3, convexity = 10)
 
 ```scad
 include <LogoSC-Foundation-Core.scad>
-RunLogoTests = false;
+LogoSCRunMode = "NoDemo";
 
 mountingPlate =
 [
@@ -1781,17 +1886,20 @@ Higher levels include lower levels.
 
 Current limitations:
 
-- LogoSC targets closed 2D regions, not open strokes.
-- No stroke width, caps, joins, or miter limits yet.
+- LogoSC targets closed 2D regions for final geometry, not manufacturable open strokes.
+- `RenderLogoDebug()` is preview-only diagnostic geometry, not a stroke/export API.
+- No stroke width, caps, joins, or miter limits for final geometry yet.
 - No automatic path filleting yet.
 - No `ROUNDEDREGPOLY` yet.
 - No variable/procedure system beyond OpenSCAD variables and `RUN` child lists.
 - Holes are attached to the most recently emitted outer region.
 - Hole containment and hole overlap are not validated by LogoSC.
-- `polygon()` closes paths automatically.
+- Crossing/self-intersecting contours are not rejected automatically.
+- `polygon()` closes paths automatically, so unclosed contours can still render as filled shapes.
 
-For now, use closed shapes, `HOLE`, and native OpenSCAD boolean/modeling
-operations to build printable parts.
+For now, use closed shapes, `HOLE`, native OpenSCAD boolean/modeling operations,
+and `RenderLogoDebug()` when you need to inspect suspicious path order, crossing
+segments, or unclosed contours.
 
 ## 15. Suggested style for LogoSC programs
 
@@ -1846,6 +1954,7 @@ control smoothness globally.
 - [`REPEAT`](#repeat)
 - [`RenderContours2D()`](#77-rendercontours2d)
 - [`RenderLogo2D()`](#73-renderlogo2d)
+- [`RenderLogoDebug()`](#710-debug-visualization)
 - [`RenderRegion2D()`](#78-renderregion2d)
 - [`ResultContours()`](#75-evaluator-result-accessors)
 - [`ResultPen()`](#75-evaluator-result-accessors)
@@ -1864,4 +1973,5 @@ control smoothness globally.
 - [Rotate extrusion](#rotate-extrusion)
 - [Setup](#setup)
 - [Test grid and tracing](#13-error-handling-and-tracing)
+- [Debug visualization](#710-debug-visualization)
 

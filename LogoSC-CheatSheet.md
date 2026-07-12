@@ -7,7 +7,7 @@ Compact LogoSC `2026.1` reference. Full docs: [`LogoSC-User-Manual.md`](LogoSC-U
 
 ## Setup
 
-[`include <LogoSC-Foundation-Core.scad>`](LogoSC-User-Manual.md#setup)  [`RunLogoTests = false;`](LogoSC-User-Manual.md#setup)  [`TraceLevel = 0;`](LogoSC-User-Manual.md#setup)
+[`include <LogoSC-Foundation-Core.scad>`](LogoSC-User-Manual.md#setup)  [`LogoSCRunMode = "NoDemo";`](LogoSC-User-Manual.md#setup)  [`TraceLevel = 0;`](LogoSC-User-Manual.md#setup)
 
 ## Version
 
@@ -31,7 +31,11 @@ Compact LogoSC `2026.1` reference. Full docs: [`LogoSC-User-Manual.md`](LogoSC-U
 
 ## Rendering / evaluation API
 
-[`RenderLogo2D(cmds, convexity = 10)`](LogoSC-User-Manual.md#renderlogo2dcmds-convexity-10)  [`evalLogo(cmds)`](LogoSC-User-Manual.md#evallogocmds)  [`ResultState(result)`](LogoSC-User-Manual.md#result-accessors)  [`ResultContours(result)`](LogoSC-User-Manual.md#result-accessors)  [`ResultStack(result)`](LogoSC-User-Manual.md#result-accessors)  [`ResultPen(result)`](LogoSC-User-Manual.md#result-accessors)  [`RenderContours2D(regions, convexity = 10)`](LogoSC-User-Manual.md#rendercontours2dregions-convexity-10)  [`RenderRegion2D(region, convexity = 10)`](LogoSC-User-Manual.md#renderregion2dregion-convexity-10)
+[`RenderLogo2D(cmds, convexity = 10)`](LogoSC-User-Manual.md#73-renderlogo2d)  [`RenderLogoDebug(cmds, ...)`](LogoSC-User-Manual.md#710-debug-visualization)  [`evalLogo(cmds)`](LogoSC-User-Manual.md#74-evallogo)  [`ResultState(result)`](LogoSC-User-Manual.md#75-evaluator-result-accessors)  [`ResultContours(result)`](LogoSC-User-Manual.md#75-evaluator-result-accessors)  [`ResultStack(result)`](LogoSC-User-Manual.md#75-evaluator-result-accessors)  [`ResultPen(result)`](LogoSC-User-Manual.md#75-evaluator-result-accessors)  [`RenderContours2D(regions, convexity = 10)`](LogoSC-User-Manual.md#77-rendercontours2d)  [`RenderRegion2D(region, convexity = 10)`](LogoSC-User-Manual.md#78-renderregion2d)
+
+## Debug visualization
+
+[`LogoSCRunMode = "Debug"`](LogoSC-User-Manual.md#710-debug-visualization)  [`DebugDemoOverlay`](LogoSC-User-Manual.md#710-debug-visualization)  [`DebugDemoFilled`](LogoSC-User-Manual.md#710-debug-visualization)  [`DebugDemoExample`](LogoSC-User-Manual.md#710-debug-visualization)  crossing lines  unclosed contours  pen-up moves  primitive placement
 
 ## Region data
 
@@ -43,7 +47,7 @@ Compact LogoSC `2026.1` reference. Full docs: [`LogoSC-User-Manual.md`](LogoSC-U
 
 ## Core controls
 
-[`RunLogoTests`](LogoSC-User-Manual.md#13-error-handling-and-tracing)  [`HardErrors`](LogoSC-User-Manual.md#13-error-handling-and-tracing)  [`TraceLevel`](LogoSC-User-Manual.md#13-error-handling-and-tracing)  [`maxRunRecursions`](LogoSC-User-Manual.md#run)
+[`LogoSCRunMode`](LogoSC-User-Manual.md#setup)  [`RunLogoTests`](LogoSC-User-Manual.md#13-error-handling-and-tracing)  [`HardErrors`](LogoSC-User-Manual.md#13-error-handling-and-tracing)  [`TraceLevel`](LogoSC-User-Manual.md#13-error-handling-and-tracing)  [`maxRunRecursions`](LogoSC-User-Manual.md#run)
 
 ## Test helpers
 

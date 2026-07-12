@@ -35,16 +35,25 @@ than replacing older reasoning with shorter summaries.
 - Creates filled 2D regions using commands such as `CIRCLE`, `RECT`, `ROUNDEDRECT`, and `REGPOLY`.
 - Supports region holes through `HOLE`.
 - Supports reusable relative command lists through `RUN`.
+- Provides a preview-only debug renderer for visualizing low-level path execution.
 - Leaves 3D composition to native OpenSCAD tools such as `linear_extrude()`, `difference()`, `union()`, and `translate()`.
 
 ## Quick start
 
-Open `LogoSC-Examples.scad` in OpenSCAD to see the example gallery.
+Open `LogoSC-Examples.scad` in OpenSCAD to see the example gallery. The top-level Customizer selector is:
 
-For your own model, include the core file and call `RenderLogo2D()`:
+```scad
+LogoSCRunMode = "Examples"; // [NoDemo, Examples, Debug, Tests]
+```
+
+Use `Examples` for the normal gallery, `Debug` for the debug-visualization demo, `Tests` for the regression grid, and `NoDemo` when you want the file to load without automatic preview geometry.
+
+For your own model, include the core file, suppress automatic demos/tests, and call `RenderLogo2D()`:
 
 ```scad
 include <LogoSC-Foundation-Core.scad>
+LogoSCRunMode = "NoDemo";
+TraceLevel = 0;
 
 part =
 [
@@ -69,6 +78,7 @@ RenderLogo2D(cmds, convexity = 10);
 Advanced helpers include:
 
 ```scad
+RenderLogoDebug(cmds, ...);
 evalLogo(cmds);
 ResultContours(result);
 ResultState(result);
@@ -103,7 +113,7 @@ See `LogoSC-CheatSheet.md` and `LogoSC-User-Manual.md` for the complete command 
 
 ## Repository files
 
-- `LogoSC-Foundation-Core.scad` — core interpreter and renderer.
+- `LogoSC-Foundation-Core.scad` — core interpreter, 2D renderer, and debug renderer.
 - `LogoSC-Foundation-Tests.scad` — regression and failure tests.
 - `LogoSC-Examples.scad` — runnable gallery and example models.
 - `LogoSC-User-Manual.md` — practical user documentation.
@@ -128,7 +138,7 @@ LogoSC keeps the core narrow:
 
 ## Current status
 
-LogoSC currently focuses on filled 2D region rendering. Stroke/open-path rendering is planned as a future experimental area, especially for L-systems, engraving paths, and decorative centerline geometry.
+LogoSC currently focuses on filled 2D region rendering for final geometry. It also includes a preview-only debug renderer that draws colored 3D capsules and point markers to expose command order, pen-up movement, primitive-generated segments, crossing paths, and unclosed contours. Manufacturable stroke/open-path rendering remains future work.
 
 ## Requirements
 

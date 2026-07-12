@@ -1292,3 +1292,29 @@ intended four-corner self-intersection case.
 - Public docs should soon describe `LogoSCRunMode`, `DebugDemoOverlay`,
   `DebugDemoFilled`, and the use of crossed-line debug examples to diagnose
   unexpected contour ordering or self-intersections.
+
+### 2026-07-12 — Debug renderer documentation pass
+
+Context:
+
+- The debug renderer, stepped demos, crossed-line demo, start/end marker tuning,
+  and unified `LogoSCRunMode` selector have been verified in OpenSCAD.
+- Public docs still described the older `RunLogoTests`/`RunLogoExamples` setup
+  and treated stroke/debug rendering as future work.
+
+Decision:
+
+- Document `LogoSCRunMode` as the preferred top-level setup selector.
+- Document `RenderLogoDebug()` as preview-only diagnostic geometry, not a
+  manufacturable stroke/export API.
+- Add User Manual guidance for using debug capsules and point markers to diagnose
+  crossing/self-intersecting contours, unclosed contours, pen-up motion, and
+  primitive-vs-hand-drawn construction.
+- Keep implementation internals such as `evalLogoDebug()` lightly documented;
+  the main user-facing API is `RenderLogoDebug(cmds, ...)`.
+
+Follow-up:
+
+- Revisit whether LogoSC should warn about open or self-intersecting contours.
+  For now, the debug renderer exposes these issues visually without changing
+  polygon-generation behavior.

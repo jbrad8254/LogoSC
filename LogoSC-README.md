@@ -11,6 +11,7 @@
 - [Geometry commands](#geometry-commands)
 - [Rendering model](#rendering-model)
 - [Rendering API](#rendering-api)
+- [Debug rendering](#debug-rendering)
 - [Future rendering work](#future-rendering-work)
 - [Cheat sheet](#cheat-sheet)
 - [Examples](#examples)
@@ -54,9 +55,13 @@ short summaries.
 
 ## Workflow
 
-1. Open `LogoSC-Foundation-Core.scad` in OpenSCAD.
-2. Leave `RunLogoTests = true` to run the regression tests.
-3. Set `RunLogoTests = false` when using the file as a library.
+1. Open `LogoSC-Examples.scad` in OpenSCAD for normal interactive use.
+2. Use the top-level `LogoSCRunMode` Customizer selector:
+   - `Examples` renders the example gallery.
+   - `Debug` renders the debug-visualization demo.
+   - `Tests` renders the regression-test grid.
+   - `NoDemo` suppresses automatic preview output.
+3. For direct core testing, opening `LogoSC-Foundation-Core.scad` still defaults to the regression tests.
 4. Commit stable milestones to Git.
 
 Visual regression tests are color-coded by grid index. Test geometry color follows
@@ -95,6 +100,7 @@ want to evaluate once and inspect or reuse the generated regions.
 | API | Kind | Purpose |
 |---|---|---|
 | `RenderLogo2D(cmds, convexity = 10)` | module | Evaluate a LogoSC command list and render the resulting 2D regions. |
+| `RenderLogoDebug(cmds, ...)` | module | Render preview-only 3D debug capsules and point markers for command-level path inspection. |
 | `evalLogo(cmds)` | function | Evaluate commands into an `EvalResult` without rendering geometry. |
 | `ResultContours(result)` | function | Return the evaluated region list from an `EvalResult`. |
 | `ResultState(result)` | function | Return the final `[x, y, heading, scale]` state. |
@@ -200,8 +206,10 @@ The first path is the filled outer boundary; later paths become holes. Regions
 with only one ring behave like the earlier independent-contour renderer.
 
 `ARC` is tessellated into contour points before rendering. Closed-shape commands
-emit separate outer-region contours before rendering. Open-stroke rendering is
-intentionally deferred.
+emit separate outer-region contours before rendering. The debug renderer uses a
+separate event-evaluation path so it can show command execution order, pen-up
+moves, primitive-generated edges, and start/end markers independently of final
+filled-region output.
 
 ## Rendering API
 
@@ -267,6 +275,25 @@ RenderContours2D(regions, convexity = 10);
 Use OpenSCAD's `linear_extrude()`, `rotate_extrude()`, `difference()`, `union()`,
 and transforms around `RenderLogo2D()` for final 3D parts.
 
+## Debug rendering
+
+`RenderLogoDebug(cmds, ...)` is a preview-only diagnostic renderer. It does not
+create manufacturable stroke geometry. It draws z-centered 3D capsules for
+command segments and cylinders for path points so the command stream can be
+inspected visually.
+
+Use it to diagnose:
+
+- unexpected crossing or self-intersecting contours;
+- contours that rely on `polygon()`'s implicit closing edge;
+- pen-up movement and resumed drawing locations;
+- primitive-generated geometry such as centered `REGPOLY`, `RECT`, and `CIRCLE`;
+- differences between hand-drawn turtle paths and stamped primitives.
+
+The examples file exposes this through `LogoSCRunMode = "Debug"`. Normal user
+models can overlay debug geometry with filled output by rendering both
+`RenderLogo2D(cmds)` and `RenderLogoDebug(cmds)`.
+
 ## Future rendering work
 
 LogoSC currently targets closed polygons because that maps cleanly to OpenSCAD and
@@ -301,7 +328,7 @@ Open the examples file directly in OpenSCAD. By default it renders the full
 example gallery:
 
 ```scad
-RunLogoExamples = true;
+LogoSCRunMode = "Examples"; // [NoDemo, Examples, Debug, Tests]
 ```
 
 To use one example in another model, include the core file and copy or reuse the

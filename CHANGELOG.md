@@ -1,5 +1,22 @@
 # LogoSC Changelog
 
+## Unreleased — debug renderer documentation
+
+### Added
+
+- Updated public documentation for the unified `LogoSCRunMode` selector.
+- Added User Manual coverage for `RenderLogoDebug()`, including how to use debug
+  lines/points to diagnose crossing/self-intersecting contours and unclosed
+  polygons.
+- Added Cheat Sheet entries for debug visualization and the new run selector.
+
+### Changed
+
+- Replaced stale setup references that still described the older separate
+  examples/tests/debug switches.
+- Updated README/project-overview status text now that preview-only debug
+  rendering is implemented and verified.
+
 ## Unreleased — debug demo selector cleanup
 
 ### Changed
@@ -13,8 +30,7 @@
 
 ### Notes
 
-- Public docs still need an update for the unified `LogoSCRunMode` selector and
-  the revised debug-demo controls.
+- Public docs were updated later in the debug-renderer documentation pass.
 
 ## Unreleased — unified Customizer run selector
 
@@ -28,8 +44,8 @@
 
 ### Notes
 
-- Public docs still need a setup update to describe `LogoSCRunMode` and remove
-  now-outdated `RunLogoTests`/`RunLogoExamples` demo-control guidance.
+- Public docs were updated later to describe `LogoSCRunMode` and remove
+  outdated `RunLogoTests`/`RunLogoExamples` demo-control guidance.
 
 ## Unreleased — debug renderer start-marker tuning
 
