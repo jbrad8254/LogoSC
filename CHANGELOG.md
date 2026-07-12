@@ -1,5 +1,36 @@
 # LogoSC Changelog
 
+## Unreleased — debug demo selector cleanup
+
+### Changed
+
+- Renamed the debug demo `Right` option to `Rectangle` for clearer Customizer labeling.
+- Rewrote the crossed-rectangle debug demo to use the same four corner points as
+  the rectangle demo, with no explicit `PENUP`/`PENDOWN` commands.
+- Added `DebugDemoOverlay` as a single checkbox to show or hide all debug overlay
+  lines, point markers, and related debug objects while leaving the optional filled
+  2D preview under `DebugDemoFilled`.
+
+### Notes
+
+- Public docs still need an update for the unified `LogoSCRunMode` selector and
+  the revised debug-demo controls.
+
+## Unreleased — unified Customizer run selector
+
+### Changed
+
+- Replaced the separate example/test/debug top-level Customizer switches with a
+  single `LogoSCRunMode` string selector using `NoDemo`, `Examples`, `Debug`, and
+  `Tests` values.
+- Kept `RunLogoTests` as a hidden compatibility gate so older client files can
+  still override it after including `LogoSC-Foundation-Core.scad`.
+
+### Notes
+
+- Public docs still need a setup update to describe `LogoSCRunMode` and remove
+  now-outdated `RunLogoTests`/`RunLogoExamples` demo-control guidance.
+
 ## Unreleased — debug renderer start-marker tuning
 
 ### Changed

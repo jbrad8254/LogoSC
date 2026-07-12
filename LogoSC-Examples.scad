@@ -14,32 +14,36 @@
 
 // Keep the regression-test grid and trace output out of the examples view when
 // this file is opened directly. OpenSCAD include behaves like textual insertion,
-// so these settings live after the include to override core Customizer defaults.
+// so these settings live after the include to override core defaults.
 include <LogoSC-Foundation-Core.scad>
-RunLogoTests = false;
-TraceLevel = 0; // [0:4]
 
 // -----------------------------------------------------------------------------
 // Example controls
 // -----------------------------------------------------------------------------
 
+/* [LogoSC Run] */
+
+// Top-level Customizer selector for automatic preview output.
+LogoSCRunMode = "Examples"; // [NoDemo, Examples, Debug, Tests]
+
+// Keep routine example previews quiet unless the user explicitly raises tracing.
+TraceLevel = 0; // [0:4]
+
 /* [LogoSC Debug Demo] */
 
-// Preview-only debug-renderer demo controls. These are deliberately kept in the
-// example/client file so OpenSCAD Customizer can expose them as checkboxes.
-DebugDemo = false; // [false:true]
+// Preview-only debug-renderer demo controls. These controls are used when
+// LogoSCRunMode is set to Debug.
+DebugDemoOverlay = true; // [false:true]
 DebugDemoFilled = true; // [false:true]
 DebugDemoPenUp = true; // [false:true]
 
-DebugDemoExample = 0; // [0:Closed, 1:Open, 2:Right, 3:PenUp, 4:Arc, 5:StrokePrim, 6:Prims]
+DebugDemoExample = 0; // [0:Closed, 1:Open, 2:Crossed, 3:Rectangle, 4:PenUp, 5:Arc, 6:StrokePrim, 7:Prims]
 DebugDemoLineWidth = 0.30; // [0:0.05:4]
 DebugDemoPointRadius = 0.30; // [0:0.05:4]
 DebugDemoLineHeight = 4; // [0.5:0.5:12]
 DebugDemoPointHeight = 7; // [0.5:0.5:12]
 
 /* [Logo Examples] */
-
-RunLogoExamples = true;
 
 LogoExampleHeight = 3;
 LogoExampleConvexity = 10;
@@ -113,8 +117,8 @@ function LogoStampedRoundedRect(x, y, width, height, radius, segments = 8) =
 ];
 
 // Stepped command lists used by the optional debug-renderer demo. They start
-// with simple non-crossing shapes so individual MOVE/TURN/primitive events are
-// easier to verify before trying denser examples.
+// with simple shapes so individual MOVE/TURN/primitive events are easier to
+// verify before trying denser or intentionally self-intersecting examples.
 ExampleDebugTriangleCommands =
 [
     [MOVE, 24],
@@ -136,7 +140,20 @@ ExampleDebugOpenTriangleCommands =
     [MOVE, 20]
 ];
 
-ExampleDebugRightAngleCommands =
+// Classic crossed polygon: the same four rectangle-corner points as the
+// rectangle demo, but with the bottom-right and top-left traversal order
+// swapped. The filled 2D result is self-intersecting, while the debug overlay
+// makes the unexpected crossing segments obvious. No pen commands are needed;
+// the default state is pen-down and the implicit contour start is the first
+// rectangle corner.
+ExampleDebugCrossedRectangleCommands =
+[
+    [GOTO, 26, 16, 0],
+    [GOTO, 0, 16, 0],
+    [GOTO, 26, 0, 0]
+];
+
+ExampleDebugRectangleCommands =
 [
     [MOVE, 26],
     [TURN, 90],
@@ -218,16 +235,18 @@ function ExampleDebugRendererCommands(index) =
     index == 1
         ? ExampleDebugOpenTriangleCommands
         : index == 2
-            ? ExampleDebugRightAngleCommands
+            ? ExampleDebugCrossedRectangleCommands
             : index == 3
-                ? ExampleDebugPenUpGapCommands
+                ? ExampleDebugRectangleCommands
                 : index == 4
-                    ? ExampleDebugArcLoopCommands
+                    ? ExampleDebugPenUpGapCommands
                     : index == 5
-                        ? ExampleDebugStrokePrimitiveTriangleCommands
+                        ? ExampleDebugArcLoopCommands
                         : index == 6
-                            ? ExampleDebugPrimitiveCommands
-                            : ExampleDebugTriangleCommands;
+                            ? ExampleDebugStrokePrimitiveTriangleCommands
+                            : index == 7
+                                ? ExampleDebugPrimitiveCommands
+                                : ExampleDebugTriangleCommands;
 
 // Recursive Koch segment generator. It emits LogoSC movement commands. The caller
 // is responsible for placing the starting point and heading.
@@ -893,7 +912,7 @@ module RenderKnobProfile3DExample(index = [3, 1], exampleScale = 1.0)
 }
 
 // Optional standalone preview for the debug renderer. Open this file directly in
-// OpenSCAD and enable DebugDemo in Customizer to see the filled output
+// OpenSCAD and set LogoSCRunMode to Debug in Customizer to see the filled output
 // and colored debug capsules/points overlaid.
 module RenderDebugDemo(index = [2, 2], exampleScale = 1.0)
 {
@@ -928,14 +947,17 @@ module RenderDebugDemo(index = [2, 2], exampleScale = 1.0)
                 }
             }
 
-            RenderLogoDebug(
-                cmds,
-                segmentRadius = DebugDemoLineWidth / 2,
-                pointRadius = DebugDemoPointRadius,
-                segmentHeight = DebugDemoLineHeight,
-                pointHeight = DebugDemoPointHeight,
-                showPenUpMoves = DebugDemoPenUp
-            );
+            if (DebugDemoOverlay)
+            {
+                RenderLogoDebug(
+                    cmds,
+                    segmentRadius = DebugDemoLineWidth / 2,
+                    pointRadius = DebugDemoPointRadius,
+                    segmentHeight = DebugDemoLineHeight,
+                    pointHeight = DebugDemoPointHeight,
+                    showPenUpMoves = DebugDemoPenUp
+                );
+            }
         }
     }
 }
@@ -976,12 +998,12 @@ module RenderAllLogoExamples()
     );
 }
 
-if (RunLogoExamples)
+if (LogoSCRunMode == "Examples")
 {
     RenderAllLogoExamples();
 }
 
-if (DebugDemo)
+if (LogoSCRunMode == "Debug")
 {
     RenderDebugDemo();
 }

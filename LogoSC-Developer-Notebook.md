@@ -1216,3 +1216,79 @@ Files/API affected:
 Follow-up:
 - ...
 ```
+
+
+### 2026-07-11 — Unified Customizer run selector
+
+Previous state:
+
+- `RunLogoTests`, `RunLogoExamples`, and `DebugDemo` appeared as separate top-level
+  Customizer controls. This made the examples/test/debug preview setup cumbersome and
+  allowed conflicting combinations.
+
+Reason for change:
+
+- Only one automatic preview mode should run at a time: no automatic output, examples,
+  debug overlay demo, or tests.
+- A string dropdown is easier to scan than several Boolean controls.
+
+Decision:
+
+- Add `LogoSCRunMode` with values `NoDemo`, `Examples`, `Debug`, and `Tests`.
+- In `LogoSC-Examples.scad`, default `LogoSCRunMode` to `Examples`.
+- In `LogoSC-Foundation-Core.scad`, default the hidden core-only mode to `Tests` so
+  opening the core file directly still runs regression tests.
+- Keep `RunLogoTests` as a hidden compatibility gate derived from `LogoSCRunMode` so
+  older client files that assign `RunLogoTests = false;` after include can still work.
+
+Consequences:
+
+- The Customizer top-level run controls are less cluttered.
+- The selected mode is mutually exclusive, avoiding simultaneous examples plus debug
+  plus tests.
+- Public docs need a follow-up update soon: setup snippets and Cheat Sheet controls
+  should describe `LogoSCRunMode` rather than the old separate switches.
+
+Files/API affected:
+
+- `LogoSC-Foundation-Core.scad`
+  - hidden default `LogoSCRunMode = str("Tests")`
+  - compatibility `RunLogoTests = LogoSCRunMode == "Tests"`
+- `LogoSC-Examples.scad`
+  - visible `LogoSCRunMode = "Examples"; // [NoDemo, Examples, Debug, Tests]`
+  - automatic rendering branches now test `LogoSCRunMode` directly
+
+Follow-up:
+
+- Verify Customizer behavior in OpenSCAD: exactly one useful top-level run selector should
+  be visible, and `NoDemo`, `Examples`, `Debug`, and `Tests` should each do the expected
+  thing when opening `LogoSC-Examples.scad`.
+- Update README/User Manual/Cheat Sheet after verification.
+
+### 2026-07-12 — Debug demo control cleanup
+
+#### Context
+
+After `LogoSCRunMode` unified the top-level Examples/Debug/Tests selection, the
+debug demo still needed one simple way to turn the command-level overlay itself
+on or off. The previous crossed-line demo also contained setup moves and pen
+commands that made the example look like it had extra points, which obscured the
+intended four-corner self-intersection case.
+
+#### Decision
+
+- Add `DebugDemoOverlay` above `DebugDemoFilled` in the `LogoSC Debug Demo`
+  Customizer group.
+- `DebugDemoOverlay` gates the whole debug overlay: capsules, point markers, and
+  related debug visualization objects.
+- Keep `DebugDemoFilled` as the independent filled-2D preview toggle.
+- Rename the `Right` debug demo option to `Rectangle`.
+- Rewrite the crossed-rectangle demo as a four-corner path with no explicit
+  `PENUP`/`PENDOWN` commands, using default pen-down behavior and the implicit
+  starting turtle point as one rectangle corner.
+
+#### Follow-up
+
+- Public docs should soon describe `LogoSCRunMode`, `DebugDemoOverlay`,
+  `DebugDemoFilled`, and the use of crossed-line debug examples to diagnose
+  unexpected contour ordering or self-intersections.

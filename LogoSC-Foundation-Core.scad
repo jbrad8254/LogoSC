@@ -133,8 +133,15 @@ DefaultRunMaxRecursions = 2; // [0:20]
 // Default extrusion height used by LogoSCest().
 DefaultTestHeight = 5; // [1:1:20]
 
-// Run regression tests from LogoSC-Foundation-Tests.scad.
-RunLogoTests = true; // [false:true]
+// Default top-level run selector. LogoSC-Examples.scad exposes the same
+// variable to OpenSCAD Customizer with NoDemo/Examples/Debug/Tests values.
+// Core-only use defaults to Tests so opening this file still runs regression
+// tests unless the caller overrides LogoSCRunMode or RunLogoTests.
+LogoSCRunMode = str("Tests");
+
+// Compatibility gate used by LogoSC-Foundation-Tests.scad. Keep this variable
+// name so older client files can still override RunLogoTests after include.
+RunLogoTests = LogoSCRunMode == "Tests";
 
 // Non-fatal error helper for use inside functions.
 function ErrorOrZero(msg, value = undef) =
