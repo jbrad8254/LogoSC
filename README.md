@@ -8,6 +8,12 @@ LogoSC is not trying to be a full Logo language. It is a lightweight OpenSCAD ge
 
 ## What LogoSC does
 
+- Evaluates turtle-style command lists such as `MOVE`, `TURN`, `ARC`, `RUN`, and `REPEAT`.
+- Creates filled 2D regions using commands such as `CIRCLE`, `RECT`, `ROUNDEDRECT`, and `REGPOLY`.
+- Supports region holes through `HOLE`.
+- Supports reusable relative command lists through `RUN`.
+- Provides a preview-only debug renderer for visualizing low-level path execution.
+- Leaves 3D composition to native OpenSCAD tools such as `linear_extrude()`, `difference()`, `union()`, and `translate()`.
 
 ## Developer notebook and restart order
 
@@ -30,14 +36,6 @@ Then treat the newly uploaded repository ZIP as the sole source of truth.
 The notebook is intentionally historical. Add dated decisions and lessons rather
 than replacing older reasoning with shorter summaries.
 
-
-- Evaluates turtle-style command lists such as `MOVE`, `TURN`, `ARC`, `RUN`, and `REPEAT`.
-- Creates filled 2D regions using commands such as `CIRCLE`, `RECT`, `ROUNDEDRECT`, and `REGPOLY`.
-- Supports region holes through `HOLE`.
-- Supports reusable relative command lists through `RUN`.
-- Provides a preview-only debug renderer for visualizing low-level path execution.
-- Leaves 3D composition to native OpenSCAD tools such as `linear_extrude()`, `difference()`, `union()`, and `translate()`.
-
 ## Quick start
 
 Open `LogoSC-Examples.scad` in OpenSCAD to see the example gallery. The top-level Customizer selector is:
@@ -46,26 +44,53 @@ Open `LogoSC-Examples.scad` in OpenSCAD to see the example gallery. The top-leve
 LogoSCRunMode = "Examples"; // [NoDemo, Examples, Debug, Tests]
 ```
 
-Use `Examples` for the normal gallery, `Debug` for the debug-visualization demo, `Tests` for the regression grid, and `NoDemo` when you want the file to load without automatic preview geometry.
+Use `Examples` for the normal gallery, `Debug` for the debug-visualization demo, `Tests` for the regression grid, and `NoDemo` or a blank string when you want the file to load without the foundation tests or demos being displayed by default.
 
-For your own model, include the core file, suppress automatic demos/tests, and call `RenderLogo2D()`:
+For your own model, include the core file, suppress automatic demos/tests, and call `RenderLogo2D()`. This first example intentionally uses only `MOVE` and `TURN`:
 
 ```scad
 include <LogoSC-Foundation-Core.scad>
 LogoSCRunMode = "NoDemo";
 TraceLevel = 0;
 
-part =
+triangle =
 [
-    [ROUNDEDRECT, 40, 20, 3],
-    [HOLE, [[CIRCLE, 3]]]
+    [MOVE, 40],
+    [TURN, 120],
+    [MOVE, 40],
+    [TURN, 120],
+    [MOVE, 40]
 ];
 
 linear_extrude(height = 4, convexity = 10)
 {
-    RenderLogo2D(part);
+    RenderLogo2D(triangle);
 }
 ```
+
+### Debug the same path
+
+When filled output looks wrong, render the same command list with `RenderLogoDebug()`. It draws preview-only capsules and point markers that show the actual turtle path, including command order, start/end markers, pen-up moves, crossing lines, and unclosed polygons.
+
+```scad
+color("Gold")
+{
+    linear_extrude(height = 2, center = true, convexity = 10)
+    {
+        RenderLogo2D(triangle);
+    }
+}
+
+RenderLogoDebug(
+    triangle,
+    segmentRadius = 0.15,
+    pointRadius = 0.30,
+    segmentHeight = 4,
+    pointHeight = 7
+);
+```
+
+Use the debug view before assuming the filled polygon is broken. It is often showing you that the path crossed itself, the corners arrived in the wrong order, or the turtle endpoint did not return to the start point.
 
 ## Current public API
 

@@ -11,7 +11,7 @@
 //
 // This file is intentionally noisy: it exercises the evaluator, RUN command
 // expansion, scaling, recursion limiting, pen-state behavior, and soft-error
-// behavior. Test execution is guarded by RunLogoTests in the core file.
+// behavior. Test execution is guarded by LogoSCRunMode == "Tests".
 //
 // =============================================================================
 
@@ -1337,7 +1337,7 @@ module RunAllLogoSCests()
     TestFailureSuiteLogo();
 }
 
-if (RunLogoTests)
+if (!is_undef(LogoSCRunMode) && LogoSCRunMode == "Tests")
 {
     RunAllLogoSCests();
 }

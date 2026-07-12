@@ -60,8 +60,8 @@ short summaries.
    - `Examples` renders the example gallery.
    - `Debug` renders the debug-visualization demo.
    - `Tests` renders the regression-test grid.
-   - `NoDemo` suppresses automatic preview output.
-3. For direct core testing, opening `LogoSC-Foundation-Core.scad` still defaults to the regression tests.
+   - `NoDemo` or a blank string suppresses automatic preview output.
+3. For direct core testing, open `LogoSC-Foundation-Core.scad` and explicitly set `LogoSCRunMode = "Tests"`.
 4. Commit stable milestones to Git.
 
 Visual regression tests are color-coded by grid index. Test geometry color follows

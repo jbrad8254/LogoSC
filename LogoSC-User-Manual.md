@@ -93,12 +93,13 @@ regression-test gallery in your model.
 | Value | Meaning |
 |---|---|
 | `NoDemo` | Suppress automatic examples, debug demos, and tests. Use this in ordinary user models. |
+| `""` | Also suppress automatic examples, debug demos, and tests. Useful when you want an explicit blank state. |
 | `Examples` | Render the example gallery when using `LogoSC-Examples.scad`. |
 | `Debug` | Render the debug-visualization demo when using `LogoSC-Examples.scad`. |
 | `Tests` | Render the regression-test grid. |
 
-`RunLogoTests` remains as a compatibility gate for older models and internal test
-files, but new examples should prefer `LogoSCRunMode`.
+The foundation tests run only when `LogoSCRunMode` is explicitly set to
+`"Tests"`. Ordinary user models should use `"NoDemo"` or a blank string.
 
 For ordinary 2D output, wrap a LogoSC command list with:
 
@@ -115,15 +116,15 @@ linear_extrude(height = 4, center = false, convexity = 10)
 }
 ```
 
-To run the built-in tests, either open `LogoSC-Examples.scad` and select:
+To run the built-in tests, open `LogoSC-Examples.scad` or
+`LogoSC-Foundation-Core.scad` and set:
 
 ```scad
 LogoSCRunMode = "Tests";
 ```
 
-or open `LogoSC-Foundation-Core.scad` directly. Core-only use defaults to the
-regression-test grid unless the caller overrides `LogoSCRunMode` or
-`RunLogoTests`.
+The tests do not run by default. This keeps the foundation file quiet unless the
+test grid is explicitly requested.
 
 The runnable gallery in `LogoSC-Examples.scad` follows the same include pattern
 and is a good starting point for user models.
@@ -184,6 +185,31 @@ RenderLogo2D(triangle);
 Although the turtle walks only three line segments, **LogoSC produces a filled equilateral triangle**, not just three independent lines.
 
 > **Debug tip:** `RenderLogoDebug()` can overlay colored capsules and point markers on this same command list. It is useful when you need to see the actual turtle path rather than only the filled polygon result.
+
+To inspect the same triangle path, render the filled output and the debug overlay together:
+
+```scad
+color("Gold")
+{
+    linear_extrude(height = 2, center = true, convexity = 10)
+    {
+        RenderLogo2D(triangle);
+    }
+}
+
+RenderLogoDebug(
+    triangle,
+    segmentRadius = 0.15,
+    pointRadius = 0.30,
+    segmentHeight = 4,
+    pointHeight = 7
+);
+```
+
+The debug view is especially useful for detecting crossing lines and unclosed
+polygons. If the red end marker does not return to the lime start marker, the
+filled result may still close because OpenSCAD polygons are implicitly closed,
+but the command path itself is open.
 
 ### Beyond Classic Logo
 

@@ -7,7 +7,7 @@ Compact LogoSC `2026.1` reference. Full docs: [`LogoSC-User-Manual.md`](LogoSC-U
 
 ## Setup
 
-[`include <LogoSC-Foundation-Core.scad>`](LogoSC-User-Manual.md#setup)  [`LogoSCRunMode = "NoDemo";`](LogoSC-User-Manual.md#setup)  [`TraceLevel = 0;`](LogoSC-User-Manual.md#setup)
+[`include <LogoSC-Foundation-Core.scad>`](LogoSC-User-Manual.md#setup)  [`LogoSCRunMode = "NoDemo";`](LogoSC-User-Manual.md#setup) or `""`  [`TraceLevel = 0;`](LogoSC-User-Manual.md#setup)
 
 ## Version
 
@@ -47,7 +47,7 @@ Compact LogoSC `2026.1` reference. Full docs: [`LogoSC-User-Manual.md`](LogoSC-U
 
 ## Core controls
 
-[`LogoSCRunMode`](LogoSC-User-Manual.md#setup)  [`RunLogoTests`](LogoSC-User-Manual.md#13-error-handling-and-tracing)  [`HardErrors`](LogoSC-User-Manual.md#13-error-handling-and-tracing)  [`TraceLevel`](LogoSC-User-Manual.md#13-error-handling-and-tracing)  [`maxRunRecursions`](LogoSC-User-Manual.md#run)
+[`LogoSCRunMode`](LogoSC-User-Manual.md#setup)  [`HardErrors`](LogoSC-User-Manual.md#13-error-handling-and-tracing)  [`TraceLevel`](LogoSC-User-Manual.md#13-error-handling-and-tracing)  [`maxRunRecursions`](LogoSC-User-Manual.md#run)
 
 ## Test helpers
 

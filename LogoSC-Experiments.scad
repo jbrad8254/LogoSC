@@ -12,11 +12,9 @@
 // ============================================================================
 
 // Keep the regression-test grid and trace output out of the experiments view
-// when this file is opened directly. OpenSCAD include behaves like textual
-// insertion, so these settings live after the include to override core
-// Customizer defaults.
+// when this file is opened directly.
 include <LogoSC-Foundation-Core.scad>
-RunLogoTests = false;
+LogoSCRunMode = "NoDemo";
 TraceLevel = 0; // [0:4]
 
 // -----------------------------------------------------------------------------

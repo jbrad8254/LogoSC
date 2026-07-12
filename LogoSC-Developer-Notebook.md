@@ -1318,3 +1318,30 @@ Follow-up:
 - Revisit whether LogoSC should warn about open or self-intersecting contours.
   For now, the debug renderer exposes these issues visually without changing
   polygon-generation behavior.
+
+### 2026-07-12 — Quick Start and run-mode guard cleanup
+
+Context:
+
+- The unified `LogoSCRunMode` selector worked, but public setup text still made
+  the default/no-demo behavior less clear than desired.
+- The README Quick Start still led with a rectangle-with-hole primitive example,
+  while the intended first example is a simple `MOVE`/`TURN` turtle path.
+- The active `RunLogoTests` compatibility gate complicated the mental model now
+  that `LogoSCRunMode` is the primary run selector.
+
+Decision:
+
+- Use a `MOVE`/`TURN` triangle as the README Quick Start model.
+- Add an early README debug-overlay example using `RenderLogoDebug()` on the same
+  triangle command list.
+- Treat `LogoSCRunMode = "Tests"` as the only active test-run condition.
+- Allow `LogoSCRunMode = "NoDemo"`, a blank string, or an undefined run mode to
+  suppress the foundation test grid.
+- Remove the active `RunLogoTests` compatibility gate from the core/test code.
+
+Follow-up:
+
+- If external users appear later and need compatibility shims, revisit whether to
+  support old run-control variables in a separate migration section. For now,
+  there are no known external users, so keeping the selector simple is preferred.

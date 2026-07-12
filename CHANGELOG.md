@@ -1,5 +1,20 @@
 # LogoSC Changelog
 
+## Unreleased — quick start and run-mode cleanup
+
+### Changed
+
+- Updated README Quick Start to use a simple `MOVE`/`TURN` triangle as the first
+  model instead of a rectangle-with-hole primitive example.
+- Added early README guidance for using `RenderLogoDebug()` to inspect the same
+  command path and diagnose crossing lines, wrong point order, pen-up movement,
+  and unclosed polygons.
+- Changed foundation test execution so tests run only when `LogoSCRunMode` is
+  explicitly set to `"Tests"`; `"NoDemo"`, a blank string, or an undefined run
+  mode suppresses the test grid.
+- Removed the active `RunLogoTests` compatibility gate from the core/test path in
+  favor of the unified `LogoSCRunMode` selector.
+
 ## Unreleased — debug renderer documentation
 
 ### Added
