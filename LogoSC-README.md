@@ -72,7 +72,7 @@ the Y row. Colors cover indices 0 through 9; larger indices use `TestColorMax`.
 
 ## Versioning
 
-Current public API version: `2026.1`.
+Current public API version: `2026.2`.
 
 `LogoSC-Foundation-Core.scad` exposes:
 
@@ -90,7 +90,7 @@ user-model compatibility checks.
 Example:
 
 ```scad
-assert(LogoSCVersionAtLeast(2026, 1), "This model requires LogoSC 2026.1+");
+assert(LogoSCVersionAtLeast(2026, 2), "This model requires LogoSC 2026.2+");
 ```
 
 ## Public API quick reference
@@ -300,6 +300,12 @@ models can overlay debug geometry with filled output by rendering both
 
 LogoSC currently targets closed polygons because that maps cleanly to OpenSCAD and
 3D printing. Open-stroke rendering is deferred to a later rendering milestone.
+
+Before changing filled-region behavior, LogoSC should define optional validation for
+contours whose final turtle point differs from the starting point. The current renderer
+preserves OpenSCAD `polygon()` behavior, which implicitly adds the closing edge; any
+future warning or strict mode should remain opt-in and must not invent a synthetic turtle
+move in the evaluated path.
 
 A future stroke renderer should probably convert centerline paths into closed
 outline polygons. That design needs explicit stroke width, end-cap style, join

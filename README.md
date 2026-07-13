@@ -115,7 +115,7 @@ RenderContours2D(regions, convexity = 10);
 RenderRegion2D(region, convexity = 10);
 ```
 
-The current public API version is `2026.1`.
+The current public API version is `2026.2`.
 
 ## Command examples
 
@@ -168,6 +168,18 @@ LogoSC keeps the core narrow:
 ## Current status
 
 LogoSC currently focuses on filled 2D region rendering for final geometry. It also includes a preview-only debug renderer that draws colored 3D capsules and point markers to expose command order, pen-up movement, primitive-generated segments, crossing paths, and unclosed contours. Manufacturable stroke/open-path rendering remains future work.
+
+## Version history
+
+| Version | Highlights |
+| --- | --- |
+| 2026.2 | LogoSC identity, `RenderLogoDebug()`, unified run mode, licensing, branding, and documentation refresh |
+| 2026.0 | Initial public foundation and filled-region geometry API |
+
+## Near-term roadmap
+
+- Add optional validation for open contours before filled-polygon generation.
+- Keep manufacturable stroke rendering as a separate API with explicit width, cap, and join semantics.
 
 ## Requirements
 

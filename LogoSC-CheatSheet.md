@@ -3,7 +3,7 @@
 <img src="images/logosc-gear-icon.png" alt="LogoSC gear icon" width="72" align="right">
 
 
-Compact LogoSC `2026.1` reference. Full docs: [`LogoSC-User-Manual.md`](LogoSC-User-Manual.md). Inspired by the compact section style of the [OpenSCAD cheat sheet](https://openscad.org/cheatsheet/index.html?version=2021.01).
+Compact LogoSC `2026.2` reference. Full docs: [`LogoSC-User-Manual.md`](LogoSC-User-Manual.md). Inspired by the compact section style of the [OpenSCAD cheat sheet](https://openscad.org/cheatsheet/index.html?version=2021.01).
 
 ## Setup
 
