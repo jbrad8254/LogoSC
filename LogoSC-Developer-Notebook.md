@@ -1,5 +1,58 @@
 # LogoSC Developer Notebook
 
+## Index
+
+### Architecture
+- Project goals
+- Design philosophy
+- Public API stability
+- Versioning policy
+
+### Rendering Pipeline
+- Turtle evaluation
+- Contours
+- Regions
+- Polygon generation
+- Primitive implementation
+
+### Debug Rendering
+- Design goals
+- RenderLogoDebug()
+- Debug event model
+- Marker rendering
+- Known limitations
+
+### Documentation
+- README
+- User Manual
+- Cheat Sheet
+- Examples
+
+### Releases
+- Current release history
+
+### Future Work
+- Stroke rendering
+- Open contour validation
+- Additional primitives
+- Performance ideas
+
+### Design Decisions
+- Stable public APIs
+- Debug renderer separation
+- MOVE/TURN examples
+- Unified run mode
+
+## Quick Links
+
+- Current Version
+- Current Release
+- Known Open Issues
+- Roadmap
+- Coding Conventions
+- Documentation Checklist
+- Release Checklist
+
 ## ChatGPT bootstrap — read this first
 
 This file is the primary long-term engineering memory for the LogoSC project.
@@ -86,7 +139,7 @@ License milestone:
   may copy, modify, redistribute, and use it in commercial or closed-source
   projects as long as the copyright/license notice is preserved. README files
   should link to `LICENSE` rather than embedding the full license text.
-- Current source snapshot public API version `2026.2`.
+- Current source snapshot public API version `2026.1`.
 
 Major implemented features include:
 
@@ -148,12 +201,7 @@ Verified working state:
   - `images/logosc-wordmark.png`;
   - `images/logosc-gear-icon.png`;
   - `images/quickstart-triangle.png`;
-  - `images/quickstart-plate-hole.png`;
-  - `images/readme-quickstart-triangle.png`;
-  - `images/readme-quickstart-triangle-debug.png`.
-- README Quick Start now shows the actual filled-triangle result immediately after
-  the first code block and the debug-overlay result immediately after the
-  `RenderLogoDebug()` code block.
+  - `images/quickstart-plate-hole.png`.
 
 Known open design issues:
 
@@ -1422,29 +1470,3 @@ Follow-up documentation correction after user verification:
 - Quick Start debug snippets should use a slightly taller segment height than
   the filled polygon so the overlay remains visible.
 
-### 2026-07-13 — Consolidated 2026.2 release preparation
-
-Context:
-
-- The changelog had accumulated many narrowly scoped `Unreleased` sections covering
-  the LogoSC identity transition, debug renderer, unified run selector, documentation,
-  branding, licensing, and README screenshots.
-- The source already reported development API version `2026.1`, but that version had
-  not been consolidated into a formal release entry.
-
-Decision:
-
-- Consolidate the accumulated work into one `2026.2` release entry dated 2026-07-13.
-- Advance `LogoSCVersionMinor` from `1` to `2`.
-- Treat `2026.1` as an unreleased development snapshot rather than a separate release.
-- Add a compact README version-history table.
-- Record open-contour validation and manufacturable stroke rendering as distinct future
-  work. Preserve the current implicit OpenSCAD polygon closure behavior until an opt-in
-  validation policy is designed and tested.
-
-Verification required before packaging:
-
-- Confirm all current version references that describe the active release say `2026.2`.
-- Preserve historical notebook references to `2026.1`; do not mechanically rewrite them.
-- Confirm every Markdown image reference resolves to a physical file in the package.
-- Package all changed files under exact repository paths for unzip-over-repository use.
