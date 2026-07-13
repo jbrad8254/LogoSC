@@ -2,56 +2,72 @@
 
 ## Index
 
-### Architecture
-- Project goals
-- Design philosophy
-- Public API stability
-- Versioning policy
+### Project and architecture
 
-### Rendering Pipeline
-- Turtle evaluation
-- Contours
-- Regions
-- Polygon generation
-- Primitive implementation
+- [Bootstrap and source-of-truth rules](#chatgpt-bootstrap--read-this-first)
+- [Purpose and maintenance policy](#1-purpose-and-maintenance-policy)
+- [Project identity](#2-project-identity)
+- [Current baseline and milestones](#3-current-baseline-and-milestones)
+- [Stable public API](#4-stable-public-api)
+- [Core design principles](#5-core-design-principles)
+- [Non-goals and deferred ideas](#6-non-goals-and-deliberately-deferred-ideas)
 
-### Debug Rendering
-- Design goals
-- RenderLogoDebug()
-- Debug event model
-- Marker rendering
-- Known limitations
+### Rendering and geometry
 
-### Documentation
-- README
-- User Manual
-- Cheat Sheet
-- Examples
+- [Stroke and debug-rendering direction](#10-stroke-and-debug-rendering-direction)
+- [Current conceptual model](#7-current-conceptual-model)
+- [Command design conventions](#8-command-design-conventions)
+- [Relative drawing style](#9-relative-drawing-style)
+- [Coordinate and turn conventions](#10-coordinate-and-turn-conventions)
+- [Geometry feature status](#11-geometry-feature-status)
+- [Segment-count convention](#12-segment-count-convention)
+- [Holes design](#13-holes-design)
 
-### Releases
-- Current release history
+### Debug rendering
 
-### Future Work
-- Stroke rendering
-- Open contour validation
-- Additional primitives
-- Performance ideas
+- [Experimental debug-renderer design](#2026-07-11--experimental-debug-renderer-design-and-placement)
+- [First visual-tuning pass](#2026-07-11--debug-renderer-first-visual-tuning-pass)
+- [Naming and pen-up visibility](#2026-07-11--debug-renderer-naming-and-pen-up-visibility-tuning)
+- [Overlap and example tuning](#2026-07-11--debug-renderer-overlap-and-example-tuning)
+- [Crossing-line demo and endpoint tuning](#2026-07-11--debug-renderer-crossing-line-demo-and-endpoint-tuning)
+- [Start-marker tuning](#2026-07-11--debug-renderer-start-marker-tuning)
+- [Unified Customizer run selector](#2026-07-11--unified-customizer-run-selector)
+- [Debug demo control cleanup](#2026-07-12--debug-demo-control-cleanup)
+- [Debug renderer documentation pass](#2026-07-12--debug-renderer-documentation-pass)
 
-### Design Decisions
-- Stable public APIs
-- Debug renderer separation
-- MOVE/TURN examples
-- Unified run mode
+### Documentation and workflow
+
+- [Documentation architecture and conventions](#7-documentation-architecture-and-conventions)
+- [Repository and packaging workflow](#8-repository-and-packaging-workflow)
+- [Lessons learned](#9-lessons-learned)
+- [Testing and regression risks](#11-testing-and-regression-risks)
+- [Documentation status and roles](#16-documentation-status-and-doc-roles)
+- [Quick Start and run-mode cleanup](#2026-07-12--quick-start-and-run-mode-guard-cleanup)
+- [Quick Start snippet cleanup](#2026-07-12---quick-start-snippet-cleanup)
+
+### Planning, releases, and history
+
+- [Current roadmap](#12-current-roadmap)
+- [Open questions](#13-open-questions)
+- [Current LogoSC preferences](#14-user-preferences-specific-to-logosc)
+- [Historical handoff record](#15-historical-handoff-record-from-the-pre-notebook-file)
+- [Versioning policy](#5-versioning-policy)
+- [Release baseline and experiment status](#17-current-release-baseline-and-experiment-status)
+- [Near-term next steps](#18-near-term-likely-next-steps)
+- [Deferred feature ideas](#19-deferred-feature-ideas)
+- [2026.2 release preparation](#2026-07-13--consolidated-20262-release-preparation)
+- [Journal-entry template](#yyyy-mm-dd--topic)
 
 ## Quick Links
 
-- Current Version
-- Current Release
-- Known Open Issues
-- Roadmap
-- Coding Conventions
-- Documentation Checklist
-- Release Checklist
+- [Current version and milestones](#3-current-baseline-and-milestones)
+- [Stable public API](#4-stable-public-api)
+- [Known open issues](#13-open-questions)
+- [Roadmap](#12-current-roadmap)
+- [Testing and regression risks](#11-testing-and-regression-risks)
+- [Documentation conventions](#7-documentation-architecture-and-conventions)
+- [Packaging workflow](#8-repository-and-packaging-workflow)
+- [Latest release preparation](#2026-07-13--consolidated-20262-release-preparation)
 
 ## ChatGPT bootstrap — read this first
 
@@ -139,7 +155,7 @@ License milestone:
   may copy, modify, redistribute, and use it in commercial or closed-source
   projects as long as the copyright/license notice is preserved. README files
   should link to `LICENSE` rather than embedding the full license text.
-- Current source snapshot public API version `2026.1`.
+- Current source snapshot public API version `2026.2`.
 
 Major implemented features include:
 
@@ -201,7 +217,12 @@ Verified working state:
   - `images/logosc-wordmark.png`;
   - `images/logosc-gear-icon.png`;
   - `images/quickstart-triangle.png`;
-  - `images/quickstart-plate-hole.png`.
+  - `images/quickstart-plate-hole.png`;
+  - `images/readme-quickstart-triangle.png`;
+  - `images/readme-quickstart-triangle-debug.png`.
+- README Quick Start now shows the actual filled-triangle result immediately after
+  the first code block and the debug-overlay result immediately after the
+  `RenderLogoDebug()` code block.
 
 Known open design issues:
 
@@ -1470,3 +1491,49 @@ Follow-up documentation correction after user verification:
 - Quick Start debug snippets should use a slightly taller segment height than
   the filled polygon so the overlay remains visible.
 
+### 2026-07-13 — Consolidated 2026.2 release preparation
+
+Context:
+
+- The changelog had accumulated many narrowly scoped `Unreleased` sections covering
+  the LogoSC identity transition, debug renderer, unified run selector, documentation,
+  branding, licensing, and README screenshots.
+- The source already reported development API version `2026.1`, but that version had
+  not been consolidated into a formal release entry.
+
+Decision:
+
+- Consolidate the accumulated work into one `2026.2` release entry dated 2026-07-13.
+- Advance `LogoSCVersionMinor` from `1` to `2`.
+- Treat `2026.1` as an unreleased development snapshot rather than a separate release.
+- Add a compact README version-history table.
+- Record open-contour validation and manufacturable stroke rendering as distinct future
+  work. Preserve the current implicit OpenSCAD polygon closure behavior until an opt-in
+  validation policy is designed and tested.
+
+Verification required before packaging:
+
+- Confirm all current version references that describe the active release say `2026.2`.
+- Preserve historical notebook references to `2026.1`; do not mechanically rewrite them.
+- Confirm every Markdown image reference resolves to a physical file in the package.
+- Package all changed files under exact repository paths for unzip-over-repository use.
+
+### 2026-07-13 — Linked Developer Notebook index
+
+#### Context
+
+The Developer Notebook had grown large enough that GitHub's automatic outline was not
+always a reliable or convenient navigation mechanism.
+
+#### Decision
+
+- Add a manually maintained index near the top of the notebook.
+- Use explicit GitHub-compatible Markdown anchor links.
+- Group links by architecture, rendering, debugging, documentation, and release history.
+- Keep a compact Quick Links section for the most frequently referenced material.
+- Preserve all existing historical content and heading text.
+
+#### Verification
+
+- Verified that each new index target corresponds to an existing notebook heading.
+- Kept the change limited to this notebook; no source or public API behavior changed.
