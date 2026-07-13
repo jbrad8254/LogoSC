@@ -168,4 +168,4 @@ LogoSC currently focuses on filled 2D region rendering for final geometry. It al
 
 ## License
 
-License not specified yet. Add a project license before publishing broadly or accepting external contributions.
+LogoSC is licensed under the MIT License. See [LICENSE](LICENSE).

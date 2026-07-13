@@ -78,6 +78,14 @@ for OpenSCAD.
 Known stable milestone:
 
 - GitHub release `v0.2.0-alpha`.
+
+License milestone:
+
+- Added a root `LICENSE` file using the MIT License. This is appropriate for
+  LogoSC's current goal as a small permissive OpenSCAD utility/library: users
+  may copy, modify, redistribute, and use it in commercial or closed-source
+  projects as long as the copyright/license notice is preserved. README files
+  should link to `LICENSE` rather than embedding the full license text.
 - Current source snapshot public API version `2026.1`.
 
 Major implemented features include:

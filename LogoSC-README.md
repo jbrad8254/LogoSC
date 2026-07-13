@@ -15,6 +15,7 @@
 - [Future rendering work](#future-rendering-work)
 - [Cheat sheet](#cheat-sheet)
 - [Examples](#examples)
+- [License](#license)
 - [Release history](#release-history)
 - [Milestone roadmap](#milestone-roadmap)
 
@@ -32,6 +33,7 @@
 - `LogoSC-Future-Context.md` — compatibility pointer to the Developer Notebook.
 - `LogoSC-CheatSheet.md` — compact command and API reference.
 - `LogoSC-Examples.scad` — runnable example gallery and 3D-printing demos.
+- `LICENSE` — MIT License text.
 
 ## Developer notebook
 
@@ -334,6 +336,10 @@ LogoSCRunMode = "Examples"; // [NoDemo, Examples, Debug, Tests]
 To use one example in another model, include the core file and copy or reuse the
 corresponding command list/module from `LogoSC-Examples.scad`. LogoSC itself still
 renders only 2D regions; use ordinary OpenSCAD wrappers for final 3D parts.
+
+## License
+
+LogoSC is licensed under the MIT License. See `LICENSE`.
 
 ## Release history
 

@@ -1,5 +1,13 @@
 # LogoSC Changelog
 
+## Unreleased — MIT license
+
+### Added
+
+- Added a root `LICENSE` file using the MIT License.
+- Updated README/project-overview license references to point to the new license
+  file.
+
 ## Unreleased — quick start and run-mode cleanup
 
 ### Changed
