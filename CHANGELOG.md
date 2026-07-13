@@ -1,5 +1,13 @@
 # LogoSC Changelog
 
+## Unreleased — README Quick Start screenshots
+
+### Added
+
+- Added the rendered triangle screenshot after the first README Quick Start code block.
+- Added the debug-overlay screenshot after the `RenderLogoDebug()` Quick Start code block.
+- Added both PNG files under `images/` using relative Markdown references.
+
 ## Unreleased — MIT license
 
 ### Added

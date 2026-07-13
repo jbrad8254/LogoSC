@@ -148,7 +148,12 @@ Verified working state:
   - `images/logosc-wordmark.png`;
   - `images/logosc-gear-icon.png`;
   - `images/quickstart-triangle.png`;
-  - `images/quickstart-plate-hole.png`.
+  - `images/quickstart-plate-hole.png`;
+  - `images/readme-quickstart-triangle.png`;
+  - `images/readme-quickstart-triangle-debug.png`.
+- README Quick Start now shows the actual filled-triangle result immediately after
+  the first code block and the debug-overlay result immediately after the
+  `RenderLogoDebug()` code block.
 
 Known open design issues:
 
