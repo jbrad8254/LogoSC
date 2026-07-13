@@ -112,6 +112,57 @@ Append new milestones here. Do not rewrite this section as only the latest state
 
 ---
 
+## Restart Checkpoint — Debug Renderer and Documentation Stable
+
+Current project state is suitable for a fresh chat/restart from a repository ZIP.
+
+Verified working state:
+
+- Project name is LogoSC.
+- Public old-name references have been removed.
+- MIT License has been added at repository root as `LICENSE`.
+- README, User Manual, and Cheat Sheet have been updated for the current setup flow.
+- README Quick Start uses a simple `MOVE` / `TURN` triangle example.
+- Ordinary user files do not need to set `LogoSCRunMode`.
+- `LogoSCRunMode` is the single top-level demo selector for built-in examples/debug/tests:
+  - blank or undefined: no automatic preview/test geometry;
+  - `"NoDemo"`: no automatic preview/test geometry;
+  - `"Examples"`: normal examples gallery;
+  - `"Debug"`: debug visualization demo;
+  - `"Tests"`: regression test grid.
+- Tests run only when `LogoSCRunMode == "Tests"`.
+- `RunLogoTests` has been removed from the active `.scad` test-run path.
+- `RenderLogoDebug()` is implemented and visually verified.
+- Debug visualization is preview/debug-only, not intended to create manufacturable stroke geometry.
+- Debug rendering uses z-centered 3D capsules and point markers.
+- Debug visualization is useful for seeing:
+  - path order;
+  - crossing/self-intersecting contours;
+  - pen-up movement;
+  - primitive-vs-hand-built geometry;
+  - start/end point behavior;
+  - open/unclosed polygon behavior.
+- Debug demos include simple closed/open triangle cases, crossed rectangle, rectangle,
+  pen-up gap, arc/loop, primitive comparison, and primitive examples.
+- Images are present and referenced:
+  - `images/logosc-wordmark.png`;
+  - `images/logosc-gear-icon.png`;
+  - `images/quickstart-triangle.png`;
+  - `images/quickstart-plate-hole.png`.
+
+Known open design issues:
+
+- Decide how LogoSC should handle open/unclosed polygons where the endpoint differs from
+  the start point.
+- Decide whether crossing/self-intersecting paths should merely be user-visible via debug
+  rendering, emit warnings, fail in hard-error mode, or remain entirely user responsibility.
+- Consider adding one or more screenshots of the debug visualization to README/User Manual
+  after the final preferred visual style settles.
+- Consider a new tagged GitHub release after the debug renderer and documentation changes
+  are committed and verified.
+
+---
+
 ## 4. Stable public API
 
 ### Rendering modules
