@@ -1,5 +1,19 @@
 # LogoSC Changelog
 
+## [Unreleased]
+
+### Documentation and maintenance
+
+- Added `CONTRIBUTING.md` and `LogoSC-Future-Ideas.md` after the `v2026.2` tag.
+- Added the maintainer-facing AI Engineering Kit under `docs/ai-engineering-kit/` by
+  explicit user request.
+- Clarified that `RenderLogoDebug()` is a stable public diagnostic API while remaining
+  preview-only and unsuitable for manufacturable stroke output.
+- Updated the Developer Notebook's live checkpoint and roadmap to distinguish completed
+  debug-renderer work from future contour-validation and stroke-rendering work.
+- Corrected User Manual section numbering, recursion links, and repository inventory.
+- Kept post-release documentation work separate from the contents of the `v2026.2` tag.
+
 ## [2026.2] - 2026-07-13
 
 This release consolidates the accumulated LogoSC development work that had
@@ -22,15 +36,6 @@ an internal development snapshot and was not published as a separate release.
 - LogoSC wordmark and gear-icon images.
 - README Quick Start screenshots for normal and debug triangle rendering.
 - Root MIT `LICENSE` file.
-- Root `CONTRIBUTING.md` with project philosophy, stable-API, coding, documentation,
-  testing, versioning, and packaging guidance.
-- AI Engineering Kit maintainer-facing companion documents stored under
-  `docs/ai-engineering-kit/` by explicit user request:
-  - `AI-Engineering-Kit-Handoff.md`
-  - `Generic-Project-Bootstrap.md`
-  - `ChatGPT-Project-Workflow.md`
-  - `Engineering-Preferences.md`
-  - `Project-Retrospective.md`
 - Public API version and compatibility helper:
   - `LogoSCVersionMajor`
   - `LogoSCVersionMinor`
@@ -61,8 +66,6 @@ an internal development snapshot and was not published as a separate release.
 
 ### Fixed
 
-- Standardized current release references on `2026.2` and removed obsolete pre-release
-  tag framing from the Developer Notebook.
 - Corrected stale or mechanically renamed test-control references in public
   documentation.
 - Corrected the Cheat Sheet setup variable after the project-name transition.

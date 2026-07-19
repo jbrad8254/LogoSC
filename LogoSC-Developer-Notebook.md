@@ -49,6 +49,7 @@
 - [Contributor guide integration](#2026-07-18--contributor-guide-integration)
 - [AI Engineering Kit integration](#2026-07-18--ai-engineering-kit-integration)
 - [AI Engineering Kit directory cleanup](#2026-07-18--ai-engineering-kit-directory-cleanup)
+- [Documentation consistency cleanup](#2026-07-18--documentation-consistency-and-release-boundary-cleanup)
 
 ### Planning, releases, and history
 
@@ -237,6 +238,9 @@ Verified working state:
 - README Quick Start now shows the actual filled-triangle result immediately after
   the first code block and the debug-overlay result immediately after the
   `RenderLogoDebug()` code block.
+- Git tag `v2026.2` identifies the 2026-07-13 release baseline.
+- `main` contains later documentation and maintainer-process work recorded under
+  `Unreleased` rather than retroactively redefining the tag contents.
 
 Known open design issues:
 
@@ -244,10 +248,9 @@ Known open design issues:
   the start point.
 - Decide whether crossing/self-intersecting paths should merely be user-visible via debug
   rendering, emit warnings, fail in hard-error mode, or remain entirely user responsibility.
-- Consider adding one or more screenshots of the debug visualization to README/User Manual
-  after the final preferred visual style settles.
-- Consider a new tagged GitHub release after the debug renderer and documentation changes
-  are committed and verified.
+- README already includes a verified debug-overlay screenshot. Add another manual screenshot
+  only if it teaches something the existing image does not.
+- Prepare a future release only after post-`v2026.2` work forms a coherent, verified milestone.
 
 ---
 
@@ -258,6 +261,14 @@ Known open design issues:
 - `RenderLogo2D()`
 - `RenderContours2D()`
 - `RenderRegion2D()`
+
+### Diagnostic rendering
+
+- `RenderLogoDebug()`
+
+`RenderLogoDebug()` is a stable public diagnostic API. Its contract is preview-only path
+visualization; it does not create manufacturable stroke geometry or alter the output of
+`RenderLogo2D()`.
 
 ### Evaluation
 
@@ -504,8 +515,13 @@ active extracted working tree.
 
 ## 10. Stroke and debug-rendering direction
 
-A separate stroke/debug renderer is a strong candidate for the next experimental
-feature.
+`RenderLogoDebug()` is implemented in `LogoSC-Foundation-Core.scad`, visually verified,
+documented, and part of the stable public diagnostic API as of `2026.2`.
+
+Historical note: this section originally described a combined stroke/debug renderer as a
+candidate experiment. The event-based debug portion was subsequently implemented and
+promoted. Manufacturable stroke rendering remains a separate future feature and must not
+change filled-region semantics.
 
 Primary purposes:
 
@@ -517,25 +533,19 @@ Primary purposes:
 - optionally show direction/state markers.
 
 Strokes are less useful than filled regions for the project's primary CAD and
-3D-printing use cases. Keep stroke rendering separate from the stable region
-renderer.
+3D-printing use cases. Keep any manufacturable stroke renderer separate from both the
+stable filled-region renderer and the diagnostic debug renderer.
 
-The Quick Start manual currently contains a TODO to link to the future stroke
-API documentation once the API exists.
+Potential future debug annotations to evaluate only when they solve a demonstrated need:
 
-Potential debug-drawing concepts to evaluate:
-
-- centerline path rendering;
-- start/end markers;
 - heading arrows;
 - command-index labels;
-- pen-up travel visualization;
-- contour/region color coding;
+- optional contour, region, or event filtering;
 - state-stack markers; and
 - optional point-index display.
 
-Do not promote experimental stroke APIs into the stable core until their data
-contract and usefulness are clear.
+Do not promote manufacturable stroke APIs into the stable core until their width, cap,
+join, miter, input-data contract, and usefulness are clear.
 
 ---
 
@@ -563,13 +573,14 @@ changes, verify links, headings, code examples, and retained accepted content.
 
 Near-term candidates:
 
-- prototype the stroke/debug renderer in `LogoSC-Experiments.scad`;
+- design optional open-contour validation without changing current implicit-closure behavior;
+- decide whether self-intersections need warnings, strict validation, or only debug visibility;
+- continue manufacturable stroke experiments separately from `RenderLogoDebug()` and
+  `RenderLogo2D()`;
 - document recursion and generated command lists more fully;
 - continue L-system documentation and examples;
-- add useful screenshots without cluttering the repository root;
-- improve cross-references and table-of-contents consistency;
 - add CAD primitives only when they clearly reduce complexity; and
-- prepare a later alpha milestone after experimental work stabilizes.
+- prepare a `2026.3` milestone only after a coherent feature set is implemented and verified.
 
 ---
 
@@ -586,6 +597,9 @@ Current examples:
 - Should a future stroke implementation remain entirely experimental, or should
   a small stable diagnostic API eventually move into the core?
 - What validation, if any, should LogoSC perform for invalid or overlapping holes?
+
+Resolved 2026-07-18: `RenderLogoDebug()` is the small stable diagnostic API in the core.
+The question of a separate manufacturable stroke API remains open.
 
 Append conclusions with dates rather than deleting the original question.
 
@@ -1744,3 +1758,32 @@ Files affected:
 - `CONTRIBUTING.md`
 - `LogoSC-Developer-Notebook.md`
 - `CHANGELOG.md`
+
+### 2026-07-18 — Documentation consistency and release-boundary cleanup
+
+Context:
+
+- `main` contained documentation and maintainer-process additions made after the
+  `v2026.2` release tag, while the changelog described them inside the tagged release.
+- `RenderLogoDebug()` was documented and released as public but was absent from the
+  stable-API inventories.
+- Live notebook roadmap text still described the completed debug renderer as future work.
+- The User Manual had duplicate section numbering, broken recursion links, and an
+  incomplete tracked-file inventory.
+
+Decision:
+
+- Record post-tag documentation and process work under `Unreleased` without rewriting or
+  moving the existing `v2026.2` tag.
+- Classify `RenderLogoDebug()` as a stable public diagnostic API while keeping it strictly
+  preview-only and separate from future manufacturable stroke rendering.
+- Update current checkpoint and roadmap material while preserving dated historical entries.
+- Repair the User Manual navigation and inventory without renaming project files or changing
+  runtime APIs.
+
+Files affected:
+
+- `CHANGELOG.md`
+- `CONTRIBUTING.md`
+- `LogoSC-Developer-Notebook.md`
+- `LogoSC-User-Manual.md`

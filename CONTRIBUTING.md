@@ -69,6 +69,7 @@ The following APIs should remain stable whenever practical:
 - `RenderLogo2D()`
 - `RenderContours2D()`
 - `RenderRegion2D()`
+- `RenderLogoDebug()`
 - `evalLogo()`
 - `ResultState()`
 - `ResultContours()`
@@ -119,9 +120,9 @@ Before release:
 
 ## Debug Rendering
 
-`RenderLogoDebug()` is a visualization aid only.
+`RenderLogoDebug()` is a stable public diagnostic API and a visualization aid only.
 
-It must never modify generated geometry.
+It must never modify generated geometry or be presented as a manufacturable stroke API.
 
 ## Versioning
 

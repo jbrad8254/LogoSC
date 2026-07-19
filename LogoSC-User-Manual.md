@@ -16,10 +16,11 @@ be passed to `linear_extrude()` or `rotate_extrude()`.
 - [1. Files and setup](#1-files)
   - [Setup](#setup)
   - [Library version](#library-version)
-- [2. Core idea](#2-core-idea)
+- [2. Quick Start](#2-quick-start)
+- [3. Core idea](#3-core-idea)
   - [LogoSC and BOSL2 turtle](#logosc-and-bosl2-turtle)
   - [Other Logo-like OpenSCAD turtle tools](#other-logo-like-openscad-turtle-tools)
-- [3. Quick lookup cheat sheet](#3-quick-lookup-cheat-sheet)
+- [Quick lookup cheat sheet](#quick-lookup-cheat-sheet)
 - [4. Runnable examples](#4-runnable-examples)
 - [5. Coordinate model](#5-coordinate-model)
 - [6. Rendering model](#6-rendering-model)
@@ -47,25 +48,35 @@ be passed to `linear_extrude()` or `rotate_extrude()`.
 
 ## 1. Files
 
-Current project files:
+Current tracked project files and directories:
 
 ```text
+README.md                          Repository landing page.
+CHANGELOG.md                       Release history.
+LICENSE                            MIT License.
+CONTRIBUTING.md                    Contribution and maintenance guidelines.
+.gitattributes                     LF line-ending policy for Git.
+.gitignore                         Repository ignore rules.
+
+docs/ai-engineering-kit/           Maintainer-facing AI workflow and handoff documents.
+
 LogoSC-Foundation-Core.scad        Core interpreter, geometry, and 2D renderer.
 LogoSC-Foundation-Tests.scad       Regression and visual tests.
-LogoSC-README.md                   Project overview and roadmap.
-CHANGELOG.md                       Release history.
-CONTRIBUTING.md                    Contribution and maintenance guidelines.
-docs/ai-engineering-kit/           Maintainer-facing AI workflow and handoff documents.
-LogoSC-ARC-Implementation.md        ARC tessellation design notes.
-LogoSC-Holes-Implementation.md     Region/hole design notes.
-LogoSC-LSystems-Notes.md           L-system design and example notes.
+LogoSC-Examples.scad               Runnable example gallery.
+LogoSC-Experiments.scad            Experimental rendering and geometry workbench.
+
+LogoSC-README.md                   Detailed project overview and roadmap.
 LogoSC-User-Manual.md              This manual.
+LogoSC-CheatSheet.md               Compact command and API reference.
 LogoSC-Developer-Notebook.md       Engineering history, design rationale, workflow,
                                   lessons learned, and ChatGPT restart guide.
 LogoSC-Future-Ideas.md             Longer-term feature concepts and future directions.
-LogoSC-CheatSheet.md               Compact command and API reference.
-LogoSC-Examples.scad               Runnable example gallery.
-.gitattributes                    LF line-ending policy for Git.
+
+LogoSC-ARC-Implementation.md        ARC tessellation design notes.
+LogoSC-Holes-Implementation.md     Region/hole design notes.
+LogoSC-LSystems-Notes.md           L-system design and example notes.
+
+images/                            Documentation wordmark, icon, and screenshots.
 ```
 
 Contributors should read [CONTRIBUTING.md](CONTRIBUTING.md) before preparing changes.
@@ -317,7 +328,7 @@ Git-friendly OpenSCAD mini-language that produces printable 2D regions and
 region holes, then gets out of OpenSCAD's way.
 
 
-## 3. Quick lookup cheat sheet
+## Quick lookup cheat sheet
 
 `LogoSC-CheatSheet.md` is the compact reference for command syntax, rendering
 API calls, and common OpenSCAD wrappers used around LogoSC output. Use it while
@@ -1451,7 +1462,7 @@ Syntax:
 Evaluates a child command list from the current state.
 
 The optional `scale` multiplies the child execution scale. The optional `maxRec`
-limits nested `RUN` recursion. See [Section 9](#9-recursion-and-recursive-patterns)
+limits nested `RUN` recursion. See [Section 11](#11-recursion-and-recursive-patterns)
 for details on `REPEAT`, `RUN`, recursive OpenSCAD command generators, and
 Koch-style fractals.
 
@@ -1595,7 +1606,7 @@ does not emit a circle.
 LogoSC uses the word "recursion" in a few related but distinct ways. They are
 worth separating because they have different costs and different failure modes.
 
-### 9.1 `REPEAT`: bounded repetition
+### 11.1 `REPEAT`: bounded repetition
 
 `REPEAT` is the simplest form. It repeats a child command list a fixed number of
 times:
@@ -1622,7 +1633,7 @@ Common uses:
 - decorative radial patterns;
 - simple gear-like or flower-like outlines.
 
-### 9.2 `RUN`: reusable child command lists
+### 11.2 `RUN`: reusable child command lists
 
 `RUN` evaluates another command list from the current Logo state:
 
@@ -1649,7 +1660,7 @@ also be scaled:
 
 That runs `slot` at half the current scale.
 
-### 9.3 Nested `RUN`: runtime recursion with a limit
+### 11.3 Nested `RUN`: runtime recursion with a limit
 
 A `RUN` body can itself contain another `RUN`. LogoSC has a recursion limit so a
 bad command list does not expand forever.
@@ -1675,7 +1686,7 @@ DefaultRunMaxRecursions = 2;
 Use an explicit `maxRec` when writing recursive examples or tests. Otherwise the
 example may stop earlier than expected.
 
-### 9.4 Recursive OpenSCAD command generators
+### 11.4 Recursive OpenSCAD command generators
 
 For most practical recursive geometry, use an OpenSCAD function that returns a
 LogoSC command list. This is usually cleaner than trying to create
@@ -1711,7 +1722,7 @@ The explicit depth makes the generated command list predictable. The `RUN`
 recursion in OpenSCAD, which is traditionally how one converts coffee into
 regret.
 
-### 9.5 Koch snowflake example
+### 11.5 Koch snowflake example
 
 The Koch snowflake is a good example of recursive command-list generation. One
 line segment is replaced by four smaller segments:
@@ -1770,7 +1781,7 @@ Notes:
 - Depth `3` is already `192` segments. Depth `5` is `3072` segments. OpenSCAD
   will do it, but it may glare at you.
 
-### 9.6 When to use each mechanism
+### 11.6 When to use each mechanism
 
 | Mechanism | Use it for | Avoid it when |
 |---|---|---|
@@ -1970,7 +1981,7 @@ control smoothness globally.
 - [`evalLogo()`](#74-evallogo)
 - [`GOTO`](#goto)
 - [`HOLE`](#hole)
-- [`LogoSC-CheatSheet.md`](#3-quick-lookup-cheat-sheet)
+- [`LogoSC-CheatSheet.md`](#quick-lookup-cheat-sheet)
 - [`LogoSC-Examples.scad`](#4-runnable-examples)
 - [`LogoSCVersion`](#library-version)
 - [`LogoSCVersionAtLeast()`](#library-version)
@@ -2003,4 +2014,3 @@ control smoothness globally.
 - [Setup](#setup)
 - [Test grid and tracing](#13-error-handling-and-tracing)
 - [Debug visualization](#710-debug-visualization)
-
