@@ -11,8 +11,9 @@
 > is useful.
 >
 > **Current LogoSC exception:** the user explicitly requested that this retrospective and
-> the other AI Engineering Kit documents be stored at the LogoSC repository root as private
-> development-process records. They are not LogoSC public API or user documentation.
+> the other AI Engineering Kit documents be stored under `docs/ai-engineering-kit/` as
+> maintainer-facing development-process records. They are not LogoSC public API or user
+> documentation.
 
 # Why This Document Exists
 

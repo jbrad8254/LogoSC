@@ -8,7 +8,7 @@
 > software project so the assistant can follow these preferences consistently.
 >
 > **Current LogoSC exception:** the user explicitly requested that this companion handbook
-> be stored at the LogoSC repository root. LogoSC-specific repository guidance takes
+> be stored under `docs/ai-engineering-kit/`. LogoSC-specific repository guidance takes
 > precedence whenever it differs from these generic preferences.
 
 # Purpose

@@ -24,7 +24,8 @@ an internal development snapshot and was not published as a separate release.
 - Root MIT `LICENSE` file.
 - Root `CONTRIBUTING.md` with project philosophy, stable-API, coding, documentation,
   testing, versioning, and packaging guidance.
-- AI Engineering Kit companion documents stored at repository root by explicit user request:
+- AI Engineering Kit maintainer-facing companion documents stored under
+  `docs/ai-engineering-kit/` by explicit user request:
   - `AI-Engineering-Kit-Handoff.md`
   - `Generic-Project-Bootstrap.md`
   - `ChatGPT-Project-Workflow.md`

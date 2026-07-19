@@ -1,8 +1,8 @@
 # Generic Bootstrap Prompt
 
-> This is reusable companion process material. The user explicitly requested that the current
-> LogoSC repository store it at repository root; project-specific LogoSC guidance takes
-> precedence whenever it differs from this generic prompt.
+> This is reusable maintainer-facing companion material. The user explicitly requested that
+> the current LogoSC repository store it under `docs/ai-engineering-kit/`; project-specific
+> LogoSC guidance takes precedence whenever it differs from this generic prompt.
 
 Continue this software project.
 

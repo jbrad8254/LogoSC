@@ -48,6 +48,7 @@
 - [Legacy test-control reference cleanup](#2026-07-18--legacy-test-control-reference-cleanup)
 - [Contributor guide integration](#2026-07-18--contributor-guide-integration)
 - [AI Engineering Kit integration](#2026-07-18--ai-engineering-kit-integration)
+- [AI Engineering Kit directory cleanup](#2026-07-18--ai-engineering-kit-directory-cleanup)
 
 ### Planning, releases, and history
 
@@ -86,11 +87,12 @@ belong in the public user documentation.
 
 When starting a new LogoSC chat:
 
-1. Read `AI-Engineering-Kit-Handoff.md` for kit purpose, order, and precedence.
-2. Read `Generic-Project-Bootstrap.md`.
-3. Read `ChatGPT-Project-Workflow.md`.
-4. Read `Engineering-Preferences.md`.
-5. Read `Project-Retrospective.md`.
+1. Read `docs/ai-engineering-kit/AI-Engineering-Kit-Handoff.md` for kit purpose,
+   order, and precedence.
+2. Read `docs/ai-engineering-kit/Generic-Project-Bootstrap.md`.
+3. Read `docs/ai-engineering-kit/ChatGPT-Project-Workflow.md`.
+4. Read `docs/ai-engineering-kit/Engineering-Preferences.md`.
+5. Read `docs/ai-engineering-kit/Project-Retrospective.md`.
 6. Read this entire file.
 7. Read `README.md` for the concise repository overview.
 8. Read `CHANGELOG.md` for release and milestone history.
@@ -187,8 +189,8 @@ Major implemented features include:
 - LogoSC wordmark and gear icon added under `images/`.
 - Root `CONTRIBUTING.md` added for contribution, maintenance, testing, documentation,
   versioning, and packaging guidance.
-- AI Engineering Kit stored at repository root by explicit user request as companion/private
-  process material, separate from LogoSC public API and user documentation.
+- AI Engineering Kit stored under `docs/ai-engineering-kit/` by explicit user request as
+  maintainer-facing companion material, separate from LogoSC public API and user documentation.
 
 Append new milestones here. Do not rewrite this section as only the latest state.
 
@@ -329,10 +331,10 @@ packaging. It should point maintainers to this notebook for design history and t
 
 The AI Engineering Kit consists of `AI-Engineering-Kit-Handoff.md` plus four reusable
 process documents: `Generic-Project-Bootstrap.md`, `ChatGPT-Project-Workflow.md`,
-`Engineering-Preferences.md`, and `Project-Retrospective.md`. These files are stored at
-repository root by explicit user request, but remain companion/private process material.
-They describe collaboration and general preferences; this notebook and the current
-repository remain authoritative for LogoSC-specific facts and decisions.
+`Engineering-Preferences.md`, and `Project-Retrospective.md`. These files are stored under
+`docs/ai-engineering-kit/` by explicit user request and remain maintainer-facing companion
+material. They describe collaboration and general preferences; this notebook and the
+current repository remain authoritative for LogoSC-specific facts and decisions.
 
 Section 7 of the manual is the canonical description of:
 
@@ -918,11 +920,16 @@ colors make the test output more readable.
 
 Current docs are split by purpose:
 
-- `AI-Engineering-Kit-Handoff.md`: kit orientation, reading order, and precedence rules.
-- `Generic-Project-Bootstrap.md`: concise reusable repository-first startup procedure.
-- `ChatGPT-Project-Workflow.md`: preferred long-running AI collaboration behavior.
-- `Engineering-Preferences.md`: durable cross-project engineering and delivery standards.
-- `Project-Retrospective.md`: process history, lessons, and reasons behind the workflow kit.
+- `docs/ai-engineering-kit/AI-Engineering-Kit-Handoff.md`: kit orientation, reading order,
+  and precedence rules.
+- `docs/ai-engineering-kit/Generic-Project-Bootstrap.md`: concise reusable repository-first
+  startup procedure.
+- `docs/ai-engineering-kit/ChatGPT-Project-Workflow.md`: preferred long-running AI
+  collaboration behavior.
+- `docs/ai-engineering-kit/Engineering-Preferences.md`: durable cross-project engineering
+  and delivery standards.
+- `docs/ai-engineering-kit/Project-Retrospective.md`: process history, lessons, and reasons
+  behind the workflow kit.
 - `CONTRIBUTING.md`: contributor workflow, stable-API, testing, documentation, versioning,
   and packaging expectations.
 - `LogoSC-Developer-Notebook.md`: engineering history, design rationale, workflow, and
@@ -1664,6 +1671,12 @@ Files affected:
 
 ### 2026-07-18 — AI Engineering Kit integration
 
+Status:
+
+- Superseded later the same day by the AI Engineering Kit directory cleanup. The files now
+  live under `docs/ai-engineering-kit/` and are described as maintainer-facing companion
+  material.
+
 Context:
 
 - Five reusable AI engineering-process documents were supplied after the current LogoSC
@@ -1691,6 +1704,40 @@ Files affected:
 - `ChatGPT-Project-Workflow.md`
 - `Engineering-Preferences.md`
 - `Project-Retrospective.md`
+- `README.md`
+- `LogoSC-README.md`
+- `LogoSC-User-Manual.md`
+- `CONTRIBUTING.md`
+- `LogoSC-Developer-Notebook.md`
+- `CHANGELOG.md`
+
+### 2026-07-18 — AI Engineering Kit directory cleanup
+
+Context:
+
+- The five AI Engineering Kit files were initially added at repository root.
+- Root placement made generic AI-process material appear alongside LogoSC's primary source,
+  public documentation, and project-specific engineering files.
+- Because the repository may be public, describing tracked files as private was also
+  misleading.
+
+Decision:
+
+- Move all five files into `docs/ai-engineering-kit/` while preserving their exact filenames.
+- Use `docs/ai-engineering-kit/AI-Engineering-Kit-Handoff.md` as the entry point for a fresh
+  AI-assisted development conversation.
+- Describe the kit as maintainer-facing companion material, not private material or LogoSC
+  public API documentation.
+- Update all live inventories, reading orders, links, descriptions, and changelog paths.
+- Preserve the earlier root-placement decision above as superseded history.
+
+Files affected:
+
+- `docs/ai-engineering-kit/AI-Engineering-Kit-Handoff.md`
+- `docs/ai-engineering-kit/Generic-Project-Bootstrap.md`
+- `docs/ai-engineering-kit/ChatGPT-Project-Workflow.md`
+- `docs/ai-engineering-kit/Engineering-Preferences.md`
+- `docs/ai-engineering-kit/Project-Retrospective.md`
 - `README.md`
 - `LogoSC-README.md`
 - `LogoSC-User-Manual.md`

@@ -22,15 +22,15 @@ records design rationale, non-goals, lessons learned, historical milestones,
 workflow rules, regression risks, and future plans that do not belong in the
 public API documentation.
 
-The repository also stores an AI Engineering Kit at root by explicit user request.
-These files are companion/private process material, not LogoSC public API or user
-documentation. For a fresh development session, read:
+The repository also stores an AI Engineering Kit under `docs/ai-engineering-kit/` by
+explicit user request. These files are maintainer-facing companion material, not LogoSC
+public API or user documentation. For a fresh development session, read:
 
-1. `AI-Engineering-Kit-Handoff.md`
-2. `Generic-Project-Bootstrap.md`
-3. `ChatGPT-Project-Workflow.md`
-4. `Engineering-Preferences.md`
-5. `Project-Retrospective.md`
+1. `docs/ai-engineering-kit/AI-Engineering-Kit-Handoff.md`
+2. `docs/ai-engineering-kit/Generic-Project-Bootstrap.md`
+3. `docs/ai-engineering-kit/ChatGPT-Project-Workflow.md`
+4. `docs/ai-engineering-kit/Engineering-Preferences.md`
+5. `docs/ai-engineering-kit/Project-Retrospective.md`
 6. `LogoSC-Developer-Notebook.md`
 7. `README.md`
 8. `CHANGELOG.md`
@@ -162,12 +162,8 @@ See `LogoSC-CheatSheet.md` and `LogoSC-User-Manual.md` for the complete command 
 - `LogoSC-Holes-Implementation.md` — region and hole design notes.
 - `LogoSC-LSystems-Notes.md` — L-system design/example notes.
 - `CHANGELOG.md` — release history.
-- `AI-Engineering-Kit-Handoff.md` — orientation and precedence rules for transferring
-  the AI Engineering Kit to a new conversation.
-- `Generic-Project-Bootstrap.md` — concise reusable startup prompt for repository-first work.
-- `ChatGPT-Project-Workflow.md` — preferred long-running collaboration style with an AI engineering assistant.
-- `Engineering-Preferences.md` — durable cross-project engineering, documentation, testing, and delivery preferences.
-- `Project-Retrospective.md` — process history and lessons behind the reusable workflow documents.
+- `docs/ai-engineering-kit/` — maintainer-facing AI handoff, bootstrap, collaboration,
+  engineering-preference, and retrospective documents.
 
 ## Design philosophy
 
@@ -211,8 +207,8 @@ Significant design decisions and historical rationale belong in
 `LogoSC-Future-Ideas.md`.
 
 The companion AI Engineering Kit begins with
-[AI-Engineering-Kit-Handoff.md](AI-Engineering-Kit-Handoff.md). It guides collaboration
-but does not override LogoSC-specific repository decisions.
+[AI-Engineering-Kit-Handoff.md](docs/ai-engineering-kit/AI-Engineering-Kit-Handoff.md).
+It guides collaboration but does not override LogoSC-specific repository decisions.
 
 ## License
 

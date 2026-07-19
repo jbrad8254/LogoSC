@@ -37,23 +37,19 @@
 - `LogoSC-CheatSheet.md` — compact command and API reference.
 - `LogoSC-Examples.scad` — runnable example gallery and 3D-printing demos.
 - `LICENSE` — MIT License text.
-- `AI-Engineering-Kit-Handoff.md` — orientation and precedence for transferring the companion kit.
-- `Generic-Project-Bootstrap.md` — reusable repository-first startup prompt.
-- `ChatGPT-Project-Workflow.md` — preferred AI collaboration behavior across long-running projects.
-- `Engineering-Preferences.md` — durable cross-project engineering and delivery preferences.
-- `Project-Retrospective.md` — process history and lessons behind the workflow kit.
+- `docs/ai-engineering-kit/` — maintainer-facing handoff, bootstrap, collaboration,
+  engineering-preference, and retrospective documents.
 
 ## AI Engineering Kit
 
-The five AI Engineering Kit files are stored at repository root by explicit user request.
-They are companion/private engineering-process material, not LogoSC public API or ordinary
-user documentation.
+The five AI Engineering Kit files are stored under `docs/ai-engineering-kit/` by explicit
+user request. They are maintainer-facing companion material, not LogoSC public API or
+ordinary user documentation.
 
-Read `AI-Engineering-Kit-Handoff.md` first, then follow its order through
-`Generic-Project-Bootstrap.md`, `ChatGPT-Project-Workflow.md`,
-`Engineering-Preferences.md`, and `Project-Retrospective.md`. After the kit, read the
-LogoSC project documents below. Explicit user instructions and project-specific LogoSC
-guidance take precedence over generic kit preferences.
+Read `docs/ai-engineering-kit/AI-Engineering-Kit-Handoff.md` first, then follow its order
+through the other files in that directory. After the kit, read the LogoSC project documents
+below. Explicit user instructions and project-specific LogoSC guidance take precedence over
+generic kit preferences.
 
 ## Developer notebook
 
@@ -376,8 +372,9 @@ Use `LogoSC-Developer-Notebook.md` for significant decisions and historical rati
 and use `LogoSC-Future-Ideas.md` for longer-term feature concepts.
 
 For AI-assisted continuation, begin with
-[AI-Engineering-Kit-Handoff.md](AI-Engineering-Kit-Handoff.md). The kit describes working
-style and process; LogoSC-specific repository guidance remains authoritative.
+[AI-Engineering-Kit-Handoff.md](docs/ai-engineering-kit/AI-Engineering-Kit-Handoff.md).
+The kit describes working style and process; LogoSC-specific repository guidance remains
+authoritative.
 
 ## License
 
