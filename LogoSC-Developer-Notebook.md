@@ -44,6 +44,10 @@
 - [Documentation status and roles](#16-documentation-status-and-doc-roles)
 - [Quick Start and run-mode cleanup](#2026-07-12--quick-start-and-run-mode-guard-cleanup)
 - [Quick Start snippet cleanup](#2026-07-12---quick-start-snippet-cleanup)
+- [Future ideas filename cleanup](#2026-07-18--future-ideas-filename-reference-cleanup)
+- [Legacy test-control reference cleanup](#2026-07-18--legacy-test-control-reference-cleanup)
+- [Contributor guide integration](#2026-07-18--contributor-guide-integration)
+- [AI Engineering Kit integration](#2026-07-18--ai-engineering-kit-integration)
 
 ### Planning, releases, and history
 
@@ -56,6 +60,7 @@
 - [Near-term next steps](#18-near-term-likely-next-steps)
 - [Deferred feature ideas](#19-deferred-feature-ideas)
 - [2026.2 release preparation](#2026-07-13--consolidated-20262-release-preparation)
+- [2026.2 release identifier cleanup](#2026-07-18--20262-release-identifier-cleanup)
 - [Journal-entry template](#yyyy-mm-dd--topic)
 
 ## Quick Links
@@ -81,18 +86,24 @@ belong in the public user documentation.
 
 When starting a new LogoSC chat:
 
-1. Read this entire file first.
-2. Read `README.md` for the concise repository overview.
-3. Read `CHANGELOG.md` for release and milestone history.
-4. Read `LogoSC-User-Manual.md` and implementation notes as needed for the task.
-5. Treat the newly uploaded repository ZIP as the sole source of truth.
-6. Ignore remembered files from older chats and the File Library unless the user
+1. Read `AI-Engineering-Kit-Handoff.md` for kit purpose, order, and precedence.
+2. Read `Generic-Project-Bootstrap.md`.
+3. Read `ChatGPT-Project-Workflow.md`.
+4. Read `Engineering-Preferences.md`.
+5. Read `Project-Retrospective.md`.
+6. Read this entire file.
+7. Read `README.md` for the concise repository overview.
+8. Read `CHANGELOG.md` for release and milestone history.
+9. Read `CONTRIBUTING.md` for contribution and maintenance conventions.
+10. Read `LogoSC-User-Manual.md` and implementation notes as needed for the task.
+11. Treat the newly uploaded repository ZIP as the sole source of truth.
+12. Ignore remembered files from older chats and the File Library unless the user
    explicitly asks for comparison.
-7. Make incremental changes only.
-8. Preserve historical context rather than replacing it with shorter summaries.
-9. Verify that previously accepted documentation and code have not regressed
+13. Make incremental changes only.
+14. Preserve historical context rather than replacing it with shorter summaries.
+15. Verify that previously accepted documentation and code have not regressed
    before packaging an update.
-10. Deliver all changed and added files from the work session in one combined ZIP
+16. Deliver all changed and added files from the work session in one combined ZIP
     using exact repository filenames.
 
 This bootstrap sequence overrides any conflicting remembered context from older
@@ -144,9 +155,9 @@ for OpenSCAD.
 
 ## 3. Current baseline and milestones
 
-Known stable milestone:
+Current stable milestone:
 
-- GitHub release `v0.2.0-alpha`.
+- LogoSC release `2026.2`.
 
 License milestone:
 
@@ -174,8 +185,10 @@ Major implemented features include:
 - Quick Start examples with screenshots stored under `images/`.
 - LogoSC identity finalized before external use.
 - LogoSC wordmark and gear icon added under `images/`.
-- Cheat Sheet setup variable restored to `RunLogoTests`.
-- Test-control variable consistency restored across core, tests, examples, and docs: live references use `RunLogoTests`.
+- Root `CONTRIBUTING.md` added for contribution, maintenance, testing, documentation,
+  versioning, and packaging guidance.
+- AI Engineering Kit stored at repository root by explicit user request as companion/private
+  process material, separate from LogoSC public API and user documentation.
 
 Append new milestones here. Do not rewrite this section as only the latest state.
 
@@ -200,7 +213,6 @@ Verified working state:
   - `"Debug"`: debug visualization demo;
   - `"Tests"`: regression test grid.
 - Tests run only when `LogoSCRunMode == "Tests"`.
-- `RunLogoTests` has been removed from the active `.scad` test-run path.
 - `RenderLogoDebug()` is implemented and visually verified.
 - Debug visualization is preview/debug-only, not intended to create manufacturable stroke geometry.
 - Debug rendering uses z-centered 3D capsules and point markers.
@@ -310,6 +322,18 @@ reason.
 
 `LogoSC-User-Manual.md` is the primary public manual.
 
+`CONTRIBUTING.md` is the concise contributor-facing guide for project philosophy,
+stable-API expectations, coding style, documentation, testing, versioning, and
+packaging. It should point maintainers to this notebook for design history and to
+`LogoSC-Future-Ideas.md` for longer-term concepts rather than duplicating either.
+
+The AI Engineering Kit consists of `AI-Engineering-Kit-Handoff.md` plus four reusable
+process documents: `Generic-Project-Bootstrap.md`, `ChatGPT-Project-Workflow.md`,
+`Engineering-Preferences.md`, and `Project-Retrospective.md`. These files are stored at
+repository root by explicit user request, but remain companion/private process material.
+They describe collaboration and general preferences; this notebook and the current
+repository remain authoritative for LogoSC-specific facts and decisions.
+
 Section 7 of the manual is the canonical description of:
 
 - public rendering APIs;
@@ -394,7 +418,6 @@ Verified state before the next chat restart:
 Lessons:
 
 - Do not mechanically alter unrelated identifiers during project-identity cleanup.
-  `RunLogoTests` is a test-control variable and must remain `RunLogoTests`.
 - When adding image references to Markdown, verify both sides:
   1. the Markdown link exists; and
   2. the PNG file is physically present in the ZIP under the referenced path.
@@ -574,8 +597,7 @@ Append conclusions with dates rather than deleting the original question.
 - Prefer `TURN` over `DIR` and `MOVE` over `GOTO` inside reusable examples.
 - Use `GOTO`/`DIR` for deterministic layout where appropriate.
 - Right-handed coordinates; positive turns are counterclockwise around +Z.
-- Keep `TraceLevel = 0` and `RunLogoTests = false` below the include in normal
-  user examples.
+- Keep `TraceLevel = 0` below the include in normal user examples.
 - Keep 3D operations outside the LogoSC core.
 - Preserve history and design rationale in this notebook.
 - Use the repository snapshot plus this notebook to restart development in a new
@@ -586,7 +608,8 @@ Append conclusions with dates rather than deleting the original question.
 ## 15. Historical handoff record from the pre-notebook file
 
 The following material is retained from the earlier
-`LogoSC-Future-Context.md`. It remains useful historical context. Where this
+`LogoSC-Future-Context.md`, the former filename that was later replaced by
+`LogoSC-Future-Ideas.md`. It remains useful historical context. Where this
 section conflicts with a newer dated decision above, the newer decision wins.
 
 <details>
@@ -876,18 +899,17 @@ and screenshots, not 3D-printing semantics.
 ## 15. Test suite conventions
 
 The core includes tests unconditionally because OpenSCAD `include <>` cannot be reliably
-conditionalized. Actual test execution is guarded by `RunLogoTests`.
+conditionalized. Actual test execution is guarded by `LogoSCRunMode == "Tests"`.
 
 Important OpenSCAD include pattern for examples/user files:
 
 ```scad
 include <LogoSC-Foundation-Core.scad>
-RunLogoTests = false;
 TraceLevel = 0; // [0:4]
 ```
 
-Do not put `RunLogoTests = false;` before the include. Doing so has previously polluted or
-confused the Customizer behavior.
+Ordinary user files do not need to assign `LogoSCRunMode`; tests remain suppressed unless
+the mode is explicitly set to `"Tests"`.
 
 The test grid uses logical grid indices, not absolute positions. Row markers and X-index
 colors make the test output more readable.
@@ -896,6 +918,16 @@ colors make the test output more readable.
 
 Current docs are split by purpose:
 
+- `AI-Engineering-Kit-Handoff.md`: kit orientation, reading order, and precedence rules.
+- `Generic-Project-Bootstrap.md`: concise reusable repository-first startup procedure.
+- `ChatGPT-Project-Workflow.md`: preferred long-running AI collaboration behavior.
+- `Engineering-Preferences.md`: durable cross-project engineering and delivery standards.
+- `Project-Retrospective.md`: process history, lessons, and reasons behind the workflow kit.
+- `CONTRIBUTING.md`: contributor workflow, stable-API, testing, documentation, versioning,
+  and packaging expectations.
+- `LogoSC-Developer-Notebook.md`: engineering history, design rationale, workflow, and
+  ChatGPT restart guidance.
+- `LogoSC-Future-Ideas.md`: longer-term feature concepts that are not active commitments.
 - `LogoSC-README.md`: overview, file list, public API quick reference, roadmap.
 - `LogoSC-User-Manual.md`: full user documentation, setup, command reference, workflows.
 - `LogoSC-CheatSheet.md`: compact one-page-style reference with method signatures and links.
@@ -912,18 +944,16 @@ should not become another manual.
 
 ## 17. Current release baseline and experiment status
 
-The known-good public baseline is:
+The current public baseline is:
 
 ```text
-GitHub release/tag: v0.2.0-alpha
-Release URL: https://github.com/jbrad8254/LogoSC/releases/tag/v0.2.0-alpha
+Release: 2026.2
 Status: core tests and example gallery verified by the user before release
-Purpose: stable pre-stroke-rendering baseline
+Purpose: current filled-region and debug-rendering baseline
 ```
 
-`LogoSC-Experiments.scad` was added after that release as a separate lab bench. Keep
-experimental code there until behavior is understood and the user explicitly approves
-promotion into the core.
+`LogoSC-Experiments.scad` remains a separate lab bench. Keep experimental code there
+until behavior is understood and the user explicitly approves promotion into the core.
 
 Stroke experiments completed so far:
 
@@ -949,7 +979,7 @@ The exact API is not final.
 
 Follow this conservative order:
 
-1. Keep `v0.2.0-alpha` as the known-good baseline.
+1. Keep `2026.2` as the known-good baseline.
 2. Continue work in `LogoSC-Experiments.scad`; do not edit core stroke APIs yet.
 3. Consider a debug path renderer before promoting capsule strokes. A useful
    `DebugLogoPath2D()`-style module would draw small circles at path vertices, thin
@@ -1313,8 +1343,9 @@ The user may say something like:
 
 ```text
 We are continuing the LogoSC project. Use the uploaded repository zip as the source of
-truth. Ignore older versions from prior chats and File Library. Read LogoSC-Future-Context.md
-for project handoff notes before making changes.
+truth. Ignore older versions from prior chats and File Library. Read
+LogoSC-Developer-Notebook.md for project handoff notes and LogoSC-Future-Ideas.md for
+longer-term feature concepts before making changes.
 ```
 
 Future assistant: obey that. Do not try to resurrect old sandbox files.
@@ -1355,9 +1386,9 @@ Follow-up:
 
 Previous state:
 
-- `RunLogoTests`, `RunLogoExamples`, and `DebugDemo` appeared as separate top-level
-  Customizer controls. This made the examples/test/debug preview setup cumbersome and
-  allowed conflicting combinations.
+- Separate test, example, and debug variables appeared as top-level Customizer controls.
+  This made the examples/test/debug preview setup cumbersome and allowed conflicting
+  combinations.
 
 Reason for change:
 
@@ -1371,8 +1402,8 @@ Decision:
 - In `LogoSC-Examples.scad`, default `LogoSCRunMode` to `Examples`.
 - In `LogoSC-Foundation-Core.scad`, default the hidden core-only mode to `Tests` so
   opening the core file directly still runs regression tests.
-- Keep `RunLogoTests` as a hidden compatibility gate derived from `LogoSCRunMode` so
-  older client files that assign `RunLogoTests = false;` after include can still work.
+- Keep a hidden compatibility gate derived from `LogoSCRunMode` so older client files
+  using the prior test-control convention can still work.
 
 Consequences:
 
@@ -1386,7 +1417,7 @@ Files/API affected:
 
 - `LogoSC-Foundation-Core.scad`
   - hidden default `LogoSCRunMode = str("Tests")`
-  - compatibility `RunLogoTests = LogoSCRunMode == "Tests"`
+  - hidden compatibility assignment derived from `LogoSCRunMode`
 - `LogoSC-Examples.scad`
   - visible `LogoSCRunMode = "Examples"; // [NoDemo, Examples, Debug, Tests]`
   - automatic rendering branches now test `LogoSCRunMode` directly
@@ -1432,8 +1463,8 @@ Context:
 
 - The debug renderer, stepped demos, crossed-line demo, start/end marker tuning,
   and unified `LogoSCRunMode` selector have been verified in OpenSCAD.
-- Public docs still described the older `RunLogoTests`/`RunLogoExamples` setup
-  and treated stroke/debug rendering as future work.
+- Public docs still described the older separate test/example setup and treated
+  stroke/debug rendering as future work.
 
 Decision:
 
@@ -1460,8 +1491,8 @@ Context:
   the default/no-demo behavior less clear than desired.
 - The README Quick Start still led with a rectangle-with-hole primitive example,
   while the intended first example is a simple `MOVE`/`TURN` turtle path.
-- The active `RunLogoTests` compatibility gate complicated the mental model now
-  that `LogoSCRunMode` is the primary run selector.
+- The active legacy test compatibility gate complicated the mental model now that
+  `LogoSCRunMode` is the primary run selector.
 
 Decision:
 
@@ -1471,7 +1502,7 @@ Decision:
 - Treat `LogoSCRunMode = "Tests"` as the only active test-run condition.
 - Allow `LogoSCRunMode = "NoDemo"`, a blank string, or an undefined run mode to
   suppress the foundation test grid.
-- Remove the active `RunLogoTests` compatibility gate from the core/test code.
+- Remove the active legacy test compatibility gate from the core/test code.
 
 Follow-up:
 
@@ -1537,3 +1568,132 @@ always a reliable or convenient navigation mechanism.
 
 - Verified that each new index target corresponds to an existing notebook heading.
 - Kept the change limited to this notebook; no source or public API behavior changed.
+
+### 2026-07-18 — Future ideas filename reference cleanup
+
+Context:
+
+- `LogoSC-Future-Context.md` was renamed to `LogoSC-Future-Ideas.md` and its role is now
+  to collect longer-term feature concepts rather than duplicate the Developer Notebook.
+- Several current repository file lists still referenced the former filename.
+
+Decision:
+
+- Update live repository inventories and restart guidance to reference
+  `LogoSC-Future-Ideas.md` with its current purpose.
+- Preserve the former filename where it identifies the historical source of the embedded
+  handoff record.
+
+Files affected:
+
+- `README.md`
+- `LogoSC-README.md`
+- `LogoSC-User-Manual.md`
+- `LogoSC-Developer-Notebook.md`
+
+### 2026-07-18 — Legacy test-control reference cleanup
+
+Context:
+
+- Active source and public documentation use `LogoSCRunMode` as the sole selector for
+  examples, debug output, and tests.
+- The Developer Notebook still contained obsolete setup guidance and literal references
+  to the removed test-control variable, including some statements presented as current.
+
+Decision:
+
+- Remove stale setup instructions and current-state claims for the retired variable.
+- Rephrase dated history in generic terms so the sequence of decisions remains intact
+  without retaining obsolete identifiers or copyable setup snippets.
+- Keep the current rule explicit: tests run only when `LogoSCRunMode == "Tests"`.
+
+Files affected:
+
+- `LogoSC-Developer-Notebook.md`
+- `CHANGELOG.md`
+
+### 2026-07-18 — Contributor guide integration
+
+Context:
+
+- A root `CONTRIBUTING.md` was supplied to make the project's contribution philosophy,
+  API-stability expectations, coding conventions, documentation, testing, versioning,
+  and packaging workflow easier to find.
+- The supplied repository structure used an outdated test filename, and its versioning
+  section treated the derived version string as an independently edited value.
+
+Decision:
+
+- Add `CONTRIBUTING.md` at repository root and reference it from the README files, User
+  Manual, changelog, Developer Notebook bootstrap sequence, and documentation-role list.
+- Correct the test filename to `LogoSC-Foundation-Tests.scad`.
+- Document the full stable generic API set and refer to existing command opcodes without
+  introducing project-name-specific replacements.
+- Treat `LogoSCVersion` as derived from `LogoSCVersionMajor` and `LogoSCVersionMinor`.
+- Keep significant decisions in the Developer Notebook and longer-term concepts in
+  `LogoSC-Future-Ideas.md`.
+
+Files affected:
+
+- `CONTRIBUTING.md`
+- `README.md`
+- `LogoSC-README.md`
+- `LogoSC-User-Manual.md`
+- `LogoSC-Developer-Notebook.md`
+- `CHANGELOG.md`
+
+### 2026-07-18 — 2026.2 release identifier cleanup
+
+Context:
+
+- The current source, README, User Manual, and changelog identify the release as
+  `2026.2`.
+- Older Developer Notebook baseline text still described a pre-release GitHub tag as the
+  current published baseline, creating two competing release identifiers.
+
+Decision:
+
+- Use `2026.2` as the sole current LogoSC release identifier.
+- Remove the obsolete tag name and tag URL from current and embedded baseline guidance.
+- Preserve the valid `2026.0` changelog entry as earlier LogoSC version history.
+
+Files affected:
+
+- `LogoSC-Developer-Notebook.md`
+- `CHANGELOG.md`
+
+### 2026-07-18 — AI Engineering Kit integration
+
+Context:
+
+- Five reusable AI engineering-process documents were supplied after the current LogoSC
+  session began: one handoff note and a four-document workflow kit.
+- The documents normally recommend living outside project repositories, but explicitly
+  allow repository inclusion when the user requests it.
+- The user requested repository references and descriptions for these documents, providing
+  the explicit exception required by their own guidance.
+
+Decision:
+
+- Store all five documents at repository root as companion/private process material.
+- Read `AI-Engineering-Kit-Handoff.md` first, followed by
+  `Generic-Project-Bootstrap.md`, `ChatGPT-Project-Workflow.md`,
+  `Engineering-Preferences.md`, and `Project-Retrospective.md`.
+- Keep explicit user instructions and current LogoSC project guidance authoritative over
+  generic kit preferences.
+- Describe the kit in README files, User Manual, CONTRIBUTING guide, changelog, and this
+  notebook without presenting it as LogoSC public API or ordinary user documentation.
+
+Files affected:
+
+- `AI-Engineering-Kit-Handoff.md`
+- `Generic-Project-Bootstrap.md`
+- `ChatGPT-Project-Workflow.md`
+- `Engineering-Preferences.md`
+- `Project-Retrospective.md`
+- `README.md`
+- `LogoSC-README.md`
+- `LogoSC-User-Manual.md`
+- `CONTRIBUTING.md`
+- `LogoSC-Developer-Notebook.md`
+- `CHANGELOG.md`

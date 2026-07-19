@@ -22,6 +22,14 @@ an internal development snapshot and was not published as a separate release.
 - LogoSC wordmark and gear-icon images.
 - README Quick Start screenshots for normal and debug triangle rendering.
 - Root MIT `LICENSE` file.
+- Root `CONTRIBUTING.md` with project philosophy, stable-API, coding, documentation,
+  testing, versioning, and packaging guidance.
+- AI Engineering Kit companion documents stored at repository root by explicit user request:
+  - `AI-Engineering-Kit-Handoff.md`
+  - `Generic-Project-Bootstrap.md`
+  - `ChatGPT-Project-Workflow.md`
+  - `Engineering-Preferences.md`
+  - `Project-Retrospective.md`
 - Public API version and compatibility helper:
   - `LogoSCVersionMajor`
   - `LogoSCVersionMinor`
@@ -37,7 +45,7 @@ an internal development snapshot and was not published as a separate release.
 - Replaced separate example, debug, and test controls with `LogoSCRunMode`.
 - Changed test execution so tests run only when `LogoSCRunMode` is explicitly
   set to `"Tests"`.
-- Removed the active `RunLogoTests` compatibility gate from normal execution.
+- Removed the active legacy test compatibility gate from normal execution.
 - Reworked the README Quick Start around a simple `MOVE`/`TURN` triangle and an
   immediate debug-overlay example.
 - Updated README, User Manual, Cheat Sheet, detailed project overview, and
@@ -52,6 +60,8 @@ an internal development snapshot and was not published as a separate release.
 
 ### Fixed
 
+- Standardized current release references on `2026.2` and removed obsolete pre-release
+  tag framing from the Developer Notebook.
 - Corrected stale or mechanically renamed test-control references in public
   documentation.
 - Corrected the Cheat Sheet setup variable after the project-name transition.

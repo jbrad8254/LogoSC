@@ -1,6 +1,8 @@
 # Contributing to LogoSC
 
-> **The repository is the authoritative source for the project. Documentation and implementation should evolve together.**
+> **The repository is the authoritative source for the project.**
+>
+> **Documentation and implementation should evolve together.**
 
 ## Project Philosophy
 
@@ -20,27 +22,60 @@ README.md
 CHANGELOG.md
 LICENSE
 CONTRIBUTING.md
+.gitattributes
+.gitignore
+
+AI-Engineering-Kit-Handoff.md
+Generic-Project-Bootstrap.md
+ChatGPT-Project-Workflow.md
+Engineering-Preferences.md
+Project-Retrospective.md
 
 LogoSC-Foundation-Core.scad
+LogoSC-Foundation-Tests.scad
 LogoSC-Examples.scad
-LogoSC-Tests.scad
+LogoSC-Experiments.scad
 
+LogoSC-README.md
 LogoSC-User-Manual.md
 LogoSC-CheatSheet.md
 LogoSC-Developer-Notebook.md
+LogoSC-Future-Ideas.md
+
+LogoSC-ARC-Implementation.md
+LogoSC-Holes-Implementation.md
+LogoSC-LSystems-Notes.md
 
 images/
 ```
+
+## AI Engineering Kit
+
+The five AI Engineering Kit files are stored at repository root by explicit user request.
+They remain companion/private process material rather than LogoSC public API, implementation,
+or ordinary user documentation.
+
+Read `AI-Engineering-Kit-Handoff.md` first. It explains the remaining kit order and the
+precedence rule: explicit user instructions and current LogoSC repository guidance override
+generic preferences. Do not treat the kit as a substitute for this contributor guide or the
+Developer Notebook.
 
 ## Public API Stability
 
 The following APIs should remain stable whenever practical:
 
-- RenderLogo2D()
-- evalLogo()
-- ResultContours()
-- MakeRegion()
-- Turtle command opcodes
+- `RenderLogo2D()`
+- `RenderContours2D()`
+- `RenderRegion2D()`
+- `evalLogo()`
+- `ResultState()`
+- `ResultContours()`
+- `ResultStack()`
+- `ResultPen()`
+- `MakeRegion()`
+- `RegionOuter()`
+- `RegionHoles()`
+- Existing command opcodes
 
 Prefer extending existing functionality rather than changing established behavior.
 
@@ -55,11 +90,11 @@ Prefer extending existing functionality rather than changing established behavio
 
 Whenever user-visible behavior changes, update as appropriate:
 
-- README
-- User Manual
-- Cheat Sheet
-- Examples
-- CHANGELOG
+- `README.md`
+- `LogoSC-User-Manual.md`
+- `LogoSC-CheatSheet.md`
+- `LogoSC-Examples.scad`
+- `CHANGELOG.md`
 
 Screenshots should be stored in `images/` using relative Markdown links.
 
@@ -69,8 +104,8 @@ Examples should favor clarity over cleverness.
 
 Prefer:
 
-- MOVE over GOTO when appropriate.
-- TURN over DIR unless DIR better illustrates a concept.
+- `MOVE` over `GOTO` when appropriate.
+- `TURN` over `DIR` unless `DIR` better illustrates a concept.
 
 ## Testing
 
@@ -82,27 +117,31 @@ Before release:
 
 ## Debug Rendering
 
-RenderLogoDebug() is a visualization aid only.
+`RenderLogoDebug()` is a visualization aid only.
 
 It must never modify generated geometry.
 
 ## Versioning
 
-Update:
+Before a release, review and update as appropriate:
 
-- LogoSCVersionMajor
-- LogoSCVersionMinor
-- LogoSCVersion
+- `LogoSCVersionMajor`
+- `LogoSCVersionMinor`
+- `CHANGELOG.md`
 
-and CHANGELOG.md before each release.
+`LogoSCVersion` is derived from the major and minor symbols; verify the resulting
+value rather than editing it independently.
 
 ## Packaging
 
-Deliver one ZIP containing every modified file using the repository's exact directory structure so it can be extracted directly over the repository.
+Deliver one ZIP containing every modified file using the repository's exact directory
+structure so it can be extracted directly over the repository.
 
 ## Developer Notebook
 
-Record significant design decisions, rationale, future ideas, and historical context in the Developer Notebook rather than this file.
+Record significant design decisions, rationale, and historical context in
+`LogoSC-Developer-Notebook.md`. Record longer-term feature concepts in
+`LogoSC-Future-Ideas.md` rather than expanding this file into another roadmap.
 
 ## Roadmap
 

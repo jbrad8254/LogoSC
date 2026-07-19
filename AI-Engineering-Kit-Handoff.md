@@ -22,6 +22,14 @@ engineering assistant across projects.
 Do not treat the AI Engineering Kit as part of LogoSC's public repository unless the user
 explicitly asks to add it.
 
+# Current LogoSC Repository Exception
+
+For the current LogoSC repository, the user explicitly requested that this handoff and the
+four AI Engineering Kit documents be stored at repository root. They remain companion/private
+engineering-process material rather than LogoSC public API or user documentation.
+
+LogoSC-specific repository guidance remains authoritative whenever it differs from this kit.
+
 # Import Procedure
 
 After the user uploads the files, follow this order.

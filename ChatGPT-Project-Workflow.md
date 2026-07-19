@@ -6,6 +6,10 @@
 >
 > It should generally live **outside** the project repository or be consciously copied
 > into a new chat when starting a fresh development session.
+>
+> **Current LogoSC exception:** the user explicitly requested that this companion document
+> be stored at the LogoSC repository root. It remains process guidance rather than LogoSC
+> public API or user documentation.
 
 # Purpose
 

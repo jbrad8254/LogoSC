@@ -1,5 +1,9 @@
 # Generic Bootstrap Prompt
 
+> This is reusable companion process material. The user explicitly requested that the current
+> LogoSC repository store it at repository root; project-specific LogoSC guidance takes
+> precedence whenever it differs from this generic prompt.
+
 Continue this software project.
 
 Use the uploaded repository as the sole source of truth.

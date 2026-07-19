@@ -9,6 +9,10 @@
 > It may live outside the repository with the other reusable workflow documents, or be
 > copied into a project's private development records when a project-specific retrospective
 > is useful.
+>
+> **Current LogoSC exception:** the user explicitly requested that this retrospective and
+> the other AI Engineering Kit documents be stored at the LogoSC repository root as private
+> development-process records. They are not LogoSC public API or user documentation.
 
 # Why This Document Exists
 
@@ -68,8 +72,8 @@ The documents are intentionally separated by scope.
 |---|---|---|
 | The user | `Engineering-Preferences.md` | General engineering standards that carry across projects |
 | User and ChatGPT | `ChatGPT-Project-Workflow.md` | Preferred collaboration behavior across conversations |
-| New conversation startup | `Generic-Project-Bootstrap.md` | A concise instruction set for beginning from a repository |
-| The development process over time | `Project-Retrospective.md` | Lessons learned, process changes, and reasons behind them |
+| New conversation startup | `Generic-Project-Bootstrap.md` | Concise repository-first startup instructions |
+| Development process over time | `Project-Retrospective.md` | Process lessons and reasons for changes |
 
 Project-specific knowledge remains inside each repository, usually in a Developer Notebook,
 CONTRIBUTING file, README, CHANGELOG, and related design notes.

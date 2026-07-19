@@ -3,6 +3,7 @@
 ## Table of Contents
 
 - [Current files](#current-files)
+- [AI Engineering Kit](#ai-engineering-kit)
 - [Developer notebook](#developer-notebook)
 - [Workflow](#workflow)
 - [Versioning](#versioning)
@@ -15,6 +16,7 @@
 - [Future rendering work](#future-rendering-work)
 - [Cheat sheet](#cheat-sheet)
 - [Examples](#examples)
+- [Contributing](#contributing)
 - [License](#license)
 - [Release history](#release-history)
 - [Milestone roadmap](#milestone-roadmap)
@@ -29,11 +31,29 @@
 - `LogoSC-Holes-Implementation.md` — design notes for regions and holes.
 - `LogoSC-LSystems-Notes.md` — design notes for L-system examples.
 - `LogoSC-User-Manual.md` — command reference and practical examples.
+- `CONTRIBUTING.md` — contributor workflow, stability, testing, documentation, and packaging guidance.
 - `LogoSC-Developer-Notebook.md` — living engineering history and ChatGPT restart guide.
-- `LogoSC-Future-Context.md` — compatibility pointer to the Developer Notebook.
+- `LogoSC-Future-Ideas.md` — longer-term feature concepts and possible future directions.
 - `LogoSC-CheatSheet.md` — compact command and API reference.
 - `LogoSC-Examples.scad` — runnable example gallery and 3D-printing demos.
 - `LICENSE` — MIT License text.
+- `AI-Engineering-Kit-Handoff.md` — orientation and precedence for transferring the companion kit.
+- `Generic-Project-Bootstrap.md` — reusable repository-first startup prompt.
+- `ChatGPT-Project-Workflow.md` — preferred AI collaboration behavior across long-running projects.
+- `Engineering-Preferences.md` — durable cross-project engineering and delivery preferences.
+- `Project-Retrospective.md` — process history and lessons behind the workflow kit.
+
+## AI Engineering Kit
+
+The five AI Engineering Kit files are stored at repository root by explicit user request.
+They are companion/private engineering-process material, not LogoSC public API or ordinary
+user documentation.
+
+Read `AI-Engineering-Kit-Handoff.md` first, then follow its order through
+`Generic-Project-Bootstrap.md`, `ChatGPT-Project-Workflow.md`,
+`Engineering-Preferences.md`, and `Project-Retrospective.md`. After the kit, read the
+LogoSC project documents below. Explicit user instructions and project-specific LogoSC
+guidance take precedence over generic kit preferences.
 
 ## Developer notebook
 
@@ -43,12 +63,14 @@ learned, workflow conventions, known regression risks, open questions, and
 future plans.
 
 Its primary operational use is to initialize ChatGPT after retiring an old chat
-and beginning a new LogoSC development session. The recommended reading order is:
+and beginning a new LogoSC development session. After reading the AI Engineering Kit,
+read the project documents in this order:
 
 1. `LogoSC-Developer-Notebook.md`
 2. `README.md`
 3. `CHANGELOG.md`
-4. `LogoSC-User-Manual.md` and implementation notes as required
+4. `CONTRIBUTING.md`
+5. `LogoSC-User-Manual.md` and implementation notes as required
 
 After reading, use the newly uploaded repository ZIP as the sole source of truth.
 Preserve dated history in the notebook rather than repeatedly replacing it with
@@ -342,6 +364,20 @@ LogoSCRunMode = "Examples"; // [NoDemo, Examples, Debug, Tests]
 To use one example in another model, include the core file and copy or reuse the
 corresponding command list/module from `LogoSC-Examples.scad`. LogoSC itself still
 renders only 2D regions; use ordinary OpenSCAD wrappers for final 3D parts.
+
+## Contributing
+
+Read [CONTRIBUTING.md](CONTRIBUTING.md) before preparing changes. It collects the
+project's contribution philosophy, stable-API expectations, coding conventions,
+documentation and testing responsibilities, versioning policy, and exact-path ZIP
+packaging requirements.
+
+Use `LogoSC-Developer-Notebook.md` for significant decisions and historical rationale,
+and use `LogoSC-Future-Ideas.md` for longer-term feature concepts.
+
+For AI-assisted continuation, begin with
+[AI-Engineering-Kit-Handoff.md](AI-Engineering-Kit-Handoff.md). The kit describes working
+style and process; LogoSC-specific repository guidance remains authoritative.
 
 ## License
 

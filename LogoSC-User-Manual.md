@@ -53,18 +53,35 @@ Current project files:
 LogoSC-Foundation-Core.scad        Core interpreter, geometry, and 2D renderer.
 LogoSC-Foundation-Tests.scad       Regression and visual tests.
 LogoSC-README.md                   Project overview and roadmap.
-CHANGELOG.md                      Release history.
+CHANGELOG.md                       Release history.
+CONTRIBUTING.md                    Contribution and maintenance guidelines.
+AI-Engineering-Kit-Handoff.md      Orientation and precedence for the companion AI kit.
+Generic-Project-Bootstrap.md       Reusable repository-first startup prompt.
+ChatGPT-Project-Workflow.md        Preferred long-running AI collaboration workflow.
+Engineering-Preferences.md         Durable cross-project engineering preferences.
+Project-Retrospective.md           Process history and workflow lessons.
 LogoSC-ARC-Implementation.md        ARC tessellation design notes.
 LogoSC-Holes-Implementation.md     Region/hole design notes.
 LogoSC-LSystems-Notes.md           L-system design and example notes.
 LogoSC-User-Manual.md              This manual.
 LogoSC-Developer-Notebook.md       Engineering history, design rationale, workflow,
                                   lessons learned, and ChatGPT restart guide.
-LogoSC-Future-Context.md           Compatibility pointer to the Developer Notebook.
+LogoSC-Future-Ideas.md             Longer-term feature concepts and future directions.
 LogoSC-CheatSheet.md               Compact command and API reference.
 LogoSC-Examples.scad               Runnable example gallery.
 .gitattributes                    LF line-ending policy for Git.
 ```
+
+Contributors should read [CONTRIBUTING.md](CONTRIBUTING.md) before preparing changes.
+It summarizes the project's API-stability, coding, documentation, testing, versioning,
+and packaging expectations. Significant design rationale remains in
+`LogoSC-Developer-Notebook.md`, while longer-term concepts belong in
+`LogoSC-Future-Ideas.md`.
+
+The five AI Engineering Kit files are private companion process records stored at
+repository root by explicit user request. They help future AI-assisted development
+sessions preserve collaboration style and engineering preferences, but they do not define
+LogoSC APIs or user-facing behavior. Ordinary LogoSC users can ignore them.
 
 ### Setup
 

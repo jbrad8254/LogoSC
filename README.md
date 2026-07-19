@@ -15,23 +15,30 @@ LogoSC is not trying to be a full Logo language. It is a lightweight OpenSCAD ge
 - Provides a preview-only debug renderer for visualizing low-level path execution.
 - Leaves 3D composition to native OpenSCAD tools such as `linear_extrude()`, `difference()`, `union()`, and `translate()`.
 
-## Developer notebook and restart order
+## Engineering guidance and restart order
 
 `LogoSC-Developer-Notebook.md` is the project's living engineering notebook. It
 records design rationale, non-goals, lessons learned, historical milestones,
 workflow rules, regression risks, and future plans that do not belong in the
 public API documentation.
 
-One of its primary uses is to initialize ChatGPT after an old LogoSC conversation
-has been flushed and development resumes in a new chat. For a fresh development
-session, read:
+The repository also stores an AI Engineering Kit at root by explicit user request.
+These files are companion/private process material, not LogoSC public API or user
+documentation. For a fresh development session, read:
 
-1. `LogoSC-Developer-Notebook.md`
-2. `README.md`
-3. `CHANGELOG.md`
-4. `LogoSC-User-Manual.md` and implementation notes as needed
+1. `AI-Engineering-Kit-Handoff.md`
+2. `Generic-Project-Bootstrap.md`
+3. `ChatGPT-Project-Workflow.md`
+4. `Engineering-Preferences.md`
+5. `Project-Retrospective.md`
+6. `LogoSC-Developer-Notebook.md`
+7. `README.md`
+8. `CHANGELOG.md`
+9. `CONTRIBUTING.md`
+10. `LogoSC-User-Manual.md` and implementation notes as needed
 
-Then treat the newly uploaded repository ZIP as the sole source of truth.
+Project-specific LogoSC guidance and the newly uploaded repository ZIP remain the
+sole authority for current code, filenames, APIs, versions, and design decisions.
 
 The notebook is intentionally historical. Add dated decisions and lessons rather
 than replacing older reasoning with shorter summaries.
@@ -146,14 +153,21 @@ See `LogoSC-CheatSheet.md` and `LogoSC-User-Manual.md` for the complete command 
 - `LogoSC-Foundation-Tests.scad` — regression and failure tests.
 - `LogoSC-Examples.scad` — runnable gallery and example models.
 - `LogoSC-User-Manual.md` — practical user documentation.
+- `CONTRIBUTING.md` — contribution philosophy, coding, testing, documentation, versioning, and packaging guidance.
 - `LogoSC-Developer-Notebook.md` — engineering history, design rationale, workflow, and ChatGPT restart guide.
-- `LogoSC-Future-Context.md` — compatibility pointer to the Developer Notebook.
+- `LogoSC-Future-Ideas.md` — longer-term feature concepts and possible future directions.
 - `LogoSC-CheatSheet.md` — compact command/API reference.
 - `LogoSC-README.md` — detailed project overview and roadmap.
 - `LogoSC-ARC-Implementation.md` — arc tessellation design notes.
 - `LogoSC-Holes-Implementation.md` — region and hole design notes.
 - `LogoSC-LSystems-Notes.md` — L-system design/example notes.
 - `CHANGELOG.md` — release history.
+- `AI-Engineering-Kit-Handoff.md` — orientation and precedence rules for transferring
+  the AI Engineering Kit to a new conversation.
+- `Generic-Project-Bootstrap.md` — concise reusable startup prompt for repository-first work.
+- `ChatGPT-Project-Workflow.md` — preferred long-running collaboration style with an AI engineering assistant.
+- `Engineering-Preferences.md` — durable cross-project engineering, documentation, testing, and delivery preferences.
+- `Project-Retrospective.md` — process history and lessons behind the reusable workflow documents.
 
 ## Design philosophy
 
@@ -185,6 +199,20 @@ LogoSC currently focuses on filled 2D region rendering for final geometry. It al
 
 - OpenSCAD
 - No external OpenSCAD library dependency for the core files
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) before preparing a contribution. It summarizes
+the project's API-stability expectations, coding style, documentation and testing
+responsibilities, versioning policy, and exact-path ZIP packaging workflow.
+
+Significant design decisions and historical rationale belong in
+`LogoSC-Developer-Notebook.md`; longer-term concepts belong in
+`LogoSC-Future-Ideas.md`.
+
+The companion AI Engineering Kit begins with
+[AI-Engineering-Kit-Handoff.md](AI-Engineering-Kit-Handoff.md). It guides collaboration
+but does not override LogoSC-specific repository decisions.
 
 ## License
 
