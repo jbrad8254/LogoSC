@@ -32,24 +32,25 @@
 - `LogoSC-LSystems-Notes.md` — design notes for L-system examples.
 - `LogoSC-User-Manual.md` — command reference and practical examples.
 - `CONTRIBUTING.md` — contributor workflow, stability, testing, documentation, and packaging guidance.
+- `AGENTS.md` — compact repository-specific operating guidance for Codex.
 - `LogoSC-Developer-Notebook.md` — living engineering history and ChatGPT restart guide.
 - `LogoSC-Future-Ideas.md` — longer-term feature concepts and possible future directions.
 - `LogoSC-CheatSheet.md` — compact command and API reference.
 - `LogoSC-Examples.scad` — runnable example gallery and 3D-printing demos.
 - `LICENSE` — MIT License text.
-- `docs/ai-engineering-kit/` — maintainer-facing handoff, bootstrap, collaboration,
-  engineering-preference, and retrospective documents.
+- `docs/ai-engineering-kit/` — maintainer-facing Codex/Git quick start, handoff, bootstrap,
+  collaboration, engineering-preference, and retrospective documents.
 
 ## AI Engineering Kit
 
-The five AI Engineering Kit files are stored under `docs/ai-engineering-kit/` by explicit
+The six AI Engineering Kit files are stored under `docs/ai-engineering-kit/` by explicit
 user request. They are maintainer-facing companion material, not LogoSC public API or
 ordinary user documentation.
 
 Read `docs/ai-engineering-kit/AI-Engineering-Kit-Handoff.md` first, then follow its order
-through the other files in that directory. After the kit, read the LogoSC project documents
-below. Explicit user instructions and project-specific LogoSC guidance take precedence over
-generic kit preferences.
+through the quick start and other files in that directory. After the kit, read the LogoSC
+project documents below. Explicit user instructions and project-specific LogoSC guidance
+take precedence over generic kit preferences.
 
 ## Developer notebook
 
@@ -68,9 +69,9 @@ read the project documents in this order:
 4. `CONTRIBUTING.md`
 5. `LogoSC-User-Manual.md` and implementation notes as required
 
-After reading, use the newly uploaded repository ZIP as the sole source of truth.
-Preserve dated history in the notebook rather than repeatedly replacing it with
-short summaries.
+After reading, use the current Git working tree—or the latest uploaded repository snapshot
+extracted into it—as the sole source of truth. Preserve dated history in the notebook rather
+than repeatedly replacing it with short summaries.
 
 
 ## Workflow

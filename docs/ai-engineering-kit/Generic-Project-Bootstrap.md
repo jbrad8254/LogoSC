@@ -6,7 +6,8 @@
 
 Continue this software project.
 
-Use the uploaded repository as the sole source of truth.
+Use the current Git working tree, or the latest provided repository snapshot, as the sole
+source of truth.
 
 Before making changes:
 

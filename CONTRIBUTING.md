@@ -22,12 +22,14 @@ README.md
 CHANGELOG.md
 LICENSE
 CONTRIBUTING.md
+AGENTS.md
 .gitattributes
 .gitignore
 
 docs/
     ai-engineering-kit/
         AI-Engineering-Kit-Handoff.md
+        Codex-Git-Project-Quick-Start.md
         Generic-Project-Bootstrap.md
         ChatGPT-Project-Workflow.md
         Engineering-Preferences.md
@@ -53,14 +55,15 @@ images/
 
 ## AI Engineering Kit
 
-The five AI Engineering Kit files are stored under `docs/ai-engineering-kit/` by explicit
+The six AI Engineering Kit files are stored under `docs/ai-engineering-kit/` by explicit
 user request. They remain maintainer-facing companion material rather than LogoSC public
 API, implementation, or ordinary user documentation.
 
 Read `docs/ai-engineering-kit/AI-Engineering-Kit-Handoff.md` first. It explains the
-remaining kit order and the precedence rule: explicit user instructions and current LogoSC
-repository guidance override generic preferences. Do not treat the kit as a substitute for
-this contributor guide or the Developer Notebook.
+remaining kit order, including the short `Codex-Git-Project-Quick-Start.md`, and the
+precedence rule: explicit user instructions and current LogoSC repository guidance override
+generic preferences. Do not treat the kit as a substitute for this contributor guide or the
+Developer Notebook.
 
 ## Public API Stability
 

@@ -4,6 +4,9 @@
 
 ### Documentation and maintenance
 
+- Added root `AGENTS.md` with compact repository-specific guidance for Codex.
+- Added `docs/ai-engineering-kit/Codex-Git-Project-Quick-Start.md` as a short reusable guide
+  to setting up and using a local Git repository as a Codex workspace.
 - Added `CONTRIBUTING.md` and `LogoSC-Future-Ideas.md` after the `v2026.2` tag.
 - Added the maintainer-facing AI Engineering Kit under `docs/ai-engineering-kit/` by
   explicit user request.

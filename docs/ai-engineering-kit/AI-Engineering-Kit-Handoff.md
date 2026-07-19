@@ -24,35 +24,39 @@ explicitly asks to add it.
 
 # Current LogoSC Repository Exception
 
-For the current LogoSC repository, the user explicitly requested that this handoff and the
-four AI Engineering Kit documents be stored under `docs/ai-engineering-kit/`. They remain
-maintainer-facing companion material rather than LogoSC public API or user documentation.
+For the current LogoSC repository, the user explicitly requested that this handoff, the
+Codex/Git quick start, and the four original AI Engineering Kit documents be stored under
+`docs/ai-engineering-kit/`. They remain maintainer-facing companion material rather than
+LogoSC public API or user documentation.
 
 LogoSC-specific repository guidance remains authoritative whenever it differs from this kit.
 
 # Import Procedure
 
-After the user uploads the files, follow this order.
+After the user opens the local Git workspace or provides the files, follow this order.
 
 ## 1. Read the AI Engineering Kit
 
 Read these files first:
 
-1. `Generic-Project-Bootstrap.md`
-2. `ChatGPT-Project-Workflow.md`
-3. `Engineering-Preferences.md`
-4. `Project-Retrospective.md`
+1. `Codex-Git-Project-Quick-Start.md`
+2. `Generic-Project-Bootstrap.md`
+3. `ChatGPT-Project-Workflow.md`
+4. `Engineering-Preferences.md`
+5. `Project-Retrospective.md`
 
 Their roles are:
 
 | File | Role |
 |---|---|
+| `Codex-Git-Project-Quick-Start.md` | Short setup and daily-use guide for a local Git workspace |
 | `Generic-Project-Bootstrap.md` | Startup procedure for a fresh project conversation |
 | `ChatGPT-Project-Workflow.md` | Preferred collaboration style between the user and ChatGPT |
 | `Engineering-Preferences.md` | Durable engineering, documentation, testing, and packaging preferences |
 | `Project-Retrospective.md` | Why this process exists and what was learned while developing it |
 
-These files are complementary. Do not collapse them into one document unless asked.
+These files are complementary. The quick start is an entry point, not a replacement for the
+four original workflow documents. Do not collapse them into one document unless asked.
 
 ## 2. Read the LogoSC Repository
 
@@ -132,7 +136,7 @@ Do not:
 
 - Assume the AI Engineering Kit is part of LogoSC
 - Copy generic workflow files into the LogoSC repository without permission
-- Rely on prior chat memory over the uploaded repository
+- Rely on prior chat memory over the current working tree or provided repository
 - Reconstruct files from memory when a current version exists
 - Apply blind global renames
 - Change public APIs casually
@@ -195,8 +199,9 @@ Do not immediately redesign the project.
 
 The user can paste the following into the new conversation after uploading both archives:
 
-> Continue the LogoSC project using the uploaded repository ZIP as the sole source of project
-> truth. Also read the uploaded AI Engineering Kit as guidance for how we work together, but do
+> Continue the LogoSC project using the current Git working tree, or the latest uploaded
+> repository ZIP extracted into it, as the sole source of project truth. Also read the AI
+> Engineering Kit as guidance for how we work together, but do
 > not add those generic process files to the LogoSC repository unless I explicitly ask.
 >
 > Read the AI Engineering Kit first, then read the LogoSC Developer Notebook, README, CHANGELOG,

@@ -206,7 +206,8 @@ When adding images:
 # Repository Discipline
 
 - The repository is the authoritative source.
-- Start work from the latest user-provided repository snapshot.
+- Start work from the current user-approved Git working tree or the latest provided
+  repository snapshot.
 - Do not merge older versions from memory or previous chats unless explicitly asked.
 - Avoid blind global replacements.
 - Preserve unrelated accepted sections.

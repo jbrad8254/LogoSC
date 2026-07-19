@@ -27,18 +27,23 @@ explicit user request. These files are maintainer-facing companion material, not
 public API or user documentation. For a fresh development session, read:
 
 1. `docs/ai-engineering-kit/AI-Engineering-Kit-Handoff.md`
-2. `docs/ai-engineering-kit/Generic-Project-Bootstrap.md`
-3. `docs/ai-engineering-kit/ChatGPT-Project-Workflow.md`
-4. `docs/ai-engineering-kit/Engineering-Preferences.md`
-5. `docs/ai-engineering-kit/Project-Retrospective.md`
-6. `LogoSC-Developer-Notebook.md`
-7. `README.md`
-8. `CHANGELOG.md`
-9. `CONTRIBUTING.md`
-10. `LogoSC-User-Manual.md` and implementation notes as needed
+2. `docs/ai-engineering-kit/Codex-Git-Project-Quick-Start.md`
+3. `docs/ai-engineering-kit/Generic-Project-Bootstrap.md`
+4. `docs/ai-engineering-kit/ChatGPT-Project-Workflow.md`
+5. `docs/ai-engineering-kit/Engineering-Preferences.md`
+6. `docs/ai-engineering-kit/Project-Retrospective.md`
+7. `LogoSC-Developer-Notebook.md`
+8. `README.md`
+9. `CHANGELOG.md`
+10. `CONTRIBUTING.md`
+11. `LogoSC-User-Manual.md` and implementation notes as needed
 
-Project-specific LogoSC guidance and the newly uploaded repository ZIP remain the
-sole authority for current code, filenames, APIs, versions, and design decisions.
+Root `AGENTS.md` provides the compact repository-specific operating rules for Codex and
+points back to this detailed reading order.
+
+Project-specific LogoSC guidance and the current Git working tree remain the sole authority
+for current code, filenames, APIs, versions, and design decisions. When starting from an
+uploaded repository ZIP, extract that current snapshot into the working tree first.
 
 The notebook is intentionally historical. Add dated decisions and lessons rather
 than replacing older reasoning with shorter summaries.
@@ -149,6 +154,7 @@ See `LogoSC-CheatSheet.md` and `LogoSC-User-Manual.md` for the complete command 
 
 ## Repository files
 
+- `AGENTS.md` — compact repository-specific guidance for Codex and other coding agents.
 - `LogoSC-Foundation-Core.scad` — core interpreter, 2D renderer, and debug renderer.
 - `LogoSC-Foundation-Tests.scad` — regression and failure tests.
 - `LogoSC-Examples.scad` — runnable gallery and example models.
@@ -162,8 +168,8 @@ See `LogoSC-CheatSheet.md` and `LogoSC-User-Manual.md` for the complete command 
 - `LogoSC-Holes-Implementation.md` — region and hole design notes.
 - `LogoSC-LSystems-Notes.md` — L-system design/example notes.
 - `CHANGELOG.md` — release history.
-- `docs/ai-engineering-kit/` — maintainer-facing AI handoff, bootstrap, collaboration,
-  engineering-preference, and retrospective documents.
+- `docs/ai-engineering-kit/` — maintainer-facing Codex/Git quick start plus AI handoff,
+  bootstrap, collaboration, engineering-preference, and retrospective documents.
 
 ## Design philosophy
 

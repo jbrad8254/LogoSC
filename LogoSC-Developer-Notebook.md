@@ -50,6 +50,7 @@
 - [AI Engineering Kit integration](#2026-07-18--ai-engineering-kit-integration)
 - [AI Engineering Kit directory cleanup](#2026-07-18--ai-engineering-kit-directory-cleanup)
 - [Documentation consistency cleanup](#2026-07-18--documentation-consistency-and-release-boundary-cleanup)
+- [Codex Git workspace quick start](#2026-07-19--codex-git-workspace-and-agents-guidance)
 
 ### Planning, releases, and history
 
@@ -90,23 +91,25 @@ When starting a new LogoSC chat:
 
 1. Read `docs/ai-engineering-kit/AI-Engineering-Kit-Handoff.md` for kit purpose,
    order, and precedence.
-2. Read `docs/ai-engineering-kit/Generic-Project-Bootstrap.md`.
-3. Read `docs/ai-engineering-kit/ChatGPT-Project-Workflow.md`.
-4. Read `docs/ai-engineering-kit/Engineering-Preferences.md`.
-5. Read `docs/ai-engineering-kit/Project-Retrospective.md`.
-6. Read this entire file.
-7. Read `README.md` for the concise repository overview.
-8. Read `CHANGELOG.md` for release and milestone history.
-9. Read `CONTRIBUTING.md` for contribution and maintenance conventions.
-10. Read `LogoSC-User-Manual.md` and implementation notes as needed for the task.
-11. Treat the newly uploaded repository ZIP as the sole source of truth.
-12. Ignore remembered files from older chats and the File Library unless the user
+2. Read `docs/ai-engineering-kit/Codex-Git-Project-Quick-Start.md`.
+3. Read `docs/ai-engineering-kit/Generic-Project-Bootstrap.md`.
+4. Read `docs/ai-engineering-kit/ChatGPT-Project-Workflow.md`.
+5. Read `docs/ai-engineering-kit/Engineering-Preferences.md`.
+6. Read `docs/ai-engineering-kit/Project-Retrospective.md`.
+7. Read this entire file.
+8. Read `README.md` for the concise repository overview.
+9. Read `CHANGELOG.md` for release and milestone history.
+10. Read `CONTRIBUTING.md` for contribution and maintenance conventions.
+11. Read `LogoSC-User-Manual.md` and implementation notes as needed for the task.
+12. Treat the current Git working tree, or the latest uploaded repository snapshot
+    extracted into it, as the sole source of truth.
+13. Ignore remembered files from older chats and the File Library unless the user
    explicitly asks for comparison.
-13. Make incremental changes only.
-14. Preserve historical context rather than replacing it with shorter summaries.
-15. Verify that previously accepted documentation and code have not regressed
+14. Make incremental changes only.
+15. Preserve historical context rather than replacing it with shorter summaries.
+16. Verify that previously accepted documentation and code have not regressed
    before packaging an update.
-16. Deliver all changed and added files from the work session in one combined ZIP
+17. Deliver all changed and added files from the work session in one combined ZIP
     using exact repository filenames.
 
 This bootstrap sequence overrides any conflicting remembered context from older
@@ -199,7 +202,8 @@ Append new milestones here. Do not rewrite this section as only the latest state
 
 ## Restart Checkpoint — Debug Renderer and Documentation Stable
 
-Current project state is suitable for a fresh chat/restart from a repository ZIP.
+Current project state is suitable for a fresh chat/restart from the local Git repository or
+a repository ZIP.
 
 Verified working state:
 
@@ -340,12 +344,13 @@ stable-API expectations, coding style, documentation, testing, versioning, and
 packaging. It should point maintainers to this notebook for design history and to
 `LogoSC-Future-Ideas.md` for longer-term concepts rather than duplicating either.
 
-The AI Engineering Kit consists of `AI-Engineering-Kit-Handoff.md` plus four reusable
-process documents: `Generic-Project-Bootstrap.md`, `ChatGPT-Project-Workflow.md`,
+The AI Engineering Kit consists of `AI-Engineering-Kit-Handoff.md`, the short
+`Codex-Git-Project-Quick-Start.md`, and four original reusable process documents:
+`Generic-Project-Bootstrap.md`, `ChatGPT-Project-Workflow.md`,
 `Engineering-Preferences.md`, and `Project-Retrospective.md`. These files are stored under
 `docs/ai-engineering-kit/` by explicit user request and remain maintainer-facing companion
-material. They describe collaboration and general preferences; this notebook and the
-current repository remain authoritative for LogoSC-specific facts and decisions.
+material. They describe setup, collaboration, and general preferences; `AGENTS.md`, this
+notebook, and the current repository remain authoritative for LogoSC-specific guidance.
 
 Section 7 of the manual is the canonical description of:
 
@@ -384,9 +389,9 @@ The user uses Git. Preserve exact project filenames.
 
 For each work session:
 
-1. Start from the most recent user-uploaded repository ZIP or explicitly
-   user-approved working file.
-2. Extract it into one working tree.
+1. Start from the current user-approved Git working tree or the most recent uploaded
+   repository ZIP.
+2. If starting from a ZIP, extract it into one working tree.
 3. Apply all changes there.
 4. Verify the requested changes.
 5. Verify unrelated accepted content has not regressed.
@@ -398,8 +403,8 @@ For each work session:
 10. Include a checksum file as a transfer artifact when practical, but do not
     assume it belongs in Git.
 
-The repository ZIP, not chat memory or similarly named sandbox files, is the
-source of truth.
+The active Git working tree, or the current repository snapshot extracted into it, is the
+source of truth—not chat memory or similarly named sandbox files.
 
 ---
 
@@ -934,8 +939,11 @@ colors make the test output more readable.
 
 Current docs are split by purpose:
 
+- `AGENTS.md`: compact repository-specific operating rules automatically available to Codex.
 - `docs/ai-engineering-kit/AI-Engineering-Kit-Handoff.md`: kit orientation, reading order,
   and precedence rules.
+- `docs/ai-engineering-kit/Codex-Git-Project-Quick-Start.md`: short reusable setup and
+  daily-use guide for local Codex Git workspaces.
 - `docs/ai-engineering-kit/Generic-Project-Bootstrap.md`: concise reusable repository-first
   startup procedure.
 - `docs/ai-engineering-kit/ChatGPT-Project-Workflow.md`: preferred long-running AI
@@ -1787,3 +1795,37 @@ Files affected:
 - `CONTRIBUTING.md`
 - `LogoSC-Developer-Notebook.md`
 - `LogoSC-User-Manual.md`
+
+### 2026-07-19 — Codex Git workspace and AGENTS guidance
+
+Context:
+
+- The local Codex workspace was confirmed to edit the actual Git working tree directly.
+- The existing AI Engineering Kit explained repository-first collaboration in detail but
+  lacked a short, reusable setup guide for starting a new local Git project.
+- LogoSC also lacked a root `AGENTS.md` containing its durable agent-facing rules.
+
+Decision:
+
+- Add `docs/ai-engineering-kit/Codex-Git-Project-Quick-Start.md` as the concise general
+  setup and daily-use entry point.
+- Add root `AGENTS.md` for LogoSC-specific authority, reading order, project boundaries,
+  verification, Git safety, and delivery requirements.
+- Keep detailed architecture and historical rationale in the existing project documents;
+  the agent guide links to them rather than duplicating them.
+- Treat direct working-tree edits as the primary local workflow while retaining the single
+  repository-relative ZIP as a verified backup or transfer artifact.
+
+Files affected:
+
+- `AGENTS.md`
+- `docs/ai-engineering-kit/Codex-Git-Project-Quick-Start.md`
+- `docs/ai-engineering-kit/AI-Engineering-Kit-Handoff.md`
+- `docs/ai-engineering-kit/Engineering-Preferences.md`
+- `docs/ai-engineering-kit/Generic-Project-Bootstrap.md`
+- `README.md`
+- `LogoSC-README.md`
+- `LogoSC-User-Manual.md`
+- `CONTRIBUTING.md`
+- `LogoSC-Developer-Notebook.md`
+- `CHANGELOG.md`

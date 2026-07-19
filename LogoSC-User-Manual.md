@@ -55,6 +55,7 @@ README.md                          Repository landing page.
 CHANGELOG.md                       Release history.
 LICENSE                            MIT License.
 CONTRIBUTING.md                    Contribution and maintenance guidelines.
+AGENTS.md                          Compact repository-specific Codex guidance.
 .gitattributes                     LF line-ending policy for Git.
 .gitignore                         Repository ignore rules.
 
@@ -85,10 +86,12 @@ and packaging expectations. Significant design rationale remains in
 `LogoSC-Developer-Notebook.md`, while longer-term concepts belong in
 `LogoSC-Future-Ideas.md`.
 
-The five AI Engineering Kit files are maintainer-facing companion records stored under
+The six AI Engineering Kit files are maintainer-facing companion records stored under
 `docs/ai-engineering-kit/` by explicit user request. They help future AI-assisted
 development sessions preserve collaboration style and engineering preferences, but they
-do not define LogoSC APIs or user-facing behavior. Ordinary LogoSC users can ignore them.
+do not define LogoSC APIs or user-facing behavior. The short
+`Codex-Git-Project-Quick-Start.md` explains local Git workspace setup. Ordinary LogoSC users
+can ignore the kit.
 
 ### Setup
 
