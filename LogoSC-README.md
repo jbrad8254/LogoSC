@@ -24,8 +24,9 @@
 
 ## Current files
 
-- `LogoSC-Foundation-Core.scad` — core interpreter and renderer.
-- `LogoSC-Foundation-Tests.scad` — regression and failure test suites.
+- `LogoSC-Foundation-Core.scad` — standalone core interpreter and renderer.
+- `LogoSC-Foundation-Tests.scad` — passive regression and failure-test definitions.
+- `LogoSC-Foundation-Test-Runner.scad` — direct entry point for the complete test suite.
 - `LogoSC-OpenSCAD-Command-Line.md` — command-line testing, export, and PNG-preview guide.
 - `LogoSC-README.md` — this overview.
 - `CHANGELOG.md` — milestone release history.
@@ -84,7 +85,8 @@ than repeatedly replacing it with short summaries.
    - `Debug` renders the indexed debug-visualization gallery.
    - `Tests` renders the regression-test grid.
    - `NoDemo` or a blank string explicitly suppresses automatic preview output.
-3. For direct core testing, open `LogoSC-Foundation-Core.scad` and explicitly set `LogoSCRunMode = "Tests"`; tests do not run unless requested.
+3. For direct testing, open `LogoSC-Foundation-Test-Runner.scad`. Core does not load
+   or execute test code.
 4. Commit stable milestones to Git.
 
 Visual regression tests are color-coded by grid index. Test geometry color follows

@@ -59,8 +59,8 @@ The output extension selects the export type. Useful examples include:
 
 ## Example 1: run the LogoSC regression suite
 
-LogoSC's test grid is enabled by setting `LogoSCRunMode` to `"Tests"`. The `-D` option
-overrides an OpenSCAD variable for that invocation. It can be repeated for additional values.
+`LogoSC-Foundation-Test-Runner.scad` loads Core plus the passive test definitions and
+executes the complete suite. Core itself has no test-file dependency.
 
 This tested PowerShell example evaluates the suite and captures its messages in an `.echo`
 file:
@@ -70,10 +70,9 @@ $openScadCli = 'C:\Program Files\OpenSCAD\openscad.com'
 $testLogPath = Join-Path $env:TEMP 'LogoSC-tests.echo'
 
 & $openScadCli `
-    -D 'LogoSCRunMode=\"Tests\"' `
     -D 'TraceLevel=0' `
     -o $testLogPath `
-    'LogoSC-Foundation-Core.scad'
+    'LogoSC-Foundation-Test-Runner.scad'
 
 if ($LASTEXITCODE -ne 0)
 {
@@ -97,10 +96,6 @@ if ($invariantFailures.Count -ne 0)
     throw 'LogoSC evaluator invariants failed.'
 }
 ```
-
-The embedded quotation marks in `LogoSCRunMode=\"Tests\"` must reach OpenSCAD because the
-value is an OpenSCAD string. Shell quoting varies; this form is verified for PowerShell with
-the installed Windows console wrapper.
 
 The current failure-condition suite deliberately emits some `[ERROR]` messages while testing
 soft-error behavior. Therefore, do not treat every `[ERROR]` line as an unexpected regression.

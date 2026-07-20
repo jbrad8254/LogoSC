@@ -36,6 +36,10 @@ Benefits:
 
 Provide optional validation of contours before polygon generation.
 
+Keep this in `LogoSC-Foundation-Validation.scad` as an optional companion rather than a
+dependency of the standalone Core file. Focused validation tests should live in
+`LogoSC-Foundation-Validation-Tests.scad` and be assembled by the test runner.
+
 Ideas:
 
 - Open contour detection

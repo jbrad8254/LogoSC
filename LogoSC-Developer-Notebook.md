@@ -35,6 +35,7 @@
 - [Debug demo control cleanup](#2026-07-12--debug-demo-control-cleanup)
 - [Debug renderer documentation pass](#2026-07-12--debug-renderer-documentation-pass)
 - [Indexed debug-renderer gallery](#2026-07-20--indexed-debug-renderer-gallery)
+- [Standalone Core and optional companions](#2026-07-20--standalone-core-and-optional-companion-boundary)
 
 ### Documentation and workflow
 
@@ -222,7 +223,10 @@ Verified working state:
   - `"Examples"`: normal examples gallery;
   - `"Debug"`: debug visualization demo;
   - `"Tests"`: regression test grid.
-- Tests run only when `LogoSCRunMode == "Tests"`.
+- `LogoSC-Examples.scad` runs tests only when `LogoSCRunMode == "Tests"`;
+  `LogoSC-Foundation-Test-Runner.scad` is the direct suite entry point.
+- `LogoSC-Foundation-Core.scad` is standalone and does not include test or optional
+  feature companions.
 - `RenderLogoDebug()` is implemented and visually verified.
 - Debug visualization is preview/debug-only, not intended to create manufacturable stroke geometry.
 - Debug rendering uses z-centered 3D capsules and point markers.
@@ -582,6 +586,8 @@ changes, verify links, headings, code examples, and retained accepted content.
 Near-term candidates:
 
 - design optional open-contour validation without changing current implicit-closure behavior;
+- keep validation in an optional `LogoSC-Foundation-Validation.scad` companion so basic
+  LogoSC use continues to require only Core;
 - expand the non-rendering evaluator-invariant suite alongside contour validation and eventual
   open-path support;
 - decide whether self-intersections need warnings, strict validation, or only debug visibility;
@@ -662,6 +668,7 @@ Expected current project files include approximately:
 ```text
 LogoSC-Foundation-Core.scad
 LogoSC-Foundation-Tests.scad
+LogoSC-Foundation-Test-Runner.scad
 LogoSC-Examples.scad
 LogoSC-Experiments.scad
 README.md
@@ -924,8 +931,10 @@ and screenshots, not 3D-printing semantics.
 
 ## 15. Test suite conventions
 
-The core includes tests unconditionally because OpenSCAD `include <>` cannot be reliably
-conditionalized. Actual test execution is guarded by `LogoSCRunMode == "Tests"`.
+Core must not include the test definitions. `LogoSC-Foundation-Tests.scad` contains passive
+test modules, and `LogoSC-Foundation-Test-Runner.scad` includes Core plus those definitions
+before calling `RunAllLogoSCests()`. `LogoSC-Examples.scad` includes the passive definitions
+so its explicit `Tests` run mode can invoke the same suite.
 
 Important OpenSCAD include pattern for examples/user files:
 
@@ -934,8 +943,8 @@ include <LogoSC-Foundation-Core.scad>
 TraceLevel = 0; // [0:4]
 ```
 
-Ordinary user files do not need to assign `LogoSCRunMode`; tests remain suppressed unless
-the mode is explicitly set to `"Tests"`.
+Ordinary user files do not need `LogoSCRunMode` or any test file. Basic LogoSC use requires
+only `LogoSC-Foundation-Core.scad`.
 
 The test grid uses logical grid indices, not absolute positions. Row markers and X-index
 colors make the test output more readable.
@@ -1954,3 +1963,46 @@ Files affected:
 - `LogoSC-OpenSCAD-Command-Line.md`
 - `CHANGELOG.md`
 - `LogoSC-Developer-Notebook.md`
+
+### 2026-07-20 — Standalone Core and optional companion boundary
+
+Context:
+
+- `LogoSC-Foundation-Core.scad` unconditionally included the regression-test definitions,
+  even though test execution was guarded by `LogoSCRunMode`.
+- OpenSCAD resolves `include <>` at parse time, so a model using Core still needed the test
+  file to be physically present.
+- Planned contour validation is useful core-adjacent functionality, but optional validation
+  should not create another physical dependency for basic LogoSC models.
+
+Decision:
+
+- Make `LogoSC-Foundation-Core.scad` a standalone library entry point with no companion
+  includes.
+- Keep `LogoSC-Foundation-Tests.scad` as passive test definitions with no automatic execution.
+- Add `LogoSC-Foundation-Test-Runner.scad` to assemble Core and the tests and run the complete
+  suite directly.
+- Preserve `LogoSC-Examples.scad` test mode by explicitly loading the passive test definitions
+  and calling `RunAllLogoSCests()` only when `LogoSCRunMode == "Tests"`.
+- Implement future path analysis and contour validation in the optional
+  `LogoSC-Foundation-Validation.scad` companion.
+- Put its focused tests in `LogoSC-Foundation-Validation-Tests.scad` and assemble both future
+  files through the test runner rather than Core.
+- Do not publish validation API names until the path-record model and closure semantics have
+  been designed and tested.
+
+Consequences:
+
+- Basic LogoSC use requires only `LogoSC-Foundation-Core.scad`.
+- Opening Core directly no longer runs tests; maintainers open the test runner instead.
+- Examples, Debug, and Tests modes remain available from `LogoSC-Examples.scad`.
+- Optional features can be maintained in smaller files without turning them into mandatory
+  dependencies or expanding the already large Core source.
+
+Files affected:
+
+- `LogoSC-Foundation-Core.scad`
+- `LogoSC-Foundation-Tests.scad`
+- `LogoSC-Foundation-Test-Runner.scad`
+- `LogoSC-Examples.scad`
+- setup, testing, inventory, changelog, and roadmap documentation

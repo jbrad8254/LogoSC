@@ -12,10 +12,11 @@
 // difference() around RenderLogo2D() for actual 3D modeling.
 // ============================================================================
 
-// Keep the regression-test grid and trace output out of the examples view when
-// this file is opened directly. OpenSCAD include behaves like textual insertion,
-// so these settings live after the include to override core defaults.
+// Load Core plus the passive regression-test definitions so this file can keep
+// offering Examples, Debug, and Tests as interactive run modes. Basic user
+// models need only LogoSC-Foundation-Core.scad.
 include <LogoSC-Foundation-Core.scad>
+include <LogoSC-Foundation-Tests.scad>
 
 // -----------------------------------------------------------------------------
 // Example controls
@@ -1038,4 +1039,9 @@ if (LogoSCRunMode == "Debug")
     {
         RenderDebugDemo(debugExample = DebugDemoExample);
     }
+}
+
+if (LogoSCRunMode == "Tests")
+{
+    RunAllLogoSCests();
 }

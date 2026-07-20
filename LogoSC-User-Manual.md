@@ -61,8 +61,9 @@ AGENTS.md                          Compact repository-specific Codex guidance.
 
 docs/ai-engineering-kit/           Maintainer-facing AI workflow and handoff documents.
 
-LogoSC-Foundation-Core.scad        Core interpreter, geometry, and 2D renderer.
-LogoSC-Foundation-Tests.scad       Regression and visual tests.
+LogoSC-Foundation-Core.scad        Standalone interpreter, geometry, and renderers.
+LogoSC-Foundation-Tests.scad       Passive regression and visual-test definitions.
+LogoSC-Foundation-Test-Runner.scad Direct entry point for the complete test suite.
 LogoSC-Examples.scad               Runnable example gallery.
 LogoSC-Experiments.scad            Experimental rendering and geometry workbench.
 LogoSC-OpenSCAD-Command-Line.md    Command-line testing, export, and PNG-preview guide.
@@ -96,8 +97,8 @@ can ignore the kit.
 
 ### Setup
 
-For normal use, put the LogoSC core file next to your model and include it from
-OpenSCAD:
+For normal use, put the standalone LogoSC core file next to your model and
+include it from OpenSCAD. No test or optional companion file is required:
 
 ```scad
 include <LogoSC-Foundation-Core.scad>
@@ -124,9 +125,10 @@ file's defaults.
 | `Debug` | Render the indexed debug-visualization gallery when using `LogoSC-Examples.scad`. |
 | `Tests` | Render the regression-test grid. |
 
-The foundation tests run only when `LogoSCRunMode` is explicitly set to
-`"Tests"`. Ordinary user models can usually omit `LogoSCRunMode` entirely; use
-`"NoDemo"` or a blank string only when you want an explicit no-output selector.
+The examples file runs the foundation suite only when `LogoSCRunMode` is set to
+`"Tests"`. The dedicated test runner executes the suite directly. Ordinary user
+models can usually omit `LogoSCRunMode` entirely; use `"NoDemo"` or a blank
+string only when you want an explicit no-output selector.
 
 For ordinary 2D output, wrap a LogoSC command list with:
 
@@ -143,15 +145,20 @@ linear_extrude(height = 4, center = false, convexity = 10)
 }
 ```
 
-To run the built-in tests, open `LogoSC-Examples.scad` or
-`LogoSC-Foundation-Core.scad` and set:
+To run the built-in tests directly, open:
+
+```text
+LogoSC-Foundation-Test-Runner.scad
+```
+
+Alternatively, open `LogoSC-Examples.scad` and set:
 
 ```scad
 LogoSCRunMode = "Tests";
 ```
 
-The tests do not run by default. This keeps the foundation file quiet unless the
-test grid is explicitly requested.
+Core never loads or executes the test definitions. This keeps basic LogoSC use
+dependent on one file while preserving the test grid through explicit entry points.
 
 Maintainers can also run the suite without opening the GUI. See
 [Running LogoSC from the OpenSCAD Command Line](LogoSC-OpenSCAD-Command-Line.md)
@@ -362,11 +369,13 @@ LogoSCRunMode = "Examples"; // [NoDemo, Examples, Debug, Tests]
 Use `Examples` for the gallery, `Debug` for the debug-visualization demo,
 `Tests` for the regression grid, and `NoDemo` for no automatic preview output.
 
-The examples file includes the core, selects the normal gallery by default, and
-keeps routine example previews quiet unless tracing is explicitly raised:
+The examples file includes Core plus the passive tests so every interactive run
+mode remains available. It selects the normal gallery by default and keeps routine
+example previews quiet unless tracing is explicitly raised:
 
 ```scad
 include <LogoSC-Foundation-Core.scad>
+include <LogoSC-Foundation-Tests.scad>
 LogoSCRunMode = "Examples"; // [NoDemo, Examples, Debug, Tests]
 TraceLevel = 0; // [0:4]
 ```

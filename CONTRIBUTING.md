@@ -37,6 +37,7 @@ docs/
 
 LogoSC-Foundation-Core.scad
 LogoSC-Foundation-Tests.scad
+LogoSC-Foundation-Test-Runner.scad
 LogoSC-Examples.scad
 LogoSC-Experiments.scad
 LogoSC-OpenSCAD-Command-Line.md
@@ -119,6 +120,7 @@ Prefer:
 Before release:
 
 - Update regression tests as needed.
+- Run `LogoSC-Foundation-Test-Runner.scad`; do not add test dependencies to Core.
 - Verify examples still render correctly.
 - Keep documentation synchronized with implementation.
 

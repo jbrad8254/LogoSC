@@ -8,6 +8,14 @@
   examples distinct logical indexes and offsets.
 - Added `DebugDemoLayout` with `Gallery` and `Selected` choices, retaining focused
   inspection through `DebugDemoExample`.
+- Added `LogoSC-Foundation-Test-Runner.scad` as the direct regression-suite entry point.
+
+### Changed
+
+- Made `LogoSC-Foundation-Core.scad` a standalone one-file library with no test-file
+  dependency.
+- Changed `LogoSC-Foundation-Tests.scad` to provide passive test definitions invoked by
+  the runner or the explicit `Tests` branch in `LogoSC-Examples.scad`.
 
 ### Documentation and maintenance
 
@@ -25,6 +33,8 @@
   debug-renderer work from future contour-validation and stroke-rendering work.
 - Corrected User Manual section numbering, recursion links, and repository inventory.
 - Kept post-release documentation work separate from the contents of the `v2026.2` tag.
+- Recorded that future contour validation belongs in an optional implementation companion
+  with separate tests, assembled by the test runner rather than included from Core.
 
 ### Testing
 

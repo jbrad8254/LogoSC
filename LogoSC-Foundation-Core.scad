@@ -11,10 +11,10 @@
 // OpenSCAD Logo / Logo-style command evaluator.
 // Interpreter uses one Eval* handler function per opcode.
 //
-// This split-file baseline contains core interpreter controls, constants,
-// state functions, trace functions, opcode handlers, and evaluator logic.
-// The companion LogoSC-Foundation-Tests.scad file is included at parse time
-// below, with test execution gated by LogoSCRunMode == "Tests".
+// This file contains core interpreter controls, constants, state functions,
+// trace functions, opcode handlers, evaluator logic, and renderers. It is a
+// standalone library entry point: basic LogoSC models require only this file.
+// Optional validation and test companions must not become Core dependencies.
 //
 // Command format:
 //     [MOVE,   len]
@@ -109,7 +109,7 @@ $fs = 2;       // [0.1:0.1:20]
 //     REGPOLY uses its side count directly and does not consult $fn/$fa/$fs.
 
 // Enable hard-stop interpreter errors.
-// false: print [ERROR] and continue the test suite.
+// false: print [ERROR] and continue evaluation.
 // true: use assert() and stop immediately on serious interpreter errors.
 HardErrors = false; // [false:true]
 
@@ -129,15 +129,6 @@ maxRunRecursions = 5; // [0:20]
 
 // Default per-RUN recursion limit when RUN is written without maxRec.
 DefaultRunMaxRecursions = 2; // [0:20]
-
-// Default extrusion height used by LogoSCest().
-DefaultTestHeight = 5; // [1:1:20]
-
-// Default top-level run selector. LogoSC-Examples.scad exposes the same
-// variable to OpenSCAD Customizer with NoDemo/Examples/Debug/Tests values.
-// Tests run only when LogoSCRunMode is explicitly set to "Tests". NoDemo and
-// blank strings both leave the foundation test grid suppressed.
-LogoSCRunMode = "NoDemo"; // [NoDemo, Examples, Debug, Tests]
 
 // Non-fatal error helper for use inside functions.
 function ErrorOrZero(msg, value = undef) =
@@ -2477,10 +2468,6 @@ function evalRepeatLogo(
             ResultPen(result)
         );
 
-// -----------------------------------------------------------------------------
-// Optional test-suite include
-// -----------------------------------------------------------------------------
-// OpenSCAD include/use directives are parse-time constructs, so this include is
-// unconditional. Test execution is guarded in LogoSC-Foundation-Tests.scad by
-// LogoSCRunMode == "Tests".
-include <LogoSC-Foundation-Tests.scad>
+// Core intentionally ends without including optional companions. This keeps
+// basic LogoSC use dependent on this file alone. Use
+// LogoSC-Foundation-Test-Runner.scad to load and execute the regression suite.

@@ -11,7 +11,9 @@
 //
 // This file is intentionally noisy: it exercises the evaluator, RUN command
 // expansion, scaling, recursion limiting, pen-state behavior, and soft-error
-// behavior. Test execution is guarded by LogoSCRunMode == "Tests".
+// behavior. It defines test modules but does not execute them automatically.
+// Use LogoSC-Foundation-Test-Runner.scad, or call RunAllLogoSCests() explicitly
+// from another entry point after including Core and this file.
 //
 // =============================================================================
 
@@ -20,6 +22,8 @@
 // -----------------------------------------------------------------------------
 // Public render helpers live in LogoSC-Foundation-Core.scad. The tests use the
 // same renderer modules that library users call.
+
+DefaultTestHeight = 5; // [1:1:20]
 
 BasicY     = 0;
 RunY0      = 1;
@@ -1486,9 +1490,4 @@ module RunAllLogoSCests()
     TestClosedShapeSuiteLogo();
     TestHoleSuiteLogo();
     TestFailureSuiteLogo();
-}
-
-if (!is_undef(LogoSCRunMode) && LogoSCRunMode == "Tests")
-{
-    RunAllLogoSCests();
 }

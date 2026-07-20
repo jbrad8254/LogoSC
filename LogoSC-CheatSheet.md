@@ -52,7 +52,9 @@ crossing lines  unclosed contours  pen-up moves  primitive placement
 
 ## Core controls
 
-[`LogoSCRunMode`](LogoSC-User-Manual.md#setup)  [`HardErrors`](LogoSC-User-Manual.md#13-error-handling-and-tracing)  [`TraceLevel`](LogoSC-User-Manual.md#13-error-handling-and-tracing)  [`maxRunRecursions`](LogoSC-User-Manual.md#run)
+[`HardErrors`](LogoSC-User-Manual.md#13-error-handling-and-tracing)
+[`TraceLevel`](LogoSC-User-Manual.md#13-error-handling-and-tracing)
+[`maxRunRecursions`](LogoSC-User-Manual.md#run)
 
 ## Test helpers
 
@@ -65,3 +67,4 @@ crossing lines  unclosed contours  pen-up moves  primitive placement
 ## More
 
 [`README`](LogoSC-README.md)  [`User Manual`](LogoSC-User-Manual.md)  [`Examples`](LogoSC-Examples.scad)  [`ARC note`](LogoSC-ARC-Implementation.md)  [`Holes note`](LogoSC-Holes-Implementation.md)  [`Changelog`](CHANGELOG.md)
+[`Test runner`](LogoSC-Foundation-Test-Runner.scad)
