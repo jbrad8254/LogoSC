@@ -109,7 +109,8 @@ Check the process exit code and the diagnostics specific to the test being valid
 ## Example 2: export and inspect a debug PNG
 
 The command line can render the same debug demo that is available through the OpenSCAD
-Customizer:
+Customizer. Debug mode defaults to the full gallery, so this focused example explicitly
+selects the single-example layout:
 
 ```powershell
 $openScadCli = 'C:\Program Files\OpenSCAD\openscad.com'
@@ -117,6 +118,7 @@ $debugPngPath = Join-Path $env:TEMP 'LogoSC-debug.png'
 
 & $openScadCli `
     -D 'LogoSCRunMode=\"Debug\"' `
+    -D 'DebugDemoLayout=\"Selected\"' `
     -D 'DebugDemoExample=0' `
     -D 'TraceLevel=0' `
     --imgsize '800,600' `

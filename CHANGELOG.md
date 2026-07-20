@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+### Added
+
+- Added a four-column by two-row debug-renderer gallery that gives all eight debug
+  examples distinct logical indexes and offsets.
+- Added `DebugDemoLayout` with `Gallery` and `Selected` choices, retaining focused
+  inspection through `DebugDemoExample`.
+
 ### Documentation and maintenance
 
 - Added root `AGENTS.md` with compact repository-specific guidance for Codex.

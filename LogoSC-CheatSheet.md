@@ -35,7 +35,12 @@ Compact LogoSC `2026.2` reference. Full docs: [`LogoSC-User-Manual.md`](LogoSC-U
 
 ## Debug visualization
 
-[`LogoSCRunMode = "Debug"`](LogoSC-User-Manual.md#710-debug-visualization)  [`DebugDemoOverlay`](LogoSC-User-Manual.md#710-debug-visualization)  [`DebugDemoFilled`](LogoSC-User-Manual.md#710-debug-visualization)  [`DebugDemoExample`](LogoSC-User-Manual.md#710-debug-visualization)  crossing lines  unclosed contours  pen-up moves  primitive placement
+[`LogoSCRunMode = "Debug"`](LogoSC-User-Manual.md#710-debug-visualization)
+[`DebugDemoLayout`](LogoSC-User-Manual.md#710-debug-visualization)
+[`DebugDemoOverlay`](LogoSC-User-Manual.md#710-debug-visualization)
+[`DebugDemoFilled`](LogoSC-User-Manual.md#710-debug-visualization)
+[`DebugDemoExample`](LogoSC-User-Manual.md#710-debug-visualization)
+crossing lines  unclosed contours  pen-up moves  primitive placement
 
 ## Region data
 

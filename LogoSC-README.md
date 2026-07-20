@@ -81,7 +81,7 @@ than repeatedly replacing it with short summaries.
 1. Open `LogoSC-Examples.scad` in OpenSCAD for normal interactive use.
 2. Use the top-level `LogoSCRunMode` Customizer selector:
    - `Examples` renders the example gallery.
-   - `Debug` renders the debug-visualization demo.
+   - `Debug` renders the indexed debug-visualization gallery.
    - `Tests` renders the regression-test grid.
    - `NoDemo` or a blank string explicitly suppresses automatic preview output.
 3. For direct core testing, open `LogoSC-Foundation-Core.scad` and explicitly set `LogoSCRunMode = "Tests"`; tests do not run unless requested.
@@ -320,9 +320,11 @@ Use it to diagnose:
 - primitive-generated geometry such as centered `REGPOLY`, `RECT`, and `CIRCLE`;
 - differences between hand-drawn turtle paths and stamped primitives.
 
-The examples file exposes this through `LogoSCRunMode = "Debug"`. Normal user
-models can overlay debug geometry with filled output by rendering both
-`RenderLogo2D(cmds)` and `RenderLogoDebug(cmds)`.
+The examples file exposes this through `LogoSCRunMode = "Debug"`. It renders all
+eight debug cases in a four-column by two-row indexed gallery by default. Set
+`DebugDemoLayout = "Selected"` and choose `DebugDemoExample` to inspect one case.
+Normal user models can overlay debug geometry with filled output by rendering
+both `RenderLogo2D(cmds)` and `RenderLogoDebug(cmds)`.
 
 ## Future rendering work
 

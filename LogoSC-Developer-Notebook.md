@@ -34,6 +34,7 @@
 - [Unified Customizer run selector](#2026-07-11--unified-customizer-run-selector)
 - [Debug demo control cleanup](#2026-07-12--debug-demo-control-cleanup)
 - [Debug renderer documentation pass](#2026-07-12--debug-renderer-documentation-pass)
+- [Indexed debug-renderer gallery](#2026-07-20--indexed-debug-renderer-gallery)
 
 ### Documentation and workflow
 
@@ -1915,5 +1916,41 @@ Files affected:
 - `LogoSC-README.md`
 - `LogoSC-User-Manual.md`
 - `CONTRIBUTING.md`
+- `CHANGELOG.md`
+- `LogoSC-Developer-Notebook.md`
+
+### 2026-07-20 — Indexed debug-renderer gallery
+
+Context:
+
+- `LogoSCRunMode = "Debug"` rendered only the selected `DebugDemoExample`.
+- `RenderDebugDemo()` retained a fixed `[2, 2]` default index from the earlier period when
+  examples, debug output, and tests could be enabled together.
+- The fixed index became misleading after run modes became mutually exclusive, and repeated
+  OpenSCAD recompilations could look like multiple examples sharing one cell.
+
+Decision:
+
+- Add `DebugDemoLayout` with `Gallery` as the default and `Selected` as the focused view.
+- Map debug examples 0 through 7 to a stable four-column by two-row logical grid.
+- Pass the example number explicitly into `RenderDebugDemo()` so every gallery call reports
+  its own index, offset, and example value.
+- Retain `DebugDemoExample` for choosing the case rendered by the selected layout.
+
+Consequences:
+
+- Debug mode now provides an immediate all-cases visual overview.
+- Console diagnostics map unambiguously to the displayed debug cell.
+- Selected mode renders its one case at the first grid cell, avoiding the stale `[2, 2]`
+  placement while preserving focused inspection.
+
+Files affected:
+
+- `LogoSC-Examples.scad`
+- `README.md`
+- `LogoSC-README.md`
+- `LogoSC-User-Manual.md`
+- `LogoSC-CheatSheet.md`
+- `LogoSC-OpenSCAD-Command-Line.md`
 - `CHANGELOG.md`
 - `LogoSC-Developer-Notebook.md`

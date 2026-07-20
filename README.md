@@ -56,7 +56,11 @@ Open `LogoSC-Examples.scad` in OpenSCAD to see the example gallery. The top-leve
 LogoSCRunMode = "Examples"; // [NoDemo, Examples, Debug, Tests]
 ```
 
-Use `Examples` for the normal gallery, `Debug` for the debug-visualization demo, and `Tests` for the regression grid. `NoDemo` or a blank string explicitly suppresses automatic output in the examples file. Ordinary user models can omit `LogoSCRunMode`; tests do not run unless explicitly selected.
+Use `Examples` for the normal gallery, `Debug` for the indexed debug-visualization gallery,
+and `Tests` for the regression grid. In Debug mode, set `DebugDemoLayout` to `Selected`
+to inspect one `DebugDemoExample`. `NoDemo` or a blank string explicitly suppresses
+automatic output in the examples file. Ordinary user models can omit `LogoSCRunMode`;
+tests do not run unless explicitly selected.
 
 For your own model, include the core file and call `RenderLogo2D()`. This first example intentionally uses only `MOVE` and `TURN`:
 

@@ -121,7 +121,7 @@ file's defaults.
 | `NoDemo` | Suppress automatic examples, debug demos, and tests when you want an explicit no-output mode. |
 | `""` | Also suppress automatic examples, debug demos, and tests. Useful when you want an explicit blank state. |
 | `Examples` | Render the example gallery when using `LogoSC-Examples.scad`. |
-| `Debug` | Render the debug-visualization demo when using `LogoSC-Examples.scad`. |
+| `Debug` | Render the indexed debug-visualization gallery when using `LogoSC-Examples.scad`. |
 | `Tests` | Render the regression-test grid. |
 
 The foundation tests run only when `LogoSCRunMode` is explicitly set to
@@ -997,10 +997,14 @@ In `LogoSC-Examples.scad`, set:
 LogoSCRunMode = "Debug";
 ```
 
-Then use `DebugDemoExample` to step through the closed triangle, open triangle,
-crossed rectangle, ordinary rectangle, pen-up gap, arc loop, stroke-vs-primitive
-triangle, and primitive demos. `DebugDemoOverlay` toggles the debug capsules and
-points; `DebugDemoFilled` toggles the filled 2D preview.
+`DebugDemoLayout = "Gallery"` renders all eight cases in a four-column by two-row
+grid with distinct logical indexes and offsets. Set `DebugDemoLayout = "Selected"`
+to inspect only `DebugDemoExample`. The available cases are the closed triangle,
+open triangle, crossed rectangle, ordinary rectangle, pen-up gap, arc loop,
+stroke-vs-primitive triangle, and primitive demos.
+
+`DebugDemoOverlay` toggles the debug capsules and points; `DebugDemoFilled`
+toggles the filled 2D preview.
 
 `RenderLogoDebug()` is not intended to produce STL-ready geometry. It is a visual
 inspection tool. For final parts, continue to use `RenderLogo2D()` plus native

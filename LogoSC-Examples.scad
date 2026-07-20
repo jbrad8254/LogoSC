@@ -37,6 +37,7 @@ DebugDemoOverlay = true; // [false:true]
 DebugDemoFilled = true; // [false:true]
 DebugDemoPenUp = true; // [false:true]
 
+DebugDemoLayout = "Gallery"; // [Gallery, Selected]
 DebugDemoExample = 0; // [0:Closed, 1:Open, 2:Crossed, 3:Rectangle, 4:PenUp, 5:Arc, 6:StrokePrim, 7:Prims]
 DebugDemoLineWidth = 0.30; // [0:0.05:4]
 DebugDemoPointRadius = 0.30; // [0:0.05:4]
@@ -247,6 +248,13 @@ function ExampleDebugRendererCommands(index) =
                             : index == 7
                                 ? ExampleDebugPrimitiveCommands
                                 : ExampleDebugTriangleCommands;
+
+// Map each debug example to a stable four-column gallery cell.
+function DebugDemoGridIndex(debugExample) =
+[
+    debugExample % 4,
+    floor(debugExample / 4)
+];
 
 // Recursive Koch segment generator. It emits LogoSC movement commands. The caller
 // is responsible for placing the starting point and heading.
@@ -911,13 +919,16 @@ module RenderKnobProfile3DExample(index = [3, 1], exampleScale = 1.0)
     }
 }
 
-// Optional standalone preview for the debug renderer. Open this file directly in
-// OpenSCAD and set LogoSCRunMode to Debug in Customizer to see the filled output
-// and colored debug capsules/points overlaid.
-module RenderDebugDemo(index = [2, 2], exampleScale = 1.0)
+// Preview one debug-renderer example at a logical gallery index. Open this file
+// directly in OpenSCAD and set LogoSCRunMode to Debug in Customizer to see the
+// filled output and colored debug capsules/points overlaid.
+module RenderDebugDemo(
+    index = [0, 0],
+    exampleScale = 1.0,
+    debugExample = DebugDemoExample)
 {
     offset = LogoExampleGridOffset(index);
-    cmds = ExampleDebugRendererCommands(DebugDemoExample);
+    cmds = ExampleDebugRendererCommands(debugExample);
 
     echo("");
     echo("============================================================");
@@ -925,7 +936,7 @@ module RenderDebugDemo(index = [2, 2], exampleScale = 1.0)
     echo("Index:", index);
     echo("Offset:", offset);
     echo("Scale:", exampleScale);
-    echo("Debug demo example:", DebugDemoExample);
+    echo("Debug demo example:", debugExample);
     echo("============================================================");
 
     translate([offset[0], offset[1], 0])
@@ -959,6 +970,20 @@ module RenderDebugDemo(index = [2, 2], exampleScale = 1.0)
                 );
             }
         }
+    }
+}
+
+// Render every debug example in a stable four-by-two grid. Each call receives
+// its own example number and logical index so the console output maps directly
+// to the displayed gallery cell.
+module RenderAllDebugDemos()
+{
+    for (debugExample = [0 : 7])
+    {
+        RenderDebugDemo(
+            index = DebugDemoGridIndex(debugExample),
+            debugExample = debugExample
+        );
     }
 }
 
@@ -1005,5 +1030,12 @@ if (LogoSCRunMode == "Examples")
 
 if (LogoSCRunMode == "Debug")
 {
-    RenderDebugDemo();
+    if (DebugDemoLayout == "Gallery")
+    {
+        RenderAllDebugDemos();
+    }
+    else
+    {
+        RenderDebugDemo(debugExample = DebugDemoExample);
+    }
 }
