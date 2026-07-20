@@ -157,6 +157,7 @@ See `LogoSC-CheatSheet.md` and `LogoSC-User-Manual.md` for the complete command 
 - `AGENTS.md` — compact repository-specific guidance for Codex and other coding agents.
 - `LogoSC-Foundation-Core.scad` — core interpreter, 2D renderer, and debug renderer.
 - `LogoSC-Foundation-Tests.scad` — regression and failure tests.
+- `LogoSC-OpenSCAD-Command-Line.md` — command-line testing, export, and PNG-preview guide.
 - `LogoSC-Examples.scad` — runnable gallery and example models.
 - `LogoSC-User-Manual.md` — practical user documentation.
 - `CONTRIBUTING.md` — contribution philosophy, coding, testing, documentation, versioning, and packaging guidance.
@@ -201,6 +202,9 @@ LogoSC currently focuses on filled 2D region rendering for final geometry. It al
 
 - OpenSCAD
 - No external OpenSCAD library dependency for the core files
+
+Maintainers can use [LogoSC-OpenSCAD-Command-Line.md](LogoSC-OpenSCAD-Command-Line.md)
+to run tests, capture diagnostics, and export geometry or PNG previews without opening the GUI.
 
 ## Contributing
 

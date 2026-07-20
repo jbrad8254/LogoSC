@@ -283,6 +283,156 @@ module LogoCheckRegionRingLengths(testName, vtCmds, expectedRingLengths)
     );
 }
 
+// Return every region/ring length, including empty mutable regions.
+//
+// Unlike LogoCheckRegionRingLengths(), this helper preserves empty regions so
+// evaluator-state tests can verify the exact raw EvalResult structure.
+function LogoAllRegionRingLengths(regions) =
+[
+    for (region = regions)
+        [
+            for (ring = region)
+                len(ring)
+        ]
+];
+
+// Validate the complete public evaluator result for one command list.
+//
+// This is intentionally independent of rendered geometry. Add further result
+// invariants here as LogoSC gains contour validation and, later, open-path
+// support without changing the existing focused test cases.
+module LogoCheckEvaluatorResult(
+    testName,
+    vtCmds,
+    expectedState,
+    expectedRingLengths,
+    expectedStack = [],
+    expectedPen = PEN_DOWN,
+    tol = 0.001)
+{
+    result = evalLogo(vtCmds);
+    state = ResultState(result);
+    ringLengths = LogoAllRegionRingLengths(ResultContours(result));
+    stack = ResultStack(result);
+    pen = ResultPen(result);
+
+    echo("Logo evaluator invariant:", testName);
+
+    LogoCheck(
+        LogoStateNearlyEqual(state, expectedState, tol),
+        str("evaluator invariant failed: ", testName, " final state"),
+        [state, expectedState]
+    );
+
+    LogoCheck(
+        ringLengths == expectedRingLengths,
+        str("evaluator invariant failed: ", testName, " region ring lengths"),
+        [ringLengths, expectedRingLengths, ResultContours(result)]
+    );
+
+    LogoCheck(
+        stack == expectedStack,
+        str("evaluator invariant failed: ", testName, " stack"),
+        [stack, expectedStack]
+    );
+
+    LogoCheck(
+        pen == expectedPen,
+        str("evaluator invariant failed: ", testName, " pen state"),
+        [pen, expectedPen]
+    );
+}
+
+// Non-rendering evaluator contract tests.
+//
+// These tests cover today's filled-region evaluator. They do not introduce or
+// imply support for open paths. Extend this suite when an open-path data model
+// and its validation rules are deliberately added.
+module TestEvaluatorInvariantSuiteLogo()
+{
+    LogoCheckEvaluatorResult(
+        "PUSH saves the complete state",
+        [
+            [MOVE, 10],
+            [PUSH],
+            [TURN, 90]
+        ],
+        stateMake(10, 0, 90, 1),
+        [[1]],
+        [stateMake(10, 0, 0, 1)]
+    );
+
+    LogoCheckEvaluatorResult(
+        "POP restores state and empties the stack",
+        [
+            [MOVE, 10],
+            [PUSH],
+            [TURN, 90],
+            [SCALE, 0.5],
+            [POP],
+            [MOVE, 5]
+        ],
+        stateMake(15, 0, 0, 1),
+        [[2]]
+    );
+
+    LogoCheckEvaluatorResult(
+        "PENUP moves state without emitting points",
+        [
+            [PENUP],
+            [MOVE, 12],
+            [TURN, 90],
+            [MOVE, 4]
+        ],
+        stateMake(12, 4, 90, 1),
+        [[0]],
+        [],
+        PEN_UP
+    );
+
+    LogoCheckEvaluatorResult(
+        "PENDOWN starts a new filled-region contour",
+        [
+            [PENUP],
+            [MOVE, 10],
+            [PENDOWN],
+            [MOVE, 5]
+        ],
+        stateMake(15, 0, 0, 1),
+        [[0], [2]]
+    );
+
+    LogoCheckEvaluatorResult(
+        "scaled RUN preserves parent and child regions",
+        [
+            [RUN,
+                [
+                    [MOVE, 4],
+                    [TURN, 90],
+                    [MOVE, 2]
+                ],
+                2
+            ]
+        ],
+        stateMake(8, 4, 90, 2),
+        [[0], [2]]
+    );
+
+    LogoCheckEvaluatorResult(
+        "REPEAT propagates state and emitted points",
+        [
+            [REPEAT, 4,
+                [
+                    [MOVE, 5],
+                    [TURN, 90]
+                ]
+            ]
+        ],
+        stateMake(0, 0, 360, 1),
+        [[4]]
+    );
+}
+
 // Basic Logo geometry regression suite.
 module TestBasicSuiteLogo()
 {
@@ -1326,6 +1476,7 @@ module RunAllLogoSCests()
 {
     LogoSCestRowMarkers();
 
+    TestEvaluatorInvariantSuiteLogo();
     TestBasicSuiteLogo();
     TestRunSuiteLogo();
     TestRunRecursiveSuiteLogo();

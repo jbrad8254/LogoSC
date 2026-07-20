@@ -51,6 +51,8 @@
 - [AI Engineering Kit directory cleanup](#2026-07-18--ai-engineering-kit-directory-cleanup)
 - [Documentation consistency cleanup](#2026-07-18--documentation-consistency-and-release-boundary-cleanup)
 - [Codex Git workspace quick start](#2026-07-19--codex-git-workspace-and-agents-guidance)
+- [Evaluator-invariant validation suite](#2026-07-19--evaluator-invariant-validation-suite)
+- [OpenSCAD command-line verification guide](#2026-07-20--openscad-command-line-verification-guide)
 
 ### Planning, releases, and history
 
@@ -579,6 +581,8 @@ changes, verify links, headings, code examples, and retained accepted content.
 Near-term candidates:
 
 - design optional open-contour validation without changing current implicit-closure behavior;
+- expand the non-rendering evaluator-invariant suite alongside contour validation and eventual
+  open-path support;
 - decide whether self-intersections need warnings, strict validation, or only debug visibility;
 - continue manufacturable stroke experiments separately from `RenderLogoDebug()` and
   `RenderLogo2D()`;
@@ -956,6 +960,8 @@ Current docs are split by purpose:
   and packaging expectations.
 - `LogoSC-Developer-Notebook.md`: engineering history, design rationale, workflow, and
   ChatGPT restart guidance.
+- `LogoSC-OpenSCAD-Command-Line.md`: tested command-line evaluation, export, diagnostic,
+  and PNG-preview workflow with links to the official OpenSCAD manual.
 - `LogoSC-Future-Ideas.md`: longer-term feature concepts that are not active commitments.
 - `LogoSC-README.md`: overview, file list, public API quick reference, roadmap.
 - `LogoSC-User-Manual.md`: full user documentation, setup, command reference, workflows.
@@ -1829,3 +1835,85 @@ Files affected:
 - `CONTRIBUTING.md`
 - `LogoSC-Developer-Notebook.md`
 - `CHANGELOG.md`
+
+### 2026-07-19 — Evaluator-invariant validation suite
+
+Context:
+
+- Existing regression coverage combined visual geometry tests with focused non-rendering checks
+  for arcs, closed primitives, and holes.
+- `PUSH`/`POP`, pen-state transitions, scaled `RUN`, and `REPEAT` behavior were exercised
+  visually but did not all assert the complete public `EvalResult` contract.
+- Open paths are not currently supported. They are expected future work, so current tests must
+  not imply that incomplete filled-region contours are a supported open-path representation.
+
+Decision:
+
+- Add a non-rendering `TestEvaluatorInvariantSuiteLogo()` to
+  `LogoSC-Foundation-Tests.scad`.
+- Validate final state, exact raw region/ring lengths including empty mutable regions, stack
+  contents, and pen state through the stable public result accessors.
+- Cover `PUSH`, `POP`, `PENUP`, `PENDOWN`, scaled `RUN`, and `REPEAT` as the initial invariant
+  baseline.
+- Keep the helper and suite extensible so contour-validation and open-path invariants can be
+  added deliberately without changing the focused existing tests.
+
+Consequences:
+
+- Evaluator regressions can be detected independently of OpenSCAD rendering behavior.
+- The suite records current filled-region result semantics before contour validation is added.
+- No public API, command behavior, or rendering behavior changes in this step.
+
+Files affected:
+
+- `LogoSC-Foundation-Tests.scad`
+- `CHANGELOG.md`
+- `LogoSC-Developer-Notebook.md`
+
+Follow-up:
+
+- Design optional contour validation against this baseline.
+- Expand the suite when LogoSC gains an explicit open-path data model and validation contract.
+
+### 2026-07-20 — OpenSCAD command-line verification guide
+
+Context:
+
+- The Windows OpenSCAD installation includes `openscad.com`, a console wrapper that can run
+  `.scad` files without opening the GUI and expose diagnostics and process status to PowerShell.
+- The new evaluator-invariant suite was successfully exercised through that interface.
+- Command-line PNG export was also verified by rendering and inspecting the closed-triangle
+  debug demo.
+- The workflow was useful enough to preserve as repository documentation rather than leaving it
+  as conversation-only knowledge.
+
+Decision:
+
+- Add `LogoSC-OpenSCAD-Command-Line.md` as a concise maintainer-facing guide.
+- Include tested examples for version/help discovery, `.echo` regression diagnostics, PNG debug
+  previews, and STL export.
+- Explain the distinction between automated evaluation evidence and interactive or human visual
+  verification.
+- Link to OpenSCAD's official documentation portal, command-line manual, full User Manual PDF,
+  and Customizer documentation.
+- Reference the guide from the normal repository inventories, contributor/testing guidance,
+  User Manual setup material, and agent verification instructions.
+
+Consequences:
+
+- Future maintainers and AI-assisted sessions can reproduce the command-line verification flow.
+- LogoSC tests can be evaluated and their diagnostics inspected even when the OpenSCAD GUI is
+  not being controlled interactively.
+- PNG previews provide a practical first-pass visual check, while important Customizer and
+  manufacturing decisions still require appropriate interactive or human review.
+
+Files affected:
+
+- `LogoSC-OpenSCAD-Command-Line.md`
+- `AGENTS.md`
+- `README.md`
+- `LogoSC-README.md`
+- `LogoSC-User-Manual.md`
+- `CONTRIBUTING.md`
+- `CHANGELOG.md`
+- `LogoSC-Developer-Notebook.md`

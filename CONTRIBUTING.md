@@ -39,6 +39,7 @@ LogoSC-Foundation-Core.scad
 LogoSC-Foundation-Tests.scad
 LogoSC-Examples.scad
 LogoSC-Experiments.scad
+LogoSC-OpenSCAD-Command-Line.md
 
 LogoSC-README.md
 LogoSC-User-Manual.md
@@ -120,6 +121,9 @@ Before release:
 - Update regression tests as needed.
 - Verify examples still render correctly.
 - Keep documentation synchronized with implementation.
+
+See `LogoSC-OpenSCAD-Command-Line.md` for the tested PowerShell workflow used to run the
+suite, capture diagnostics, export geometry, and generate PNG previews.
 
 ## Debug Rendering
 

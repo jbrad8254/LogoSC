@@ -6,6 +6,7 @@
 - [AI Engineering Kit](#ai-engineering-kit)
 - [Developer notebook](#developer-notebook)
 - [Workflow](#workflow)
+- [Command-line verification](#command-line-verification)
 - [Versioning](#versioning)
 - [Public API quick reference](#public-api-quick-reference)
 - [Current command format](#current-command-format)
@@ -25,6 +26,7 @@
 
 - `LogoSC-Foundation-Core.scad` — core interpreter and renderer.
 - `LogoSC-Foundation-Tests.scad` — regression and failure test suites.
+- `LogoSC-OpenSCAD-Command-Line.md` — command-line testing, export, and PNG-preview guide.
 - `LogoSC-README.md` — this overview.
 - `CHANGELOG.md` — milestone release history.
 - `LogoSC-ARC-Implementation.md` — design notes for ARC tessellation.
@@ -88,6 +90,13 @@ than repeatedly replacing it with short summaries.
 Visual regression tests are color-coded by grid index. Test geometry color follows
 the X index, while small LogoSC marker icons to the left of the grid identify
 the Y row. Colors cover indices 0 through 9; larger indices use `TestColorMax`.
+
+## Command-line verification
+
+`LogoSC-OpenSCAD-Command-Line.md` explains how to run the same test suite from
+PowerShell, capture `echo()` diagnostics, check process status, export geometry,
+and generate PNG previews for visual inspection. It also links to the complete
+official OpenSCAD command-line documentation.
 
 ## Versioning
 

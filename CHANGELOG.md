@@ -8,6 +8,8 @@
 - Added `docs/ai-engineering-kit/Codex-Git-Project-Quick-Start.md` as a short reusable guide
   to setting up and using a local Git repository as a Codex workspace.
 - Added `CONTRIBUTING.md` and `LogoSC-Future-Ideas.md` after the `v2026.2` tag.
+- Added `LogoSC-OpenSCAD-Command-Line.md` with tested PowerShell examples for regression
+  diagnostics, geometry export, and PNG preview generation, plus official OpenSCAD references.
 - Added the maintainer-facing AI Engineering Kit under `docs/ai-engineering-kit/` by
   explicit user request.
 - Clarified that `RenderLogoDebug()` is a stable public diagnostic API while remaining
@@ -16,6 +18,13 @@
   debug-renderer work from future contour-validation and stroke-rendering work.
 - Corrected User Manual section numbering, recursion links, and repository inventory.
 - Kept post-release documentation work separate from the contents of the `v2026.2` tag.
+
+### Testing
+
+- Added a non-rendering evaluator-invariant suite covering complete `EvalResult` state,
+  raw region/ring structure, stack contents, pen state, scaled `RUN`, and `REPEAT` behavior.
+- Kept the suite focused on current filled-region semantics while making it straightforward
+  to extend when contour validation and open-path support are deliberately introduced.
 
 ## [2026.2] - 2026-07-13
 

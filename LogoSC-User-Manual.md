@@ -65,6 +65,7 @@ LogoSC-Foundation-Core.scad        Core interpreter, geometry, and 2D renderer.
 LogoSC-Foundation-Tests.scad       Regression and visual tests.
 LogoSC-Examples.scad               Runnable example gallery.
 LogoSC-Experiments.scad            Experimental rendering and geometry workbench.
+LogoSC-OpenSCAD-Command-Line.md    Command-line testing, export, and PNG-preview guide.
 
 LogoSC-README.md                   Detailed project overview and roadmap.
 LogoSC-User-Manual.md              This manual.
@@ -151,6 +152,11 @@ LogoSCRunMode = "Tests";
 
 The tests do not run by default. This keeps the foundation file quiet unless the
 test grid is explicitly requested.
+
+Maintainers can also run the suite without opening the GUI. See
+[Running LogoSC from the OpenSCAD Command Line](LogoSC-OpenSCAD-Command-Line.md)
+for tested PowerShell commands, diagnostic capture, geometry export, PNG previews,
+and links to the complete OpenSCAD command-line manual.
 
 The runnable gallery in `LogoSC-Examples.scad` follows the same include pattern
 and is a good starting point for user models.
