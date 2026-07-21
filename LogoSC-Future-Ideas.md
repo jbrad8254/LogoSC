@@ -56,6 +56,18 @@ Remaining ideas:
 
 ---
 
+### Image-Comparison Regression Testing
+
+Render stable examples and galleries to PNG files and compare them with approved reference
+images. Use deterministic camera and rendering settings plus a configurable comparison
+tolerance to avoid false failures from minor platform or anti-aliasing differences.
+
+This would catch visual regressions automatically and reduce the live user interaction needed
+to verify that the code remains working. Manual review would still be required when an intended
+visual change updates a reference image.
+
+---
+
 ### SVG Export
 
 Export LogoSC geometry to SVG for downstream editing.
