@@ -401,6 +401,12 @@ also the part of LogoSC that I most want to remember, repeat, and share.
 
 ## What comes next
 
+The most immediate next demonstration is to return to LogoSC's original practical goal: use it
+to model and present a small family of actual nuts and bolts. LogoSC can define reusable 2D nut,
+head, hole, recess, and rotational side profiles, while native OpenSCAD handles the final 3D
+extrusion, composition, and thread geometry. Showing several parameterized variations would
+close the loop between the problem that started the project and the library built to solve it.
+
 The next major LogoSC feature is support for open paths and manufacturable strokes, including
 width, joins, caps, and related validation.
 
@@ -437,6 +443,13 @@ description of it.
 The short [Codex Git project quick start](docs/ai-engineering-kit/Codex-Git-Project-Quick-Start.md)
 explains the setup. Install OpenSCAD 2021.01 as described below if you also want Codex to run the
 tests or render and inspect the examples.
+
+This is the practical persistence workflow I came up with, not a claim that it is the formal
+industry method. Large teams almost certainly have more systematic ways to preserve agent
+context, coordinate many contributors, and govern AI-assisted changes. If you know a better
+approach, please contact me through the
+[LogoSC repository](https://github.com/jbrad8254/LogoSC). I would genuinely like to learn what
+other teams are doing and incorporate the strongest ideas into my next project.
 
 ## Two-minute installation and test
 
