@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+## [2026.2.1] - 2026-07-21
+
+This documentation and verification release makes LogoSC easier to learn, test, and continue
+developing. Start with the [repository overview](README.md) and
+[User Manual](LogoSC-User-Manual.md); maintainers should also see the
+[command-line verification guide](LogoSC-OpenSCAD-Command-Line.md),
+[contributor guide](CONTRIBUTING.md), and [Developer Notebook](LogoSC-Developer-Notebook.md).
+
+It also includes the optional validation companion and expanded automated-test infrastructure
+described below. The LogoSC Core public API version remains `2026.2`.
+
 ### Added
 
 - Added a four-column by two-row debug-renderer gallery that gives all eight debug
