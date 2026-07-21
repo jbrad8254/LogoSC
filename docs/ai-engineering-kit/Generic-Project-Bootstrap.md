@@ -25,6 +25,9 @@ Preserve public APIs unless we intentionally decide otherwise.
 
 Keep documentation synchronized with implementation.
 
-Package all modified files into a single ZIP using repository-relative paths.
+First determine whether you are editing the user's active Git working tree. If repository-root
+discovery, `git status`, and `git diff` confirm direct integration, leave verified changes in
+that tree and do not create a ZIP unless requested. Otherwise, package all modified files into
+one ZIP using exact repository-relative paths.
 
 Follow any project-specific guidance found in the Developer Notebook in preference to inventing new conventions.

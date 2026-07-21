@@ -63,7 +63,9 @@ Treat the repository as the authoritative source.
 - Preserve backward compatibility unless intentionally changing behavior.
 - Update implementation and documentation together.
 - Treat examples as executable documentation.
-- Package one repository-relative ZIP containing all modified files.
+- Use the shared Git working tree as delivery when direct integration is verified.
+- Otherwise, or when the user requests it, package one repository-relative ZIP containing all
+  modified files.
 
 # Design Leadership
 

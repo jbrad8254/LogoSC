@@ -10,8 +10,29 @@ Open the real repository as the Codex workspace and give Codex normal write acce
 workspace. Codex can then inspect and edit the actual working tree. Git continues to provide
 history, diffs, branches, commits, and recovery exactly as it does for human edits.
 
-There is no separate copy to download and apply. A ZIP can still be produced as a verified
-backup or transfer artifact when the project workflow calls for one.
+There is no separate copy to download and apply, and a routine update ZIP is unnecessary.
+A ZIP remains the fallback when the user requests one or the AI environment cannot work in
+the user's actual Git working tree.
+
+## Decide whether a ZIP is needed
+
+At the beginning of a task, determine which delivery mode applies.
+
+Use direct Git working-tree delivery when all of these are true:
+
+1. `git rev-parse --show-toplevel` succeeds.
+2. The reported root is the repository the user placed in scope.
+3. `git status` and `git diff` expose the same files the agent is editing.
+4. The user can review those persistent working-tree changes directly.
+
+In that environment, do not generate a ZIP unless the user explicitly requests one. Verify the
+diff and status, then report the changed files. Direct access does not authorize staging,
+committing, pushing, rewriting history, or moving tags.
+
+Use fallback ZIP delivery when Git is unavailable, the work happens in a temporary or
+attachment-only copy, the user cannot see the edited tree, direct integration cannot be
+verified, or the user asks for an archive. Create one ZIP containing every changed or added
+file under its exact repository-relative path, verify its entries, and keep it outside Git.
 
 ## Set Up a New Project
 
@@ -70,4 +91,3 @@ subtree needs different rules.
 - `Project-Retrospective.md` — why the workflow exists and what it preserves.
 - [Official Codex best practices](https://learn.chatgpt.com/guides/best-practices)
 - [Official `AGENTS.md` guidance](https://learn.chatgpt.com/docs/agent-configuration/agents-md)
-

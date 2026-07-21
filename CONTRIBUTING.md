@@ -159,8 +159,13 @@ value rather than editing it independently.
 
 ## Packaging
 
-Deliver one ZIP containing every modified file using the repository's exact directory
-structure so it can be extracted directly over the repository.
+When an agent or tool edits the user's active Git working tree directly, no transfer ZIP is
+required unless the user requests one. Verify the repository root, `git status`, and `git diff`,
+then leave the changes in that working tree for normal review and commit.
+
+When Git is unavailable or the work occurs in a temporary, sandbox-only, or attachment-based
+copy that the user cannot inspect directly, deliver one ZIP containing every modified file
+under its exact repository-relative path so it can be extracted over the repository.
 
 ## Developer Notebook
 

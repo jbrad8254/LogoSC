@@ -58,6 +58,7 @@
 - [OpenSCAD command-line verification guide](#2026-07-20--openscad-command-line-verification-guide)
 - [Hierarchical automated test results](#2026-07-20--hierarchical-automated-test-results)
 - [Examples and regression gallery screenshots](#2026-07-20--examples-and-regression-gallery-screenshots)
+- [Direct Git delivery and conditional ZIP fallback](#2026-07-21--direct-git-delivery-and-conditional-zip-fallback)
 
 ### Planning, releases, and history
 
@@ -115,9 +116,10 @@ When starting a new LogoSC chat:
 14. Make incremental changes only.
 15. Preserve historical context rather than replacing it with shorter summaries.
 16. Verify that previously accepted documentation and code have not regressed
-   before packaging an update.
-17. Deliver all changed and added files from the work session in one combined ZIP
-    using exact repository filenames.
+    before delivering an update.
+17. If Git confirms that the AI is editing the user's active working tree, leave the
+    verified changes there and do not create a ZIP unless requested. Otherwise use one
+    combined ZIP containing all changed and added files under exact repository paths.
 
 This bootstrap sequence overrides any conflicting remembered context from older
 LogoSC conversations.
@@ -419,16 +421,20 @@ For each work session:
 1. Start from the current user-approved Git working tree or the most recent uploaded
    repository ZIP.
 2. If starting from a ZIP, extract it into one working tree.
-3. Apply all changes there.
-4. Verify the requested changes.
-5. Verify unrelated accepted content has not regressed.
-6. Deliver one combined update ZIP containing every changed or added project
-   file from that session.
-7. Use exact repository paths so the ZIP can be extracted over the repository.
-8. Do not use `-fixed`, `-new`, `-v2`, or similar names inside the project.
-9. Use LF line endings.
-10. Include a checksum file as a transfer artifact when practical, but do not
-    assume it belongs in Git.
+3. Test for direct working-tree integration with `git rev-parse --show-toplevel`,
+   `git status`, and `git diff`. Confirm that the root is the repository the user placed
+   in scope and that the reported changes are the files being edited.
+4. Apply all changes in that working tree.
+5. Verify the requested changes and confirm unrelated accepted content has not regressed.
+6. When direct integration is verified, leave the changes in the working tree for normal
+   Git review. Do not create a ZIP unless the user requests one.
+7. When Git is unavailable, the workspace is temporary or attachment-based, the user cannot
+   inspect the edited tree, or integration cannot be verified, deliver one combined ZIP with
+   every changed or added file under its exact repository-relative path.
+8. Verify fallback ZIP entries and hashes before delivery, and keep transfer artifacts outside
+   the repository. Include a checksum file when practical, but do not assume it belongs in Git.
+9. Do not use `-fixed`, `-new`, `-v2`, or similar names inside the project.
+10. Use LF line endings.
 
 The active Git working tree, or the current repository snapshot extracted into it, is the
 source of truth—not chat memory or similarly named sandbox files.
@@ -641,9 +647,11 @@ Append conclusions with dates rather than deleting the original question.
 
 ## 14. User preferences specific to LogoSC
 
-- One combined update ZIP per work session.
+- Prefer direct Git working-tree delivery when integration is verified.
+- Do not create a ZIP in a verified shared Git workspace unless the user requests one.
+- Retain one combined exact-path ZIP as the fallback for non-integrated environments.
 - Exact repository filenames.
-- ZIPs should be suitable for extracting directly over the repository.
+- Fallback ZIPs should be suitable for extracting directly over the repository.
 - Prefer `TURN` over `DIR` and `MOVE` over `GOTO` inside reusable examples.
 - Use `GOTO`/`DIR` for deterministic layout where appropriate.
 - Right-handed coordinates; positive turns are counterclockwise around +Z.
@@ -2174,3 +2182,50 @@ Files affected:
 - `BUILDWEEK.md`
 - `CHANGELOG.md`
 - `LogoSC-Developer-Notebook.md`
+
+### 2026-07-21 — Direct Git delivery and conditional ZIP fallback
+
+Context:
+
+- The original ChatGPT workflow exchanged changed files through downloads and ZIP archives.
+  One exact-path ZIP per session was safer than multiple individual downloads in that
+  environment.
+- Codex now edits the user's actual LogoSC Git working tree. The same changes are immediately
+  visible through ordinary Git status and diff tools, so routine transfer ZIPs duplicate the
+  working tree without improving delivery.
+- Future AI sessions may still run without Git, receive only uploaded files, or work in a
+  temporary copy that the user cannot inspect directly.
+
+Decision:
+
+- Detect direct integration from evidence: `git rev-parse --show-toplevel` succeeds, the root
+  matches the repository in scope, `git status` and `git diff` show the edited files, and the
+  user can review the persistent working tree.
+- In that environment, use the working tree as delivery and do not create a ZIP unless the user
+  asks for one.
+- Preserve the existing one-combined-ZIP procedure as a fallback when Git is unavailable,
+  integration cannot be verified, work occurs in a temporary or attachment-based copy, or the
+  user explicitly requests an archive.
+- Direct Git access does not authorize staging, committing, pushing, rewriting history, or
+  moving tags. Those actions still require an explicit request.
+- Verification remains mandatory in either delivery mode: review tests or documentation checks,
+  `git diff`, `git status`, links, assets, and expected files as appropriate.
+
+Consequences:
+
+- Codex sessions avoid redundant archive generation and use the user's normal Git workflow.
+- The bootstrap and AI Engineering Kit retain portable transfer instructions for environments
+  without direct repository integration.
+- Historical ZIP rules remain in older notebook entries as context; this dated decision and the
+  live workflow sections supersede them as the current default.
+
+Files affected:
+
+- `AGENTS.md`
+- `CONTRIBUTING.md`
+- `README.md`
+- `LogoSC-README.md`
+- `LogoSC-Developer-Notebook.md`
+- `CHANGELOG.md`
+- AI Engineering Kit handoff, quick-start, bootstrap, workflow, preferences, and retrospective
+  documents

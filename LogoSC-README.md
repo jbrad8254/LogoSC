@@ -425,8 +425,8 @@ renders only 2D regions; use ordinary OpenSCAD wrappers for final 3D parts.
 
 Read [CONTRIBUTING.md](CONTRIBUTING.md) before preparing changes. It collects the
 project's contribution philosophy, stable-API expectations, coding conventions,
-documentation and testing responsibilities, versioning policy, and exact-path ZIP
-packaging requirements.
+documentation and testing responsibilities, versioning policy, direct-Git delivery,
+and fallback ZIP requirements.
 
 Use `LogoSC-Developer-Notebook.md` for significant decisions and historical rationale,
 and use `LogoSC-Future-Ideas.md` for longer-term feature concepts.

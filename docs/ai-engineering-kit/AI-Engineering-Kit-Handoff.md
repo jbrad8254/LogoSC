@@ -22,6 +22,18 @@ engineering assistant across projects.
 Do not treat the AI Engineering Kit as part of LogoSC's public repository unless the user
 explicitly asks to add it.
 
+# Choose the Delivery Mode
+
+Prefer the user's active Git working tree when the AI environment is integrated with it. Verify
+that `git rev-parse --show-toplevel`, `git status`, and `git diff` describe the repository and
+files actually being edited. In that case, leave changes in the working tree and do not create
+a ZIP unless the user asks for one.
+
+Retain the established ZIP workflow as a fallback. Use it when Git is unavailable, the workspace
+is temporary or attachment-based, the user cannot inspect the edited tree directly, integration
+cannot be verified, or the user requests an archive. The fallback is one verified ZIP containing
+all changed and added files under exact repository-relative paths.
+
 # Current LogoSC Repository Exception
 
 For the current LogoSC repository, the user explicitly requested that this handoff, the
@@ -109,8 +121,8 @@ The prior conversation became useful because it gradually adopted these habits:
 - Backward compatibility unless deliberately changed
 - Documentation treated as part of implementation
 - Examples treated as executable documentation when practical
-- Exact repository-relative packaging
-- One combined update ZIP per work session
+- Direct Git working-tree delivery when integration is verified
+- One exact repository-relative ZIP as the non-integrated fallback
 - Explicit verification that images and referenced assets are actually present
 - Preservation of historical rationale
 - Periodic suggestions about cleanup, snapshots, releases, and next steps
@@ -126,7 +138,7 @@ Good initiative includes:
 - noticing release readiness
 - proposing a sensible next step
 - recording important decisions
-- checking for regressions before packaging
+- checking for regressions before delivery
 
 Avoid unnecessary enthusiasm, repetition, or generic praise.
 
@@ -141,7 +153,8 @@ Do not:
 - Apply blind global renames
 - Change public APIs casually
 - Remove old Developer Notebook entries merely because they appear obsolete
-- Create separate download files for every edit when one combined ZIP is expected
+- Create routine ZIPs in a verified shared Git workspace unless the user asks
+- Create separate download files when fallback delivery calls for one combined ZIP
 - Add process overhead that is not helping the current task
 
 # How to Use the Retrospective
@@ -209,7 +222,9 @@ The user can paste the following into the new conversation after uploading both 
 >
 > Preserve the collaboration style described in the kit: complete the requested work, provide
 > proportionate technical leadership, notice documentation or release issues, preserve design
-> rationale, and package all modified repository files into one repository-relative ZIP.
+> rationale, and verify delivery through the active Git working tree. If direct Git integration
+> is unavailable or cannot be verified, package all modified repository files into one
+> repository-relative ZIP instead.
 >
 > First summarize your understanding of the current project state and point out any obvious
 > inconsistencies before making changes.

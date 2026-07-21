@@ -126,6 +126,10 @@ This reduced ambiguity about:
 - which version was current
 - whether multiple downloads belonged together
 
+This remains the correct fallback for attachment-based or non-integrated environments. It is
+no longer the default when an AI agent edits the user's active Git working tree directly; see
+the 2026-07-21 workflow update below.
+
 ## Documentation as Part of the Implementation
 
 Considering README, User Manual, Cheat Sheet, CHANGELOG, examples, and screenshots during each
@@ -254,6 +258,40 @@ The following reusable documents were created:
 
 Together they preserve the engineering standards, collaboration style, startup procedure, and
 lessons learned that are not properly part of LogoSC itself.
+
+# Workflow Update: Direct Git Delivery and Conditional ZIP Fallback
+
+## What Happened
+
+LogoSC moved from file-transfer conversations into a Codex workspace that edits the user's
+actual Git working tree. Continuing to build a transfer ZIP after every task duplicated files
+that were already visible through normal Git status and diff tools.
+
+## What Worked
+
+- Git repository-root discovery identifies the authoritative working tree.
+- `git status` and `git diff` show exactly what the agent changed.
+- The user can review, commit, and push through the normal Git workflow without extracting an
+  intermediate archive.
+- The established exact-path ZIP procedure remains available for less integrated environments.
+
+## Lessons
+
+- Packaging is a transport mechanism, not evidence that work is complete.
+- Direct working-tree integration should be detected from repository evidence rather than from
+  a product name alone.
+- A successful `git rev-parse --show-toplevel`, matching workspace root, visible status and
+  diff, and persistent user-visible edits justify skipping routine ZIP generation.
+- Missing Git, attachment-only work, temporary copies, unverifiable integration, or an explicit
+  user request still justify one verified repository-relative ZIP.
+
+## Process Changes
+
+- Prefer direct Git working-tree delivery when integration is verified.
+- Do not create a ZIP in that environment unless the user requests one.
+- Preserve the one-combined-ZIP procedure as the fallback in every bootstrap and handoff guide.
+- Continue to verify changed files, links, images, tests, `git diff`, and `git status` regardless
+  of delivery mode.
 
 # Template for Future Entries
 

@@ -260,7 +260,7 @@ to run tests, capture diagnostics, and export geometry or PNG previews without o
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) before preparing a contribution. It summarizes
 the project's API-stability expectations, coding style, documentation and testing
-responsibilities, versioning policy, and exact-path ZIP packaging workflow.
+responsibilities, versioning policy, direct-Git delivery, and fallback ZIP workflow.
 
 Significant design decisions and historical rationale belong in
 `LogoSC-Developer-Notebook.md`; longer-term concepts belong in

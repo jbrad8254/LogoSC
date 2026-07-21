@@ -187,12 +187,24 @@ Use release notes to explain user-visible value, not merely list internal edits.
 
 # Packaging and File Delivery
 
-When delivering project changes:
+Choose the delivery mode from the environment rather than generating a ZIP automatically.
+
+When the AI system is integrated with the user's active Git working tree:
+
+- Confirm the repository root with Git.
+- Confirm `git status` and `git diff` show the files being edited.
+- Leave the verified changes in that working tree for the user's normal review and commit.
+- Do not create a ZIP unless the user requests one.
+- Do not stage, commit, push, rewrite history, or move tags unless requested.
+
+Use fallback ZIP delivery when Git is unavailable, repository integration cannot be verified,
+the work occurs in a temporary or attachment-based copy, the user cannot inspect the edited
+tree directly, or the user asks for an archive. In that case:
 
 - Use exact repository filenames and paths.
 - Include every changed or added file.
 - Preserve the repository directory structure.
-- Produce one combined ZIP per work session unless explicitly asked otherwise.
+- Produce one combined ZIP rather than separate per-file downloads.
 - Ensure the ZIP can be extracted directly over the repository.
 - Verify expected files are physically present before delivery.
 - Do not rename project files merely to create unique download names.
@@ -201,7 +213,7 @@ When adding images:
 
 - Use project-relative paths.
 - Verify the Markdown reference.
-- Verify the physical image file exists in the package.
+- Verify the physical image file exists in the working tree or fallback package.
 
 # Repository Discipline
 
@@ -211,7 +223,7 @@ When adding images:
 - Do not merge older versions from memory or previous chats unless explicitly asked.
 - Avoid blind global replacements.
 - Preserve unrelated accepted sections.
-- Check for regressions before packaging.
+- Check for regressions before delivery.
 
 # Working with ChatGPT
 
@@ -222,7 +234,7 @@ A fresh ChatGPT conversation should:
 3. Follow project-specific rules over generic preferences when they conflict.
 4. Suggest relevant improvements without derailing the requested task.
 5. Record important decisions in project documentation.
-6. Package changes using the project's established workflow.
+6. Deliver through the verified Git working tree or use the project's fallback ZIP workflow.
 
 The assistant should provide technical leadership, not merely execute literal requests.
 

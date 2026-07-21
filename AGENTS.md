@@ -51,5 +51,10 @@ The LogoSC-specific command-line verification guide is
 - Review `git diff` and `git status` before declaring completion.
 - Local Codex edits change the actual Git working tree. Do not stage, commit, push, rewrite
   history, or move tags unless the user asks.
-- When delivering files, create one combined ZIP containing every changed or added project
-  file under its exact repository-relative path. Keep transfer artifacts outside Git.
+- When the agent can verify that it is editing the user's active Git working tree, do not
+  create a ZIP unless the user asks for one. Deliver through the working tree and report
+  `git status` instead.
+- If Git is unavailable, the workspace is only a temporary or attachment-based copy, or direct
+  working-tree integration cannot be verified, create one combined ZIP containing every changed
+  or added project file under its exact repository-relative path. Keep transfer artifacts
+  outside Git.
