@@ -16,5 +16,4 @@ include <LogoSC-Foundation-Validation-Tests.scad>
 // Keep direct test runs concise unless a maintainer raises tracing explicitly.
 TraceLevel = 0; // [0:4]
 
-RunAllLogoSCests();
-RunAllLogoValidationTests();
+RunAllLogoTestSuites();

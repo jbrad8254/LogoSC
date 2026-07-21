@@ -22,6 +22,8 @@
   dependency.
 - Changed `LogoSC-Foundation-Tests.scad` to provide passive test definitions invoked by
   the runner or the explicit `Tests` branch in `LogoSC-Examples.scad`.
+- Changed automated checks from independent soft-error echoes to immutable named result
+  records aggregated into Foundation and Validation suite results.
 
 ### Documentation and maintenance
 
@@ -50,6 +52,17 @@
   to extend as validation grows and open-path rendering is deliberately introduced.
 - Added focused path-validation tests covering closure, tolerance, pen boundaries, primitives,
   holes, `RUN`, `REPEAT`, arcs, stack discontinuities, zero-length moves, and empty programs.
+- Added per-suite and global pass/fail summaries that retain all failures, distinguish expected
+  Core error diagnostics, and end with `LOGOSC_AUTOMATED_TEST_RESULT`.
+- Added optional `LogoTestFailFast` diagnosis that asserts at the first failed immutable result
+  with its test name and details while preserving aggregate reporting as the default; the
+  Examples file exposes it in the `LogoSC Run` Customizer section.
+- Added a final `*** Test Suite Failed ***` banner to failed aggregate reports for immediate
+  human recognition without changing the structured automated-result record.
+- Restored the empty-program validation expectation to zero paths while converting the check
+  to an immutable test-result record.
+- Suppressed duplicate expected-error echoes during repeated functional result-list traversal;
+  the visual failure row still executes and displays each intended diagnostic once.
 
 ## [2026.2] - 2026-07-13
 

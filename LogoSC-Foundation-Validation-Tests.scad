@@ -5,139 +5,103 @@
 // Include Core, Validation, and LogoSC-Foundation-Tests.scad before this file.
 // ============================================================================
 
-module TestLogoValidationSuite()
-{
+function LogoValidationAutomatedTestResults() =
+let(
     closedTriangle =
     [
-        [MOVE, 10],
-        [TURN, 120],
-        [MOVE, 10],
-        [TURN, 120],
-        [MOVE, 10]
-    ];
-
+        [MOVE, 10], [TURN, 120], [MOVE, 10], [TURN, 120], [MOVE, 10]
+    ],
     openTriangle =
     [
-        [MOVE, 10],
-        [TURN, 120],
-        [MOVE, 10],
-        [TURN, 120],
-        [MOVE, 8]
-    ];
-
+        [MOVE, 10], [TURN, 120], [MOVE, 10], [TURN, 120], [MOVE, 8]
+    ],
     twoClosedPaths =
     [
         [REPEAT, 4, [[MOVE, 8], [TURN, 90]]],
-        [PENUP],
-        [MOVE, 20],
-        [PENDOWN],
+        [PENUP], [MOVE, 20], [PENDOWN],
         [REPEAT, 3, [[MOVE, 8], [TURN, 120]]]
-    ];
-
-    twoPrimitives =
-    [
-        [CIRCLE, 5, 12],
-        [RECT, 8, 6]
-    ];
-
-    outerWithHole =
-    [
-        [RECT, 20, 14],
-        [HOLE, [[CIRCLE, 4, 12]]]
-    ];
-
-    repeatedSquare =
-    [
-        [RUN, [[REPEAT, 4, [[MOVE, 6], [TURN, 90]]]]]
-    ];
-
-    fullArcLoop =
-    [
-        [ARC, 10, 360, 8]
-    ];
-
+    ],
+    twoPrimitives = [[CIRCLE, 5, 12], [RECT, 8, 6]],
+    outerWithHole = [[RECT, 20, 14], [HOLE, [[CIRCLE, 4, 12]]]],
+    repeatedSquare = [[RUN, [[REPEAT, 4, [[MOVE, 6], [TURN, 90]]]]]],
+    fullArcLoop = [[ARC, 10, 360, 8]],
     popDiscontinuity =
     [
-        [MOVE, 10],
-        [PUSH],
-        [MOVE, 5],
-        [POP],
-        [TURN, 90],
-        [MOVE, 10]
-    ];
-
-    zeroLength =
-    [
-        [MOVE, 0]
-    ];
-
+        [MOVE, 10], [PUSH], [MOVE, 5], [POP], [TURN, 90], [MOVE, 10]
+    ],
+    zeroLength = [[MOVE, 0]],
     nearClosedTriangle =
     [
-        [GOTO, 10, 0, 0],
-        [GOTO, 5, 8, 0],
-        [GOTO, 0.0005, 0, 0]
-    ];
-
+        [GOTO, 10, 0, 0], [GOTO, 5, 8, 0], [GOTO, 0.0005, 0, 0]
+    ],
     stateParityProgram =
     [
-        [PUSH],
-        [RUN, [[MOVE, 5], [TURN, 45]], 2],
-        [PENUP],
-        [MOVE, 3]
-    ];
-
-    closedResult = ValidateLogoPaths(closedTriangle);
-    closedPaths = ValidationPaths(closedResult);
-    LogoCheck(
-        len(closedPaths) == 1,
+        [PUSH], [RUN, [[MOVE, 5], [TURN, 45]], 2], [PENUP], [MOVE, 3]
+    ],
+    closedResult = ValidateLogoPaths(closedTriangle),
+    closedPaths = ValidationPaths(closedResult),
+    openResult = ValidateLogoPaths(openTriangle),
+    penResult = ValidateLogoPaths(twoClosedPaths),
+    primitiveResult = ValidateLogoPaths(twoPrimitives),
+    primitivePaths = ValidationPaths(primitiveResult),
+    holeResult = ValidateLogoPaths(outerWithHole),
+    holePaths = ValidationPaths(holeResult),
+    repeatResult = ValidateLogoPaths(repeatedSquare),
+    arcResult = ValidateLogoPaths(fullArcLoop),
+    popResult = ValidateLogoPaths(popDiscontinuity),
+    zeroResult = ValidateLogoPaths(zeroLength),
+    zeroIssues = ValidationIssues(zeroResult),
+    nearResult = ValidateLogoPaths(nearClosedTriangle, tolerance = 0.001),
+    strictNearResult = ValidateLogoPaths(nearClosedTriangle, tolerance = 0.0001),
+    emptyResult = ValidateLogoPaths([]),
+    pathParityResult = evalLogoPaths(stateParityProgram),
+    coreParityResult = evalLogo(stateParityProgram)
+)
+[
+    LogoTestResult(
         "validation closed triangle path count",
+        len(closedPaths) == 1,
         len(closedPaths)
-    );
-    LogoCheck(
-        ValidationIsValid(closedResult),
+    ),
+    LogoTestResult(
         "validation closed triangle is valid",
+        ValidationIsValid(closedResult),
         ValidationIssues(closedResult)
-    );
-    LogoCheck(
-        PathPointCount(closedPaths[0]) == 4,
+    ),
+    LogoTestResult(
         "validation closed triangle preserves start point",
+        PathPointCount(closedPaths[0]) == 4,
         PathPoints(closedPaths[0])
-    );
-
-    openResult = ValidateLogoPaths(openTriangle);
-    LogoCheck(
-        !ValidationIsValid(openResult),
+    ),
+    LogoTestResult(
         "validation open triangle is invalid",
+        !ValidationIsValid(openResult),
         ValidationIssues(openResult)
-    );
-    LogoCheck(
+    ),
+    LogoTestResult(
+        "validation open triangle reports open path",
         len(ValidationIssues(openResult)) == 1
         && ValidationIssueCode(ValidationIssues(openResult)[0])
             == LOGO_VALIDATION_OPEN_PATH,
-        "validation open triangle reports open path",
         ValidationIssues(openResult)
-    );
-
-    penResult = ValidateLogoPaths(twoClosedPaths);
-    LogoCheck(
-        len(ValidationPaths(penResult)) == 2,
+    ),
+    LogoTestResult(
         "validation PENUP/PENDOWN creates two paths",
+        len(ValidationPaths(penResult)) == 2,
         ValidationPaths(penResult)
-    );
-    LogoCheck(
-        ValidationIsValid(penResult),
+    ),
+    LogoTestResult(
         "validation PENUP/PENDOWN closed paths are valid",
+        ValidationIsValid(penResult),
         ValidationIssues(penResult)
-    );
-
-    primitiveResult = ValidateLogoPaths(twoPrimitives);
-    primitivePaths = ValidationPaths(primitiveResult);
-    LogoCheck(
-        len(primitivePaths) == 2,
+    ),
+    LogoTestResult(
         "validation consecutive primitives remain separate",
+        len(primitivePaths) == 2,
         primitivePaths
-    );
-    LogoCheck(
+    ),
+    LogoTestResult(
+        "validation primitives are explicitly closed",
         ValidationIsValid(primitiveResult)
         && PathKind(primitivePaths[0]) == LOGO_PATH_KIND_PRIMITIVE
         && PathKind(primitivePaths[1]) == LOGO_PATH_KIND_PRIMITIVE
@@ -145,110 +109,112 @@ module TestLogoValidationSuite()
         && PathIsExplicitlyClosed(primitivePaths[1])
         && PathSourceOpcode(primitivePaths[0]) == CIRCLE
         && PathSourceOpcode(primitivePaths[1]) == RECT,
-        "validation primitives are explicitly closed",
         primitivePaths
-    );
-
-    holeResult = ValidateLogoPaths(outerWithHole);
-    holePaths = ValidationPaths(holeResult);
-    LogoCheck(
-        len(holePaths) == 2,
+    ),
+    LogoTestResult(
         "validation outer and hole path count",
+        len(holePaths) == 2,
         holePaths
-    );
-    LogoCheck(
+    ),
+    LogoTestResult(
+        "validation distinguishes outer and hole roles",
         ValidationIsValid(holeResult)
         && PathRole(holePaths[0]) == LOGO_PATH_ROLE_OUTER
         && PathRole(holePaths[1]) == LOGO_PATH_ROLE_HOLE,
-        "validation distinguishes outer and hole roles",
         holePaths
-    );
-
-    repeatResult = ValidateLogoPaths(repeatedSquare);
-    LogoCheck(
+    ),
+    LogoTestResult(
+        "validation RUN and REPEAT preserve one closed path",
         ValidationIsValid(repeatResult)
         && len(ValidationPaths(repeatResult)) == 1,
-        "validation RUN and REPEAT preserve one closed path",
         ValidationPaths(repeatResult)
-    );
-
-    arcResult = ValidateLogoPaths(fullArcLoop);
-    LogoCheck(
+    ),
+    LogoTestResult(
+        "validation full ARC loop is closed",
         ValidationIsValid(arcResult)
         && PathPointCount(ValidationPaths(arcResult)[0]) == 9,
-        "validation full ARC loop is closed",
         ValidationPaths(arcResult)
-    );
-
-    popResult = ValidateLogoPaths(popDiscontinuity);
-    LogoCheck(
-        len(ValidationPaths(popResult)) == 2,
+    ),
+    LogoTestResult(
         "validation POP discontinuity splits paths",
+        len(ValidationPaths(popResult)) == 2,
         ValidationPaths(popResult)
-    );
-    LogoCheck(
-        len(ValidationIssues(popResult)) == 3,
+    ),
+    LogoTestResult(
         "validation POP discontinuity reports path issues",
+        len(ValidationIssues(popResult)) == 3,
         ValidationIssues(popResult)
-    );
-
-    zeroResult = ValidateLogoPaths(zeroLength);
-    zeroIssues = ValidationIssues(zeroResult);
-    LogoCheck(
-        len(zeroIssues) == 2,
+    ),
+    LogoTestResult(
         "validation zero-length path issue count",
+        len(zeroIssues) == 2,
         zeroIssues
-    );
-    LogoCheck(
+    ),
+    LogoTestResult(
+        "validation zero-length path issue types",
         ValidationIssueCode(zeroIssues[0]) == LOGO_VALIDATION_TOO_FEW_POINTS
         && ValidationIssueCode(zeroIssues[1]) == LOGO_VALIDATION_ZERO_LENGTH_SEGMENT,
-        "validation zero-length path issue types",
         zeroIssues
-    );
-
-    nearResult = ValidateLogoPaths(nearClosedTriangle, tolerance = 0.001);
-    strictNearResult = ValidateLogoPaths(nearClosedTriangle, tolerance = 0.0001);
-    LogoCheck(
-        ValidationIsValid(nearResult),
+    ),
+    LogoTestResult(
         "validation closure tolerance accepts near endpoint",
+        ValidationIsValid(nearResult),
         ValidationIssues(nearResult)
-    );
-    LogoCheck(
+    ),
+    LogoTestResult(
+        "validation closure tolerance rejects distant endpoint",
         !ValidationIsValid(strictNearResult)
         && ValidationIssueCode(ValidationIssues(strictNearResult)[0])
             == LOGO_VALIDATION_OPEN_PATH,
-        "validation closure tolerance rejects distant endpoint",
         ValidationIssues(strictNearResult)
-    );
-
-    emptyResult = ValidateLogoPaths([]);
-    LogoCheck(
+    ),
+    LogoTestResult(
+        "validation empty program has no path issues",
         ValidationIsValid(emptyResult)
         && len(ValidationPaths(emptyResult)) == 0,
-        "validation empty program has no path issues",
         emptyResult
-    );
-
-    pathParityResult = evalLogoPaths(stateParityProgram);
-    coreParityResult = evalLogo(stateParityProgram);
-    LogoCheck(
+    ),
+    LogoTestResult(
+        "path evaluator preserves Core state, stack, and pen results",
         LogoStateNearlyEqual(
             PathResultState(pathParityResult),
             ResultState(coreParityResult)
         )
         && PathResultStack(pathParityResult) == ResultStack(coreParityResult)
         && PathResultPen(pathParityResult) == ResultPen(coreParityResult),
-        "path evaluator preserves Core state, stack, and pen results",
         [pathParityResult, coreParityResult]
-    );
-}
+    )
+];
 
-module RunAllLogoValidationTests()
+function LogoValidationTestSuiteResult() =
+    LogoTestSuiteResult("Validation", LogoValidationAutomatedTestResults());
+
+module RunAllLogoValidationTests(reportResults = true)
 {
     echo("");
     echo("============================================================");
     echo("LogoSC validation suite");
     echo("============================================================");
 
-    TestLogoValidationSuite();
+    if (reportResults)
+    {
+        ReportLogoTestRun([LogoValidationTestSuiteResult()]);
+    }
+}
+
+function LogoAllTestSuiteResults() =
+[
+    LogoFoundationTestSuiteResult(),
+    LogoValidationTestSuiteResult()
+];
+
+// Execute both visual/diagnostic suites, then examine their immutable result
+// lists together so the final line reports the complete run.
+module RunAllLogoTestSuites()
+{
+    suites = LogoAllTestSuiteResults();
+
+    RunAllLogoSCests(false);
+    RunAllLogoValidationTests(false);
+    ReportLogoTestRun(suites);
 }

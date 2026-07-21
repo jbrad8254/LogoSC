@@ -70,6 +70,12 @@ open path  too few points  zero-length segment
 ## Test helpers
 
 [`LogoSCest(testName, vtCmds, testIndex, height, testColor)`](LogoSC-User-Manual.md#13-error-handling-and-tracing)
+[`LogoTestReportLevel = 1`](LogoSC-User-Manual.md#automated-test-summaries)
+`0` global only  `1` suites + failures  `2` every test
+[`LogoTestFailFast = false`](LogoSC-User-Manual.md#automated-test-summaries)
+`false` accumulate all failures  `true` assert at first failed result
+final token: `LOGOSC_AUTOMATED_TEST_RESULT`, `PASS` or `FAIL`
+aggregate failure banner: `*** Test Suite Failed ***`
 
 ## Common OpenSCAD wrappers
 

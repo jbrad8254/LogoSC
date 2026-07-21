@@ -92,6 +92,15 @@ than repeatedly replacing it with short summaries.
    or execute test code.
 4. Commit stable milestones to Git.
 
+The complete runner collects immutable results for the Foundation and Validation suites.
+It prints both suite totals and a final `LOGOSC_AUTOMATED_TEST_RESULT` line. The default
+`LogoTestReportLevel = 1` reports summaries plus every failure; level `2` lists every test.
+Keep `LogoTestFailFast = false` for complete runs. Temporarily set it to `true` to stop at
+the first failed result with its test name, details, and OpenSCAD source trace. The Examples
+file exposes this checkbox in its `LogoSC Run` Customizer section.
+When an aggregate run fails, its final human-readable line is `*** Test Suite Failed ***`.
+Automation should continue to inspect the preceding `LOGOSC_AUTOMATED_TEST_RESULT` record.
+
 Visual regression tests are color-coded by grid index. Test geometry color follows
 the X index, while small LogoSC marker icons to the left of the grid identify
 the Y row. Colors cover indices 0 through 9; larger indices use `TestColorMax`.

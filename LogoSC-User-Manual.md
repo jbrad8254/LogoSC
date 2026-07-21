@@ -43,6 +43,7 @@ be passed to `linear_extrude()` or `rotate_extrude()`.
 - [11. Recursion and recursive patterns](#11-recursion-and-recursive-patterns)
 - [12. Practical examples](#12-practical-examples)
 - [13. Error handling and tracing](#13-error-handling-and-tracing)
+  - [Automated test summaries](#automated-test-summaries)
 - [14. Limitations](#14-limitations)
 - [15. Suggested style for LogoSC programs](#15-suggested-style-for-logosc-programs)
 - [Index](#index)
@@ -128,8 +129,9 @@ file's defaults.
 | `Debug` | Render the indexed debug-visualization gallery when using `LogoSC-Examples.scad`. |
 | `Tests` | Render the regression-test grid. |
 
-The examples file runs the foundation suite only when `LogoSCRunMode` is set to
-`"Tests"`. The dedicated test runner executes the suite directly. Ordinary user
+The examples file runs the complete suite only when `LogoSCRunMode` is set to
+`"Tests"`. The dedicated test runner executes the same Foundation and Validation suites
+directly. Ordinary user
 models can usually omit `LogoSCRunMode` entirely; use `"NoDemo"` or a blank
 string only when you want an explicit no-output selector.
 
@@ -2016,6 +2018,55 @@ TraceLevel = 4; // full execution trace
 
 Higher levels include lower levels.
 
+### Automated test summaries
+
+`LogoSC-Foundation-Test-Runner.scad` and the Examples `Tests` mode collect each automated
+test as immutable `[name, passed, detail]` data. Those records form a Foundation suite and
+a Validation suite; the complete runner examines both suite records at the end.
+
+The default reporting level is:
+
+```scad
+LogoTestReportLevel = 1; // [0:2]
+LogoTestFailFast = false;
+```
+
+- Level `0` prints only the global result.
+- Level `1` prints every suite summary and the name and details of every failed test.
+- Level `2` additionally prints every passing test name.
+
+A successful run ends with output equivalent to:
+
+```text
+LogoSC suite result, Foundation, PASS, tests, 130, passed, 130, failed, 0
+LogoSC suite result, Validation, PASS, tests, 21, passed, 21, failed, 0
+LOGOSC_AUTOMATED_TEST_RESULT, PASS, suites, 2, failedSuites, 0, tests, 151, passed, 151, failed, 0
+```
+
+Counts grow as tests are added; use the final `PASS`/`FAIL` value rather than hard-coding
+today's totals. A failing run continues through all result-producing tests, prints each
+failure, and reports both the number of failed tests and failed suites.
+After the global record and closing divider, a failed aggregate run prints one additional final
+line: `*** Test Suite Failed ***`. This is a conspicuous human cue; scripts should continue to
+use the structured `LOGOSC_AUTOMATED_TEST_RESULT` record.
+
+For focused diagnosis, temporarily enable `LogoTestFailFast` in the Examples file's
+`LogoSC Run` Customizer section or set it with OpenSCAD's `-D` option. Each immutable result is
+then guarded by `assert()`, so evaluation stops at the first failed result. The assertion message
+contains the test name and detail record. OpenSCAD 2021.01 also prints the file and line containing
+the shared assertion plus a caller trace; helper-generated geometry tests may trace through shared
+functions, so the test name remains the most reliable identifier. Restore `false` for the complete
+accumulated report.
+When exporting `.echo` output, OpenSCAD 2021.01 may return process exit code `0` even after an
+assertion failure; the assertion text and final automated-result token remain authoritative.
+Because fail-fast mode aborts during result evaluation, it may stop before the aggregate report
+and its final failure banner are emitted.
+
+The failure-condition row intentionally exercises Core soft errors. Its `[ERROR]` messages
+are expected diagnostics and are bounded by `LogoSC expected-error tests: BEGIN` and `END`.
+Some visual smoke cases also intentionally exercise renderer diagnostics outside that row.
+Diagnostic echo lines do not determine the final test result. The immutable records do.
+
 ## 14. Limitations
 
 Current limitations:
@@ -2082,6 +2133,7 @@ control smoothness globally.
 - [`LogoSC-Examples.scad`](#4-runnable-examples)
 - [`LogoSCVersion`](#library-version)
 - [`LogoSCVersionAtLeast()`](#library-version)
+- [`LogoTestReportLevel`](#automated-test-summaries)
 - [`MOVE`](#move)
 - [`PENDOWN`](#penup-and-pendown), [`PENUP`](#penup-and-pendown)
 - [`POP`](#push-and-pop), [`PUSH`](#push-and-pop)
@@ -2113,4 +2165,5 @@ control smoothness globally.
 - [Setup](#setup)
 - [Test grid and tracing](#13-error-handling-and-tracing)
 - [Debug visualization](#710-debug-visualization)
+- [Automated test summaries](#automated-test-summaries)
 - [Path analysis and validation](#711-path-analysis-and-validation)

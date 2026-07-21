@@ -79,48 +79,64 @@ if ($LASTEXITCODE -ne 0)
     throw "OpenSCAD failed with exit code $LASTEXITCODE."
 }
 
-$invariantRuns = @(
-    Select-String -LiteralPath $testLogPath -SimpleMatch 'Logo evaluator invariant:'
+$globalPass = @(
+    Select-String `
+        -LiteralPath $testLogPath `
+        -SimpleMatch '"LOGOSC_AUTOMATED_TEST_RESULT", "PASS"'
 )
 
-$invariantFailures = @(
-    Select-String -LiteralPath $testLogPath -SimpleMatch 'evaluator invariant failed:'
+$globalFail = @(
+    Select-String `
+        -LiteralPath $testLogPath `
+        -SimpleMatch '"LOGOSC_AUTOMATED_TEST_RESULT", "FAIL"'
 )
 
-$validationRuns = @(
-    Select-String -LiteralPath $testLogPath -SimpleMatch 'LogoSC validation suite'
+$failedTests = @(
+    Select-String `
+        -LiteralPath $testLogPath `
+        -Pattern '"LogoSC test result".*"FAIL"'
 )
 
-$validationFailures = @(
-    Select-String -LiteralPath $testLogPath -Pattern '\[ERROR\].*validation'
-)
-
-Write-Output "Invariant checks: $($invariantRuns.Count)"
-Write-Output "Invariant failures: $($invariantFailures.Count)"
-Write-Output "Validation suites: $($validationRuns.Count)"
-Write-Output "Validation failures: $($validationFailures.Count)"
-
-if ($invariantFailures.Count -ne 0)
+if ($globalPass.Count -ne 1 -or $globalFail.Count -ne 0)
 {
-    $invariantFailures
-    throw 'LogoSC evaluator invariants failed.'
+    $failedTests
+    throw 'LogoSC did not report exactly one successful complete test run.'
 }
 
-if ($validationRuns.Count -ne 1)
-{
-    throw 'LogoSC validation suite did not run exactly once.'
-}
-
-if ($validationFailures.Count -ne 0)
-{
-    $validationFailures
-    throw 'LogoSC path validation tests failed.'
-}
+Write-Output 'LogoSC automated tests passed.'
 ```
 
-The current failure-condition suite deliberately emits some `[ERROR]` messages while testing
-soft-error behavior. Therefore, do not treat every `[ERROR]` line as an unexpected regression.
-Check the process exit code and the diagnostics specific to the test being validated.
+The last summary includes per-suite and global test, pass, and failure totals. Set
+`LogoTestReportLevel=2` with another `-D` option to include every named passing test; the
+default level `1` prints all failures and their details.
+
+When a complete run finds several failures, rerun in optional fail-fast mode to isolate the
+first evaluated failed result:
+
+```powershell
+& $openScadCli `
+    -D 'TraceLevel=0' `
+    -D 'LogoTestFailFast=true' `
+    -o $testLogPath `
+    'LogoSC-Foundation-Test-Runner.scad'
+```
+
+`LogoTestFailFast` defaults to `false`; leave it there for acceptance runs so every failure and
+the final totals are reported. With `true`, the assertion message identifies the test and its
+detail record. OpenSCAD 2021.01 also prints the file and line containing the shared assertion
+and a `TRACE` of caller locations. Cases constructed through common geometry helpers may not
+trace directly to their data declaration, which is why the stable test name is included.
+With `.echo` output, tested OpenSCAD 2021.01 can still return process exit code `0` after an
+assertion failure. Inspect the `ERROR: Assertion` and `TRACE` lines; for complete acceptance
+runs, continue to require the exact final `LOGOSC_AUTOMATED_TEST_RESULT`, `PASS` record rather
+than treating exit status alone as success.
+
+The failure-condition row deliberately emits `[ERROR]` messages while testing Core soft-error
+behavior. These expected diagnostics appear between `LogoSC expected-error tests: BEGIN` and
+`END`; do not count them as test-result failures. The exact final
+`LOGOSC_AUTOMATED_TEST_RESULT` record is the authority for the automated suite.
+When that record is `FAIL`, the aggregate reporter adds `*** Test Suite Failed ***` as its final
+line for quick human recognition. Fail-fast assertions can stop before this banner is reached.
 
 ## Example 2: export and inspect a debug PNG
 
@@ -218,6 +234,8 @@ command-line manual for exact paths and setup.
   — downloadable full manual, including the command-line chapter.
 - [OpenSCAD Customizer manual][customizer]
   — parameter files and sets used with command-line `-p` and `-P` options.
+- [OpenSCAD `assert()` language reference][assert]
+  — assertion messages, failed-render behavior, and file/line diagnostics.
 
 For the installed executable's exact capabilities, always also run:
 
@@ -230,3 +248,4 @@ For the installed executable's exact capabilities, always also run:
 [cli]: https://en.wikibooks.org/wiki/OpenSCAD_User_Manual/Using_OpenSCAD_in_a_command_line_environment
 [pdf]: https://files.openscad.org/documentation/manual/OpenSCAD_User_Manual.pdf
 [customizer]: https://en.wikibooks.org/wiki/OpenSCAD_User_Manual/Customizer
+[assert]: https://en.wikibooks.org/wiki/OpenSCAD_User_Manual/The_OpenSCAD_Language#assert

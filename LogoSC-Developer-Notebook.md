@@ -56,6 +56,7 @@
 - [Codex Git workspace quick start](#2026-07-19--codex-git-workspace-and-agents-guidance)
 - [Evaluator-invariant validation suite](#2026-07-19--evaluator-invariant-validation-suite)
 - [OpenSCAD command-line verification guide](#2026-07-20--openscad-command-line-verification-guide)
+- [Hierarchical automated test results](#2026-07-20--hierarchical-automated-test-results)
 
 ### Planning, releases, and history
 
@@ -945,10 +946,19 @@ and screenshots, not 3D-printing semantics.
 
 ## 15. Test suite conventions
 
-Core must not include the test definitions. `LogoSC-Foundation-Tests.scad` contains passive
-test modules, and `LogoSC-Foundation-Test-Runner.scad` includes Core plus those definitions
-before calling `RunAllLogoSCests()`. `LogoSC-Examples.scad` includes the passive definitions
-so its explicit `Tests` run mode can invoke the same suite.
+Core must not include the test definitions. `LogoSC-Foundation-Tests.scad` and
+`LogoSC-Foundation-Validation-Tests.scad` contain passive test definitions. The direct runner
+and the Examples `Tests` mode call `RunAllLogoTestSuites()` after explicitly including Core,
+Validation, and both test files.
+
+Automated checks are immutable `[name, passed, detail]` records. They are collected into a
+Foundation suite and a Validation suite, then examined as one global suite list. Default
+report level `1` prints suite totals plus every failure; level `2` prints every named result.
+The final `LOGOSC_AUTOMATED_TEST_RESULT` record is the authoritative automated outcome.
+
+The expected-failure row still exercises `HardErrors = false` behavior. Core `[ERROR]` output
+between its explicit `BEGIN` and `END` markers is diagnostic input, not a failed test record.
+Do not infer overall success or failure by counting undifferentiated `[ERROR]` lines.
 
 Important OpenSCAD include pattern for examples/user files:
 
@@ -2065,3 +2075,68 @@ Files affected:
 - `LogoSC-Foundation-Test-Runner.scad`
 - `LogoSC-Examples.scad`
 - public, contributor, changelog, roadmap, and maintainer documentation
+
+### 2026-07-20 — Hierarchical automated test results
+
+Context:
+
+- OpenSCAD modules cannot append failures to a mutable global list, and the existing
+  `LogoCheck()` helper only echoed errors as each check ran.
+- An unconditional success message would therefore have been unreliable, while using
+  assertions would stop at the first failure and hide whether a regression was local or broad.
+- The failure-condition row intentionally emits Core `[ERROR]` diagnostics, so counting all
+  error lines cannot distinguish expected behavior from failed tests.
+
+Decision:
+
+- Represent each automated outcome as immutable `[name, passed, detail]` data.
+- Represent a suite as `[suiteName, testResults]`, with accessors and pure functions for
+  filtering failures and computing pass counts.
+- Collect 130 Foundation results and 21 Validation results in the current suite. These counts
+  are descriptive rather than contractual and should grow as coverage expands.
+- Treat geometry rows as automated smoke checks for whether expected polygon data was or was
+  not produced, while retaining their visual grid for manual regression inspection.
+- Preserve detailed evaluator, arc, closed-shape, hole, and path-validation checks as named
+  immutable results rather than immediate soft assertions.
+- Bound intentional Core error diagnostics with explicit expected-error `BEGIN` and `END`
+  markers. Do not count those messages as test failures.
+- Use a dynamically scoped, test-only suppression flag while expected-error result records are
+  examined. This avoids repeating the same diagnostic whenever OpenSCAD reevaluates an
+  immutable expression; the visual failure row still emits each diagnostic once.
+- Add `LogoTestReportLevel`: level `0` reports only the global result, level `1` adds suite
+  totals and every failure, and level `2` lists every named test result.
+- End complete runs with one machine-readable `LOGOSC_AUTOMATED_TEST_RESULT` containing suite,
+  test, pass, and failure totals. Continue through every result-producing test even after a
+  failure.
+- Keep complete accumulation as the default, but add opt-in `LogoTestFailFast` diagnosis at the
+  immutable result constructor. A failed assertion includes the test name and detail record;
+  OpenSCAD supplies the assertion file/line and caller trace without manually maintained source
+  metadata. Keep the passive test-file default for direct and third-party runners, and expose an
+  Examples-file override in the `LogoSC Run` Customizer section for interactive testing.
+- End failed aggregate reports with `*** Test Suite Failed ***` after the structured result and
+  closing divider. This banner is deliberately redundant for humans; automation continues to
+  use `LOGOSC_AUTOMATED_TEST_RESULT`.
+
+Consequences:
+
+- A single final `PASS` now proves that both automated suites ran and every recorded check
+  passed, without relying on mutable state or fail-fast assertions.
+- A failing run reports all recorded failures and shows whether they are concentrated in one
+  suite or distributed across both suites.
+- A maintainer can temporarily enable fail-fast mode to isolate the first evaluated regression,
+  then disable it to confirm the full two-suite outcome. Helper-generated cases may trace through
+  common functions, so the assertion message always carries the stable test name.
+- Fail-fast evaluation can abort before the aggregate banner, so the assertion itself remains
+  the diagnostic signal in that mode.
+- The automated result does not replace manual inspection of visual geometry; it reports the
+  encoded smoke tests and invariants precisely.
+- Normal Core behavior is unchanged because diagnostic suppression defaults to false and is
+  enabled only inside expected-error result evaluation.
+
+Files affected:
+
+- `LogoSC-Foundation-Tests.scad`
+- `LogoSC-Foundation-Validation-Tests.scad`
+- `LogoSC-Foundation-Test-Runner.scad`
+- `LogoSC-Examples.scad`
+- testing, command-line, changelog, contributor, and maintainer documentation

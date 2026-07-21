@@ -43,7 +43,10 @@ The LogoSC-specific command-line verification guide is
 ## Verification and Delivery
 
 - Run or inspect `LogoSC-Foundation-Test-Runner.scad` after source changes when the tooling
-  is available; follow `LogoSC-OpenSCAD-Command-Line.md` for the tested console workflow.
+  is available; require its final `LOGOSC_AUTOMATED_TEST_RESULT` to be `PASS`, and follow
+  `LogoSC-OpenSCAD-Command-Line.md` for the tested console workflow.
+- Keep `LogoTestFailFast` false for complete acceptance runs; enable it only to isolate the
+  first failed immutable result with OpenSCAD's assertion trace.
 - For documentation changes, verify local links, anchors, code fences, and referenced assets.
 - Review `git diff` and `git status` before declaring completion.
 - Local Codex edits change the actual Git working tree. Do not stage, commit, push, rewrite

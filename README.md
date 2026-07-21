@@ -63,6 +63,22 @@ to inspect one `DebugDemoExample`. `NoDemo` or a blank string explicitly suppres
 automatic output in the examples file. Ordinary user models can omit `LogoSCRunMode`;
 tests do not run unless explicitly selected.
 
+A complete test run ends with per-suite totals and one machine-readable result such as:
+
+```text
+LOGOSC_AUTOMATED_TEST_RESULT, PASS, suites, 2, failedSuites, 0, tests, 151, passed, 151, failed, 0
+```
+
+Set `LogoTestReportLevel = 2` to list every named automated test; the default level `1`
+prints suite summaries and full details for every failure.
+
+Tests normally continue so the final summary exposes the full regression pattern. Set
+the `LogoTestFailFast` checkbox in the Examples file's `LogoSC Run` Customizer section only
+while isolating a failure; OpenSCAD then stops at the first failed result and reports the shared
+assertion location, caller trace, test name, and details.
+An aggregate failing run also ends with `*** Test Suite Failed ***` as a prominent human cue;
+the preceding `LOGOSC_AUTOMATED_TEST_RESULT` record remains the machine-readable authority.
+
 For your own model, include the core file and call `RenderLogo2D()`. This first example intentionally uses only `MOVE` and `TURN`:
 
 ```scad

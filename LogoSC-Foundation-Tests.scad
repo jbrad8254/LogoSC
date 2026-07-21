@@ -12,8 +12,8 @@
 // This file is intentionally noisy: it exercises the evaluator, RUN command
 // expansion, scaling, recursion limiting, pen-state behavior, and soft-error
 // behavior. It defines test modules but does not execute them automatically.
-// Use LogoSC-Foundation-Test-Runner.scad, or call RunAllLogoSCests() explicitly
-// from another entry point after including Core and this file.
+// Use LogoSC-Foundation-Test-Runner.scad, or call RunAllLogoTestSuites() after
+// including Core, Validation, and both passive test-definition files.
 //
 // =============================================================================
 
@@ -24,6 +24,8 @@
 // same renderer modules that library users call.
 
 DefaultTestHeight = 5; // [1:1:20]
+LogoTestReportLevel = 1; // [0:2]
+LogoTestFailFast = false;
 
 BasicY     = 0;
 RunY0      = 1;
@@ -124,7 +126,8 @@ module LogoSCest(
     vtCmds,
     testIndex = [0, BasicY],
     height = DefaultTestHeight,
-    testColor = undef)
+    testColor = undef,
+    expectGeometry = true)
 {
     offset = LogoSCestGridOffset(testIndex);
     useColor = testColor == undef ? LogoSCestColor(testIndex[0]) : testColor;
@@ -141,8 +144,7 @@ module LogoSCest(
     // easier to read than the dynamic execution trace from evalLogo().
     TraceCmds(vtCmds);
 
-    result = evalLogo(vtCmds);
-    contours = ResultContours(result);
+    contours = ResultContours(evalLogo(vtCmds));
 
     translate([offset[0], offset[1], 0])
     {
@@ -157,7 +159,18 @@ module LogoSCest(
             }
             else
             {
-                echo("[ERROR]", "LogoSCest did not produce enough polygon points", [testName, contours]);
+                if (expectGeometry)
+                {
+                    echo(
+                        "[ERROR]",
+                        "LogoSCest did not produce enough polygon points",
+                        [testName, contours]
+                    );
+                }
+                else
+                {
+                    echo("[EXPECTED]", "LogoSCest produced no polygon geometry", testName);
+                }
 
                 linear_extrude(height = height, center = true)
                 {
@@ -168,6 +181,209 @@ module LogoSCest(
     }
 
     echo("");
+}
+
+// Immutable automated-test result: [name, passed, detail]
+LTR_NAME   = 0 + 0;
+LTR_PASSED = 1 + 0;
+LTR_DETAIL = 2 + 0;
+
+// Immutable suite result: [name, testResults]
+LTS_NAME    = 0 + 0;
+LTS_RESULTS = 1 + 0;
+
+// Geometry test case:
+//     [name, commands, gridIndex, expectGeometry, expectSoftError]
+LTC_NAME            = 0 + 0;
+LTC_COMMANDS        = 1 + 0;
+LTC_GRID_INDEX      = 2 + 0;
+LTC_EXPECT_GEOMETRY = 3 + 0;
+LTC_EXPECT_ERROR    = 4 + 0;
+
+// Aggregate every failure by default. The optional fail-fast assertion is useful
+// when isolating one regression; OpenSCAD adds the assertion file/line and caller
+// trace, while this message supplies the individual test name and result details.
+function LogoTestResult(name, passed, detail = undef) =
+    assert(
+        !LogoTestFailFast || passed,
+        str("LogoSC fail-fast test: ", name, "; detail: ", detail)
+    )
+    [
+        name,
+        passed,
+        detail
+    ];
+
+function LogoTestResultName(result) =
+    result[LTR_NAME];
+
+function LogoTestResultPassed(result) =
+    result[LTR_PASSED];
+
+function LogoTestResultDetail(result) =
+    result[LTR_DETAIL];
+
+function LogoTestSuiteResult(name, results) =
+[
+    name,
+    results
+];
+
+function LogoTestSuiteName(suite) =
+    suite[LTS_NAME];
+
+function LogoTestSuiteResults(suite) =
+    suite[LTS_RESULTS];
+
+function LogoFailedTestResults(results) =
+[
+    for (result = results)
+        if (!LogoTestResultPassed(result))
+            result
+];
+
+function LogoPassedTestCount(results) =
+    len(results) - len(LogoFailedTestResults(results));
+
+function LogoTestSuitePassed(suite) =
+    len(LogoFailedTestResults(LogoTestSuiteResults(suite))) == 0;
+
+function LogoGeometryTestCase(
+    name,
+    commands,
+    gridIndex,
+    expectGeometry = true,
+    expectSoftError = false) =
+[
+    name,
+    commands,
+    gridIndex,
+    expectGeometry,
+    expectSoftError
+];
+
+function LogoExpectedErrorTestCase(
+    name,
+    commands,
+    gridIndex,
+    expectGeometry = false) =
+    LogoGeometryTestCase(name, commands, gridIndex, expectGeometry, true);
+
+function LogoGeometryTestResult(testCase) =
+    let(
+        // Result lists may be traversed repeatedly by OpenSCAD. Render expected
+        // diagnostics once in their visual row; suppress duplicate error echoes
+        // while computing the immutable geometry-outcome record.
+        $LogoSCSuppressErrors = testCase[LTC_EXPECT_ERROR],
+        result = evalLogo(testCase[LTC_COMMANDS]),
+        contours = ResultContours(result),
+        pointCount = CountContourPoints(contours),
+        expectGeometry = testCase[LTC_EXPECT_GEOMETRY],
+        passed = expectGeometry ? pointCount >= 3 : pointCount < 3
+    )
+    LogoTestResult(
+        testCase[LTC_NAME],
+        passed,
+        [
+            "expectedGeometry", expectGeometry,
+            "expectedSoftError", testCase[LTC_EXPECT_ERROR],
+            "pointCount", pointCount,
+            "contours", contours
+        ]
+    );
+
+function LogoGeometryTestResults(testCases) =
+[
+    for (testCase = testCases)
+        LogoGeometryTestResult(testCase)
+];
+
+module RenderLogoGeometryTestCases(testCases)
+{
+    for (testCase = testCases)
+    {
+        LogoSCest(
+            testCase[LTC_NAME],
+            testCase[LTC_COMMANDS],
+            testCase[LTC_GRID_INDEX],
+            expectGeometry = testCase[LTC_EXPECT_GEOMETRY]
+        );
+    }
+}
+
+// Report every failure, then per-suite and global totals. Report level 0 emits
+// only the global result, 1 adds suite summaries and failures, and 2 lists every
+// named automated test. A failed aggregate run ends with a human-visible banner.
+module ReportLogoTestRun(suites, reportLevel = LogoTestReportLevel)
+{
+    allResults =
+    [
+        for (suite = suites)
+            for (result = LogoTestSuiteResults(suite))
+                result
+    ];
+    failedResults = LogoFailedTestResults(allResults);
+    failedSuites =
+    [
+        for (suite = suites)
+            if (!LogoTestSuitePassed(suite))
+                suite
+    ];
+
+    echo("");
+    echo("============================================================");
+    echo("LogoSC automated test summary");
+    echo("============================================================");
+
+    if (reportLevel >= 1)
+    {
+        for (suite = suites)
+        {
+            suiteResults = LogoTestSuiteResults(suite);
+            suiteFailures = LogoFailedTestResults(suiteResults);
+
+            echo(
+                "LogoSC suite result",
+                LogoTestSuiteName(suite),
+                len(suiteFailures) == 0 ? "PASS" : "FAIL",
+                "tests", len(suiteResults),
+                "passed", LogoPassedTestCount(suiteResults),
+                "failed", len(suiteFailures)
+            );
+
+            for (result = suiteResults)
+            {
+                if (reportLevel >= 2 || !LogoTestResultPassed(result))
+                {
+                    echo(
+                        "LogoSC test result",
+                        LogoTestSuiteName(suite),
+                        LogoTestResultPassed(result) ? "PASS" : "FAIL",
+                        LogoTestResultName(result),
+                        LogoTestResultPassed(result)
+                            ? undef
+                            : LogoTestResultDetail(result)
+                    );
+                }
+            }
+        }
+    }
+
+    echo(
+        "LOGOSC_AUTOMATED_TEST_RESULT",
+        len(failedResults) == 0 ? "PASS" : "FAIL",
+        "suites", len(suites),
+        "failedSuites", len(failedSuites),
+        "tests", len(allResults),
+        "passed", LogoPassedTestCount(allResults),
+        "failed", len(failedResults)
+    );
+    echo("============================================================");
+
+    if (len(failedResults) > 0)
+    {
+        echo("*** Test Suite Failed ***");
+    }
 }
 
 // Return true when two scalars are approximately equal.
@@ -181,116 +397,76 @@ function LogoStateNearlyEqual(a, b, tol = 0.001) =
     && LogoNearlyEqual(a[SH], b[SH], tol)
     && LogoNearlyEqual(a[SS], b[SS], tol);
 
-// Soft assertion helper for validation-only tests.
-module LogoCheck(condition, msg, value = undef)
-{
-    if (!condition)
-    {
-        if (HardErrors)
-        {
-            assert(condition, str(msg, " ", value));
-        }
-        else
-        {
-            echo("[ERROR]", msg, value);
-        }
-    }
-}
-
-// Validate final state and total emitted point count for one command list.
-module LogoCheckResult(
+function LogoCheckResultResults(
     label,
     testName,
     vtCmds,
     expectedState,
     expectedPointCount,
-    tol = 0.001)
-{
-    result = evalLogo(vtCmds);
-    state = ResultState(result);
-    contours = ResultContours(result);
-    pointCount = CountContourPoints(contours);
-
-    LogoCheck(
-        LogoStateNearlyEqual(state, expectedState, tol),
-        str(label, " validation failed: ", testName, " final state"),
-        [state, expectedState]
-    );
-
-    LogoCheck(
-        pointCount == expectedPointCount,
-        str(label, " validation failed: ", testName, " point count"),
-        [pointCount, expectedPointCount, contours]
-    );
-}
-
-// Validate final state and total emitted point count for one ARC command list.
-module LogoCheckArcResult(
-    testName,
-    vtCmds,
-    expectedState,
-    expectedPointCount,
-    tol = 0.001)
-{
-    LogoCheckResult("ARC", testName, vtCmds, expectedState, expectedPointCount, tol);
-}
-
-// Validate final state and total emitted point count for one closed-shape command list.
-module LogoCheckShapeResult(
-    testName,
-    vtCmds,
-    expectedState,
-    expectedPointCount,
-    tol = 0.001)
-{
-    LogoCheckResult("shape", testName, vtCmds, expectedState, expectedPointCount, tol);
-}
-
-// Validate outer ring lengths for every nonempty region.
-module LogoCheckContourLengths(testName, vtCmds, expectedLengths)
-{
-    result = evalLogo(vtCmds);
-    regions = ResultContours(result);
-    actualLengths =
+    tol = 0.001) =
+    let(
+        result = evalLogo(vtCmds),
+        state = ResultState(result),
+        contours = ResultContours(result),
+        pointCount = CountContourPoints(contours)
+    )
     [
-        for (region = regions)
-            if (len(RegionOuter(region)) > 0)
-                len(RegionOuter(region))
+        LogoTestResult(
+            str(label, ": ", testName, " final state"),
+            LogoStateNearlyEqual(state, expectedState, tol),
+            [state, expectedState]
+        ),
+        LogoTestResult(
+            str(label, ": ", testName, " point count"),
+            pointCount == expectedPointCount,
+            [pointCount, expectedPointCount, contours]
+        )
     ];
 
-    LogoCheck(
+function LogoCheckContourLengthsResult(testName, vtCmds, expectedLengths) =
+    let(
+        result = evalLogo(vtCmds),
+        regions = ResultContours(result),
+        actualLengths =
+        [
+            for (region = regions)
+                if (len(RegionOuter(region)) > 0)
+                    len(RegionOuter(region))
+        ]
+    )
+    LogoTestResult(
+        str("contour lengths: ", testName),
         actualLengths == expectedLengths,
-        str("contour length validation failed: ", testName),
         [actualLengths, expectedLengths, regions]
     );
-}
 
-// Validate all ring lengths for every nonempty region.
-module LogoCheckRegionRingLengths(testName, vtCmds, expectedRingLengths)
-{
-    result = evalLogo(vtCmds);
-    regions = ResultContours(result);
-    actualRingLengths =
-    [
-        for (region = regions)
-            if (len(RegionOuter(region)) > 0)
-                [
-                    for (ring = region)
-                        len(ring)
-                ]
-    ];
-
-    LogoCheck(
+function LogoCheckRegionRingLengthsResult(
+    testName,
+    vtCmds,
+    expectedRingLengths) =
+    let(
+        result = evalLogo(vtCmds),
+        regions = ResultContours(result),
+        actualRingLengths =
+        [
+            for (region = regions)
+                if (len(RegionOuter(region)) > 0)
+                    [
+                        for (ring = region)
+                            len(ring)
+                    ]
+        ]
+    )
+    LogoTestResult(
+        str("region ring lengths: ", testName),
         actualRingLengths == expectedRingLengths,
-        str("region ring length validation failed: ", testName),
         [actualRingLengths, expectedRingLengths, regions]
     );
-}
 
 // Return every region/ring length, including empty mutable regions.
 //
-// Unlike LogoCheckRegionRingLengths(), this helper preserves empty regions so
-// evaluator-state tests can verify the exact raw EvalResult structure.
+// This preserves empty regions so evaluator-state tests can verify the exact
+// raw EvalResult structure.
 function LogoAllRegionRingLengths(regions) =
 [
     for (region = regions)
@@ -300,61 +476,53 @@ function LogoAllRegionRingLengths(regions) =
         ]
 ];
 
-// Validate the complete public evaluator result for one command list.
-//
-// This is intentionally independent of rendered geometry. Add further result
-// invariants here as LogoSC gains contour validation and, later, open-path
-// support without changing the existing focused test cases.
-module LogoCheckEvaluatorResult(
+function LogoCheckEvaluatorResultResults(
     testName,
     vtCmds,
     expectedState,
     expectedRingLengths,
     expectedStack = [],
     expectedPen = PEN_DOWN,
-    tol = 0.001)
-{
-    result = evalLogo(vtCmds);
-    state = ResultState(result);
-    ringLengths = LogoAllRegionRingLengths(ResultContours(result));
-    stack = ResultStack(result);
-    pen = ResultPen(result);
-
-    echo("Logo evaluator invariant:", testName);
-
-    LogoCheck(
-        LogoStateNearlyEqual(state, expectedState, tol),
-        str("evaluator invariant failed: ", testName, " final state"),
-        [state, expectedState]
-    );
-
-    LogoCheck(
-        ringLengths == expectedRingLengths,
-        str("evaluator invariant failed: ", testName, " region ring lengths"),
-        [ringLengths, expectedRingLengths, ResultContours(result)]
-    );
-
-    LogoCheck(
-        stack == expectedStack,
-        str("evaluator invariant failed: ", testName, " stack"),
-        [stack, expectedStack]
-    );
-
-    LogoCheck(
-        pen == expectedPen,
-        str("evaluator invariant failed: ", testName, " pen state"),
-        [pen, expectedPen]
-    );
-}
+    tol = 0.001) =
+    let(
+        result = evalLogo(vtCmds),
+        state = ResultState(result),
+        regions = ResultContours(result),
+        ringLengths = LogoAllRegionRingLengths(regions),
+        stack = ResultStack(result),
+        pen = ResultPen(result)
+    )
+    [
+        LogoTestResult(
+            str("evaluator: ", testName, " final state"),
+            LogoStateNearlyEqual(state, expectedState, tol),
+            [state, expectedState]
+        ),
+        LogoTestResult(
+            str("evaluator: ", testName, " region/ring lengths"),
+            ringLengths == expectedRingLengths,
+            [ringLengths, expectedRingLengths, regions]
+        ),
+        LogoTestResult(
+            str("evaluator: ", testName, " stack"),
+            stack == expectedStack,
+            [stack, expectedStack]
+        ),
+        LogoTestResult(
+            str("evaluator: ", testName, " pen state"),
+            pen == expectedPen,
+            [pen, expectedPen]
+        )
+    ];
 
 // Non-rendering evaluator contract tests.
 //
 // These tests cover today's filled-region evaluator. They do not introduce or
 // imply support for open paths. Extend this suite when an open-path data model
 // and its validation rules are deliberately added.
-module TestEvaluatorInvariantSuiteLogo()
-{
-    LogoCheckEvaluatorResult(
+function TestEvaluatorInvariantSuiteResultsLogo() =
+concat(
+    LogoCheckEvaluatorResultResults(
         "PUSH saves the complete state",
         [
             [MOVE, 10],
@@ -364,9 +532,9 @@ module TestEvaluatorInvariantSuiteLogo()
         stateMake(10, 0, 90, 1),
         [[1]],
         [stateMake(10, 0, 0, 1)]
-    );
+    ),
 
-    LogoCheckEvaluatorResult(
+    LogoCheckEvaluatorResultResults(
         "POP restores state and empties the stack",
         [
             [MOVE, 10],
@@ -378,9 +546,9 @@ module TestEvaluatorInvariantSuiteLogo()
         ],
         stateMake(15, 0, 0, 1),
         [[2]]
-    );
+    ),
 
-    LogoCheckEvaluatorResult(
+    LogoCheckEvaluatorResultResults(
         "PENUP moves state without emitting points",
         [
             [PENUP],
@@ -392,9 +560,9 @@ module TestEvaluatorInvariantSuiteLogo()
         [[0]],
         [],
         PEN_UP
-    );
+    ),
 
-    LogoCheckEvaluatorResult(
+    LogoCheckEvaluatorResultResults(
         "PENDOWN starts a new filled-region contour",
         [
             [PENUP],
@@ -404,9 +572,9 @@ module TestEvaluatorInvariantSuiteLogo()
         ],
         stateMake(15, 0, 0, 1),
         [[0], [2]]
-    );
+    ),
 
-    LogoCheckEvaluatorResult(
+    LogoCheckEvaluatorResultResults(
         "scaled RUN preserves parent and child regions",
         [
             [RUN,
@@ -420,9 +588,9 @@ module TestEvaluatorInvariantSuiteLogo()
         ],
         stateMake(8, 4, 90, 2),
         [[0], [2]]
-    );
+    ),
 
-    LogoCheckEvaluatorResult(
+    LogoCheckEvaluatorResultResults(
         "REPEAT propagates state and emitted points",
         [
             [REPEAT, 4,
@@ -434,12 +602,12 @@ module TestEvaluatorInvariantSuiteLogo()
         ],
         stateMake(0, 0, 360, 1),
         [[4]]
-    );
-}
+    )
+);
 
 // Basic Logo geometry regression suite.
-module TestBasicSuiteLogo()
-{
+function TestBasicCasesLogo() =
+let(
     square =
     [
         [MOVE, 10],
@@ -449,7 +617,7 @@ module TestBasicSuiteLogo()
         [MOVE, 10],
         [TURN, 90],
         [MOVE, 10]
-    ];
+    ],
 
     rectangle =
     [
@@ -460,7 +628,7 @@ module TestBasicSuiteLogo()
         [MOVE, 20],
         [TURN, 90],
         [MOVE, 8]
-    ];
+    ],
 
     triangle =
     [
@@ -469,7 +637,7 @@ module TestBasicSuiteLogo()
         [MOVE, 12],
         [TURN, 120],
         [MOVE, 12]
-    ];
+    ],
 
     diamond =
     [
@@ -481,7 +649,7 @@ module TestBasicSuiteLogo()
         [MOVE, 10],
         [TURN, 90],
         [MOVE, 10]
-    ];
+    ],
 
     stepped =
     [
@@ -496,7 +664,7 @@ module TestBasicSuiteLogo()
         [MOVE, 12],
         [TURN, 90],
         [MOVE, 8]
-    ];
+    ],
 
     smallSquare =
     [
@@ -507,13 +675,13 @@ module TestBasicSuiteLogo()
         [MOVE, 4],
         [TURN, 90],
         [MOVE, 4]
-    ];
+    ],
 
     runScaled =
     [
         [RUN, smallSquare, 2],
         [TURN, 0]
-    ];
+    ],
 
     gotoShape =
     [
@@ -523,15 +691,21 @@ module TestBasicSuiteLogo()
         [MOVE, 12],
         [GOTO, 0, 8, -90],
         [MOVE, 8]
-    ];
+    ]
+)
+[
+    LogoGeometryTestCase("basic square", square, [0, BasicY]),
+    LogoGeometryTestCase("rectangle", rectangle, [1, BasicY]),
+    LogoGeometryTestCase("triangle", triangle, [2, BasicY]),
+    LogoGeometryTestCase("rotated diamond", diamond, [3, BasicY]),
+    LogoGeometryTestCase("stepped concave polygon", stepped, [4, BasicY]),
+    LogoGeometryTestCase("RUN scaled square x2", runScaled, [5, BasicY]),
+    LogoGeometryTestCase("GOTO rectangle path", gotoShape, [6, BasicY])
+];
 
-    LogoSCest("basic square", square, [0, BasicY]);
-    LogoSCest("rectangle", rectangle, [1, BasicY]);
-    LogoSCest("triangle", triangle, [2, BasicY]);
-    LogoSCest("rotated diamond", diamond, [3, BasicY]);
-    LogoSCest("stepped concave polygon", stepped, [4, BasicY]);
-    LogoSCest("RUN scaled square x2", runScaled, [5, BasicY]);
-    LogoSCest("GOTO rectangle path", gotoShape, [6, BasicY]);
+module TestBasicSuiteLogo()
+{
+    RenderLogoGeometryTestCases(TestBasicCasesLogo());
 }
 
 // Explicit recursive command generators.
@@ -591,9 +765,8 @@ function RecursiveSharkFinCmds(depth) =
 
 // RUN, scaling, and recursion regression suite.
 // RUN scaling and nested RUN regression suite.
-module TestRunSuiteLogo()
-{
-
+function TestRunCasesLogo() =
+let(
     smallSquare =
     [
         [MOVE, 4],
@@ -603,27 +776,27 @@ module TestRunSuiteLogo()
         [MOVE, 4],
         [TURN, 90],
         [MOVE, 4]
-    ];
+    ],
 
     runDefault =
     [
         [RUN, smallSquare]
-    ];
+    ],
 
     runHalfScale =
     [
         [RUN, smallSquare, 0.5]
-    ];
+    ],
 
     runDoubleScale =
     [
         [RUN, smallSquare, 2]
-    ];
+    ],
 
     runExplicitMaxRec =
     [
         [RUN, smallSquare, 1, 4]
-    ];
+    ],
 
     nestedRunLeaf =
     [
@@ -634,7 +807,7 @@ module TestRunSuiteLogo()
         [MOVE, 4],
         [TURN, 90],
         [MOVE, 4]
-    ];
+    ],
 
     nestedRunBranch =
     [
@@ -643,48 +816,57 @@ module TestRunSuiteLogo()
         [RUN, nestedRunLeaf, 0.7, 2],
         [TURN, -90],
         [RUN, nestedRunLeaf, 0.7, 2]
-    ];
+    ],
 
     nestedRunTree =
     [
         [RUN, nestedRunBranch, 1.0, 3]
-    ];
+    ]
+)
+[
+    LogoGeometryTestCase("RUN default scale/maxRec", runDefault, [0, RunY0]),
+    LogoGeometryTestCase("RUN half scale", runHalfScale, [1, RunY0]),
+    LogoGeometryTestCase("RUN double scale", runDoubleScale, [2, RunY0]),
+    LogoGeometryTestCase("RUN explicit maxRec=4", runExplicitMaxRec, [3, RunY0]),
+    LogoGeometryTestCase("nested RUN tree", nestedRunTree, [4, RunY0])
+];
 
-    LogoSCest("RUN default scale/maxRec", runDefault, [0, RunY0]);
-    LogoSCest("RUN half scale", runHalfScale, [1, RunY0]);
-    LogoSCest("RUN double scale", runDoubleScale, [2, RunY0]);
-    LogoSCest("RUN explicit maxRec=4", runExplicitMaxRec, [3, RunY0]);
-    LogoSCest("nested RUN tree", nestedRunTree, [4, RunY0]);
+module TestRunSuiteLogo()
+{
+    RenderLogoGeometryTestCases(TestRunCasesLogo());
 }
 
 // Recursive RUN regression suite.
-module TestRunRecursiveSuiteLogo()
-{
-
-    recursiveBox =
-        RecursiveBoxCmds(3);
-
-    recursiveSpiral =
-        RecursiveSpiralCmds(4);
-
-    recursiveSharkFin =
-        RecursiveSharkFinCmds(3);
-
+function TestRunRecursiveCasesLogo() =
+let(
+    recursiveBox = RecursiveBoxCmds(3),
+    recursiveSpiral = RecursiveSpiralCmds(4),
+    recursiveSharkFin = RecursiveSharkFinCmds(3),
     recursiveBoxShallow =
     [
         [RUN, RecursiveBoxCmds(5), 1.0, 1]
-    ];
+    ],
 
     recursiveBoxDeep =
     [
         [RUN, RecursiveBoxCmds(5), 1.0, 4]
-    ];
+    ]
+)
+[
+    LogoGeometryTestCase("recursive box depth 3", recursiveBox, [0, RunY1]),
+    LogoGeometryTestCase("recursive spiral depth 4", recursiveSpiral, [1, RunY1]),
+    LogoGeometryTestCase("recursive shark fin depth 3", recursiveSharkFin, [2, RunY1]),
+    LogoGeometryTestCase(
+        "recursive box shallow maxRec=1",
+        recursiveBoxShallow,
+        [3, RunY1]
+    ),
+    LogoGeometryTestCase("recursive box deep maxRec=4", recursiveBoxDeep, [4, RunY1])
+];
 
-    LogoSCest("recursive box depth 3", recursiveBox, [0, RunY1]);
-    LogoSCest("recursive spiral depth 4", recursiveSpiral, [1, RunY1]);
-    LogoSCest("recursive shark fin depth 3", recursiveSharkFin, [2, RunY1]);
-    LogoSCest("recursive box shallow maxRec=1", recursiveBoxShallow, [3, RunY1]);
-    LogoSCest("recursive box deep maxRec=4", recursiveBoxDeep, [4, RunY1]);
+module TestRunRecursiveSuiteLogo()
+{
+    RenderLogoGeometryTestCases(TestRunRecursiveCasesLogo());
 }
 
 // PUSH/POP and REPEAT regression suite.
@@ -695,8 +877,8 @@ module TestRunRecursiveSuiteLogo()
 // points in order, tests that draw visible branches can become self-intersecting.
 // The tests below use PUSH/POP to verify state restoration without drawing
 // disconnected branches.
-module TestStateFlowSuiteLogo()
-{
+function TestStateFlowCasesLogo() =
+let(
     // Expected result:
     //     A simple rectangle. PUSH/POP temporarily changes heading and scale,
     //     then restores the original state before drawing continues, so the
@@ -714,7 +896,7 @@ module TestStateFlowSuiteLogo()
         [MOVE, 12],
         [TURN, 90],
         [MOVE, 8]
-    ];
+    ],
 
     // Expected result:
     //     A square with four equal sides.
@@ -726,7 +908,7 @@ module TestStateFlowSuiteLogo()
                 [TURN, 90]
             ]
         ]
-    ];
+    ],
 
     // Expected result:
     //     An equilateral-style triangle.
@@ -738,7 +920,7 @@ module TestStateFlowSuiteLogo()
                 [TURN, 120]
             ]
         ]
-    ];
+    ],
 
     // Expected result:
     //     A regular hexagon generated by repeatedly RUNning a two-command body.
@@ -754,7 +936,7 @@ module TestStateFlowSuiteLogo()
                 ]
             ]
         ]
-    ];
+    ],
 
     // Expected result:
     //     Another rectangle. Each iteration performs a temporary PUSH/POP
@@ -772,7 +954,7 @@ module TestStateFlowSuiteLogo()
                 [TURN, 90]
             ]
         ]
-    ];
+    ],
 
     // Expected result:
     //     A square whose sides are produced by an inner REPEAT. Visually it
@@ -790,19 +972,29 @@ module TestStateFlowSuiteLogo()
                 [TURN, 90]
             ]
         ]
-    ];
+    ]
+)
+[
+    LogoGeometryTestCase("PUSH/POP state restore box", stateRestoreBox, [0, StateFlowY]),
+    LogoGeometryTestCase("REPEAT square", repeatedSquare, [1, StateFlowY]),
+    LogoGeometryTestCase("REPEAT triangle", repeatedTriangle, [2, StateFlowY]),
+    LogoGeometryTestCase("REPEAT containing RUN hexagon", repeatWithRun, [3, StateFlowY]),
+    LogoGeometryTestCase(
+        "PUSH/POP inside REPEAT box",
+        pushPopInsideRepeatBox,
+        [4, StateFlowY]
+    ),
+    LogoGeometryTestCase("nested REPEAT box", nestedRepeatBox, [5, StateFlowY])
+];
 
-    LogoSCest("PUSH/POP state restore box", stateRestoreBox, [0, StateFlowY]);
-    LogoSCest("REPEAT square", repeatedSquare, [1, StateFlowY]);
-    LogoSCest("REPEAT triangle", repeatedTriangle, [2, StateFlowY]);
-    LogoSCest("REPEAT containing RUN hexagon", repeatWithRun, [3, StateFlowY]);
-    LogoSCest("PUSH/POP inside REPEAT box", pushPopInsideRepeatBox, [4, StateFlowY]);
-    LogoSCest("nested REPEAT box", nestedRepeatBox, [5, StateFlowY]);
+module TestStateFlowSuiteLogo()
+{
+    RenderLogoGeometryTestCases(TestStateFlowCasesLogo());
 }
 
 // PENUP/PENDOWN and multiple-contour regression suite.
-module TestPenSuiteLogo()
-{
+function TestPenCasesLogo() =
+let(
     // Expected result:
     //     Two disconnected squares. PENUP moves the Logo between them without
     //     creating a connecting polygon edge; PENDOWN starts a new contour.
@@ -824,7 +1016,7 @@ module TestPenSuiteLogo()
                 [TURN, 90]
             ]
         ]
-    ];
+    ],
 
     // Expected result:
     //     Three separate small triangles arranged left-to-right.
@@ -856,7 +1048,7 @@ module TestPenSuiteLogo()
                 [TURN, 120]
             ]
         ]
-    ];
+    ],
 
     // Expected result:
     //     A central square and four separated satellite squares. PUSH/POP moves
@@ -885,7 +1077,7 @@ module TestPenSuiteLogo()
                 [TURN, 90]
             ]
         ]
-    ];
+    ],
 
     // Expected result:
     //     A row of four disconnected boxes generated by REPEAT. Each iteration
@@ -906,34 +1098,43 @@ module TestPenSuiteLogo()
                 [PENDOWN]
             ]
         ]
-    ];
+    ]
+)
+[
+    LogoGeometryTestCase("PENUP/PENDOWN two disconnected squares", twoSquares, [0, PenY]),
+    LogoGeometryTestCase("PENUP/PENDOWN three triangles", threeTriangles, [1, PenY]),
+    LogoGeometryTestCase(
+        "PUSH/POP satellite squares with pen control",
+        pushPopSatellites,
+        [2, PenY]
+    ),
+    LogoGeometryTestCase("REPEAT disconnected boxes", repeatDisconnected, [3, PenY])
+];
 
-    LogoSCest("PENUP/PENDOWN two disconnected squares", twoSquares, [0, PenY]);
-    LogoSCest("PENUP/PENDOWN three triangles", threeTriangles, [1, PenY]);
-    LogoSCest("PUSH/POP satellite squares with pen control", pushPopSatellites, [2, PenY]);
-    LogoSCest("REPEAT disconnected boxes", repeatDisconnected, [3, PenY]);
+module TestPenSuiteLogo()
+{
+    RenderLogoGeometryTestCases(TestPenCasesLogo());
 }
 
 // ARC geometry regression suite.
-module TestArcSuiteLogo()
-{
-
+function TestArcCasesLogo() =
+let(
     quarterArc =
     [
         [ARC, 10, 90, 8],
         [GOTO, 0, 0, 0]
-    ];
+    ],
 
     semicircle =
     [
         [ARC, 10, 180, 16],
         [GOTO, 0, 0, 0]
-    ];
+    ],
 
     circleish =
     [
         [ARC, 10, 360, 32]
-    ];
+    ],
 
     repeatArcs =
     [
@@ -942,7 +1143,7 @@ module TestArcSuiteLogo()
                 [ARC, 10, 90, 8]
             ]
         ]
-    ];
+    ],
 
     runArc =
     [
@@ -952,14 +1153,14 @@ module TestArcSuiteLogo()
             ]
         ],
         [GOTO, 0, 0, 0]
-    ];
+    ],
 
     scaledArc =
     [
         [SCALE, 0.5],
         [ARC, 20, 180, 16],
         [GOTO, 0, 0, 0]
-    ];
+    ],
 
     roundedRect =
     [
@@ -972,177 +1173,155 @@ module TestArcSuiteLogo()
         [ARC, 5, 90, 4],
         [MOVE, 6],
         [ARC, 5, 90, 4]
-    ];
+    ]
+)
+[
+    LogoGeometryTestCase("ARC quarter sector", quarterArc, [0, ArcY]),
+    LogoGeometryTestCase("ARC semicircle sector", semicircle, [1, ArcY]),
+    LogoGeometryTestCase("ARC full-circle-ish", circleish, [2, ArcY]),
+    LogoGeometryTestCase("ARC inside REPEAT", repeatArcs, [3, ArcY]),
+    LogoGeometryTestCase("ARC inside RUN", runArc, [4, ArcY]),
+    LogoGeometryTestCase("ARC scaled", scaledArc, [5, ArcY]),
+    LogoGeometryTestCase("ARC rounded rectangle", roundedRect, [6, ArcY])
+];
 
-    LogoCheckArcResult(
-        "quarter arc",
-        [[ARC, 10, 90, 4]],
-        stateMake(10, 10, 90, 1),
-        4
-    );
+function TestArcDetailedResultsLogo() =
+let(
+    cases = TestArcCasesLogo(),
+    roundedRect = cases[6][LTC_COMMANDS]
+)
+concat(
+    LogoCheckResultResults(
+        "ARC", "quarter arc", [[ARC, 10, 90, 4]],
+        stateMake(10, 10, 90, 1), 4
+    ),
+    LogoCheckResultResults(
+        "ARC", "semicircle", [[ARC, 10, 180, 4]],
+        stateMake(0, 20, 180, 1), 4
+    ),
+    LogoCheckResultResults(
+        "ARC", "full-circle-ish arc", [[ARC, 10, 360, 8]],
+        stateMake(0, 0, 360, 1), 8
+    ),
+    LogoCheckResultResults(
+        "ARC", "pen-up arc", [[PENUP], [ARC, 10, 90, 4]],
+        stateMake(10, 10, 90, 1), 0
+    ),
+    LogoCheckResultResults(
+        "ARC", "arc inside REPEAT", [[REPEAT, 4, [[ARC, 10, 90, 4]]]],
+        stateMake(0, 0, 360, 1), 16
+    ),
+    LogoCheckResultResults(
+        "ARC", "arc inside RUN", [[RUN, [[ARC, 10, 90, 4]]]],
+        stateMake(10, 10, 90, 1), 4
+    ),
+    LogoCheckResultResults(
+        "ARC", "scaled arc", [[SCALE, 2], [ARC, 10, 90, 4]],
+        stateMake(20, 20, 90, 2), 4
+    ),
+    LogoCheckResultResults(
+        "ARC", "rounded rectangle", roundedRect,
+        stateMake(5, 0, 360, 1), 21
+    )
+);
 
-    LogoCheckArcResult(
-        "semicircle",
-        [[ARC, 10, 180, 4]],
-        stateMake(0, 20, 180, 1),
-        4
-    );
-
-    LogoCheckArcResult(
-        "full-circle-ish arc",
-        [[ARC, 10, 360, 8]],
-        stateMake(0, 0, 360, 1),
-        8
-    );
-
-    LogoCheckArcResult(
-        "pen-up arc",
-        [[PENUP], [ARC, 10, 90, 4]],
-        stateMake(10, 10, 90, 1),
-        0
-    );
-
-    LogoCheckArcResult(
-        "arc inside REPEAT",
-        [[REPEAT, 4, [[ARC, 10, 90, 4]]]],
-        stateMake(0, 0, 360, 1),
-        16
-    );
-
-    LogoCheckArcResult(
-        "arc inside RUN",
-        [[RUN, [[ARC, 10, 90, 4]]]],
-        stateMake(10, 10, 90, 1),
-        4
-    );
-
-    LogoCheckArcResult(
-        "scaled arc",
-        [[SCALE, 2], [ARC, 10, 90, 4]],
-        stateMake(20, 20, 90, 2),
-        4
-    );
-
-    LogoCheckArcResult(
-        "rounded rectangle",
-        roundedRect,
-        stateMake(5, 0, 360, 1),
-        21
-    );
-
-    LogoSCest("ARC quarter sector", quarterArc, [0, ArcY]);
-    LogoSCest("ARC semicircle sector", semicircle, [1, ArcY]);
-    LogoSCest("ARC full-circle-ish", circleish, [2, ArcY]);
-    LogoSCest("ARC inside REPEAT", repeatArcs, [3, ArcY]);
-    LogoSCest("ARC inside RUN", runArc, [4, ArcY]);
-    LogoSCest("ARC scaled", scaledArc, [5, ArcY]);
-    LogoSCest("ARC rounded rectangle", roundedRect, [6, ArcY]);
+module TestArcSuiteLogo()
+{
+    RenderLogoGeometryTestCases(TestArcCasesLogo());
 }
 
 
 // Closed-shape geometry regression suite.
-module TestClosedShapeSuiteLogo()
-{
-
+function TestClosedShapeCasesLogo() =
+let(
     circleShape =
     [
         [CIRCLE, 8, 24]
-    ];
+    ],
 
     regularHex =
     [
         [REGPOLY, 6, 8]
-    ];
+    ],
 
     rectShape =
     [
         [RECT, 20, 10]
-    ];
+    ],
 
     rotatedRect =
     [
         [DIR, 30],
         [RECT, 20, 8]
-    ];
+    ],
 
     roundedRectShape =
     [
         [ROUNDEDRECT, 24, 14, 4, 4]
-    ];
+    ],
 
     scaledCircle =
     [
         [SCALE, 0.5],
         [CIRCLE, 16, 16]
-    ];
+    ]
+)
+[
+    LogoGeometryTestCase("CIRCLE centered closed contour", circleShape, [0, ShapeY]),
+    LogoGeometryTestCase("REGPOLY hexagon", regularHex, [1, ShapeY]),
+    LogoGeometryTestCase("RECT centered rectangle", rectShape, [2, ShapeY]),
+    LogoGeometryTestCase("RECT rotated by heading", rotatedRect, [3, ShapeY]),
+    LogoGeometryTestCase("ROUNDEDRECT centered", roundedRectShape, [4, ShapeY]),
+    LogoGeometryTestCase("CIRCLE scaled", scaledCircle, [5, ShapeY])
+];
 
-    LogoCheckShapeResult(
-        "circle",
-        [[CIRCLE, 10, 16]],
-        stateMake(0, 0, 0, 1),
-        16
-    );
+function TestClosedShapeDetailedResultsLogo() =
+concat(
+    LogoCheckResultResults(
+        "shape", "circle", [[CIRCLE, 10, 16]],
+        stateMake(0, 0, 0, 1), 16
+    ),
+    LogoCheckResultResults(
+        "shape", "regular polygon", [[REGPOLY, 6, 10]],
+        stateMake(0, 0, 0, 1), 6
+    ),
+    LogoCheckResultResults(
+        "shape", "rectangle", [[RECT, 20, 8]],
+        stateMake(0, 0, 0, 1), 4
+    ),
+    LogoCheckResultResults(
+        "shape", "rounded rectangle command", [[ROUNDEDRECT, 20, 10, 2, 4]],
+        stateMake(0, 0, 0, 1), 20
+    ),
+    LogoCheckResultResults(
+        "shape", "pen-up circle", [[PENUP], [CIRCLE, 10, 16]],
+        stateMake(0, 0, 0, 1), 0
+    ),
+    LogoCheckResultResults(
+        "shape", "scaled circle", [[SCALE, 2], [CIRCLE, 5, 8]],
+        stateMake(0, 0, 0, 2), 8
+    ),
+    LogoCheckResultResults(
+        "shape", "shape inside RUN", [[RUN, [[RECT, 10, 4]], 2]],
+        stateMake(0, 0, 0, 2), 4
+    ),
+    [
+        LogoCheckContourLengthsResult(
+            "shape command does not become the current path",
+            [[CIRCLE, 5, 8], [MOVE, 10]],
+            [8, 1]
+        )
+    ]
+);
 
-    LogoCheckShapeResult(
-        "regular polygon",
-        [[REGPOLY, 6, 10]],
-        stateMake(0, 0, 0, 1),
-        6
-    );
-
-    LogoCheckShapeResult(
-        "rectangle",
-        [[RECT, 20, 8]],
-        stateMake(0, 0, 0, 1),
-        4
-    );
-
-    LogoCheckShapeResult(
-        "rounded rectangle command",
-        [[ROUNDEDRECT, 20, 10, 2, 4]],
-        stateMake(0, 0, 0, 1),
-        20
-    );
-
-    LogoCheckShapeResult(
-        "pen-up circle",
-        [[PENUP], [CIRCLE, 10, 16]],
-        stateMake(0, 0, 0, 1),
-        0
-    );
-
-    LogoCheckShapeResult(
-        "scaled circle",
-        [[SCALE, 2], [CIRCLE, 5, 8]],
-        stateMake(0, 0, 0, 2),
-        8
-    );
-
-    LogoCheckShapeResult(
-        "shape inside RUN",
-        [[RUN, [[RECT, 10, 4]], 2]],
-        stateMake(0, 0, 0, 2),
-        4
-    );
-
-    LogoCheckContourLengths(
-        "shape command does not become the current path",
-        [[CIRCLE, 5, 8], [MOVE, 10]],
-        [8, 1]
-    );
-
-    LogoSCest("CIRCLE centered closed contour", circleShape, [0, ShapeY]);
-    LogoSCest("REGPOLY hexagon", regularHex, [1, ShapeY]);
-    LogoSCest("RECT centered rectangle", rectShape, [2, ShapeY]);
-    LogoSCest("RECT rotated by heading", rotatedRect, [3, ShapeY]);
-    LogoSCest("ROUNDEDRECT centered", roundedRectShape, [4, ShapeY]);
-    LogoSCest("CIRCLE scaled", scaledCircle, [5, ShapeY]);
+module TestClosedShapeSuiteLogo()
+{
+    RenderLogoGeometryTestCases(TestClosedShapeCasesLogo());
 }
 
 // Region/hole regression suite.
-module TestHoleSuiteLogo()
-{
-
+function TestHoleCasesLogo() =
+let(
     washer =
     [
         [CIRCLE, 14, 32],
@@ -1151,7 +1330,7 @@ module TestHoleSuiteLogo()
                 [CIRCLE, 5, 16]
             ]
         ]
-    ];
+    ],
 
     rectWithHole =
     [
@@ -1161,7 +1340,7 @@ module TestHoleSuiteLogo()
                 [CIRCLE, 4, 12]
             ]
         ]
-    ];
+    ],
 
     roundedPlate =
     [
@@ -1178,7 +1357,7 @@ module TestHoleSuiteLogo()
                 [CIRCLE, 1.5, 8]
             ]
         ]
-    ];
+    ],
 
     repeatedHoles =
     [
@@ -1189,298 +1368,319 @@ module TestHoleSuiteLogo()
                 [HOLE, [[GOTO,  7, 0, 0], [CIRCLE, 2, 8]]]
             ]
         ]
-    ];
+    ],
 
     scaledHole =
     [
         [SCALE, 2],
         [RECT, 12, 6],
         [HOLE, [[CIRCLE, 1.5, 8]]]
-    ];
+    ]
+)
+[
+    LogoGeometryTestCase("HOLE washer", washer, [0, HoleY]),
+    LogoGeometryTestCase("HOLE rectangle with circle", rectWithHole, [1, HoleY]),
+    LogoGeometryTestCase("HOLE rounded mounting plate", roundedPlate, [2, HoleY]),
+    LogoGeometryTestCase("HOLE repeated circular holes", repeatedHoles, [3, HoleY]),
+    LogoGeometryTestCase("HOLE scaled", scaledHole, [4, HoleY])
+];
 
-    LogoCheckShapeResult(
-        "washer",
-        washer,
-        stateMake(0, 0, 0, 1),
-        48
-    );
+function TestHoleDetailedResultsLogo() =
+let(
+    cases = TestHoleCasesLogo(),
+    washer = cases[0][LTC_COMMANDS],
+    rectWithHole = cases[1][LTC_COMMANDS],
+    roundedPlate = cases[2][LTC_COMMANDS],
+    repeatedHoles = cases[3][LTC_COMMANDS],
+    scaledHole = cases[4][LTC_COMMANDS]
+)
+concat(
+    LogoCheckResultResults(
+        "shape", "washer", washer,
+        stateMake(0, 0, 0, 1), 48
+    ),
+    [LogoCheckRegionRingLengthsResult("washer ring lengths", washer, [[32, 16]])],
+    LogoCheckResultResults(
+        "shape", "rectangle with circular hole", rectWithHole,
+        stateMake(0, 0, 0, 1), 16
+    ),
+    [
+        LogoCheckRegionRingLengthsResult(
+            "rectangle with circular hole ring lengths",
+            rectWithHole,
+            [[4, 12]]
+        )
+    ],
+    LogoCheckResultResults(
+        "shape", "rounded plate with four screw holes", roundedPlate,
+        stateMake(0, 0, 0, 1), 52
+    ),
+    [
+        LogoCheckRegionRingLengthsResult(
+            "rounded plate ring lengths",
+            roundedPlate,
+            [[20, 8, 8, 8, 8]]
+        ),
+        LogoCheckRegionRingLengthsResult(
+            "repeated holes attach to same region",
+            repeatedHoles,
+            [[4, 8, 8, 8, 8]]
+        ),
+        LogoCheckRegionRingLengthsResult("scaled hole", scaledHole, [[4, 8]])
+    ]
+);
 
-    LogoCheckRegionRingLengths(
-        "washer ring lengths",
-        washer,
-        [[32, 16]]
-    );
-
-    LogoCheckShapeResult(
-        "rectangle with circular hole",
-        rectWithHole,
-        stateMake(0, 0, 0, 1),
-        16
-    );
-
-    LogoCheckRegionRingLengths(
-        "rectangle with circular hole ring lengths",
-        rectWithHole,
-        [[4, 12]]
-    );
-
-    LogoCheckShapeResult(
-        "rounded plate with four screw holes",
-        roundedPlate,
-        stateMake(0, 0, 0, 1),
-        52
-    );
-
-    LogoCheckRegionRingLengths(
-        "rounded plate ring lengths",
-        roundedPlate,
-        [[20, 8, 8, 8, 8]]
-    );
-
-    LogoCheckRegionRingLengths(
-        "repeated holes attach to same region",
-        repeatedHoles,
-        [[4, 8, 8, 8, 8]]
-    );
-
-    LogoCheckRegionRingLengths(
-        "scaled hole",
-        scaledHole,
-        [[4, 8]]
-    );
-
-    LogoSCest("HOLE washer", washer, [0, HoleY]);
-    LogoSCest("HOLE rectangle with circle", rectWithHole, [1, HoleY]);
-    LogoSCest("HOLE rounded mounting plate", roundedPlate, [2, HoleY]);
-    LogoSCest("HOLE repeated circular holes", repeatedHoles, [3, HoleY]);
-    LogoSCest("HOLE scaled", scaledHole, [4, HoleY]);
+module TestHoleSuiteLogo()
+{
+    RenderLogoGeometryTestCases(TestHoleCasesLogo());
 }
 
 // Failure-condition regression suite.
 //
 // These tests are supposed to produce [ERROR] messages when HardErrors = false.
 // They should not abort the complete OpenSCAD run unless HardErrors = true.
-module TestFailureSuiteLogo()
-{
+function TestFailureCasesLogo() =
+let(
     badOpcode =
     [
         [999, 10]
-    ];
+    ],
 
     emptyProgram =
     [
         [RUN, []]
-    ];
+    ],
 
     recursionLimit =
     [
         [RUN, RecursiveBoxCmds(3), 1.0, 0]
-    ];
+    ],
 
     malformedRunNoChildList =
     [
         [RUN]
-    ];
+    ],
 
     gotoMissingArgs =
     [
         [GOTO, 1]
-    ];
+    ],
 
     popEmptyStack =
     [
         [POP]
-    ];
+    ],
 
     malformedRepeat =
     [
         [REPEAT]
-    ];
+    ],
 
     malformedArc =
     [
         [ARC, 10]
-    ];
+    ],
 
     negativeArcRadius =
     [
         [ARC, -10, 90, 4]
-    ];
+    ],
 
     badArcSegments =
     [
         [ARC, 10, 90, 0]
-    ];
+    ],
 
 
     malformedCircle =
     [
         [CIRCLE]
-    ];
+    ],
 
     badCircleSegments =
     [
         [CIRCLE, 10, 2]
-    ];
+    ],
 
     badRegPolySides =
     [
         [REGPOLY, 2, 10]
-    ];
+    ],
 
     malformedRect =
     [
         [RECT, 10]
-    ];
+    ],
 
     badRoundedRectRadius =
     [
         [ROUNDEDRECT, 20, 10, -2]
-    ];
+    ],
 
     malformedHole =
     [
         [HOLE]
-    ];
+    ],
 
     holeBeforeOuter =
     [
         [HOLE, [[CIRCLE, 3, 8]]]
-    ];
+    ],
 
     emptyHoleChild =
     [
         [RECT, 10, 10],
         [HOLE, []]
-    ];
+    ],
 
     holeChildNoClosedContour =
     [
         [RECT, 10, 10],
         [HOLE, [[MOVE, 5]]]
-    ];
-
-    LogoSCest(
-        "FAIL expected: unknown opcode",
-        badOpcode,
-        [0, FailureY]
-    );
-
-    LogoSCest(
-        "FAIL expected: empty RUN is no-op",
-        emptyProgram,
-        [1, FailureY]
-    );
-
-    LogoSCest(
+    ]
+)
+[
+    LogoExpectedErrorTestCase("FAIL expected: unknown opcode", badOpcode, [0, FailureY]),
+    LogoExpectedErrorTestCase("FAIL expected: empty RUN is no-op", emptyProgram, [1, FailureY]),
+    LogoExpectedErrorTestCase(
         "FAIL expected: RUN recursion limit reached",
         recursionLimit,
-        [2, FailureY]
-    );
-
-    LogoSCest(
+        [2, FailureY],
+        false
+    ),
+    LogoExpectedErrorTestCase(
         "FAIL expected: malformed RUN without child list",
         malformedRunNoChildList,
-        [3, FailureY]
-    );
-
-    LogoSCest(
+        [3, FailureY],
+        false
+    ),
+    LogoExpectedErrorTestCase(
         "FAIL expected: malformed GOTO missing args",
         gotoMissingArgs,
-        [4, FailureY]
-    );
-
-    LogoSCest(
+        [4, FailureY],
+        false
+    ),
+    LogoExpectedErrorTestCase(
         "FAIL expected: POP with empty state stack",
         popEmptyStack,
-        [5, FailureY]
-    );
-
-    LogoSCest(
+        [5, FailureY],
+        false
+    ),
+    LogoExpectedErrorTestCase(
         "FAIL expected: malformed REPEAT no child list",
         malformedRepeat,
-        [6, FailureY]
-    );
-
-    LogoSCest(
+        [6, FailureY],
+        false
+    ),
+    LogoExpectedErrorTestCase(
         "FAIL expected: malformed ARC missing angle",
         malformedArc,
-        [7, FailureY]
-    );
-
-    LogoSCest(
+        [7, FailureY],
+        false
+    ),
+    LogoExpectedErrorTestCase(
         "FAIL expected: ARC negative radius",
         negativeArcRadius,
-        [8, FailureY]
-    );
-
-    LogoSCest(
+        [8, FailureY],
+        false
+    ),
+    LogoExpectedErrorTestCase(
         "FAIL expected: ARC bad segment count",
         badArcSegments,
-        [9, FailureY]
-    );
-
-    LogoSCest(
+        [9, FailureY],
+        false
+    ),
+    LogoExpectedErrorTestCase(
         "FAIL expected: malformed CIRCLE missing radius",
         malformedCircle,
-        [10, FailureY]
-    );
-
-    LogoSCest(
+        [10, FailureY],
+        false
+    ),
+    LogoExpectedErrorTestCase(
         "FAIL expected: CIRCLE bad segment count",
         badCircleSegments,
-        [11, FailureY]
-    );
-
-    LogoSCest(
+        [11, FailureY],
+        false
+    ),
+    LogoExpectedErrorTestCase(
         "FAIL expected: REGPOLY bad side count",
         badRegPolySides,
-        [12, FailureY]
-    );
-
-    LogoSCest(
+        [12, FailureY],
+        false
+    ),
+    LogoExpectedErrorTestCase(
         "FAIL expected: malformed RECT missing height",
         malformedRect,
-        [13, FailureY]
-    );
-
-    LogoSCest(
+        [13, FailureY],
+        false
+    ),
+    LogoExpectedErrorTestCase(
         "FAIL expected: ROUNDEDRECT negative radius",
         badRoundedRectRadius,
-        [14, FailureY]
-    );
-
-    LogoSCest(
+        [14, FailureY],
+        false
+    ),
+    LogoExpectedErrorTestCase(
         "FAIL expected: malformed HOLE missing child list",
         malformedHole,
-        [15, FailureY]
-    );
-
-    LogoSCest(
+        [15, FailureY],
+        false
+    ),
+    LogoExpectedErrorTestCase(
         "FAIL expected: HOLE before outer region",
         holeBeforeOuter,
-        [16, FailureY]
-    );
-
-    LogoSCest(
+        [16, FailureY],
+        false
+    ),
+    LogoExpectedErrorTestCase(
         "FAIL expected: HOLE empty child list",
         emptyHoleChild,
-        [17, FailureY]
-    );
-
-    LogoSCest(
+        [17, FailureY],
+        true
+    ),
+    LogoExpectedErrorTestCase(
         "FAIL expected: HOLE child with no closed contour",
         holeChildNoClosedContour,
-        [18, FailureY]
-    );
+        [18, FailureY],
+        true
+    )
+];
+
+module TestFailureSuiteLogo()
+{
+    echo("LogoSC expected-error tests: BEGIN");
+    RenderLogoGeometryTestCases(TestFailureCasesLogo());
+    echo("LogoSC expected-error tests: END");
 }
 
+function LogoFoundationAutomatedTestResults() =
+concat(
+    TestEvaluatorInvariantSuiteResultsLogo(),
+    LogoGeometryTestResults(TestBasicCasesLogo()),
+    LogoGeometryTestResults(TestRunCasesLogo()),
+    LogoGeometryTestResults(TestRunRecursiveCasesLogo()),
+    LogoGeometryTestResults(TestStateFlowCasesLogo()),
+    LogoGeometryTestResults(TestPenCasesLogo()),
+    LogoGeometryTestResults(TestArcCasesLogo()),
+    TestArcDetailedResultsLogo(),
+    LogoGeometryTestResults(TestClosedShapeCasesLogo()),
+    TestClosedShapeDetailedResultsLogo(),
+    LogoGeometryTestResults(TestHoleCasesLogo()),
+    TestHoleDetailedResultsLogo(),
+    LogoGeometryTestResults(TestFailureCasesLogo())
+);
+
+function LogoFoundationTestSuiteResult() =
+    LogoTestSuiteResult(
+        "Foundation",
+        LogoFoundationAutomatedTestResults()
+    );
+
 // Run all current LogoSC regression suites.
-module RunAllLogoSCests()
+module RunAllLogoSCests(reportResults = true)
 {
     LogoSCestRowMarkers();
 
-    TestEvaluatorInvariantSuiteLogo();
     TestBasicSuiteLogo();
     TestRunSuiteLogo();
     TestRunRecursiveSuiteLogo();
@@ -1490,4 +1690,9 @@ module RunAllLogoSCests()
     TestClosedShapeSuiteLogo();
     TestHoleSuiteLogo();
     TestFailureSuiteLogo();
+
+    if (reportResults)
+    {
+        ReportLogoTestRun([LogoFoundationTestSuiteResult()]);
+    }
 }

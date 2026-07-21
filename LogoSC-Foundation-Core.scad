@@ -130,9 +130,16 @@ maxRunRecursions = 5; // [0:20]
 // Default per-RUN recursion limit when RUN is written without maxRec.
 DefaultRunMaxRecursions = 2; // [0:20]
 
-// Non-fatal error helper for use inside functions.
+// Non-fatal error helper for use inside functions. The dynamically scoped
+// special variable lets the test harness inspect expected-error programs
+// repeatedly without duplicating their diagnostic echoes. Normal evaluation
+// leaves it false.
+$LogoSCSuppressErrors = false;
+
 function ErrorOrZero(msg, value = undef) =
-    HardErrors
+    ($LogoSCSuppressErrors == true)
+        ? 0
+        : HardErrors
         ? assert(false, msg) 0
         : echo("[ERROR]", msg, value) 0;
 

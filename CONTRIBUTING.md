@@ -128,6 +128,12 @@ Before release:
 - Update regression tests as needed.
 - Run `LogoSC-Foundation-Test-Runner.scad`; do not add test dependencies to Core.
 - Keep validation tests in the passive validation-test companion and run them through the runner.
+- Require one final `LOGOSC_AUTOMATED_TEST_RESULT` with `PASS`; expected Core `[ERROR]`
+  diagnostics in the bounded failure-condition row are not test-result failures.
+- Add new automated checks as immutable result records so failures accumulate through the run
+  and contribute to their suite and global totals.
+- Keep `LogoTestFailFast = false` for acceptance runs. Use the optional `true` setting only to
+  isolate the first failed result with OpenSCAD's assertion source trace.
 - Verify examples still render correctly.
 - Keep documentation synchronized with implementation.
 

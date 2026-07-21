@@ -33,6 +33,9 @@ LogoSCRunMode = "Examples"; // [NoDemo, Examples, Debug, Tests]
 // Keep routine example previews quiet unless the user explicitly raises tracing.
 TraceLevel = 0; // [0:4]
 
+// Optional test-diagnosis mode used when LogoSCRunMode is Tests.
+LogoTestFailFast = false; // [false:true]
+
 /* [LogoSC Debug Demo] */
 
 // Preview-only debug-renderer demo controls. These controls are used when
@@ -1046,6 +1049,5 @@ if (LogoSCRunMode == "Debug")
 
 if (LogoSCRunMode == "Tests")
 {
-    RunAllLogoSCests();
-    RunAllLogoValidationTests();
+    RunAllLogoTestSuites();
 }
