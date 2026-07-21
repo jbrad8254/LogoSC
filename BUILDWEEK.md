@@ -76,6 +76,66 @@ The project now also includes:
 - Aggregate failure reporting and optional fail-fast diagnosis.
 - Extensive user, contributor, architectural, and historical documentation.
 
+## Project scale and pace
+
+The entire LogoSC project is only about two and a half weeks old. The first Git commit was
+made on July 3, 2026, and the Build Week deadline is July 21. The most concentrated period of
+development covered roughly eight calendar days—just one day longer than a literal week.
+
+It was built by one person, primarily during a few evening hours each day. LogoSC is not a
+large commercial project or the product of a full-time team, but the amount of implementation,
+testing, visual verification, documentation, and design history produced in that short period
+is substantial. That pace is itself part of what this project demonstrates about working with
+ChatGPT and Codex.
+
+## About the developer
+
+I have been involved with artificial intelligence for roughly 45 years. I earned a degree at
+MIT in the late 1970s with a focus on AI and had the opportunity to work with Marvin Minsky.
+My work and interests have included early AI approaches, evolutionary systems, production
+software, and the practical demands of building systems that businesses can actually use.
+
+Minsky made a point that I remember approximately this way: as soon as an AI technique starts
+working reliably, people stop calling it AI. Capabilities that once looked remarkable become
+ordinary parts of software engineering, and the boundary of “AI” moves on to the next unsolved
+problem.
+
+Seeing ideas from the early history of AI reappear, evolve, and suddenly become useful at this
+scale has been astonishing. During the past few years, ChatGPT has repeatedly surprised me with
+what it can produce or reason through in a few seconds. Codex goes further by connecting that
+reasoning directly to a real repository, tools, tests, command-line programs, images, and Git
+history.
+
+My professional background also affects how I evaluate it. Writing the first version of an
+algorithm is only a small part of professional programming. Requirements, design decisions,
+testing, diagnosis, documentation, compatibility, review, maintenance, and explaining the
+system to the next person consume most of the work.
+
+On LogoSC, I estimate that I spent roughly ten times as much time framing and revising tasks,
+explaining intent, learning how to communicate effectively with the AI, and evaluating and
+testing its results as I spent personally writing code. I increasingly delegated the direct
+implementation work to ChatGPT and Codex while retaining responsibility for the problem
+definition, constraints, architecture, verification, and final decisions. My goal is to
+delegate even more of the literal code writing so I can concentrate on that deeper work.
+
+That work is not overhead surrounding the "real" code. It determines what the code should
+mean and how it should fit into a larger system. The working, tested LogoSC implementation is
+the proof that this framework works. It was built in OpenSCAD, an unusual programming language
+that ChatGPT did not initially understand well, yet the process produced a functioning system
+with extensive tests, examples, and documentation. That concrete result is the important part.
+Codex made this level of iteration practical for one person working limited evening hours.
+
+I do wonder how beginning programmers will learn in a world where an AI system can produce
+useful code almost immediately. I am also cautiously optimistic. A new programmer may be able
+to build useful systems earlier while AI helps teach decomposition, logic, experimentation,
+testing, evaluation, and documentation. Those activities are not peripheral chores; they are
+most of what turns code into dependable software. The essential skill will be learning how to
+direct the system, question it, verify it, and preserve the reasoning behind the result.
+
+LogoSC is my practical experiment with that future. It combines decades of perspective on AI
+with a very current question: what does responsible, durable software development look like
+when a human and an AI agent build the project together?
+
 ## Target audience
 
 LogoSC has two primary audiences.
@@ -85,8 +145,9 @@ hand-authoring coordinate lists. This includes makers, parametric-model designer
 3D-printing enthusiasts who find relative turtle commands easier to understand and maintain
 than raw polygon points.
 
-The second—and equally important for this submission—is developers interested in how Codex
-can participate in a sustained engineering project.
+The second—and in many ways the more important experimental audience—is developers interested
+in how Codex can participate in a sustained engineering project without losing the project's
+memory every time an AI conversation or task restarts.
 
 The repository records not only the resulting code, but also:
 
@@ -124,6 +185,12 @@ notes describing:
 I would then start a fresh conversation and load those materials back in. This became a
 primitive form of persistent engineering memory.
 
+Preserving that memory was not an afterthought or simply an effort to produce good
+documentation. It became the primary process problem that ChatGPT and I discussed: how can an
+AI collaborator restart with a clean context while still remembering what the project is,
+which decisions are settled, which experiments failed, what must remain compatible, and what
+should happen next?
+
 The workflow improved dramatically when I began using Git and then discovered Codex. Instead
 of repeatedly copying files into and out of conversations, Codex could work directly in the
 repository, inspect the current working tree, run tools, evaluate changes, and leave the
@@ -131,10 +198,38 @@ project in a state that Git could precisely describe.
 
 The repository became our shared memory.
 
-The project's `AGENTS.md`, Developer Notebook, contributor guide, changelog, and AI Engineering
-Kit formalize that process. A fresh Codex task can read the repository, understand the current
-architecture and working conventions, and resume without relying on an increasingly confused
-conversational history.
+## Durable AI engineering: preserving project memory
+
+AI assistants can produce excellent work, but when project state is incomplete they can also
+confidently reconstruct details incorrectly, follow obsolete assumptions, or forget an earlier
+constraint. The solution in LogoSC was not to ask the model to remember harder. It was to move
+the important memory into durable, reviewable repository artifacts.
+
+The resulting memory system has several layers:
+
+- Git records the authoritative source, exact changes, stable checkpoints, and recoverable
+  history.
+- [`AGENTS.md`](AGENTS.md) provides a compact entry point and tells a new Codex task what to
+  read and in which order. It deliberately points to deeper documentation instead of trying
+  to contain the entire project itself.
+- The [Developer Notebook](LogoSC-Developer-Notebook.md) preserves architectural decisions,
+  rejected alternatives, deferred work, and the reasons behind the current design.
+- The README, User Manual, Cheat Sheet, changelog, and contributor guide preserve the public
+  contract and the different views needed by users and maintainers.
+- The automated and visual tests act as executable memory. They do not merely say what the
+  project should do; they detect when a later change forgets or violates it.
+- Handoff notes and the
+  [AI Engineering Kit](docs/ai-engineering-kit/AI-Engineering-Kit-Handoff.md) preserve the
+  collaboration method so it can be used again on a larger project.
+
+Together, these artifacts let a fresh task reconstruct the project's state from evidence
+rather than from conversational recollection. Instructions such as “remember this,” “do not
+forget this constraint,” and “keep doing this in future tasks” became written rules, regression
+tests, restart order, and versioned rationale.
+
+This durability process is the most important reusable result of the project. It is the basis
+of my next graphics project, and I hope the repository can also help other people learn how to
+structure long-running work with Codex.
 
 ## How Codex and GPT-5.6 contributed
 
@@ -152,6 +247,17 @@ It helped:
 - Maintain documentation alongside implementation changes.
 - Preserve compatibility while separating Core functionality from optional companions.
 - Design a test system appropriate for a language without conventional mutable test state.
+- Propose and organize future features beyond the immediate implementation plan.
+
+Most of the directions collected in [LogoSC Future Ideas](LogoSC-Future-Ideas.md) were
+suggested by ChatGPT during our design discussions. They include stroke rendering, SVG export,
+additional primitives such as stars, gears, spirals, and elliptical arcs, a transformation
+stack, an L-system companion library, deeper contour validation, and expanded visual galleries.
+
+Those ideas did not appear in a vacuum: they grew out of extensive conversations about the
+project's goals and limitations, and I decided which ones fit. Even so, ChatGPT repeatedly
+identified useful directions that I would not have taken the time to explore or document on my
+own. The future-ideas file is a concrete record of that creative contribution.
 
 One particularly interesting example was the automated test architecture.
 
@@ -233,6 +339,10 @@ helped keep those future capabilities from destabilizing the current filled-regi
 
 I am proud that the project has become more than a working interpreter.
 
+It was produced by one person working limited evening hours over only two and a half weeks.
+The resulting repository contains far more implementation, testing, examples, documentation,
+and preserved reasoning than I could realistically have produced alone in the same time.
+
 It is:
 
 - Documented well enough for a new user to begin.
@@ -248,8 +358,8 @@ context from the repository.
 
 ## What I learned
 
-The most important lesson was that durable AI-assisted development depends on durable project
-state.
+The most important lesson was not about turtle geometry. It was that durable AI-assisted
+development depends on durable project state.
 
 Conversation history is useful, but it is not a substitute for:
 
@@ -265,7 +375,12 @@ When those elements are present, Codex can enter a project with a relatively cle
 understand what already exists, make focused changes, run verification, and leave behind both
 working code and the reasoning needed by the next task.
 
-That process should scale better than relying on one indefinitely growing conversation.
+The goal is not to eliminate every mistaken assumption. It is to make the authoritative answer
+easy to rediscover and to make regressions visible when either the human or AI forgets
+something. Documentation supplies context, Git supplies history, and tests supply enforcement.
+
+That process should scale better than relying on one indefinitely growing conversation. It is
+also the part of LogoSC that I most want to remember, repeat, and share.
 
 ## What comes next
 
@@ -337,8 +452,8 @@ Get-Content $results |
     Select-String 'LOGOSC_AUTOMATED_TEST_RESULT|Test Suite Failed'
 ```
 
-The complete tested command-line workflow is documented in
-`LogoSC-OpenSCAD-Command-Line.md`.
+The complete tested workflow is in the
+[LogoSC OpenSCAD command-line guide](LogoSC-OpenSCAD-Command-Line.md).
 
 ## Supported platforms
 
