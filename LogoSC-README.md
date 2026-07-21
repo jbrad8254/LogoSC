@@ -105,6 +105,11 @@ Visual regression tests are color-coded by grid index. Test geometry color follo
 the X index, while small LogoSC marker icons to the left of the grid identify
 the Y row. Colors cover indices 0 through 9; larger indices use `TestColorMax`.
 
+![LogoSC visual regression-test gallery in OpenSCAD](images/regression-test-gallery.png)
+
+The gallery makes geometry regressions visible across many cases at once. Automated success
+still comes from the immutable test records and final `LOGOSC_AUTOMATED_TEST_RESULT` line.
+
 ## Command-line verification
 
 `LogoSC-OpenSCAD-Command-Line.md` explains how to run the same test suite from
@@ -399,6 +404,8 @@ models; use the User Manual for detailed explanations.
 shows 2D profiles, holes, recursive/fractal construction, L-system-generated
 fractal outlines, native OpenSCAD `linear_extrude()` and `rotate_extrude()`
 usage, and the LogoSC feature wordmark.
+
+![LogoSC Examples gallery](images/examples-gallery.png)
 
 See `LogoSC-LSystems-Notes.md` for the design rationale behind the L-system
 helper examples.

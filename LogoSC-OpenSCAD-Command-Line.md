@@ -62,6 +62,11 @@ The output extension selects the export type. Useful examples include:
 `LogoSC-Foundation-Test-Runner.scad` loads Core, optional Validation, and both passive test
 definition files, then executes the complete suite. Core itself has no companion dependency.
 
+The Tests run also renders a color-coded visual regression gallery. It provides a quick view
+across the geometry cases, while the immutable result records provide the automated verdict.
+
+![LogoSC visual regression-test gallery in OpenSCAD](images/regression-test-gallery.png)
+
 This tested PowerShell example evaluates the suite and captures its messages in an `.echo`
 file:
 

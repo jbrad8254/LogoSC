@@ -76,6 +76,11 @@ The project now also includes:
 - Aggregate failure reporting and optional fail-fast diagnosis.
 - Extensive user, contributor, architectural, and historical documentation.
 
+The Examples run displays basic shapes, holes, native OpenSCAD linear and rotational
+extrusions, and recursive L-system-inspired models together:
+
+![LogoSC Examples gallery in OpenSCAD](images/examples-gallery.png)
+
 ## Project scale and pace
 
 The entire LogoSC project is only about two and a half weeks old. The first Git commit was
@@ -313,6 +318,12 @@ The Build Week work includes:
 - Repository-specific Codex instructions in `AGENTS.md`.
 - A Git and Codex quick-start workflow.
 - Expanded contributor, user, maintenance, and architectural documentation.
+
+The Tests run provides a color-coded visual gallery alongside the 151 named Foundation and
+Validation results. The gallery helps reveal broad geometry regressions, while the final
+structured test record supplies the automated pass/fail result.
+
+![LogoSC visual regression-test gallery in OpenSCAD](images/regression-test-gallery.png)
 
 The original turtle evaluator supplied the seed of the project. Most of the infrastructure
 that makes LogoSC testable, understandable, maintainable, and suitable for continued

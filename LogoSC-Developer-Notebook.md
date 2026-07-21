@@ -57,6 +57,7 @@
 - [Evaluator-invariant validation suite](#2026-07-19--evaluator-invariant-validation-suite)
 - [OpenSCAD command-line verification guide](#2026-07-20--openscad-command-line-verification-guide)
 - [Hierarchical automated test results](#2026-07-20--hierarchical-automated-test-results)
+- [Examples and regression gallery screenshots](#2026-07-20--examples-and-regression-gallery-screenshots)
 
 ### Planning, releases, and history
 
@@ -249,7 +250,9 @@ Verified working state:
   - `images/quickstart-triangle.png`;
   - `images/quickstart-plate-hole.png`;
   - `images/readme-quickstart-triangle.png`;
-  - `images/readme-quickstart-triangle-debug.png`.
+  - `images/readme-quickstart-triangle-debug.png`;
+  - `images/examples-gallery.png`;
+  - `images/regression-test-gallery.png`.
 - README Quick Start now shows the actual filled-triangle result immediately after
   the first code block and the debug-overlay result immediately after the
   `RenderLogoDebug()` code block.
@@ -2140,3 +2143,34 @@ Files affected:
 - `LogoSC-Foundation-Test-Runner.scad`
 - `LogoSC-Examples.scad`
 - testing, command-line, changelog, contributor, and maintainer documentation
+
+### 2026-07-20 — Examples and regression gallery screenshots
+
+Context:
+
+- The repository documented the Examples and Tests run modes but did not show their complete
+  gallery output.
+- Two manually captured OpenSCAD previews now show the current Examples run and the visual
+  regression grid associated with the 151 named automated results.
+
+Decision:
+
+- Store the captures as `images/examples-gallery.png` and
+  `images/regression-test-gallery.png` using stable, descriptive names.
+- Show the Examples image where the public docs describe basic geometry, holes, native linear
+  and rotational extrusions, and recursive L-system-inspired models.
+- Show the regression image where maintainer and submission docs describe the visual suite.
+- Keep the automated-result distinction explicit: the gallery supports visual inspection,
+  while `LOGOSC_AUTOMATED_TEST_RESULT` remains the machine-readable pass/fail authority.
+
+Files affected:
+
+- `images/examples-gallery.png`
+- `images/regression-test-gallery.png`
+- `README.md`
+- `LogoSC-README.md`
+- `LogoSC-User-Manual.md`
+- `LogoSC-OpenSCAD-Command-Line.md`
+- `BUILDWEEK.md`
+- `CHANGELOG.md`
+- `LogoSC-Developer-Notebook.md`

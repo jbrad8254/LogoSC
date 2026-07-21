@@ -373,6 +373,11 @@ snowflake geometry, L-system-generated fractal outlines, rotate-extruded
 profiles, twisted extrusions, a small spiral tower, and the LogoSC feature
 wordmark.
 
+![Figure 4-1](images/examples-gallery.png)
+
+*Figure 4-1. The Examples gallery combines basic shapes, holes, native OpenSCAD linear and
+rotational extrusions, and recursive L-system-inspired models.*
+
 Open `LogoSC-Examples.scad` directly in OpenSCAD. The top-level Customizer
 selector controls what is rendered:
 
@@ -2046,6 +2051,13 @@ LOGOSC_AUTOMATED_TEST_RESULT, PASS, suites, 2, failedSuites, 0, tests, 151, pass
 Counts grow as tests are added; use the final `PASS`/`FAIL` value rather than hard-coding
 today's totals. A failing run continues through all result-producing tests, prints each
 failure, and reports both the number of failed tests and failed suites.
+
+![Figure 13-1](images/regression-test-gallery.png)
+
+*Figure 13-1. The color-coded visual regression gallery rendered by the Tests run. It
+complements the 151 current named results by making geometry changes visible across many
+cases at once; the final structured result remains the automated authority.*
+
 After the global record and closing divider, a failed aggregate run prints one additional final
 line: `*** Test Suite Failed ***`. This is a conspicuous human cue; scripts should continue to
 use the structured `LOGOSC_AUTOMATED_TEST_RESULT` record.

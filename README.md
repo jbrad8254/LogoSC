@@ -63,6 +63,11 @@ to inspect one `DebugDemoExample`. `NoDemo` or a blank string explicitly suppres
 automatic output in the examples file. Ordinary user models can omit `LogoSCRunMode`;
 tests do not run unless explicitly selected.
 
+The default Examples view combines basic shapes, holes, linear and rotational extrusions,
+and recursive L-system-inspired models in one gallery.
+
+![LogoSC Examples gallery in OpenSCAD](images/examples-gallery.png)
+
 A complete test run ends with per-suite totals and one machine-readable result such as:
 
 ```text
@@ -78,6 +83,11 @@ while isolating a failure; OpenSCAD then stops at the first failed result and re
 assertion location, caller trace, test name, and details.
 An aggregate failing run also ends with `*** Test Suite Failed ***` as a prominent human cue;
 the preceding `LOGOSC_AUTOMATED_TEST_RESULT` record remains the machine-readable authority.
+
+The Tests view also renders a color-coded regression gallery for visual inspection. The image
+complements the automated result records; it does not replace the final pass/fail summary.
+
+![LogoSC visual regression-test gallery in OpenSCAD](images/regression-test-gallery.png)
 
 For your own model, include the core file and call `RenderLogo2D()`. This first example intentionally uses only `MOVE` and `TURN`:
 

@@ -43,6 +43,10 @@
 - Kept post-release documentation work separate from the contents of the `v2026.2` tag.
 - Recorded that future contour validation belongs in an optional implementation companion
   with separate tests, assembled by the test runner rather than included from Core.
+- Added `images/examples-gallery.png` showing basic shapes, holes, native linear and rotational
+  extrusions, and recursive L-system-inspired examples.
+- Added `images/regression-test-gallery.png` showing the color-coded visual regression suite,
+  and referenced both galleries from the relevant public, testing, and submission docs.
 
 ### Testing
 
