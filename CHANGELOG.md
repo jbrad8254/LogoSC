@@ -51,6 +51,8 @@
   it from the public overview, User Manual, command-line guide, and Build Week submission.
 - Added `images/openscad-examples-run-guide.png` as an annotated OpenSCAD-window guide for the
   Build Week installation and visual-example instructions.
+- Renamed the Build Week submission document from `BUILDWEEK.md` to
+  `README_BUILDWEEK.md`.
 - Changed routine AI delivery to use the active Git working tree when direct integration is
   verified, while preserving one exact-path ZIP as the fallback for Git-unavailable,
   attachment-based, temporary-copy, unverifiable, or explicitly requested delivery.

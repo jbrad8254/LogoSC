@@ -429,6 +429,8 @@ Codex task and continue modifying LogoSC yourself.
    the current files, but a clone also preserves the project history.
 2. Open the repository folder as a project or workspace in Codex.
 3. Ask Codex to read `AGENTS.md` and follow its project-document reading order.
+   Allow several minutes for this step while Codex loads and parses the referenced files and
+   verifies the repository, Git, and project state.
 4. Try prompts such as:
    - “What should we do next?”
    - “What is the strongest or most interesting part of this project?”

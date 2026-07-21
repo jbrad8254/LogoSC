@@ -2183,7 +2183,7 @@ Files affected:
 - `LogoSC-README.md`
 - `LogoSC-User-Manual.md`
 - `LogoSC-OpenSCAD-Command-Line.md`
-- `BUILDWEEK.md`
+- `README_BUILDWEEK.md`
 - `CHANGELOG.md`
 - `LogoSC-Developer-Notebook.md`
 
@@ -2258,7 +2258,7 @@ Files affected:
 - `LogoSC-README.md`
 - `LogoSC-User-Manual.md`
 - `LogoSC-OpenSCAD-Command-Line.md`
-- `BUILDWEEK.md`
+- `README_BUILDWEEK.md`
 - `CHANGELOG.md`
 - `LogoSC-Developer-Notebook.md`
 
@@ -2274,12 +2274,12 @@ Context:
 Decision:
 
 - Store the screenshot as `images/openscad-examples-run-guide.png`.
-- Place it directly after the visual-example steps in `BUILDWEEK.md` and explain annotations
+- Place it directly after the visual-example steps in `README_BUILDWEEK.md` and explain annotations
   1, 2, and 3 in adjacent text so the instructions do not depend on handwriting alone.
 
 Files affected:
 
 - `images/openscad-examples-run-guide.png`
-- `BUILDWEEK.md`
+- `README_BUILDWEEK.md`
 - `CHANGELOG.md`
 - `LogoSC-Developer-Notebook.md`
