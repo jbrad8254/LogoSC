@@ -413,6 +413,31 @@ Other future directions include:
   LogoSC programs and rendered previews.
 - Applying the documented Codex workflow to a larger graphics project.
 
+### Try the AI handoff yourself
+
+There is another experiment you can run immediately: resurrect the project state in a fresh
+Codex task and continue modifying LogoSC yourself.
+
+1. Install Git if needed and clone the
+   [LogoSC repository](https://github.com/jbrad8254/LogoSC). A downloaded snapshot can restore
+   the current files, but a clone also preserves the project history.
+2. Open the repository folder as a project or workspace in Codex.
+3. Ask Codex to read `AGENTS.md` and follow its project-document reading order.
+4. Try prompts such as:
+   - “What should we do next?”
+   - “What is the strongest or most interesting part of this project?”
+   - “Choose a small next feature, explain the tradeoffs, and show me how you would verify it.”
+
+The repository contains nearly all of the durable state I used while building LogoSC: source,
+tests, design decisions, rejected alternatives, future ideas, working preferences, restart
+instructions, and Git history. A fresh Codex task can reconstruct that context in a few minutes
+without receiving this conversation. That is the persistence framework in action, not merely a
+description of it.
+
+The short [Codex Git project quick start](docs/ai-engineering-kit/Codex-Git-Project-Quick-Start.md)
+explains the setup. Install OpenSCAD 2021.01 as described below if you also want Codex to run the
+tests or render and inspect the examples.
+
 ## Two-minute installation and test
 
 ### Requirements
@@ -443,6 +468,14 @@ See the [official command-line documentation][openscad-cli].
 4. Press F5 to preview the example gallery.
 5. Change `LogoSCRunMode` to `Debug` to inspect turtle paths.
 6. Change it to `Tests` to render the regression gallery and run the complete test suite.
+
+The annotated OpenSCAD window below shows the three important controls for the first run:
+
+1. Make sure the `LogoSC-Examples.scad` tab is open and selected.
+2. In the Customizer's `LogoSC Run` section, set `LogoSCRunMode` to `Examples`.
+3. Select the Preview button indicated by annotation 3, or press F5.
+
+![Annotated OpenSCAD Examples run guide](images/openscad-examples-run-guide.png)
 
 A successful run ends with:
 

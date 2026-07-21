@@ -60,6 +60,7 @@
 - [Examples and regression gallery screenshots](#2026-07-20--examples-and-regression-gallery-screenshots)
 - [Direct Git delivery and conditional ZIP fallback](#2026-07-21--direct-git-delivery-and-conditional-zip-fallback)
 - [Debug renderer gallery screenshot](#2026-07-21--debug-renderer-gallery-screenshot)
+- [OpenSCAD examples run guide screenshot](#2026-07-21--openscad-examples-run-guide-screenshot)
 
 ### Planning, releases, and history
 
@@ -256,7 +257,8 @@ Verified working state:
   - `images/readme-quickstart-triangle-debug.png`;
   - `images/examples-gallery.png`;
   - `images/regression-test-gallery.png`;
-  - `images/debug-renderer-gallery.png`.
+  - `images/debug-renderer-gallery.png`;
+  - `images/openscad-examples-run-guide.png`.
 - README Quick Start now shows the actual filled-triangle result immediately after
   the first code block and the debug-overlay result immediately after the
   `RenderLogoDebug()` code block.
@@ -2256,6 +2258,28 @@ Files affected:
 - `LogoSC-README.md`
 - `LogoSC-User-Manual.md`
 - `LogoSC-OpenSCAD-Command-Line.md`
+- `BUILDWEEK.md`
+- `CHANGELOG.md`
+- `LogoSC-Developer-Notebook.md`
+
+### 2026-07-21 — OpenSCAD examples run guide screenshot
+
+Context:
+
+- The Build Week two-minute instructions named the required file, run mode, and preview action,
+  but a first-time OpenSCAD user still had to locate those controls in the complete window.
+- A manually annotated screenshot identifies the selected `LogoSC-Examples.scad` tab, the
+  `LogoSCRunMode = Examples` Customizer value, and the Preview button.
+
+Decision:
+
+- Store the screenshot as `images/openscad-examples-run-guide.png`.
+- Place it directly after the visual-example steps in `BUILDWEEK.md` and explain annotations
+  1, 2, and 3 in adjacent text so the instructions do not depend on handwriting alone.
+
+Files affected:
+
+- `images/openscad-examples-run-guide.png`
 - `BUILDWEEK.md`
 - `CHANGELOG.md`
 - `LogoSC-Developer-Notebook.md`
