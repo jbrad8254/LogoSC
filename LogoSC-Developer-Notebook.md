@@ -36,6 +36,7 @@
 - [Debug renderer documentation pass](#2026-07-12--debug-renderer-documentation-pass)
 - [Indexed debug-renderer gallery](#2026-07-20--indexed-debug-renderer-gallery)
 - [Standalone Core and optional companions](#2026-07-20--standalone-core-and-optional-companion-boundary)
+- [Optional path validation implementation](#2026-07-20--optional-path-analysis-and-validation)
 
 ### Documentation and workflow
 
@@ -204,7 +205,7 @@ Append new milestones here. Do not rewrite this section as only the latest state
 
 ---
 
-## Restart Checkpoint — Debug Renderer and Documentation Stable
+## Restart Checkpoint — Debug Renderer, Standalone Core, and Validation Stable
 
 Current project state is suitable for a fresh chat/restart from the local Git repository or
 a repository ZIP.
@@ -227,6 +228,8 @@ Verified working state:
   `LogoSC-Foundation-Test-Runner.scad` is the direct suite entry point.
 - `LogoSC-Foundation-Core.scad` is standalone and does not include test or optional
   feature companions.
+- Optional `LogoSC-Foundation-Validation.scad` supplies explicit path records and basic
+  validation without changing Core, `evalLogo()`, or `RenderLogo2D()`.
 - `RenderLogoDebug()` is implemented and visually verified.
 - Debug visualization is preview/debug-only, not intended to create manufacturable stroke geometry.
 - Debug rendering uses z-centered 3D capsules and point markers.
@@ -255,8 +258,8 @@ Verified working state:
 
 Known open design issues:
 
-- Decide how LogoSC should handle open/unclosed polygons where the endpoint differs from
-  the start point.
+- Decide whether validation should later detect tiny edges, duplicate nonconsecutive points,
+  and invalid hole containment or overlap.
 - Decide whether crossing/self-intersecting paths should merely be user-visible via debug
   rendering, emit warnings, fail in hard-error mode, or remain entirely user responsibility.
 - README already includes a verified debug-overlay screenshot. Add another manual screenshot
@@ -284,6 +287,9 @@ visualization; it does not create manufacturable stroke geometry or alter the ou
 ### Evaluation
 
 - `evalLogo()`
+- `evalLogoPaths()` (optional validation companion)
+- `ValidateLogoPaths()` (optional validation companion)
+- `ReportLogoValidation()` (optional validation companion)
 
 ### Evaluator-result accessors
 
@@ -291,6 +297,16 @@ visualization; it does not create manufacturable stroke geometry or alter the ou
 - `ResultContours()`
 - `ResultStack()`
 - `ResultPen()`
+
+### Optional path and validation accessors
+
+- `PathResultState()`, `PathResultPaths()`, `PathResultStack()`, `PathResultPen()`
+- `PathRole()`, `PathKind()`, `PathPoints()`, `PathSourceOpcode()`
+- `PathIsExplicitlyClosed()`, `PathIsClosed()`, `PathStart()`, `PathEnd()`
+- `PathPointCount()`, `PathSegmentCount()`, `PathVertexCount()`
+- `ValidationPathResult()`, `ValidationPaths()`, `ValidationIssues()`
+- `ValidationTolerance()`, `ValidationIsValid()`
+- `ValidationIssuePathIndex()`, `ValidationIssueCode()`, `ValidationIssueName()`
 
 ### Region helpers
 
@@ -585,11 +601,9 @@ changes, verify links, headings, code examples, and retained accepted content.
 
 Near-term candidates:
 
-- design optional open-contour validation without changing current implicit-closure behavior;
-- keep validation in an optional `LogoSC-Foundation-Validation.scad` companion so basic
-  LogoSC use continues to require only Core;
-- expand the non-rendering evaluator-invariant suite alongside contour validation and eventual
-  open-path support;
+- expand optional validation with self-intersection, tiny-edge, duplicate-point, and
+  hole-containment checks where they provide clear value;
+- expand the non-rendering evaluator and validation suites alongside eventual open-path support;
 - decide whether self-intersections need warnings, strict validation, or only debug visibility;
 - continue manufacturable stroke experiments separately from `RenderLogoDebug()` and
   `RenderLogo2D()`;
@@ -2006,3 +2020,48 @@ Files affected:
 - `LogoSC-Foundation-Test-Runner.scad`
 - `LogoSC-Examples.scad`
 - setup, testing, inventory, changelog, and roadmap documentation
+
+### 2026-07-20 — Optional path analysis and validation
+
+Context:
+
+- Filled-region evaluation does not retain the first turtle point in a contour and cannot
+  reliably reconstruct explicit path closure, pen boundaries, or primitive boundaries.
+- OpenSCAD `polygon()` still closes a path implicitly, so changing Core evaluation would risk
+  altering established filled output merely to support diagnostics.
+- The previous architecture decision reserved validation for an optional companion so basic
+  LogoSC models continue to require only Core.
+
+Decision:
+
+- Add `LogoSC-Foundation-Validation.scad`, included after Core, with a dedicated recursive
+  path evaluator that reuses Core's simple debug-opcode evaluation while preserving
+  `PENUP`/`PENDOWN`, `RUN`, `REPEAT`, `HOLE`, and stack discontinuities as explicit paths.
+- Represent each path as `[role, kind, points, sourceOpcode, explicitlyClosed]`. Retain the
+  initial turtle point and the repeated closing endpoint of primitives.
+- Publish `evalLogoPaths()`, `ValidateLogoPaths()`, `ReportLogoValidation()`, and accessors
+  for path results, path records, validation results, and validation issues.
+- Detect open paths, paths with fewer than three usable vertices, and zero-length segments.
+  Use a configurable default tolerance of `0.001` for closure and segment comparison.
+- Keep validation opt-in. Do not change `LogoSC-Foundation-Core.scad`, `evalLogo()`,
+  `RenderLogo2D()`, or current implicit polygon closure.
+- Add passive focused tests and assemble them through the existing test runner and the explicit
+  Examples `Tests` mode.
+
+Consequences:
+
+- Users can inspect and validate the path actually drawn without confusing it with the filled
+  region later consumed by `polygon()`.
+- Warning-only reporting supports investigation, while `strict = true` stops OpenSCAD
+  evaluation with an assertion without imposing new behavior on existing models.
+- Basic LogoSC use remains a one-file include. Validation users add one optional companion.
+- Self-intersection, tiny-edge, duplicate nonconsecutive point, hole-containment, and hole-overlap
+  checks remain future extensions to the same validation result model.
+
+Files affected:
+
+- `LogoSC-Foundation-Validation.scad`
+- `LogoSC-Foundation-Validation-Tests.scad`
+- `LogoSC-Foundation-Test-Runner.scad`
+- `LogoSC-Examples.scad`
+- public, contributor, changelog, roadmap, and maintainer documentation

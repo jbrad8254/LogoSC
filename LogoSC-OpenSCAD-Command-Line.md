@@ -59,8 +59,8 @@ The output extension selects the export type. Useful examples include:
 
 ## Example 1: run the LogoSC regression suite
 
-`LogoSC-Foundation-Test-Runner.scad` loads Core plus the passive test definitions and
-executes the complete suite. Core itself has no test-file dependency.
+`LogoSC-Foundation-Test-Runner.scad` loads Core, optional Validation, and both passive test
+definition files, then executes the complete suite. Core itself has no companion dependency.
 
 This tested PowerShell example evaluates the suite and captures its messages in an `.echo`
 file:
@@ -87,13 +87,34 @@ $invariantFailures = @(
     Select-String -LiteralPath $testLogPath -SimpleMatch 'evaluator invariant failed:'
 )
 
+$validationRuns = @(
+    Select-String -LiteralPath $testLogPath -SimpleMatch 'LogoSC validation suite'
+)
+
+$validationFailures = @(
+    Select-String -LiteralPath $testLogPath -Pattern '\[ERROR\].*validation'
+)
+
 Write-Output "Invariant checks: $($invariantRuns.Count)"
 Write-Output "Invariant failures: $($invariantFailures.Count)"
+Write-Output "Validation suites: $($validationRuns.Count)"
+Write-Output "Validation failures: $($validationFailures.Count)"
 
 if ($invariantFailures.Count -ne 0)
 {
     $invariantFailures
     throw 'LogoSC evaluator invariants failed.'
+}
+
+if ($validationRuns.Count -ne 1)
+{
+    throw 'LogoSC validation suite did not run exactly once.'
+}
+
+if ($validationFailures.Count -ne 0)
+{
+    $validationFailures
+    throw 'LogoSC path validation tests failed.'
 }
 ```
 

@@ -36,7 +36,9 @@ docs/
         Project-Retrospective.md
 
 LogoSC-Foundation-Core.scad
+LogoSC-Foundation-Validation.scad
 LogoSC-Foundation-Tests.scad
+LogoSC-Foundation-Validation-Tests.scad
 LogoSC-Foundation-Test-Runner.scad
 LogoSC-Examples.scad
 LogoSC-Experiments.scad
@@ -76,6 +78,9 @@ The following APIs should remain stable whenever practical:
 - `RenderRegion2D()`
 - `RenderLogoDebug()`
 - `evalLogo()`
+- `evalLogoPaths()`
+- `ValidateLogoPaths()`
+- `ReportLogoValidation()`
 - `ResultState()`
 - `ResultContours()`
 - `ResultStack()`
@@ -83,6 +88,7 @@ The following APIs should remain stable whenever practical:
 - `MakeRegion()`
 - `RegionOuter()`
 - `RegionHoles()`
+- Path-result, path-record, validation-result, and validation-issue accessors
 - Existing command opcodes
 
 Prefer extending existing functionality rather than changing established behavior.
@@ -121,6 +127,7 @@ Before release:
 
 - Update regression tests as needed.
 - Run `LogoSC-Foundation-Test-Runner.scad`; do not add test dependencies to Core.
+- Keep validation tests in the passive validation-test companion and run them through the runner.
 - Verify examples still render correctly.
 - Keep documentation synchronized with implementation.
 
@@ -160,7 +167,7 @@ Record significant design decisions, rationale, and historical context in
 Current areas of interest include:
 
 - Stroke rendering
-- Contour validation
+- Additional contour-validation checks
 - SVG export
 - Additional primitives
 - Expanded examples

@@ -35,7 +35,8 @@ be passed to `linear_extrude()` or `rotate_extrude()`.
   - [`RenderRegion2D()`](#78-renderregion2d)
   - [Choosing an entry point](#79-choosing-an-entry-point)
   - [Debug visualization](#710-debug-visualization)
-  - [OpenSCAD wrapper pattern](#711-openscad-wrapper-pattern)
+  - [Path analysis and validation](#711-path-analysis-and-validation)
+  - [OpenSCAD wrapper pattern](#712-openscad-wrapper-pattern)
 - [8. 3D printing workflow](#8-3d-printing-workflow)
 - [9. Segment-count controls](#9-segment-count-controls)
 - [10. Command reference](#10-command-reference)
@@ -62,7 +63,9 @@ AGENTS.md                          Compact repository-specific Codex guidance.
 docs/ai-engineering-kit/           Maintainer-facing AI workflow and handoff documents.
 
 LogoSC-Foundation-Core.scad        Standalone interpreter, geometry, and renderers.
+LogoSC-Foundation-Validation.scad  Optional explicit-path evaluator and validator.
 LogoSC-Foundation-Tests.scad       Passive regression and visual-test definitions.
+LogoSC-Foundation-Validation-Tests.scad Passive focused validation tests.
 LogoSC-Foundation-Test-Runner.scad Direct entry point for the complete test suite.
 LogoSC-Examples.scad               Runnable example gallery.
 LogoSC-Experiments.scad            Experimental rendering and geometry workbench.
@@ -159,6 +162,15 @@ LogoSCRunMode = "Tests";
 
 Core never loads or executes the test definitions. This keeps basic LogoSC use
 dependent on one file while preserving the test grid through explicit entry points.
+
+For optional path analysis and validation, include Core first and then its companion:
+
+```scad
+include <LogoSC-Foundation-Core.scad>
+include <LogoSC-Foundation-Validation.scad>
+```
+
+The companion is not required by ordinary rendering models.
 
 Maintainers can also run the suite without opening the GUI. See
 [Running LogoSC from the OpenSCAD Command Line](LogoSC-OpenSCAD-Command-Line.md)
@@ -931,6 +943,7 @@ for (region = regions)
 | Render manually generated region data | `RenderContours2D()` |
 | Render or inspect one selected region | `RenderRegion2D()` |
 | Inspect command-path order, crossings, pen-up motion, and endpoints | `RenderLogoDebug()` |
+| Analyze explicit paths or basic integrity | `evalLogoPaths()` or `ValidateLogoPaths()` |
 | Construct or inspect a region as data | `MakeRegion()`, `RegionOuter()`, `RegionHoles()` |
 
 ### 7.10 Debug visualization
@@ -1019,7 +1032,66 @@ toggles the filled 2D preview.
 inspection tool. For final parts, continue to use `RenderLogo2D()` plus native
 OpenSCAD operations.
 
-### 7.11 OpenSCAD wrapper pattern
+### 7.11 Path analysis and validation
+
+`LogoSC-Foundation-Validation.scad` is an optional companion that evaluates the
+command stream into explicit drawable paths and checks basic path integrity. Include
+Core before it:
+
+```scad
+include <LogoSC-Foundation-Core.scad>
+include <LogoSC-Foundation-Validation.scad>
+
+openTriangle =
+[
+    [MOVE, 10],
+    [TURN, 120],
+    [MOVE, 10]
+];
+
+validation = ValidateLogoPaths(openTriangle);
+echo("valid", ValidationIsValid(validation));
+echo("issues", ValidationIssues(validation));
+ReportLogoValidation(openTriangle);
+```
+
+`evalLogoPaths(cmds)` returns `[state, paths, stack, pen]`. Use
+`PathResultState()`, `PathResultPaths()`, `PathResultStack()`, and
+`PathResultPen()` to inspect it. Each path records:
+
+```text
+[role, kind, points, sourceOpcode, explicitlyClosed]
+```
+
+Use `PathRole()`, `PathKind()`, `PathPoints()`, `PathSourceOpcode()`,
+`PathIsExplicitlyClosed()`, `PathStart()`, `PathEnd()`, `PathPointCount()`,
+`PathSegmentCount()`, `PathVertexCount()`, and `PathIsClosed()` to inspect a path.
+Roles distinguish `LOGO_PATH_ROLE_OUTER` from `LOGO_PATH_ROLE_HOLE`; kinds distinguish
+`LOGO_PATH_KIND_TURTLE` from `LOGO_PATH_KIND_PRIMITIVE`.
+
+`ValidateLogoPaths(cmds, tolerance = 0.001)` returns the path result, issue list,
+and applied tolerance. Its accessors are `ValidationPathResult()`,
+`ValidationPaths()`, `ValidationIssues()`, `ValidationTolerance()`, and
+`ValidationIsValid()`. Each issue is `[pathIndex, issueCode]`, inspected with
+`ValidationIssuePathIndex()`, `ValidationIssueCode()`, and `ValidationIssueName()`.
+Current issue codes are:
+
+- `LOGO_VALIDATION_OPEN_PATH`
+- `LOGO_VALIDATION_TOO_FEW_POINTS`
+- `LOGO_VALIDATION_ZERO_LENGTH_SEGMENT`
+
+`ReportLogoValidation(cmds, tolerance = 0.001, strict = false)` echoes readable
+warnings. Set `strict = true` to assert after reporting when issues exist.
+
+Validation is deliberately opt-in. It does not alter `evalLogo()`, `RenderLogo2D()`,
+or OpenSCAD's implicit closing edge. Explicit path evaluation preserves initial
+turtle points, `PENUP`/`PENDOWN` boundaries, primitive paths, and hole roles—details
+that cannot be inferred reliably from the filled-region result alone.
+
+The current suite does not detect self-intersections, tiny nonzero edges, duplicate
+nonconsecutive points, hole containment, or hole overlap.
+
+### 7.12 OpenSCAD wrapper pattern
 
 LogoSC intentionally remains a 2D geometry generator. Wrap its output with native
 OpenSCAD modules for final modeling:
@@ -1958,6 +2030,8 @@ Current limitations:
 - Hole containment and hole overlap are not validated by LogoSC.
 - Crossing/self-intersecting contours are not rejected automatically.
 - `polygon()` closes paths automatically, so unclosed contours can still render as filled shapes.
+- Optional validation detects open paths, too few vertices, and zero-length segments,
+  but not the more advanced topology cases listed in section 7.11.
 
 For now, use closed shapes, `HOLE`, native OpenSCAD boolean/modeling operations,
 and `RenderLogoDebug()` when you need to inspect suspicious path order, crossing
@@ -2001,6 +2075,7 @@ control smoothness globally.
 - [`CIRCLE`](#circle)
 - [`DIR`](#dir)
 - [`evalLogo()`](#74-evallogo)
+- [`evalLogoPaths()`](#711-path-analysis-and-validation)
 - [`GOTO`](#goto)
 - [`HOLE`](#hole)
 - [`LogoSC-CheatSheet.md`](#quick-lookup-cheat-sheet)
@@ -2017,6 +2092,7 @@ control smoothness globally.
 - [`RenderContours2D()`](#77-rendercontours2d)
 - [`RenderLogo2D()`](#73-renderlogo2d)
 - [`RenderLogoDebug()`](#710-debug-visualization)
+- [`ReportLogoValidation()`](#711-path-analysis-and-validation)
 - [`RenderRegion2D()`](#78-renderregion2d)
 - [`ResultContours()`](#75-evaluator-result-accessors)
 - [`ResultPen()`](#75-evaluator-result-accessors)
@@ -2026,6 +2102,7 @@ control smoothness globally.
 - [`RUN`](#run)
 - [`SCALE`](#scale)
 - [`TURN`](#turn)
+- [`ValidateLogoPaths()`](#711-path-analysis-and-validation)
 - [Coordinate system](#5-coordinate-model)
 - [Error handling](#13-error-handling-and-tracing)
 - [Holes and regions](#6-rendering-model)
@@ -2036,3 +2113,4 @@ control smoothness globally.
 - [Setup](#setup)
 - [Test grid and tracing](#13-error-handling-and-tracing)
 - [Debug visualization](#710-debug-visualization)
+- [Path analysis and validation](#711-path-analysis-and-validation)

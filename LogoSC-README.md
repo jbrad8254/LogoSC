@@ -14,6 +14,7 @@
 - [Rendering model](#rendering-model)
 - [Rendering API](#rendering-api)
 - [Debug rendering](#debug-rendering)
+- [Path analysis and validation](#path-analysis-and-validation)
 - [Future rendering work](#future-rendering-work)
 - [Cheat sheet](#cheat-sheet)
 - [Examples](#examples)
@@ -25,7 +26,9 @@
 ## Current files
 
 - `LogoSC-Foundation-Core.scad` — standalone core interpreter and renderer.
+- `LogoSC-Foundation-Validation.scad` — optional explicit-path evaluator and validator.
 - `LogoSC-Foundation-Tests.scad` — passive regression and failure-test definitions.
+- `LogoSC-Foundation-Validation-Tests.scad` — passive focused validation tests.
 - `LogoSC-Foundation-Test-Runner.scad` — direct entry point for the complete test suite.
 - `LogoSC-OpenSCAD-Command-Line.md` — command-line testing, export, and PNG-preview guide.
 - `LogoSC-README.md` — this overview.
@@ -138,6 +141,9 @@ want to evaluate once and inspect or reuse the generated regions.
 | `ResultState(result)` | function | Return the final `[x, y, heading, scale]` state. |
 | `RenderContours2D(regions, convexity = 10)` | module | Render an already-evaluated region list. |
 | `RenderRegion2D(region, convexity = 10)` | module | Render one region: outer ring plus any holes. |
+| `evalLogoPaths(cmds)` | function | Evaluate explicit paths. Requires Validation. |
+| `ValidateLogoPaths(cmds, ...)` | function | Return paths and validation issues. |
+| `ReportLogoValidation(cmds, ...)` | module | Echo issues and optionally assert. |
 
 `ResultContours()` keeps its historical name, but the value it returns is now a
 region list:
@@ -328,16 +334,40 @@ eight debug cases in a four-column by two-row indexed gallery by default. Set
 Normal user models can overlay debug geometry with filled output by rendering
 both `RenderLogo2D(cmds)` and `RenderLogoDebug(cmds)`.
 
+## Path analysis and validation
+
+Validation is an optional companion. Include Core first, then Validation:
+
+```scad
+include <LogoSC-Foundation-Core.scad>
+include <LogoSC-Foundation-Validation.scad>
+
+result = ValidateLogoPaths(cmds);
+echo("valid", ValidationIsValid(result));
+echo("issues", ValidationIssues(result));
+
+ReportLogoValidation(cmds);                  // warnings only
+ReportLogoValidation(cmds, strict = true);   // assert on issues
+```
+
+`evalLogoPaths()` preserves the starting point of each turtle path, explicit
+`PENUP`/`PENDOWN` boundaries, primitive paths, and outer-versus-hole roles. That
+information cannot be reconstructed reliably from the filled-region result.
+`ValidateLogoPaths()` currently reports open paths, paths with fewer than three
+usable vertices, and zero-length segments. Its tolerance defaults to `0.001`.
+
+The validator is deliberately opt-in. `evalLogo()` and `RenderLogo2D()` retain
+their established behavior, including OpenSCAD's implicit polygon-closing edge.
+Basic models therefore still require only `LogoSC-Foundation-Core.scad`.
+
 ## Future rendering work
 
 LogoSC currently targets closed polygons because that maps cleanly to OpenSCAD and
 3D printing. Open-stroke rendering is deferred to a later rendering milestone.
 
-Before changing filled-region behavior, LogoSC should define optional validation for
-contours whose final turtle point differs from the starting point. The current renderer
-preserves OpenSCAD `polygon()` behavior, which implicitly adds the closing edge; any
-future warning or strict mode should remain opt-in and must not invent a synthetic turtle
-move in the evaluated path.
+Optional path validation now exists without changing filled-region behavior. Future
+validation work may add self-intersection, tiny-edge, duplicate-point, and hole-containment
+checks. These checks should remain opt-in and must not invent a synthetic turtle move.
 
 A future stroke renderer should probably convert centerline paths into closed
 outline polygons. That design needs explicit stroke width, end-cap style, join

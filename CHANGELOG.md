@@ -9,6 +9,12 @@
 - Added `DebugDemoLayout` with `Gallery` and `Selected` choices, retaining focused
   inspection through `DebugDemoExample`.
 - Added `LogoSC-Foundation-Test-Runner.scad` as the direct regression-suite entry point.
+- Added optional `LogoSC-Foundation-Validation.scad` path analysis without adding a Core
+  dependency or changing filled-region rendering.
+- Added `evalLogoPaths()`, `ValidateLogoPaths()`, `ReportLogoValidation()`, explicit path
+  records, and public path/validation accessors.
+- Added open-path, too-few-points, and zero-length-segment issue detection with configurable
+  endpoint tolerance and warning or strict reporting.
 
 ### Changed
 
@@ -41,7 +47,9 @@
 - Added a non-rendering evaluator-invariant suite covering complete `EvalResult` state,
   raw region/ring structure, stack contents, pen state, scaled `RUN`, and `REPEAT` behavior.
 - Kept the suite focused on current filled-region semantics while making it straightforward
-  to extend when contour validation and open-path support are deliberately introduced.
+  to extend as validation grows and open-path rendering is deliberately introduced.
+- Added focused path-validation tests covering closure, tolerance, pen boundaries, primitives,
+  holes, `RUN`, `REPEAT`, arcs, stack discontinuities, zero-length moves, and empty programs.
 
 ## [2026.2] - 2026-07-13
 

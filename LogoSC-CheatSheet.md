@@ -42,6 +42,17 @@ Compact LogoSC `2026.2` reference. Full docs: [`LogoSC-User-Manual.md`](LogoSC-U
 [`DebugDemoExample`](LogoSC-User-Manual.md#710-debug-visualization)
 crossing lines  unclosed contours  pen-up moves  primitive placement
 
+## Optional path validation
+
+[`include <LogoSC-Foundation-Validation.scad>`](LogoSC-User-Manual.md#711-path-analysis-and-validation) after Core
+[`evalLogoPaths(cmds)`](LogoSC-User-Manual.md#711-path-analysis-and-validation)
+[`ValidateLogoPaths(cmds, tolerance = 0.001)`](LogoSC-User-Manual.md#711-path-analysis-and-validation)
+[`ValidationPaths(result)`](LogoSC-User-Manual.md#711-path-analysis-and-validation)
+[`ValidationIssues(result)`](LogoSC-User-Manual.md#711-path-analysis-and-validation)
+[`ValidationIsValid(result)`](LogoSC-User-Manual.md#711-path-analysis-and-validation)
+[`ReportLogoValidation(cmds, ...)`](LogoSC-User-Manual.md#711-path-analysis-and-validation)
+open path  too few points  zero-length segment
+
 ## Region data
 
 [`region = [outerContour, holeContour0, ...]`](LogoSC-User-Manual.md#6-rendering-model)  [`regions = [region0, region1, ...]`](LogoSC-User-Manual.md#6-rendering-model)

@@ -13,6 +13,7 @@ LogoSC is not trying to be a full Logo language. It is a lightweight OpenSCAD ge
 - Supports region holes through `HOLE`.
 - Supports reusable relative command lists through `RUN`.
 - Provides a preview-only debug renderer for visualizing low-level path execution.
+- Provides optional path analysis and validation without changing filled-region rendering.
 - Leaves 3D composition to native OpenSCAD tools such as `linear_extrude()`, `difference()`, `union()`, and `translate()`.
 
 ## Engineering guidance and restart order
@@ -131,6 +132,17 @@ RenderContours2D(regions, convexity = 10);
 RenderRegion2D(region, convexity = 10);
 ```
 
+Optional path-analysis helpers in `LogoSC-Foundation-Validation.scad` include:
+
+```scad
+evalLogoPaths(cmds);
+ValidateLogoPaths(cmds, tolerance = 0.001);
+ReportLogoValidation(cmds, tolerance = 0.001, strict = false);
+ValidationPaths(result);
+ValidationIssues(result);
+ValidationIsValid(result);
+```
+
 The current public API version is `2026.2`.
 
 ## Command examples
@@ -160,7 +172,9 @@ See `LogoSC-CheatSheet.md` and `LogoSC-User-Manual.md` for the complete command 
 
 - `AGENTS.md` — compact repository-specific guidance for Codex and other coding agents.
 - `LogoSC-Foundation-Core.scad` — standalone core interpreter, 2D renderer, and debug renderer.
+- `LogoSC-Foundation-Validation.scad` — optional explicit-path evaluator and validator.
 - `LogoSC-Foundation-Tests.scad` — passive regression and failure-test definitions.
+- `LogoSC-Foundation-Validation-Tests.scad` — passive focused validation tests.
 - `LogoSC-Foundation-Test-Runner.scad` — direct entry point for the complete test suite.
 - `LogoSC-OpenSCAD-Command-Line.md` — command-line testing, export, and PNG-preview guide.
 - `LogoSC-Examples.scad` — runnable gallery and example models.
@@ -189,7 +203,10 @@ LogoSC keeps the core narrow:
 
 ## Current status
 
-LogoSC currently focuses on filled 2D region rendering for final geometry. It also includes a preview-only debug renderer that draws colored 3D capsules and point markers to expose command order, pen-up movement, primitive-generated segments, crossing paths, and unclosed contours. Manufacturable stroke/open-path rendering remains future work.
+LogoSC currently focuses on filled 2D region rendering for final geometry. It also includes
+a preview-only debug renderer and an optional validator that detects open paths, paths with
+too few vertices, and zero-length segments. Manufacturable stroke/open-path rendering and
+more advanced topology checks remain future work.
 
 ## Version history
 
@@ -200,7 +217,7 @@ LogoSC currently focuses on filled 2D region rendering for final geometry. It al
 
 ## Near-term roadmap
 
-- Add optional validation for open contours before filled-polygon generation.
+- Expand optional validation with self-intersection, tiny-edge, and hole-containment checks.
 - Keep manufacturable stroke rendering as a separate API with explicit width, cap, and join semantics.
 
 ## Requirements
@@ -208,6 +225,7 @@ LogoSC currently focuses on filled 2D region rendering for final geometry. It al
 - OpenSCAD
 - No external OpenSCAD library dependency; basic LogoSC use requires only
   `LogoSC-Foundation-Core.scad`.
+- Optional validation additionally requires `LogoSC-Foundation-Validation.scad`.
 
 Maintainers can use [LogoSC-OpenSCAD-Command-Line.md](LogoSC-OpenSCAD-Command-Line.md)
 to run tests, capture diagnostics, and export geometry or PNG previews without opening the GUI.

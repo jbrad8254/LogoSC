@@ -24,8 +24,9 @@ The LogoSC-specific command-line verification guide is
 - LogoSC evaluates command lists into 2D polygonal regions.
 - Native OpenSCAD remains responsible for 3D operations and ordinary composition.
 - Preserve stable public APIs, including `RenderLogo2D()`, `RenderContours2D()`,
-  `RenderRegion2D()`, `RenderLogoDebug()`, `evalLogo()`, result accessors, region helpers,
-  and existing command opcodes.
+  `RenderRegion2D()`, `RenderLogoDebug()`, `evalLogo()`, `evalLogoPaths()`,
+  `ValidateLogoPaths()`, `ReportLogoValidation()`, their accessors, region helpers, and
+  existing command opcodes.
 - `RenderLogoDebug()` is preview-only diagnostic geometry, not a manufacturable stroke API.
 - Preserve exact filenames, documentation assets, historical rationale, and LF line endings.
 

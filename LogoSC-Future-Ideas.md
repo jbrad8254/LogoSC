@@ -34,19 +34,25 @@ Benefits:
 
 ### Contour Validation
 
-Provide optional validation of contours before polygon generation.
+Status: initial optional path validation is implemented.
 
-Keep this in `LogoSC-Foundation-Validation.scad` as an optional companion rather than a
-dependency of the standalone Core file. Focused validation tests should live in
-`LogoSC-Foundation-Validation-Tests.scad` and be assembled by the test runner.
+`LogoSC-Foundation-Validation.scad` remains an optional companion rather than a dependency
+of the standalone Core file. Its focused tests live in
+`LogoSC-Foundation-Validation-Tests.scad` and are assembled by the test runner.
 
-Ideas:
+Implemented:
 
 - Open contour detection
-- Duplicate points
 - Zero-length segments
+- Too-few-points detection
+- Configurable closure tolerance
+
+Remaining ideas:
+
+- Duplicate nonconsecutive points
 - Tiny edges
 - Optional self-intersection detection
+- Hole containment and overlap checks
 
 ---
 
@@ -159,7 +165,7 @@ Avoid:
 ## Suggested 2026.3 Theme
 
 1. Stroke rendering
-2. Contour validation
+2. Expanded contour validation
 3. SVG export
 
 These complement one another and represent a substantial functional expansion while

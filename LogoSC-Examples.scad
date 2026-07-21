@@ -14,9 +14,12 @@
 
 // Load Core plus the passive regression-test definitions so this file can keep
 // offering Examples, Debug, and Tests as interactive run modes. Basic user
-// models need only LogoSC-Foundation-Core.scad.
+// models need only LogoSC-Foundation-Core.scad. Path analysis and validation
+// remain optional companions loaded here for the explicit Tests run mode.
 include <LogoSC-Foundation-Core.scad>
+include <LogoSC-Foundation-Validation.scad>
 include <LogoSC-Foundation-Tests.scad>
+include <LogoSC-Foundation-Validation-Tests.scad>
 
 // -----------------------------------------------------------------------------
 // Example controls
@@ -1044,4 +1047,5 @@ if (LogoSCRunMode == "Debug")
 if (LogoSCRunMode == "Tests")
 {
     RunAllLogoSCests();
+    RunAllLogoValidationTests();
 }
