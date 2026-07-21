@@ -68,6 +68,11 @@ and recursive L-system-inspired models in one gallery.
 
 ![LogoSC Examples gallery in OpenSCAD](images/examples-gallery.png)
 
+The Debug view overlays the filled models with movement capsules and point markers, exposing
+open endpoints, crossing paths, pen-up travel, arc tessellation, and primitive-generated edges.
+
+![LogoSC indexed debug-renderer gallery in OpenSCAD](images/debug-renderer-gallery.png)
+
 A complete test run ends with per-suite totals and one machine-readable result such as:
 
 ```text

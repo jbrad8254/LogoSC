@@ -59,6 +59,7 @@
 - [Hierarchical automated test results](#2026-07-20--hierarchical-automated-test-results)
 - [Examples and regression gallery screenshots](#2026-07-20--examples-and-regression-gallery-screenshots)
 - [Direct Git delivery and conditional ZIP fallback](#2026-07-21--direct-git-delivery-and-conditional-zip-fallback)
+- [Debug renderer gallery screenshot](#2026-07-21--debug-renderer-gallery-screenshot)
 
 ### Planning, releases, and history
 
@@ -254,7 +255,8 @@ Verified working state:
   - `images/readme-quickstart-triangle.png`;
   - `images/readme-quickstart-triangle-debug.png`;
   - `images/examples-gallery.png`;
-  - `images/regression-test-gallery.png`.
+  - `images/regression-test-gallery.png`;
+  - `images/debug-renderer-gallery.png`.
 - README Quick Start now shows the actual filled-triangle result immediately after
   the first code block and the debug-overlay result immediately after the
   `RenderLogoDebug()` code block.
@@ -2229,3 +2231,31 @@ Files affected:
 - `CHANGELOG.md`
 - AI Engineering Kit handoff, quick-start, bootstrap, workflow, preferences, and retrospective
   documents
+
+### 2026-07-21 — Debug renderer gallery screenshot
+
+Context:
+
+- The indexed Debug run was documented, but the repository showed only the focused Quick Start
+  triangle overlay rather than the complete eight-case gallery.
+- A manually captured OpenSCAD preview now shows the current two-row Debug gallery with filled
+  output, movement capsules, point markers, pen-up travel, crossings, arcs, and primitive paths.
+
+Decision:
+
+- Store the capture as `images/debug-renderer-gallery.png` using the same stable naming pattern
+  as the Examples and regression gallery images.
+- Reference it where public, testing, and submission documentation explains the full Debug run.
+- Continue to describe `RenderLogoDebug()` as preview-only diagnostic geometry, not a
+  manufacturable stroke API.
+
+Files affected:
+
+- `images/debug-renderer-gallery.png`
+- `README.md`
+- `LogoSC-README.md`
+- `LogoSC-User-Manual.md`
+- `LogoSC-OpenSCAD-Command-Line.md`
+- `BUILDWEEK.md`
+- `CHANGELOG.md`
+- `LogoSC-Developer-Notebook.md`

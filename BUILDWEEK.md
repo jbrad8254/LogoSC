@@ -81,6 +81,12 @@ extrusions, and recursive L-system-inspired models together:
 
 ![LogoSC Examples gallery in OpenSCAD](images/examples-gallery.png)
 
+The Debug run makes the underlying command paths visible. Its indexed gallery shows start and
+end points, open and closed contours, a crossing path, pen-up motion, arcs, and the difference
+between turtle-built and primitive-generated geometry:
+
+![LogoSC indexed debug-renderer gallery in OpenSCAD](images/debug-renderer-gallery.png)
+
 ## Project scale and pace
 
 The entire LogoSC project is only about two and a half weeks old. The first Git commit was

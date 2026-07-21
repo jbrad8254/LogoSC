@@ -47,6 +47,8 @@
   extrusions, and recursive L-system-inspired examples.
 - Added `images/regression-test-gallery.png` showing the color-coded visual regression suite,
   and referenced both galleries from the relevant public, testing, and submission docs.
+- Added `images/debug-renderer-gallery.png` showing all eight indexed Debug cases and referenced
+  it from the public overview, User Manual, command-line guide, and Build Week submission.
 - Changed routine AI delivery to use the active Git working tree when direct integration is
   verified, while preserving one exact-path ZIP as the fallback for Git-unavailable,
   attachment-based, temporary-copy, unverifiable, or explicitly requested delivery.

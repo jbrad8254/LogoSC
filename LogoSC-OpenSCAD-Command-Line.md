@@ -149,6 +149,8 @@ The command line can render the same debug demo that is available through the Op
 Customizer. Debug mode defaults to the full gallery, so this focused example explicitly
 selects the single-example layout:
 
+![LogoSC indexed debug-renderer gallery in OpenSCAD](images/debug-renderer-gallery.png)
+
 ```powershell
 $openScadCli = 'C:\Program Files\OpenSCAD\openscad.com'
 $debugPngPath = Join-Path $env:TEMP 'LogoSC-debug.png'

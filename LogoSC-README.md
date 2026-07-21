@@ -348,6 +348,8 @@ eight debug cases in a four-column by two-row indexed gallery by default. Set
 Normal user models can overlay debug geometry with filled output by rendering
 both `RenderLogo2D(cmds)` and `RenderLogoDebug(cmds)`.
 
+![LogoSC indexed debug-renderer gallery in OpenSCAD](images/debug-renderer-gallery.png)
+
 ## Path analysis and validation
 
 Validation is an optional companion. Include Core first, then Validation:

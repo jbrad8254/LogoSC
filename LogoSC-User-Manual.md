@@ -1032,6 +1032,11 @@ to inspect only `DebugDemoExample`. The available cases are the closed triangle,
 open triangle, crossed rectangle, ordinary rectangle, pen-up gap, arc loop,
 stroke-vs-primitive triangle, and primitive demos.
 
+![Figure 7-1](images/debug-renderer-gallery.png)
+
+*Figure 7-1. The indexed Debug gallery overlays filled examples with movement capsules and
+point markers so endpoints, crossings, pen-up travel, arcs, and primitive paths remain visible.*
+
 `DebugDemoOverlay` toggles the debug capsules and points; `DebugDemoFilled`
 toggles the filled 2D preview.
 
