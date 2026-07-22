@@ -8,7 +8,7 @@
 /* [Model] */
 
 // Select the model to display or export.
-Part = "Bolt"; // [Bolt,Nut,Assembly,Profile,Gallery]
+Part = "Bolt"; // [Bolt,Nut,Assembly,Profile,Gallery (Slow!)]
 // Metric choices use common coarse pitches; inch choices use the shown TPI.
 ScrewSize = "M8"; // [M3,M4,M5,M6,M8,M10,M12,M14,M16,M18,M20,M22,M24,M27,M30,M33,M36,#8-32,1/4-20,5/16-18,3/8-16,1/2-13,5/8-11,3/4-10,1-8,Custom]
 // Major diameter used only when ScrewSize is Custom, in millimeters.
@@ -1108,13 +1108,19 @@ module RenderLogoSCAssembly()
     safePosition = round(requestedPosition / sliceHeight) * sliceHeight;
     nutRotation = -twistDirection * 360 * safePosition / lead;
 
-    RenderLogoSCBolt();
-
-    translate([0, 0, safePosition])
+    color("lightsteelblue")
     {
-        rotate([0, 0, nutRotation])
+        RenderLogoSCBolt();
+    }
+
+    color("gold")
+    {
+        translate([0, 0, safePosition])
         {
-            RenderLogoSCNut();
+            rotate([0, 0, nutRotation])
+            {
+                RenderLogoSCNut();
+            }
         }
     }
 }
@@ -1296,7 +1302,7 @@ else if (Part == "Assembly")
 {
     RenderLogoSCAssembly();
 }
-else if (Part == "Gallery")
+else if (Part == "Gallery (Slow!)" || Part == "Gallery")
 {
     RenderLogoSCFastenerGallery();
 }

@@ -8,13 +8,23 @@ the printer, material, orientation, and load before relying on a printed part.
 ## Quick start
 
 1. Open `LogoSC-Nuts-And-Bolts.scad` in OpenSCAD and show the Customizer.
-2. Select `Bolt`, `Nut`, `Assembly`, `Profile`, or `Gallery` with `Part`.
+2. Select `Bolt`, `Nut`, `Assembly`, `Profile`, or `Gallery (Slow!)` with `Part`.
 3. Choose a `ScrewSize` and `ThreadProfile`.
 4. For a bolt, choose `HeadType`, `DriveType`, and `DriveSize` independently.
 5. Set `PrintSlop` for the printer, preview with F5, and render with F6 before export.
 
 `Assembly` is useful for a visual fit check. It does not perform collision analysis and cannot
 replace a short printed calibration pair.
+
+![High-resolution M20 nut and bolt assembly](images/fastener-assembly-high-resolution.png)
+
+The assembly above was generated at 1600 by 1000 pixels with `RadialSegments = 240`,
+`ThreadSlicesPerTurn = 60`, and `ProfileSamplesPerTurn = 100`—exactly four times the three
+default geometry resolutions. It uses OpenSCAD's preview renderer; on the maintainer's machine,
+the preview took about 21 seconds. A full F6/CGAL render at these settings can take many minutes.
+The exact PowerShell command is in
+[Example 3 of the OpenSCAD
+command-line guide](LogoSC-OpenSCAD-Command-Line.md#example-3-generate-a-fastener-documentation-image).
 
 ## Why head, drive, and drive size are separate
 
@@ -36,8 +46,8 @@ is not an ISO 4757 gauge size.
 
 - **`Part`** selects the output. `Bolt` creates an external thread and selected head/drive. `Nut`
   subtracts a matching enlarged thread from a hex blank. `Assembly` places both together.
-  `Profile` shows one axial/radial bump and a flat, full-pitch reference pad behind it. `Gallery`
-  displays eight representative bolts, screws, and nuts in a four-by-two grid.
+  `Profile` shows one axial/radial bump and a flat, full-pitch reference pad behind it.
+  `Gallery (Slow!)` displays eight representative bolts, screws, and nuts in a four-by-two grid.
 - **`ScrewSize`** selects a nominal major diameter, pitch, and useful hex across-flats default.
   Metric entries use common coarse pitches. Inch entries use the threads per inch shown after
   the dash. `Custom` enables `CustomDiameter` and `CustomPitch`.
@@ -69,15 +79,68 @@ followed by M27, M30, M33, and M36. Inch choices are #8-32, 1/4-20, 5/16-18, 3/8
   where the helix is clipped. The same value controls both entry chamfers in the nut. Nut
   chamfers are additionally limited by pitch and nut thickness.
 
-The profiles are deliberately printable approximations:
+### What “printable approximation” means
 
-- `V60` represents the 60-degree family used by ISO metric and Unified threads, with clipped
-  crest and root rather than a tolerance-class implementation.
-- `Whitworth55` uses a symmetric 55-degree form with sampled rounded crest and root.
-- `ACME29` uses a symmetric 29-degree trapezoidal power-screw form.
-- `Trapezoidal30` uses a symmetric 30-degree metric trapezoidal form.
-- `Buttress7/45` uses unequal 7-degree and 45-degree flanks for directional loading.
-- `Square` uses vertical flanks and broad flats as a printable idealization.
+Each profile preserves the most recognizable geometry—flank angle, broad proportions, and
+symmetry or asymmetry—but it is not a standards-compliant thread specification. The model uses
+one simplified external ridge shape, wraps it helically, and enlarges a copy radially by
+`PrintSlop` to cut the nut. It does not calculate standard pitch diameters, separate internal
+and external truncations, allowance, tolerance class, fundamental deviation, gauge limits,
+lead error, runout, surface finish, or process-specific crest and root relief.
+
+The flat rectangle behind every picture is one pitch wide. It provides a scale reference and
+is not part of the helical thread. Ratios below are relative to the selected pitch `P`.
+
+#### V60
+
+The V60 ridge has straight 60-degree flanks, depth `0.61343P`, and a flat crest `0.125P` wide.
+The cylindrical core supplies a flat/cylindrical root. ISO metric and Unified threads use
+specific basic-profile truncations, root forms, pitch diameters, and tolerance classes that are
+not reproduced here; V60 therefore resembles those families but is not an ISO or UN fit.
+
+![V60 thread profile](images/fastener-profile-v60.png)
+
+#### Whitworth55
+
+Whitworth55 uses 55-degree flanks, depth `0.640327P`, and a crest radius of `0.137329P`. The
+crest arc is sampled with eight segments, while the cylindrical shaft approximates the rounded
+root rather than constructing the exact continuous mating root curve. No Whitworth fit or gauge
+tolerance is applied.
+
+![Whitworth 55-degree thread profile](images/fastener-profile-whitworth55.png)
+
+#### ACME29
+
+ACME29 uses symmetric 29-degree flanks, depth `0.5P`, and a crest `0.5P` wide. It captures the
+broad load-bearing shape of an ACME power thread but omits standard allowances, class-specific
+clearances, minimum root width, corner radii, and internal/external dimensional differences.
+
+![ACME 29-degree thread profile](images/fastener-profile-acme29.png)
+
+#### Trapezoidal30
+
+Trapezoidal30 uses the same simplified half-pitch depth and half-pitch crest as ACME29, but with
+the 30-degree included angle associated with metric trapezoidal threads. It does not implement
+standard Tr diameter series, lead-dependent dimensions, tolerance zones, or crest/root relief.
+
+![Metric trapezoidal 30-degree thread profile](images/fastener-profile-trapezoidal30.png)
+
+#### Buttress7/45
+
+Buttress7/45 uses a 7-degree load flank, a 45-degree trailing flank, depth `0.6P`, and a crest
+`0.1P` wide. The unequal flanks show the intended one-direction load concept, but standard
+buttress root radii, truncations, pressure-flank tolerances, and strength calculations are not
+included.
+
+![Buttress 7/45 thread profile](images/fastener-profile-buttress7-45.png)
+
+#### Square
+
+Square uses vertical flanks, depth `0.5P`, and equal half-pitch ridge and gap widths. Its sharp
+corners and zero flank clearance are an idealization: practical square threads need machining
+or printing clearance, root relief, and suitable dimensional tolerances.
+
+![Square thread profile](images/fastener-profile-square.png)
 
 ## Head and drive parameters
 
@@ -93,6 +156,55 @@ The profiles are deliberately printable approximations:
   top cross span for `Phillips`, and across-flats width for `Hex Socket`, all in millimeters.
 - **`HeadScale`** multiplies nominal head width and height without changing shaft diameter or
   pitch. Very small values may leave insufficient material around a large drive.
+
+### Head shapes
+
+The pictures pair each head with a representative drive where useful. `HeadType` and
+`DriveType` remain independent Customizer choices.
+
+#### Hex
+
+The hex head uses the preset across-flats dimension for the selected screw size and a height of
+approximately `0.65` times shaft diameter before `HeadScale` is applied.
+
+![Hex bolt head](images/fastener-head-hex.png)
+
+#### Pan
+
+The pan head combines a cylindrical lower section with a short tapered cap. This is a printable
+faceted dome, not a standard head-radius or bearing-surface specification.
+
+![Slotted pan head](images/fastener-head-pan.png)
+
+#### Round
+
+The round head uses a stronger two-stage dome than the pan head. The pictured Phillips recess
+tapers inward through its depth.
+
+![Phillips round head](images/fastener-head-round.png)
+
+#### Countersunk Flat Head
+
+The countersunk head is a conical frustum from the broad flat top to shaft diameter. Its angle
+follows the model proportions and is not guaranteed to match a standard 82-, 90-, or 100-degree
+countersink.
+
+![Countersunk flat head with hex socket](images/fastener-head-countersunk-flat.png)
+
+#### Carriage
+
+The carriage head combines a round dome with a simplified square neck that resists rotation.
+Neck dimensions and under-head transitions are printable proportions rather than a carriage-bolt
+product standard.
+
+![Carriage bolt head](images/fastener-head-carriage.png)
+
+#### Grub (Headless)
+
+The headless option omits positive head geometry and cuts the selected drive inward from the
+free shaft end. The example uses a hex socket.
+
+![Headless grub screw](images/fastener-head-grub-headless.png)
 
 ### Drive preset dimensions
 
@@ -112,11 +224,17 @@ printable geometry; use `Custom` when matching a particular tool or specificatio
 
 ## Gallery output
 
-`Part = Gallery` renders a stable four-column by two-row overview containing a hex bolt,
+`Part = Gallery (Slow!)` renders a stable four-column by two-row overview containing a hex bolt,
 slotted pan screw, Phillips round screw, countersunk hex-socket screw, carriage bolt, headless
 hex-socket screw, V-thread nut, and trapezoidal-thread nut. Gallery models use the current
 `TipChamfer`, `PrintSlop`, and resolution controls while fixing their identifying head, drive,
 size, and profile selections. Console `ECHO` records identify each grid position.
+
+> [!CAUTION]
+> The gallery constructs eight threaded models and can be very time consuming to render or
+> export. On the maintainer's OpenSCAD 2021.01 workstation, creating the 1200 by 700 preview PNG
+> took about 1 second, but a full default-resolution CGAL/STL gallery took about 3 minutes
+> 22 seconds. Higher resolutions can take substantially longer; timings vary by computer.
 
 ![LogoSC fastener gallery](images/fastener-gallery.png)
 
@@ -160,6 +278,11 @@ has been established independently.
 [iso-4757]: https://www.iso.org/standard/10742.html
 [iso-261]: https://www.iso.org/standard/4165.html
 [asme-b1-1]: https://www.asme.org/codes-standards/find-codes-standards/b1-1-unified-inch-screw-threads-un-unr-thread-form
+[ultimaker-pla]: https://ultimaker.com/materials/pla/
+[ultimaker-petg]: https://ultimaker.com/materials/petg/
+[ultimaker-abs]: https://ultimaker.com/materials/abs/
+[iso-898-1]: https://www.iso.org/standard/60610.html
+[nasa-fastener-design-manual]: https://ntrs.nasa.gov/citations/19900009424
 
 ## ⚠ WARNING: PRINTED FASTENER STRENGTH IS UNKNOWN
 
@@ -172,3 +295,61 @@ has been established independently.
 > undergone serious engineering review and representative destructive load testing with an
 > appropriate safety factor. When failure could injure someone or damage property, use a
 > properly specified and certified manufactured fastener instead.
+
+### Illustrative failure-load comparison — not a rating
+
+> [!CAUTION]
+> The values below are order-of-magnitude calculations from printed material coupons. They are
+> **not safe working loads, design allowables, test results for LogoSC fasteners, or evidence
+> that any printed bolt is safe**. They estimate gross failure under one idealized load case;
+> an actual bolt, nut, head, or engaged thread can fail much earlier.
+
+The calculation uses two common coarse metric threads and assumes that the weakest section is
+the threaded tensile-stress area:
+
+`A_s = pi / 4 * (d - 0.9382P)^2`
+
+This gives `36.61 mm^2` for M8×1.25 and `84.27 mm^2` for M12×1.75. The printed rows use the
+manufacturer's mean Z-axis tensile stress at break for printed [PLA][ultimaker-pla],
+[PETG][ultimaker-petg], and [ABS][ultimaker-abs] specimens: 33.1 ± 2.8, 19.0 ± 6.4, and
+19.0 ± 0.6 MPa respectively. The matching PETG and ABS means are the published values, not a
+copying error; their very different spreads reinforce that a mean is not a guaranteed minimum.
+Using the means makes this comparison optimistic. Z-axis data approximate a bolt printed upright,
+where axial tension pulls across layer interfaces. The steel baseline uses the 800 MPa minimum
+ultimate tensile strength for M8 and M12 property-class 8.8 bolts under
+[ISO 898-1][iso-898-1].
+
+Pure single-shear failure through the threaded section is approximated as `0.6` times the
+tensile value. The [NASA Fastener Design Manual][nasa-fastener-design-manual] gives that rough
+ratio as an approximation for carbon and alloy steels when a specific shear allowable is
+unavailable. Extending it to printed polymers here is only a screening assumption; it is **not
+measured polymer shear data**. ISO 898-1 itself does not specify shear-strength requirements.
+
+| Thread | Material basis | Stress used | Tension estimate | Single-shear estimate | Versus 8.8 steel |
+| --- | --- | ---: | ---: | ---: | ---: |
+| M8×1.25 | Printed PLA, Z axis | 33.1 MPa | 1.21 kN (272 lbf) | 0.73 kN (163 lbf) | 4.14% |
+| M8×1.25 | Printed PETG, Z axis | 19.0 MPa | 0.70 kN (156 lbf) | 0.42 kN (94 lbf) | 2.38% |
+| M8×1.25 | Printed ABS, Z axis | 19.0 MPa | 0.70 kN (156 lbf) | 0.42 kN (94 lbf) | 2.38% |
+| M8×1.25 | Steel property class 8.8 | 800 MPa | 29.29 kN (6,584 lbf) | 17.57 kN (3,950 lbf) | 100% |
+| M12×1.75 | Printed PLA, Z axis | 33.1 MPa | 2.79 kN (627 lbf) | 1.67 kN (376 lbf) | 4.14% |
+| M12×1.75 | Printed PETG, Z axis | 19.0 MPa | 1.60 kN (360 lbf) | 0.96 kN (216 lbf) | 2.38% |
+| M12×1.75 | Printed ABS, Z axis | 19.0 MPa | 1.60 kN (360 lbf) | 0.96 kN (216 lbf) | 2.38% |
+| M12×1.75 | Steel property class 8.8 | 800 MPa | 67.41 kN (15,155 lbf) | 40.45 kN (9,093 lbf) | 100% |
+
+Because the same stress area and `0.6` shear ratio are used within each size, the final column
+applies to both load estimates.
+
+Even in this idealized calculation, the upright printed M8 PLA bolt reaches only about one
+twenty-fourth of the class 8.8 steel value; the PETG and ABS examples reach about one
+forty-second. Printing horizontally may align axial tension with stronger XY material data, but
+the cited XY values still provide only about 4.2% to 5.7% of the steel stress basis. Orientation
+also changes which layers cross the shear plane and head-to-shank junction, so it does not turn
+the estimate into a rating.
+
+The table applies no safety factor and ignores tightening preload, combined tension and shear,
+stress concentration at thread roots, head separation, nut or thread stripping, partial infill,
+perimeters, seams, layer defects, creep, fatigue, impact, temperature, moisture, aging, and
+variation among printers and filament batches. A real printed fastener can therefore fail below
+the listed value, relax after tightening, or break suddenly. **Do not choose a service load by
+dividing these numbers by an informal safety factor. Test the exact production process, or use a
+properly specified manufactured fastener.**

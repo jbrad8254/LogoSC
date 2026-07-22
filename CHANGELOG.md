@@ -18,6 +18,17 @@
   control the smaller nut entry chamfers as well as bolt chamfers.
 - Added a prominent warning that printed fastener strength is unknown and that real-world use
   requires engineering review and representative destructive load testing.
+- Expanded the warning with explicitly non-rated M8 and M12 tensile and single-shear estimates
+  for printed PLA, PETG, and ABS versus property-class 8.8 steel, including the calculation
+  assumptions, published material-data sources, and unmodeled failure modes.
+- Expanded the fastener guide with exact explanations of each simplified thread profile, six
+  profile images, six head-type images, and a 1600-by-1000 assembly image generated with four
+  times the default geometry resolutions.
+- Relabeled fastener gallery output as `Gallery (Slow!)` and documented measured preview versus
+  full-CGAL timing so users can anticipate the cost of rendering eight threaded models.
+- Added a tested PowerShell recipe to `LogoSC-OpenSCAD-Command-Line.md` showing how the
+  four-times-resolution fastener assembly PNG is generated with Customizer overrides, camera
+  framing, explicit pixel dimensions, and elapsed-time reporting.
 - Kept the Core API unchanged: LogoSC supplies evaluated 2D profiles, while the new model uses
   native OpenSCAD twisted extrusion, cylinders, clipping, and boolean subtraction for 3D output.
 

@@ -181,7 +181,71 @@ required, accepting that it may be substantially slower. A generated PNG can be 
 person, attached to a continuous-integration run, or loaded by an AI coding tool that supports
 local image inspection.
 
-## Example 3: export a normal model
+## Example 3: generate a fastener documentation image
+
+The fastener guide images are generated directly from `LogoSC-Nuts-And-Bolts.scad`; they are
+not hand-drawn screenshots. Command-line `-D` options replace the same variables shown in the
+OpenSCAD Customizer. PNG options then control output size and camera framing:
+
+- `--imgsize 'width,height'` sets pixel dimensions;
+- `--autocenter` and `--viewall` frame the generated object;
+- `--projection o` selects an orthographic camera;
+- `--camera` can select a repeatable viewing direction for individual head images; and
+- a `.png` output path selects image export.
+
+PNG export uses OpenSCAD preview rendering unless `--render` is present. Preview still uses the
+requested `RadialSegments`, `ThreadSlicesPerTurn`, and `ProfileSamplesPerTurn` geometry, but it
+does not perform the final CGAL boolean evaluation. Add `--render` for an F6-equivalent image,
+with the expectation that complex threaded assemblies can take many minutes.
+
+This PowerShell example reproduces the high-resolution M20 assembly in the fastener Quick Start.
+Its three geometry resolutions are exactly four times the defaults, and the stopwatch reports
+the local elapsed time:
+
+```powershell
+$openScadCli = 'C:\Program Files\OpenSCAD\openscad.com'
+$assemblyPngPath = Join-Path `
+    (Get-Location) `
+    'images\fastener-assembly-high-resolution.png'
+$renderTimer = [System.Diagnostics.Stopwatch]::StartNew()
+
+& $openScadCli `
+    -D 'Part=\"Assembly\"' `
+    -D 'ScrewSize=\"M20\"' `
+    -D 'Length=35' `
+    -D 'NutThickness=10' `
+    -D 'AssemblyNutPosition=8' `
+    -D 'HeadType=\"Hex\"' `
+    -D 'DriveType=\"None\"' `
+    -D 'RadialSegments=240' `
+    -D 'ThreadSlicesPerTurn=60' `
+    -D 'ProfileSamplesPerTurn=100' `
+    --imgsize '1600,1000' `
+    --autocenter `
+    --viewall `
+    --projection o `
+    -o $assemblyPngPath `
+    'LogoSC-Nuts-And-Bolts.scad'
+
+$renderTimer.Stop()
+
+if ($LASTEXITCODE -ne 0)
+{
+    throw "OpenSCAD PNG export failed with exit code $LASTEXITCODE."
+}
+
+Write-Output (
+    'Assembly preview seconds: {0:N1}' -f `
+        $renderTimer.Elapsed.TotalSeconds
+)
+```
+
+To generate a profile image instead, set `Part` to `Profile`, set `ThreadProfile` to one of the
+six profile names, and use an `800,450` image. The head images use a short bolt and `--render`;
+their drive-side view was selected with `--camera '0,0,0,235,0,25,50'`. The headless image uses
+the opposite `55`-degree X rotation because its drive is at the free shaft end.
+
+## Example 4: export a normal model
 
 For a normal 3D OpenSCAD model that includes LogoSC, export an STL with:
 

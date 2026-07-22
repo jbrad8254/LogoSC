@@ -2364,7 +2364,54 @@ Decision:
 - Put grub/headless recesses at the free shaft end and reverse the recess extrusion inward.
 - Apply `TipChamfer` to both ends of external threads and to both nut entries. Limit the nut
   chamfer by pitch and nut thickness; the default M8 nut consequently drops from 1.25 to 0.6 mm.
-- Add `Gallery` output with six representative bolt/screw styles and two nuts in a four-by-two
-  grid, using parameterized bolt and nut modules so gallery choices do not mutate user settings.
+- Add `Gallery (Slow!)` output with six representative bolt/screw styles and two nuts in a
+  four-by-two grid, using parameterized bolt and nut modules so gallery choices do not mutate
+  user settings.
 - End the Customizer guide with a prominent warning that printed fastener strength is unknown
   and real-world use requires engineering review and representative destructive load testing.
+- Document exactly how every profile is simplified, including the implemented pitch-relative
+  depth, crest, radius, and flank values and the standard fit/tolerance features intentionally
+  omitted.
+- Generate six profile and six head images from the actual OpenSCAD model. Add a 1600-by-1000
+  M20 assembly preview using four times the default geometry settings: 240 radial segments,
+  60 slices per turn, and 100 profile samples per turn.
+- Record the measured performance distinction: the gallery preview PNG took about 1 second,
+  while a full default-resolution gallery STL took about 3 minutes 22 seconds on the maintainer
+  workstation. Label the gallery as slow in the Customizer.
+- Add the exact high-resolution assembly PNG command to `LogoSC-OpenSCAD-Command-Line.md`, using
+  `-D` Customizer overrides, explicit camera and pixel options, a preview-versus-CGAL explanation,
+  exit-code handling, and stopwatch timing.
+
+### 2026-07-22 — Printed-fastener strength comparison
+
+Context:
+
+- A warning that strength is unknown states the correct conclusion, but it does not give readers
+  an intuitive sense of the gap between an upright FFF print and an ordinary steel fastener.
+- Quoting a single load as though it were a bolt rating would be misleading because the available
+  manufacturer data describe printed material coupons rather than LogoSC threads, heads, nuts,
+  or complete joints.
+
+Decision:
+
+- Add an explicitly non-rated, order-of-magnitude comparison for coarse M8×1.25 and M12×1.75
+  threads under idealized pure tension and pure single shear.
+- Compute the threaded tensile-stress area as `pi/4 * (d - 0.9382P)^2`, giving 36.61 and
+  84.27 square millimeters respectively.
+- Use one manufacturer's published Z-axis tensile-at-break values for printed PLA, PETG, and ABS
+  so the polymer rows share a consistent source and represent the across-layer direction of a
+  bolt printed upright.
+- Compare those coupon-based values with nominal property-class 8.8 steel at 800 MPa. Estimate
+  shear at 0.6 times tensile, clearly identifying the polymer use of that ratio as an
+  extrapolation rather than measured shear data or an ISO requirement.
+- Put the comparison under the final strength warning and state that its predicted break loads
+  omit preload, thread and nut stripping, head failure, infill, defects, creep, fatigue,
+  environment, combined loads, and safety factors. Direct readers to destructive testing of the
+  exact production process or to a specified manufactured fastener, not to a reduced table value.
+
+Consequences:
+
+- The guide now quantifies why printed fasteners must not be selected for critical service from
+  material datasheets alone while preserving the stronger conclusion that their actual strength
+  remains unknown until representative testing.
+- This is documentation-only; it does not change the OpenSCAD model or LogoSC public API.
