@@ -16,6 +16,7 @@
 
 - [Customizable nuts and bolts](#2026-07-21--customizable-nuts-bolts-and-helical-thread-profiles)
 - [Fastener Customizer separation](#2026-07-21--fastener-customizer-head-drive-and-boolean-refinement)
+- [Fastener gallery and chamfers](#2026-07-22--fastener-gallery-headless-drive-and-chamfer-refinement)
 - [Stroke and debug-rendering direction](#10-stroke-and-debug-rendering-direction)
 - [Current conceptual model](#7-current-conceptual-model)
 - [Command design conventions](#8-command-design-conventions)
@@ -2346,3 +2347,24 @@ Decision:
   behind the selected thread bump.
 - Add `LogoSC-Nuts-And-Bolts-Customizer.md` as the detailed source for parameter semantics,
   type-specific drive mappings, standards context, and print calibration.
+
+### 2026-07-22 — Fastener gallery, headless drive, and chamfer refinement
+
+Context:
+
+- The headless drive was cut at Z=0, which placed it on the normally hidden end of the displayed
+  model even though the cutter itself rendered correctly.
+- Abruptly clipping an external helix at the bearing plane could leave thin thread fragments.
+  Nut entry chamfers were automatic, larger than necessary, and disconnected from Customizer
+  control.
+- Individual Customizer outputs made the supported fastener family harder to survey quickly.
+
+Decision:
+
+- Put grub/headless recesses at the free shaft end and reverse the recess extrusion inward.
+- Apply `TipChamfer` to both ends of external threads and to both nut entries. Limit the nut
+  chamfer by pitch and nut thickness; the default M8 nut consequently drops from 1.25 to 0.6 mm.
+- Add `Gallery` output with six representative bolt/screw styles and two nuts in a four-by-two
+  grid, using parameterized bolt and nut modules so gallery choices do not mutate user settings.
+- End the Customizer guide with a prominent warning that printed fastener strength is unknown
+  and real-world use requires engineering review and representative destructive load testing.

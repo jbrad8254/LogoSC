@@ -13,6 +13,11 @@
 - Expanded the fastener presets through M36 and 1-8, increased preview resolution defaults and
   limits, added full-pitch profile reference geometry, tapered Phillips recesses, full-width
   slots, and two-sided boolean-cutter overrun tolerance.
+- Added a four-by-two fastener gallery and `images/fastener-gallery.png`, moved headless drive
+  recesses to the visible free end, tapered both ends of external threads, and made `TipChamfer`
+  control the smaller nut entry chamfers as well as bolt chamfers.
+- Added a prominent warning that printed fastener strength is unknown and that real-world use
+  requires engineering review and representative destructive load testing.
 - Kept the Core API unchanged: LogoSC supplies evaluated 2D profiles, while the new model uses
   native OpenSCAD twisted extrusion, cylinders, clipping, and boolean subtraction for 3D output.
 

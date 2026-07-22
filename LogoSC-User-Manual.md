@@ -407,11 +407,12 @@ For the L-system examples, see `LogoSC-LSystems-Notes.md` for design context
 and limitations.
 
 Open `LogoSC-Nuts-And-Bolts.scad` for a more complete manufacturing example. Its Customizer
-selects bolt, nut, assembly, or profile output; common metric and Unified sizes; six thread
+selects bolt, nut, assembly, profile, or gallery output; common metric and Unified sizes; six thread
 profile families; right- or left-hand threads; multiple starts; independent head, drive, and
 drive-size options; length; printable clearance; and mesh resolution. The profiles are practical
 printable approximations rather than certified standard tolerance classes. See
-`LogoSC-Nuts-And-Bolts-Customizer.md` for the detailed parameter and drive-preset guide.
+`LogoSC-Nuts-And-Bolts-Customizer.md` for the detailed parameter and drive-preset guide and its
+prominent warning about the unknown strength of printed fasteners.
 
 ## 5. Coordinate model
 

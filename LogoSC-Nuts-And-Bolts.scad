@@ -8,7 +8,7 @@
 /* [Model] */
 
 // Select the model to display or export.
-Part = "Bolt"; // [Bolt,Nut,Assembly,Profile]
+Part = "Bolt"; // [Bolt,Nut,Assembly,Profile,Gallery]
 // Metric choices use common coarse pitches; inch choices use the shown TPI.
 ScrewSize = "M8"; // [M3,M4,M5,M6,M8,M10,M12,M14,M16,M18,M20,M22,M24,M27,M30,M33,M36,#8-32,1/4-20,5/16-18,3/8-16,1/2-13,5/8-11,3/4-10,1-8,Custom]
 // Major diameter used only when ScrewSize is Custom, in millimeters.
@@ -28,7 +28,7 @@ Handedness = "Right"; // [Right,Left]
 ThreadStarts = 1; // [1:1:4]
 // Radial clearance per side, applied to the female thread cutter.
 PrintSlop = 0.25; // [0:0.05:1]
-// Remove this axial/radial amount from the threaded shaft tip, in millimeters.
+// Taper both external-thread ends and both nut entries by this amount.
 TipChamfer = 0.6; // [0:0.1:3]
 
 /* [Head and Drive] */
@@ -186,23 +186,32 @@ function FastenerDriveIndex(driveSize, diameter) =
     : (driveSize == "#5") ? 5
     : FastenerAutoDriveIndex(diameter);
 
-function FastenerPhillipsSpan(driveSize, diameter) =
+function FastenerPhillipsSpan(
+    driveSize,
+    diameter,
+    customDriveSize = CustomDriveSize) =
     (driveSize == "Custom")
-        ? CustomDriveSize
+        ? customDriveSize
         : [2, 3, 4.5, 6, 8, 10][FastenerDriveIndex(driveSize, diameter)];
 
-function FastenerSlotWidth(driveSize, diameter) =
+function FastenerSlotWidth(
+    driveSize,
+    diameter,
+    customDriveSize = CustomDriveSize) =
     (driveSize == "Custom")
-        ? CustomDriveSize
+        ? customDriveSize
         : [0.6, 0.8, 1, 1.2, 1.6, 2][FastenerDriveIndex(driveSize, diameter)];
 
-function FastenerHexSocketAcrossFlats(driveSize, diameter) =
+function FastenerHexSocketAcrossFlats(
+    driveSize,
+    diameter,
+    customDriveSize = CustomDriveSize) =
     (driveSize == "Custom")
-        ? CustomDriveSize
+        ? customDriveSize
         : [1.5, 2, 2.5, 4, 5, 6][FastenerDriveIndex(driveSize, diameter)];
 
-function FastenerNutHeight(diameter) =
-    (NutThickness > 0) ? NutThickness : 0.8 * diameter;
+function FastenerNutHeight(diameter, nutThickness = NutThickness) =
+    (nutThickness > 0) ? nutThickness : 0.8 * diameter;
 
 function FastenerTwistDirection(handedness) =
     (handedness == "Right") ? -1 : 1;
@@ -482,18 +491,25 @@ module RenderFastenerThreadedRod(
     handedness,
     radialOffset = 0,
     tipChamfer = 0,
+    entryChamfer = 0,
     axialOverrun = 0)
 {
     profileDepth = FastenerProfileDepth(profile, pitch);
     majorRadius = diameter / 2 + radialOffset;
     coreRadius = majorRadius - profileDepth;
     joinedCoreRadius = coreRadius + FastenerThreadOverlap;
-    safeChamfer = min(tipChamfer, length / 2);
+    safeTipChamfer = min(tipChamfer, length / 2);
+    safeEntryChamfer = min(entryChamfer, length / 2);
     renderStart = -axialOverrun;
     renderLength = length + 2 * axialOverrun;
+    middleStart = renderStart + safeEntryChamfer;
+    middleLength =
+        renderLength - safeEntryChamfer - safeTipChamfer;
 
     assert(length > 0, "Thread length must be positive.");
     assert(coreRadius > 0, "Thread profile is too deep for this diameter.");
+    assert(tipChamfer >= 0, "Thread tip chamfer must not be negative.");
+    assert(entryChamfer >= 0, "Thread entry chamfer must not be negative.");
     assert(axialOverrun >= 0, "Thread axial overrun must not be negative.");
 
     intersection()
@@ -521,29 +537,56 @@ module RenderFastenerThreadedRod(
             );
         }
 
-        if (safeChamfer > 0)
+        if (safeEntryChamfer > 0 || safeTipChamfer > 0)
         {
             union()
             {
-                translate([0, 0, renderStart])
+                if (safeEntryChamfer > 0)
                 {
-                    cylinder(
-                        h = renderLength - safeChamfer,
-                        r = majorRadius + FastenerEpsilon,
-                        center = false,
-                        $fn = RadialSegments
-                    );
+                    translate([0, 0, renderStart])
+                    {
+                        cylinder(
+                            h = safeEntryChamfer,
+                            r1 = max(
+                                coreRadius,
+                                majorRadius - safeEntryChamfer
+                            ),
+                            r2 = majorRadius + FastenerEpsilon,
+                            center = false,
+                            $fn = RadialSegments
+                        );
+                    }
                 }
 
-                translate([0, 0, renderStart + renderLength - safeChamfer])
+                if (middleLength > 0)
                 {
-                    cylinder(
-                        h = safeChamfer,
-                        r1 = majorRadius + FastenerEpsilon,
-                        r2 = max(coreRadius, majorRadius - safeChamfer),
-                        center = false,
-                        $fn = RadialSegments
-                    );
+                    translate([0, 0, middleStart])
+                    {
+                        cylinder(
+                            h = middleLength,
+                            r = majorRadius + FastenerEpsilon,
+                            center = false,
+                            $fn = RadialSegments
+                        );
+                    }
+                }
+
+                if (safeTipChamfer > 0)
+                {
+                    translate(
+                        [0, 0, renderStart + renderLength - safeTipChamfer])
+                    {
+                        cylinder(
+                            h = safeTipChamfer,
+                            r1 = majorRadius + FastenerEpsilon,
+                            r2 = max(
+                                coreRadius,
+                                majorRadius - safeTipChamfer
+                            ),
+                            center = false,
+                            $fn = RadialSegments
+                        );
+                    }
                 }
             }
         }
@@ -674,6 +717,53 @@ module RenderFastenerCarriageHeadBlank(
     }
 }
 
+// Extrude a drive cutter from either end and overrun both depth boundaries.
+module RenderFastenerInwardExtrude(
+    surfaceZ,
+    recessDepth,
+    inwardDirection,
+    bottomScale = 1)
+{
+    cutterHeight = recessDepth + 2 * FastenerDifferenceTolerance;
+
+    assert(
+        inwardDirection == 1 || inwardDirection == -1,
+        "Drive recess direction must be 1 or -1."
+    );
+
+    if (inwardDirection == 1)
+    {
+        translate([0, 0, surfaceZ - FastenerDifferenceTolerance])
+        {
+            linear_extrude(
+                height = cutterHeight,
+                center = false,
+                convexity = FastenerConvexity,
+                scale = bottomScale)
+            {
+                children();
+            }
+        }
+    }
+    else
+    {
+        translate([0, 0, surfaceZ + FastenerDifferenceTolerance])
+        {
+            rotate([180, 0, 0])
+            {
+                linear_extrude(
+                    height = cutterHeight,
+                    center = false,
+                    convexity = FastenerConvexity,
+                    scale = bottomScale)
+                {
+                    children();
+                }
+            }
+        }
+    }
+}
+
 // Phillips recess arms narrow toward the bottom to approximate the angled
 // flanks of a real cross recess instead of subtracting a square-sided cross.
 module RenderFastenerPhillipsRecess(
@@ -681,27 +771,29 @@ module RenderFastenerPhillipsRecess(
     surfaceZ,
     availableDepth,
     diameter,
-    driveSize)
+    driveSize,
+    customDriveSize,
+    inwardDirection)
 {
-    topSpan = min(FastenerPhillipsSpan(driveSize, diameter), 0.85 * outerDiameter);
+    topSpan = min(
+        FastenerPhillipsSpan(driveSize, diameter, customDriveSize),
+        0.85 * outerDiameter
+    );
     armWidth = 0.24 * topSpan;
     recessDepth = min(0.75 * topSpan, 0.7 * availableDepth);
 
-    translate([0, 0, surfaceZ - FastenerDifferenceTolerance])
+    RenderFastenerInwardExtrude(
+        surfaceZ,
+        recessDepth,
+        inwardDirection,
+        bottomScale = 0.32)
     {
-        linear_extrude(
-            height = recessDepth + 2 * FastenerDifferenceTolerance,
-            center = false,
-            convexity = FastenerConvexity,
-            scale = 0.32)
-        {
-            RenderLogo2D(
-            [
-                [RECT, topSpan, armWidth],
-                [TURN, 90],
-                [RECT, topSpan, armWidth]
-            ]);
-        }
+        RenderLogo2D(
+        [
+            [RECT, topSpan, armWidth],
+            [TURN, 90],
+            [RECT, topSpan, armWidth]
+        ]);
     }
 }
 
@@ -711,21 +803,23 @@ module RenderFastenerSlotRecess(
     surfaceZ,
     availableDepth,
     diameter,
-    driveSize)
+    driveSize,
+    customDriveSize,
+    inwardDirection)
 {
     recessLength = outerDiameter + 2 * FastenerDifferenceTolerance;
-    recessWidth = min(FastenerSlotWidth(driveSize, diameter), 0.3 * outerDiameter);
+    recessWidth = min(
+        FastenerSlotWidth(driveSize, diameter, customDriveSize),
+        0.3 * outerDiameter
+    );
     recessDepth = min(0.8 * recessWidth, 0.65 * availableDepth);
 
-    translate([0, 0, surfaceZ - FastenerDifferenceTolerance])
+    RenderFastenerInwardExtrude(
+        surfaceZ,
+        recessDepth,
+        inwardDirection)
     {
-        linear_extrude(
-            height = recessDepth + 2 * FastenerDifferenceTolerance,
-            center = false,
-            convexity = FastenerConvexity)
-        {
-            RenderLogo2D([[RECT, recessLength, recessWidth]]);
-        }
+        RenderLogo2D([[RECT, recessLength, recessWidth]]);
     }
 }
 
@@ -734,23 +828,26 @@ module RenderFastenerHexSocketRecess(
     surfaceZ,
     availableDepth,
     diameter,
-    driveSize)
+    driveSize,
+    customDriveSize,
+    inwardDirection)
 {
     acrossFlats = min(
-        FastenerHexSocketAcrossFlats(driveSize, diameter),
+        FastenerHexSocketAcrossFlats(
+            driveSize,
+            diameter,
+            customDriveSize
+        ),
         0.75 * outerDiameter
     );
     recessDepth = min(0.9 * acrossFlats, 0.7 * availableDepth);
 
-    translate([0, 0, surfaceZ - FastenerDifferenceTolerance])
+    RenderFastenerInwardExtrude(
+        surfaceZ,
+        recessDepth,
+        inwardDirection)
     {
-        linear_extrude(
-            height = recessDepth + 2 * FastenerDifferenceTolerance,
-            center = false,
-            convexity = FastenerConvexity)
-        {
-            RenderFastenerHexProfile(acrossFlats);
-        }
+        RenderFastenerHexProfile(acrossFlats);
     }
 }
 
@@ -760,7 +857,9 @@ module RenderFastenerDriveRecess(
     outerDiameter,
     surfaceZ,
     availableDepth,
-    diameter)
+    diameter,
+    customDriveSize,
+    inwardDirection = 1)
 {
     if (driveType == "Slotted")
     {
@@ -769,7 +868,9 @@ module RenderFastenerDriveRecess(
             surfaceZ,
             availableDepth,
             diameter,
-            driveSize
+            driveSize,
+            customDriveSize,
+            inwardDirection
         );
     }
     else if (driveType == "Phillips")
@@ -779,7 +880,9 @@ module RenderFastenerDriveRecess(
             surfaceZ,
             availableDepth,
             diameter,
-            driveSize
+            driveSize,
+            customDriveSize,
+            inwardDirection
         );
     }
     else if (driveType == "Hex Socket")
@@ -789,7 +892,9 @@ module RenderFastenerDriveRecess(
             surfaceZ,
             availableDepth,
             diameter,
-            driveSize
+            driveSize,
+            customDriveSize,
+            inwardDirection
         );
     }
 }
@@ -800,9 +905,10 @@ module RenderFastenerHeadBlank(
     headType,
     diameter,
     acrossFlats,
-    headHeight)
+    headHeight,
+    headScale)
 {
-    roundHeadDiameter = 1.9 * diameter * HeadScale;
+    roundHeadDiameter = 1.9 * diameter * headScale;
 
     if (headType == "Hex")
     {
@@ -813,7 +919,7 @@ module RenderFastenerHeadBlank(
                 center = false,
                 convexity = FastenerConvexity)
             {
-                RenderFastenerHexProfile(acrossFlats * HeadScale);
+                RenderFastenerHexProfile(acrossFlats * headScale);
             }
         }
     }
@@ -843,22 +949,36 @@ module RenderFastenerHeadBlank(
     }
 }
 
-module RenderLogoSCBolt()
+module RenderLogoSCBolt(
+    screwSize = ScrewSize,
+    length = Length,
+    threadProfile = ThreadProfile,
+    handedness = Handedness,
+    threadStarts = ThreadStarts,
+    chamfer = TipChamfer,
+    headType = HeadType,
+    driveType = DriveType,
+    driveSize = DriveSize,
+    customDriveSize = CustomDriveSize,
+    headScale = HeadScale)
 {
-    diameter = FastenerDiameter(ScrewSize);
-    pitch = FastenerPitch(ScrewSize);
-    acrossFlats = FastenerAcrossFlats(ScrewSize, diameter);
-    headHeight = FastenerHeadHeight(HeadType, diameter) * HeadScale;
-    roundHeadDiameter = 1.9 * diameter * HeadScale;
-    headOuterDiameter = (HeadType == "Hex")
-        ? 2 * acrossFlats * HeadScale / sqrt(3)
-        : (HeadType == "Grub (Headless)") ? diameter : roundHeadDiameter;
-    driveSurfaceZ = (HeadType == "Grub (Headless)") ? 0 : -headHeight;
-    driveDepth = (HeadType == "Grub (Headless)") ? 0.6 * diameter : headHeight;
+    diameter = FastenerDiameter(screwSize);
+    pitch = FastenerPitch(screwSize);
+    acrossFlats = FastenerAcrossFlats(screwSize, diameter);
+    headHeight = FastenerHeadHeight(headType, diameter) * headScale;
+    roundHeadDiameter = 1.9 * diameter * headScale;
+    isHeadless = headType == "Grub (Headless)";
+    headOuterDiameter = (headType == "Hex")
+        ? 2 * acrossFlats * headScale / sqrt(3)
+        : isHeadless ? diameter : roundHeadDiameter;
+    driveSurfaceZ = isHeadless ? length : -headHeight;
+    driveDepth = isHeadless ? 0.6 * diameter : headHeight;
+    driveInwardDirection = isHeadless ? -1 : 1;
 
     assert(diameter > 0, "Fastener diameter must be positive.");
     assert(pitch > 0, "Thread pitch must be positive.");
-    assert(CustomDriveSize > 0, "CustomDriveSize must be positive.");
+    assert(customDriveSize > 0, "CustomDriveSize must be positive.");
+    assert(chamfer >= 0, "TipChamfer must not be negative.");
 
     difference()
     {
@@ -867,34 +987,38 @@ module RenderLogoSCBolt()
             RenderFastenerThreadedRod(
                 diameter,
                 pitch,
-                Length,
-                ThreadProfile,
-                ThreadStarts,
-                Handedness,
+                length,
+                threadProfile,
+                threadStarts,
+                handedness,
                 radialOffset = 0,
-                tipChamfer = TipChamfer
+                tipChamfer = chamfer,
+                entryChamfer = chamfer
             );
 
-            if (HeadType != "Grub (Headless)")
+            if (!isHeadless)
             {
                 RenderFastenerHeadBlank(
-                    HeadType,
+                    headType,
                     diameter,
                     acrossFlats,
-                    headHeight
+                    headHeight,
+                    headScale
                 );
             }
         }
 
-        if (DriveType != "None")
+        if (driveType != "None")
         {
             RenderFastenerDriveRecess(
-                DriveType,
-                DriveSize,
+                driveType,
+                driveSize,
                 headOuterDiameter,
                 driveSurfaceZ,
                 driveDepth,
-                diameter
+                diameter,
+                customDriveSize,
+                driveInwardDirection
             );
         }
     }
@@ -902,17 +1026,26 @@ module RenderLogoSCBolt()
 
 // Render a hex nut and subtract a slightly enlarged copy of the matching male
 // thread. PrintSlop is radial clearance per side, not diametral clearance.
-module RenderLogoSCNut()
+module RenderLogoSCNut(
+    screwSize = ScrewSize,
+    threadProfile = ThreadProfile,
+    handedness = Handedness,
+    threadStarts = ThreadStarts,
+    printSlop = PrintSlop,
+    chamferControl = TipChamfer,
+    nutScale = NutScale,
+    nutThickness = NutThickness)
 {
-    diameter = FastenerDiameter(ScrewSize);
-    pitch = FastenerPitch(ScrewSize);
+    diameter = FastenerDiameter(screwSize);
+    pitch = FastenerPitch(screwSize);
     acrossFlats =
-        FastenerAcrossFlats(ScrewSize, diameter) * NutScale;
-    nutHeight = FastenerNutHeight(diameter);
-    chamfer = min(pitch, nutHeight / 4);
-    openingRadius = diameter / 2 + PrintSlop + chamfer;
+        FastenerAcrossFlats(screwSize, diameter) * nutScale;
+    nutHeight = FastenerNutHeight(diameter, nutThickness);
+    chamfer = min(chamferControl, pitch, nutHeight / 4);
+    openingRadius = diameter / 2 + printSlop + chamfer;
 
-    assert(PrintSlop >= 0, "PrintSlop must not be negative.");
+    assert(printSlop >= 0, "PrintSlop must not be negative.");
+    assert(chamferControl >= 0, "TipChamfer must not be negative.");
 
     difference()
     {
@@ -928,11 +1061,12 @@ module RenderLogoSCNut()
             diameter,
             pitch,
             nutHeight,
-            ThreadProfile,
-            ThreadStarts,
-            Handedness,
-            radialOffset = PrintSlop,
+            threadProfile,
+            threadStarts,
+            handedness,
+            radialOffset = printSlop,
             tipChamfer = 0,
+            entryChamfer = 0,
             axialOverrun = FastenerDifferenceTolerance
         );
 
@@ -941,7 +1075,7 @@ module RenderLogoSCNut()
             cylinder(
                 h = chamfer + 2 * FastenerDifferenceTolerance,
                 r1 = openingRadius,
-                r2 = diameter / 2 + PrintSlop,
+                r2 = diameter / 2 + printSlop,
                 center = false,
                 $fn = RadialSegments
             );
@@ -952,7 +1086,7 @@ module RenderLogoSCNut()
         {
             cylinder(
                 h = chamfer + 2 * FastenerDifferenceTolerance,
-                r1 = diameter / 2 + PrintSlop,
+                r1 = diameter / 2 + printSlop,
                 r2 = openingRadius,
                 center = false,
                 $fn = RadialSegments
@@ -983,6 +1117,135 @@ module RenderLogoSCAssembly()
             RenderLogoSCNut();
         }
     }
+}
+
+module RenderFastenerGalleryBolt(
+    label,
+    position,
+    screwSize,
+    headType,
+    driveType,
+    driveSize = "Auto",
+    length = 10,
+    threadProfile = "V60",
+    modelColor = "lightsteelblue")
+{
+    diameter = FastenerDiameter(screwSize);
+    galleryHeadScale = 0.9;
+    headHeight =
+        FastenerHeadHeight(headType, diameter) * galleryHeadScale;
+
+    echo("LogoSC fastener gallery", label, position);
+
+    color(modelColor)
+    {
+        translate([position[0], position[1], headHeight])
+        {
+            RenderLogoSCBolt(
+                screwSize = screwSize,
+                length = length,
+                threadProfile = threadProfile,
+                chamfer = TipChamfer,
+                headType = headType,
+                driveType = driveType,
+                driveSize = driveSize,
+                headScale = galleryHeadScale
+            );
+        }
+    }
+}
+
+module RenderFastenerGalleryNut(
+    label,
+    position,
+    screwSize,
+    threadProfile = "V60",
+    modelColor = "gold")
+{
+    echo("LogoSC fastener gallery", label, position);
+
+    color(modelColor)
+    {
+        translate([position[0], position[1], 0])
+        {
+            RenderLogoSCNut(
+                screwSize = screwSize,
+                threadProfile = threadProfile,
+                chamferControl = TipChamfer
+            );
+        }
+    }
+}
+
+// Render a stable four-column by two-row overview of the supported head,
+// drive, and fastener families. Models share the current clearance and
+// resolution controls so the gallery is also a useful preview-quality check.
+module RenderLogoSCFastenerGallery()
+{
+    spacing = 30;
+
+    RenderFastenerGalleryBolt(
+        "M10 hex bolt",
+        [0 * spacing, 0 * spacing],
+        "M10",
+        "Hex",
+        "None",
+        modelColor = "lightsteelblue"
+    );
+    RenderFastenerGalleryBolt(
+        "M8 slotted pan screw",
+        [1 * spacing, 0 * spacing],
+        "M8",
+        "Pan",
+        "Slotted",
+        modelColor = "palegreen"
+    );
+    RenderFastenerGalleryBolt(
+        "M8 Phillips round screw",
+        [2 * spacing, 0 * spacing],
+        "M8",
+        "Round",
+        "Phillips",
+        modelColor = "plum"
+    );
+    RenderFastenerGalleryBolt(
+        "M8 countersunk hex-socket screw",
+        [3 * spacing, 0 * spacing],
+        "M8",
+        "Countersunk Flat Head",
+        "Hex Socket",
+        modelColor = "lightsalmon"
+    );
+
+    RenderFastenerGalleryBolt(
+        "M8 carriage bolt",
+        [0 * spacing, 1 * spacing],
+        "M8",
+        "Carriage",
+        "None",
+        modelColor = "khaki"
+    );
+    RenderFastenerGalleryBolt(
+        "M10 headless hex-socket screw",
+        [1 * spacing, 1 * spacing],
+        "M10",
+        "Grub (Headless)",
+        "Hex Socket",
+        modelColor = "turquoise"
+    );
+    RenderFastenerGalleryNut(
+        "M10 V-thread nut",
+        [2 * spacing, 1 * spacing],
+        "M10",
+        modelColor = "gold"
+    );
+    RenderFastenerGalleryNut(
+        "M12 trapezoidal-thread nut",
+        [3 * spacing, 1 * spacing],
+        "M12",
+        threadProfile = "Trapezoidal30",
+        modelColor = "orchid"
+    );
 }
 
 module RenderSelectedThreadProfile()
@@ -1032,6 +1295,10 @@ else if (Part == "Nut")
 else if (Part == "Assembly")
 {
     RenderLogoSCAssembly();
+}
+else if (Part == "Gallery")
+{
+    RenderLogoSCFastenerGallery();
 }
 else
 {

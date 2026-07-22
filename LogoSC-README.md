@@ -413,7 +413,10 @@ usage, and the LogoSC feature wordmark.
 LogoSC for thread-tooth, head, and drive-recess profiles, then uses native OpenSCAD twisted
 extrusion and booleans to create printable bolts, nuts, and assembled previews. Head shape,
 drive type, and drive size are independent controls; `LogoSC-Nuts-And-Bolts-Customizer.md`
-documents every parameter and the print-calibration workflow.
+documents every parameter, the four-by-two fastener gallery, the print-calibration workflow,
+and the printed-fastener safety warning.
+
+![LogoSC fastener gallery](images/fastener-gallery.png)
 
 ![LogoSC Examples gallery](images/examples-gallery.png)
 
