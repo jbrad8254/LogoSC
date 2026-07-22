@@ -6,8 +6,13 @@
 
 - Added `LogoSC-Nuts-And-Bolts.scad`, a Customizer-driven printable fastener model with metric,
   Unified, and custom sizes; six basic thread-profile families; right- and left-hand or
-  multi-start helices; adjustable length and print slop; hex, Phillips, and slotted heads; nuts;
-  assembled previews; and selected-profile output.
+  multi-start helices; adjustable length and print slop; independent external head, drive type,
+  and drive-size controls; nuts; assembled previews; and selected-profile output.
+- Added `LogoSC-Nuts-And-Bolts-Customizer.md` with detailed parameter behavior, drive-preset
+  dimensions, standards context, resolution guidance, and print-clearance calibration notes.
+- Expanded the fastener presets through M36 and 1-8, increased preview resolution defaults and
+  limits, added full-pitch profile reference geometry, tapered Phillips recesses, full-width
+  slots, and two-sided boolean-cutter overrun tolerance.
 - Kept the Core API unchanged: LogoSC supplies evaluated 2D profiles, while the new model uses
   native OpenSCAD twisted extrusion, cylinders, clipping, and boolean subtraction for 3D output.
 

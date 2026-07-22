@@ -42,6 +42,7 @@ LogoSC-Foundation-Validation-Tests.scad
 LogoSC-Foundation-Test-Runner.scad
 LogoSC-Examples.scad
 LogoSC-Nuts-And-Bolts.scad
+LogoSC-Nuts-And-Bolts-Customizer.md
 LogoSC-Experiments.scad
 LogoSC-OpenSCAD-Command-Line.md
 

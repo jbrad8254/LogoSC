@@ -14,6 +14,8 @@
 
 ### Rendering and geometry
 
+- [Customizable nuts and bolts](#2026-07-21--customizable-nuts-bolts-and-helical-thread-profiles)
+- [Fastener Customizer separation](#2026-07-21--fastener-customizer-head-drive-and-boolean-refinement)
 - [Stroke and debug-rendering direction](#10-stroke-and-debug-rendering-direction)
 - [Current conceptual model](#7-current-conceptual-model)
 - [Command design conventions](#8-command-design-conventions)
@@ -2319,3 +2321,28 @@ Verification:
 - Verified representative bolt and nut STL meshes were connected and had no nonmanifold edges.
 - Previewed a matching bolt/nut assembly and confirmed the nut phase tracks its axial position.
 - Ran the complete Foundation and Validation suites: 151 of 151 automated results passed.
+
+### 2026-07-21 — Fastener Customizer head, drive, and boolean refinement
+
+Context:
+
+- The first fastener UI combined external head shapes with internal drive features, preventing
+  combinations such as a pan head with either a slot, Phillips recess, or hex socket.
+- Slotted and Phillips recesses also needed more recognizable geometry, and coincident cutter
+  endpoints could produce unstable OpenSCAD preview surfaces.
+
+Decision:
+
+- Separate `HeadType`, `DriveType`, and `DriveSize`. Treat `#0` through `#5` as explicitly
+  type-specific printable presets because slot width, Phillips span, and hex across-flats are
+  different dimensions, not one universal millimeter recess size.
+- Provide hex, pan, round, countersunk flat, carriage, and grub/headless shapes; provide none,
+  slotted, Phillips, and hex-socket drives. Make slots span the full top and taper Phillips arms
+  inward through their depth.
+- Add `FastenerDifferenceTolerance = 0.01 + 0` and overrun every subtractive feature at both
+  exposed ends, including nut thread and entry-chamfer cutters.
+- Expand practical large-print presets through M36 and 1-8, increase the three default mesh
+  resolutions by exactly 25 percent and double their upper ranges, and add a flat full-pitch pad
+  behind the selected thread bump.
+- Add `LogoSC-Nuts-And-Bolts-Customizer.md` as the detailed source for parameter semantics,
+  type-specific drive mappings, standards context, and print calibration.

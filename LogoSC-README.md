@@ -44,6 +44,7 @@
 - `LogoSC-CheatSheet.md` — compact command and API reference.
 - `LogoSC-Examples.scad` — runnable example gallery and 3D-printing demos.
 - `LogoSC-Nuts-And-Bolts.scad` — customizable nuts, bolts, screw heads, and thread profiles.
+- `LogoSC-Nuts-And-Bolts-Customizer.md` — fastener parameter, drive-size, and printing guide.
 - `LICENSE` — MIT License text.
 - `docs/ai-engineering-kit/` — maintainer-facing Codex/Git quick start, handoff, bootstrap,
   collaboration, engineering-preference, and retrospective documents.
@@ -410,7 +411,9 @@ usage, and the LogoSC feature wordmark.
 
 `LogoSC-Nuts-And-Bolts.scad` is a separate Customizer-driven manufacturing example. It uses
 LogoSC for thread-tooth, head, and drive-recess profiles, then uses native OpenSCAD twisted
-extrusion and booleans to create printable bolts, nuts, and assembled previews.
+extrusion and booleans to create printable bolts, nuts, and assembled previews. Head shape,
+drive type, and drive size are independent controls; `LogoSC-Nuts-And-Bolts-Customizer.md`
+documents every parameter and the print-calibration workflow.
 
 ![LogoSC Examples gallery](images/examples-gallery.png)
 

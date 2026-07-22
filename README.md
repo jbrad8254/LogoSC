@@ -210,6 +210,7 @@ See `LogoSC-CheatSheet.md` and `LogoSC-User-Manual.md` for the complete command 
 - `LogoSC-OpenSCAD-Command-Line.md` — command-line testing, export, and PNG-preview guide.
 - `LogoSC-Examples.scad` — runnable gallery and example models.
 - `LogoSC-Nuts-And-Bolts.scad` — customizable printable fastener and thread-profile model.
+- `LogoSC-Nuts-And-Bolts-Customizer.md` — detailed fastener parameter and calibration guide.
 - `LogoSC-User-Manual.md` — practical user documentation.
 - `CONTRIBUTING.md` — contribution philosophy, coding, testing, documentation, versioning, and packaging guidance.
 - `LogoSC-Developer-Notebook.md` — engineering history, design rationale, workflow, and ChatGPT restart guide.

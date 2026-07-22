@@ -70,6 +70,7 @@ LogoSC-Foundation-Validation-Tests.scad Passive focused validation tests.
 LogoSC-Foundation-Test-Runner.scad Direct entry point for the complete test suite.
 LogoSC-Examples.scad               Runnable example gallery.
 LogoSC-Nuts-And-Bolts.scad         Customizable printable fastener model.
+LogoSC-Nuts-And-Bolts-Customizer.md Detailed fastener Customizer guide.
 LogoSC-Experiments.scad            Experimental rendering and geometry workbench.
 LogoSC-OpenSCAD-Command-Line.md    Command-line testing, export, and PNG-preview guide.
 
@@ -407,9 +408,10 @@ and limitations.
 
 Open `LogoSC-Nuts-And-Bolts.scad` for a more complete manufacturing example. Its Customizer
 selects bolt, nut, assembly, or profile output; common metric and Unified sizes; six thread
-profile families; right- or left-hand threads; multiple starts; several head and drive styles;
-length; printable clearance; and mesh resolution. The profiles are practical printable
-approximations rather than certified standard tolerance classes.
+profile families; right- or left-hand threads; multiple starts; independent head, drive, and
+drive-size options; length; printable clearance; and mesh resolution. The profiles are practical
+printable approximations rather than certified standard tolerance classes. See
+`LogoSC-Nuts-And-Bolts-Customizer.md` for the detailed parameter and drive-preset guide.
 
 ## 5. Coordinate model
 
