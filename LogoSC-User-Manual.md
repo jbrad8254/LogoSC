@@ -69,6 +69,7 @@ LogoSC-Foundation-Tests.scad       Passive regression and visual-test definition
 LogoSC-Foundation-Validation-Tests.scad Passive focused validation tests.
 LogoSC-Foundation-Test-Runner.scad Direct entry point for the complete test suite.
 LogoSC-Examples.scad               Runnable example gallery.
+LogoSC-Nuts-And-Bolts.scad         Customizable printable fastener model.
 LogoSC-Experiments.scad            Experimental rendering and geometry workbench.
 LogoSC-OpenSCAD-Command-Line.md    Command-line testing, export, and PNG-preview guide.
 
@@ -403,6 +404,12 @@ Use it as a cookbook: copy a command list such as `ExampleMountingPlate`, or use
 one of the example rendering modules as a starting point for your own model.
 For the L-system examples, see `LogoSC-LSystems-Notes.md` for design context
 and limitations.
+
+Open `LogoSC-Nuts-And-Bolts.scad` for a more complete manufacturing example. Its Customizer
+selects bolt, nut, assembly, or profile output; common metric and Unified sizes; six thread
+profile families; right- or left-hand threads; multiple starts; several head and drive styles;
+length; printable clearance; and mesh resolution. The profiles are practical printable
+approximations rather than certified standard tolerance classes.
 
 ## 5. Coordinate model
 

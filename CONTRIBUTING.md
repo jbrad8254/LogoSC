@@ -41,6 +41,7 @@ LogoSC-Foundation-Tests.scad
 LogoSC-Foundation-Validation-Tests.scad
 LogoSC-Foundation-Test-Runner.scad
 LogoSC-Examples.scad
+LogoSC-Nuts-And-Bolts.scad
 LogoSC-Experiments.scad
 LogoSC-OpenSCAD-Command-Line.md
 

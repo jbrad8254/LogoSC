@@ -43,6 +43,7 @@
 - `LogoSC-Future-Ideas.md` — longer-term feature concepts and possible future directions.
 - `LogoSC-CheatSheet.md` — compact command and API reference.
 - `LogoSC-Examples.scad` — runnable example gallery and 3D-printing demos.
+- `LogoSC-Nuts-And-Bolts.scad` — customizable nuts, bolts, screw heads, and thread profiles.
 - `LICENSE` — MIT License text.
 - `docs/ai-engineering-kit/` — maintainer-facing Codex/Git quick start, handoff, bootstrap,
   collaboration, engineering-preference, and retrospective documents.
@@ -406,6 +407,10 @@ models; use the User Manual for detailed explanations.
 shows 2D profiles, holes, recursive/fractal construction, L-system-generated
 fractal outlines, native OpenSCAD `linear_extrude()` and `rotate_extrude()`
 usage, and the LogoSC feature wordmark.
+
+`LogoSC-Nuts-And-Bolts.scad` is a separate Customizer-driven manufacturing example. It uses
+LogoSC for thread-tooth, head, and drive-recess profiles, then uses native OpenSCAD twisted
+extrusion and booleans to create printable bolts, nuts, and assembled previews.
 
 ![LogoSC Examples gallery](images/examples-gallery.png)
 

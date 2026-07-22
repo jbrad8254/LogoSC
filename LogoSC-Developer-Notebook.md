@@ -2283,3 +2283,39 @@ Files affected:
 - `README_BUILDWEEK.md`
 - `CHANGELOG.md`
 - `LogoSC-Developer-Notebook.md`
+
+### 2026-07-21 — Customizable nuts, bolts, and helical thread profiles
+
+Context:
+
+- The original practical motivation for LogoSC was reusable manufacturing profiles, and the
+  Build Week follow-up identified a small family of nuts and bolts as the next demonstration.
+- Common fastener threads begin as recognizable axial/radial profiles, but OpenSCAD's twisted
+  `linear_extrude()` consumes a profile in the XY plane rather than that conventional section.
+- A directly translated tooth gives only a tangential approximation and can distort the
+  intended axial profile, especially at small diameters or coarse pitches.
+
+Decision:
+
+- Add `LogoSC-Nuts-And-Bolts.scad` as a standalone Customizer-driven model rather than expanding
+  the stable Core API.
+- Define conventional V, rounded Whitworth, ACME, ISO trapezoidal, buttress, and square ridge
+  profiles as LogoSC command lists.
+- Evaluate and resample the LogoSC contour, then map each axial/radial point into a polar XY seed
+  whose phase is the inverse of the later helical twist. This makes an axial section of the
+  finished helix reproduce the source profile more faithfully.
+- Use native OpenSCAD twisted extrusion for right- or left-hand and multi-start threads, union a
+  helical ridge with a cylindrical core for external threads, and subtract a radially enlarged
+  matching threaded solid for internal nut threads.
+- Use LogoSC regular polygons, circles, and rectangles for hex heads, nut bodies, pan and flat
+  heads, Phillips recesses, and slots. Keep head extrusion and all 3D booleans in OpenSCAD.
+- Define `PrintSlop` as radial clearance per side on the female thread cutter. Treat all supplied
+  thread forms and head proportions as printable approximations, not certified standard fits.
+
+Verification:
+
+- Exported all six selected 2D profile families successfully as STL.
+- Fully rendered default, short bolt, nut, Phillips, slotted, and slotted-flat configurations.
+- Verified representative bolt and nut STL meshes were connected and had no nonmanifold edges.
+- Previewed a matching bolt/nut assembly and confirmed the nut phase tracks its axial position.
+- Ran the complete Foundation and Validation suites: 151 of 151 automated results passed.

@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+### Added
+
+- Added `LogoSC-Nuts-And-Bolts.scad`, a Customizer-driven printable fastener model with metric,
+  Unified, and custom sizes; six basic thread-profile families; right- and left-hand or
+  multi-start helices; adjustable length and print slop; hex, Phillips, and slotted heads; nuts;
+  assembled previews; and selected-profile output.
+- Kept the Core API unchanged: LogoSC supplies evaluated 2D profiles, while the new model uses
+  native OpenSCAD twisted extrusion, cylinders, clipping, and boolean subtraction for 3D output.
+
 ## [2026.2.1] - 2026-07-21
 
 This documentation and verification release makes LogoSC easier to learn, test, and continue
