@@ -199,7 +199,7 @@ ValidationChecksSelfIntersections(result);
 ValidationIsValid(result);
 ```
 
-The current public API version is `2026.2`.
+The current public API version is `2026.3`.
 
 ## Command examples
 
@@ -262,14 +262,17 @@ LogoSC keeps the core narrow:
 ## Current status
 
 LogoSC currently focuses on filled 2D region rendering for final geometry. It also includes
-a preview-only debug renderer and an optional validator that detects open paths, paths with
-too few vertices, and zero-length segments. Manufacturable stroke/open-path rendering and
-more advanced topology checks remain future work.
+a preview-only debug renderer and an optional validator that detects open paths, paths with too
+few vertices, zero-length segments, duplicate nonconsecutive points, tiny edges, and proper
+self-intersections. Manufacturable stroke/open-path rendering and inter-contour topology checks
+remain future work.
 
 ## Version history
 
 | Version | Highlights |
 | --- | --- |
+| 2026.3 | Printable fastener application plus duplicate-point, tiny-edge, and proper self-intersection validation |
+| 2026.2.1 | Optional path validation, automated suite aggregation, galleries, and command-line verification |
 | 2026.2 | LogoSC identity, `RenderLogoDebug()`, unified run mode, licensing, branding, and documentation refresh |
 | 2026.0 | Initial public foundation and filled-region geometry API |
 

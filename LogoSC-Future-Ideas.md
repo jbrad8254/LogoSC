@@ -202,11 +202,14 @@ Avoid:
 
 ---
 
-## Suggested 2026.3 Theme
+## 2026.3 Feature Milestone
 
-1. Stroke rendering
-2. Expanded contour validation
-3. SVG export
+Release `2026.3` combines:
 
-These complement one another and represent a substantial functional expansion while
-preserving the existing LogoSC architecture.
+1. The customizable printable-fastener application and its detailed algorithm documentation.
+2. Duplicate-point and configurable tiny-edge validation.
+3. Proper self-intersection detection with a documented quadratic-cost boundary.
+
+Manufacturable stroke rendering and SVG export remain candidates for later milestones. This
+keeps `2026.3` centered on a coherent, verified feature set without implying that every earlier
+theme candidate had to ship together.

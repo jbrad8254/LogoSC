@@ -77,7 +77,7 @@
 // normal per-commit source history. Use LogoSCVersionAtLeast() in downstream
 // models when a model requires a minimum LogoSC API version.
 LogoSCVersionMajor = 2026 + 0;
-LogoSCVersionMinor = 2 + 0;
+LogoSCVersionMinor = 3 + 0;
 LogoSCVersion = str(LogoSCVersionMajor, ".", LogoSCVersionMinor);
 
 function LogoSCVersionAtLeast(major, minor) =

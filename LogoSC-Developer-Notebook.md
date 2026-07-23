@@ -80,6 +80,7 @@
 - [Deferred feature ideas](#19-deferred-feature-ideas)
 - [2026.2 release preparation](#2026-07-13--consolidated-20262-release-preparation)
 - [2026.2 release identifier cleanup](#2026-07-18--20262-release-identifier-cleanup)
+- [2026.3 release preparation](#2026-07-22--20263-feature-release-preparation)
 - [Journal-entry template](#yyyy-mm-dd--topic)
 
 ## Quick Links
@@ -180,7 +181,7 @@ for OpenSCAD.
 
 Current stable milestone:
 
-- LogoSC release `2026.2`.
+- LogoSC release `2026.3`.
 
 License milestone:
 
@@ -189,7 +190,7 @@ License milestone:
   may copy, modify, redistribute, and use it in commercial or closed-source
   projects as long as the copyright/license notice is preserved. README files
   should link to `LICENSE` rather than embedding the full license text.
-- Current source snapshot public API version `2026.2`.
+- Current source snapshot public API version `2026.3`.
 
 Major implemented features include:
 
@@ -212,12 +213,16 @@ Major implemented features include:
   versioning, and packaging guidance.
 - AI Engineering Kit stored under `docs/ai-engineering-kit/` by explicit user request as
   maintainer-facing companion material, separate from LogoSC public API and user documentation.
+- Optional path validation for open paths, too-few-points paths, zero-length segments, duplicate
+  nonconsecutive points, configurable tiny edges, and proper self-intersections.
+- Customizable printable fasteners with metric, Unified, and custom sizes; multiple thread,
+  head, drive, handedness, and start options; gallery and algorithm outputs; and safety guidance.
 
 Append new milestones here. Do not rewrite this section as only the latest state.
 
 ---
 
-## Restart Checkpoint — Debug Renderer, Standalone Core, and Validation Stable
+## Restart Checkpoint — 2026.3 Fasteners and Validation Stable
 
 Current project state is suitable for a fresh chat/restart from the local Git repository or
 a repository ZIP.
@@ -240,8 +245,10 @@ Verified working state:
   `LogoSC-Foundation-Test-Runner.scad` is the direct suite entry point.
 - `LogoSC-Foundation-Core.scad` is standalone and does not include test or optional
   feature companions.
-- Optional `LogoSC-Foundation-Validation.scad` supplies explicit path records and basic
-  validation without changing Core, `evalLogo()`, or `RenderLogo2D()`.
+- Optional `LogoSC-Foundation-Validation.scad` supplies explicit path records, basic integrity
+  checks, and proper self-intersection detection without changing Core evaluation or rendering.
+- `LogoSC-Nuts-And-Bolts.scad` supplies the standalone customizable fastener application while
+  keeping native OpenSCAD responsible for twisted extrusion and 3D booleans.
 - `RenderLogoDebug()` is implemented and visually verified.
 - Debug visualization is preview/debug-only, not intended to create manufacturable stroke geometry.
 - Debug rendering uses z-centered 3D capsules and point markers.
@@ -268,9 +275,9 @@ Verified working state:
 - README Quick Start now shows the actual filled-triangle result immediately after
   the first code block and the debug-overlay result immediately after the
   `RenderLogoDebug()` code block.
-- Git tag `v2026.2` identifies the 2026-07-13 release baseline.
-- `main` contains later documentation and maintainer-process work recorded under
-  `Unreleased` rather than retroactively redefining the tag contents.
+- Git tags `v2026.2` and `v2026.2.1` preserve the earlier release baselines.
+- Release `2026.3` consolidates the later fastener application, expanded validation, tests,
+  documentation, and reproducible images without rewriting those earlier tags.
 
 Known open design issues:
 
@@ -279,7 +286,7 @@ Known open design issues:
   separate contours or hole boundaries.
 - README already includes a verified debug-overlay screenshot. Add another manual screenshot
   only if it teaches something the existing image does not.
-- Prepare a future release only after post-`v2026.2` work forms a coherent, verified milestone.
+- Prepare another release only after later work forms a coherent, verified milestone.
 
 ---
 
@@ -629,7 +636,7 @@ Near-term candidates:
 - document recursion and generated command lists more fully;
 - continue L-system documentation and examples;
 - add CAD primitives only when they clearly reduce complexity; and
-- prepare a `2026.3` milestone only after a coherent feature set is implemented and verified.
+- prepare a later milestone only after another coherent feature set is implemented and verified.
 
 ---
 
@@ -1036,9 +1043,9 @@ should not become another manual.
 The current public baseline is:
 
 ```text
-Release: 2026.2
-Status: core tests and example gallery verified by the user before release
-Purpose: current filled-region and debug-rendering baseline
+Release: 2026.3
+Status: 166 automated results plus fastener CSG and default CGAL/STL exports verified
+Purpose: printable-fastener application and expanded optional-validation milestone
 ```
 
 `LogoSC-Experiments.scad` remains a separate lab bench. Keep experimental code there
@@ -1065,6 +1072,10 @@ Current experimental renderer controls include stroke width and circle fragment 
 The exact API is not final.
 
 ## 18. Near-term likely next steps
+
+Historical note: this sequence predates the completed debug renderer, invariant tests, optional
+validation, and `2026.3` release. Preserve it as decision history; use the current roadmap in
+Section 12 for active priorities.
 
 Follow this conservative order:
 
@@ -2528,3 +2539,33 @@ Consequences:
   behavior, normal closure, endpoint contact, tolerance-level contact, collinear overlap, and
   the absence of a synthetic closing edge.
 - The complete Foundation and Validation suites now contain 166 immutable results.
+
+### 2026-07-22 — 2026.3 feature-release preparation
+
+Context:
+
+- Work after `2026.2.1` produced two substantial feature groups: the customizable printable
+  fastener application and expanded optional validation through proper self-intersections.
+- Treating that scope as another `2026.2` patch would understate the new application, public
+  validation behavior, documentation, tests, and reproducible visual assets.
+- An earlier tentative `2026.3` theme also mentioned stroke rendering and SVG export, but release
+  themes are planning aids rather than requirements to ship unrelated features together.
+
+Decision:
+
+- Advance the Core public API version from `2026.2` to `2026.3` while preserving all established
+  renderers, evaluators, accessors, region helpers, and command opcodes.
+- Consolidate the changelog's accumulated fastener and validation work into release `2026.3`,
+  dated 2026-07-22, and restore an empty `Unreleased` section for subsequent development.
+- Define `2026.3` by the coherent features actually implemented and verified. Keep manufacturable
+  stroke rendering and SVG export as later candidates.
+- Update active version references, release history, roadmap text, and the restart checkpoint
+  without rewriting historical records about `2026.2` or `2026.2.1`.
+
+Verification boundary:
+
+- Require the complete Foundation and Validation result to remain 166 of 166 passing.
+- Require warning-free CSG exports for Bolt, Nut, Assembly, Profile, and Algorithm modes and full
+  CGAL STL exports for the default bolt and nut.
+- Create and publish tag `v2026.3` only after the release-preparation diff is reviewed and
+  committed; do not move either earlier release tag.

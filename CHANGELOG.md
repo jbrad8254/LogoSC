@@ -2,7 +2,13 @@
 
 ## [Unreleased]
 
-### Added
+## [2026.3] - 2026-07-22
+
+This feature release adds a customizable printable-fastener application and substantially
+expands optional contour validation. The Core public API version advances to `2026.3` while
+retaining the established renderers, evaluator APIs, region helpers, and command opcodes.
+
+### Fasteners and documentation
 
 - Added `LogoSC-Nuts-And-Bolts.scad`, a Customizer-driven printable fastener model with metric,
   Unified, and custom sizes; six basic thread-profile families; right- and left-hand or
@@ -35,8 +41,12 @@
   diagnostics, a reproducible sampled `Algorithm Figure` output, exact echo/profile/figure
   commands, and `images/fastener-thread-wrapping-three-start.png` generated from the real polar
   seed and sample arrays.
-- Kept the Core API unchanged: LogoSC supplies evaluated 2D profiles, while the new model uses
-  native OpenSCAD twisted extrusion, cylinders, clipping, and boolean subtraction for 3D output.
+- Kept the Core API surface unchanged: LogoSC supplies evaluated 2D profiles, while the new model
+  uses native OpenSCAD twisted extrusion, cylinders, clipping, and boolean subtraction for 3D
+  output.
+
+### Validation
+
 - Expanded the optional validation companion with duplicate-nonconsecutive-point and configurable
   tiny-edge detection, keeping the repeated closing point valid and allowing the tiny-edge check
   to be disabled. Added focused automated coverage and Quick Start setup documentation while
@@ -45,6 +55,12 @@
   segment-index pairs, tolerance-aware orientation tests, bounding-box rejection, and a switch
   for disabling the quadratic scan on highly tessellated paths. Endpoint touches, collinear
   overlaps, separate-contour intersections, and implicit closing edges remain excluded.
+
+### Testing
+
+- Expanded the complete immutable Foundation and Validation suites to 166 passing results.
+- Verified warning-free command-line CSG exports for Bolt, Nut, Assembly, Profile, and Algorithm
+  modes, plus full CGAL STL exports for the default bolt and nut.
 
 ## [2026.2.1] - 2026-07-21
 
