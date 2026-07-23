@@ -8,7 +8,8 @@ the printer, material, orientation, and load before relying on a printed part.
 ## Quick start
 
 1. Open `LogoSC-Nuts-And-Bolts.scad` in OpenSCAD and show the Customizer.
-2. Select `Bolt`, `Nut`, `Assembly`, `Profile`, or `Gallery (Slow!)` with `Part`.
+2. Select `Bolt`, `Nut`, `Assembly`, `Profile`, `Algorithm Figure`, or `Gallery (Slow!)`
+   with `Part`.
 3. Choose a `ScrewSize` and `ThreadProfile`.
 4. For a bolt, choose `HeadType`, `DriveType`, and `DriveSize` independently.
 5. Set `PrintSlop` for the printer, preview with F5, and render with F6 before export.
@@ -47,6 +48,7 @@ is not an ISO 4757 gauge size.
 - **`Part`** selects the output. `Bolt` creates an external thread and selected head/drive. `Nut`
   subtracts a matching enlarged thread from a hex blank. `Assembly` places both together.
   `Profile` shows one axial/radial bump and a flat, full-pitch reference pad behind it.
+  `Algorithm Figure` places the flat profiles beside the polar seed used for twisted extrusion.
   `Gallery (Slow!)` displays eight representative bolts, screws, and nuts in a four-by-two grid.
 - **`ScrewSize`** selects a nominal major diameter, pitch, and useful hex across-flats default.
   Metric entries use common coarse pitches. Inch entries use the threads per inch shown after
@@ -71,13 +73,149 @@ followed by M27, M30, M33, and M36. Inch choices are #8-32, 1/4-20, 5/16-18, 3/8
 - **`Handedness`** selects the helix direction. `Right` advances conventionally; `Left` reverses
   the helix.
 - **`ThreadStarts`** is the number of intertwined helices. Pitch remains the space between
-  neighboring profile bumps; lead becomes `pitch * starts`.
+  neighboring profile bumps; in the equations below, `nStarts = ThreadStarts` and lead becomes
+  `pitch * nStarts`.
 - **`PrintSlop`** is radial clearance per side in millimeters. It enlarges the female thread
   cutter, so the approximate diametral clearance added to the nut is twice this value. Start
   around 0.20-0.30 mm per side for a trial print, then calibrate.
 - **`TipChamfer`** controls the taper at both ends of an external thread, reducing thin fragments
   where the helix is clipped. The same value controls both entry chamfers in the nut. Nut
   chamfers are additionally limited by pitch and nut thickness.
+
+## How the thread algorithm works
+
+The main subroutine is `RenderFastenerThreadRidge()`. It turns one conventional thread profile
+into the helical ridge later joined to a cylindrical core. `RenderFastenerThreadedRod()` adds
+that core, clips the ridge to the requested length and chamfers, and is also reused as the
+slightly enlarged cutter subtracted from a nut.
+
+The transformation proceeds as follows:
+
+1. `FastenerProfilePoints()` constructs one ridge in conventional axial/radial coordinates.
+   A point `[x, y]` means axial position `x` within the profile and radial height `y` above the
+   cylindrical core. `FastenerLogoPath()` converts those points into an explicitly closed
+   LogoSC command list.
+2. `RenderFastenerThreadSeed()` evaluates that command list with `evalLogo()`, takes the outer
+   contour, and calls `FastenerResampleContour()`. Resampling matters because the next mapping
+   is nonlinear: a long straight profile edge would otherwise become one incorrect straight
+   chord in the polar seed.
+3. `FastenerWrapPoint()` maps every resampled point to the XY plane used by OpenSCAD's twisted
+   extrusion. For core radius `R`, lead `L`, and handedness sign `h`, the mapping is:
+
+   ```text
+   r     = R + y
+   theta = h * 360 degrees * x / L
+   XY    = [r * cos(theta), r * sin(theta)]
+   ```
+
+   This phase encodes the original axial coordinate as an angle. As `linear_extrude(twist)`
+   rotates successive Z slices, an axial section through the finished helix recovers the
+   intended profile instead of only a tangential approximation.
+4. For a multi-start thread, the seed is copied `nStarts` times and copy `i` is rotated by
+   `i * 360 / nStarts`. In the Customizer this value is named `ThreadStarts`; it arrives at
+   `RenderFastenerThreadRidge()` as `starts`. The algorithmic name `nStarts` is useful in the
+   equations because the lead is `L = pitch * nStarts`. Thus three starts use three copies
+   spaced 120 degrees apart and each individual helix advances three pitches per revolution,
+   while adjacent axial crests remain one pitch apart.
+5. `linear_extrude()` twists the complete multi-start seed. The result is unioned with the
+   cylindrical core for a bolt. A nut subtracts the same threaded solid with
+   `radialOffset = PrintSlop`, then cuts its two entry chamfers.
+
+Important variables in `RenderFastenerThreadRidge()` are `profileDepth`, `coreRadius`, `lead`,
+`twistDirection`, `overrun`, `targetHeight`, `slices`, `extrusionHeight`, and `turns`.
+In particular:
+
+```text
+coreRadius      = diameter / 2 - profileDepth + radialOffset
+lead            = pitch * nStarts
+slices          = max(4, ceil(targetHeight * ThreadSlicesPerTurn / lead))
+extrusionHeight = slices * lead / ThreadSlicesPerTurn
+turns           = slices / ThreadSlicesPerTurn
+```
+
+The ridge is generated one pitch beyond both ends, then clipped. Rounding `extrusionHeight` to
+an exact slice height ensures the requested resolution and twist remain phase-consistent.
+
+![Three axial profiles mapped into a three-start polar thread seed](images/fastener-thread-wrapping-three-start.png)
+
+The left panel shows three V60 profiles at pitch spacing. The right panel is the actual polar
+seed for `nStarts = 3`, viewed straight down the thread axis. It is effectively the unextruded
+slice passed to `linear_extrude(twist)`; the light-blue circle is the core and the three gold
+lobes are the ridge seeds.
+
+### Sampling cost
+
+Let `m` be the number of edges in the evaluated LogoSC contour, `n` the number of points after
+resampling, `s = nStarts`, and `k = slices`. Profile evaluation, resampling, and wrapping are
+`O(m + n)` for one seed. Copying the seed for every start is `O(s * n)`. Before OpenSCAD's
+boolean operations, the twisted ridge has mesh size and construction work on the order of
+`O(s * n * k)`; its stored mesh is the same order, while the transient resampled contour is
+`O(n)`.
+
+This explains the two most useful resolution rules: doubling `ProfileSamplesPerTurn` roughly
+doubles `n`, and doubling `ThreadSlicesPerTurn` roughly doubles `k`; doubling both can therefore
+produce about four times as much ridge mesh. Increasing `nStarts` is not a pure `s` multiplier
+because it also increases `lead`, which can reduce both the samples per profile edge and the
+number of axial slices. Final CGAL union, intersection, and subtraction time is
+implementation- and geometry-dependent and does not have a useful simple `O(n)` bound here; in
+practice those booleans dominate full renders.
+
+### Generate the profile and mapping figure from the command line
+
+This tested PowerShell command exports the ordinary M8 V60 profile to a temporary PNG:
+
+```powershell
+$openScadCli = 'C:\Program Files\OpenSCAD\openscad.com'
+$profilePngPath = Join-Path $env:TEMP 'LogoSC-fastener-profile.png'
+
+& $openScadCli `
+    -D 'Part=\"Profile\"' `
+    -D 'ScrewSize=\"M8\"' `
+    -D 'ThreadProfile=\"V60\"' `
+    --imgsize=800,450 `
+    --autocenter `
+    --viewall `
+    --projection=o `
+    -o $profilePngPath `
+    'LogoSC-Nuts-And-Bolts.scad'
+
+if ($LASTEXITCODE -ne 0)
+{
+    throw "OpenSCAD profile export failed with exit code $LASTEXITCODE."
+}
+```
+
+The documentation figure uses the same source file and actual mapping routines. `Algorithm` is
+a command-line alias for the Customizer's `Algorithm Figure` label; the alias avoids quoting a
+`-D` value containing a space in older Windows OpenSCAD versions.
+
+```powershell
+$algorithmPngPath = Join-Path `
+    (Get-Location) `
+    'images\fastener-thread-wrapping-three-start.png'
+
+& $openScadCli `
+    -D 'Part=\"Algorithm\"' `
+    -D 'ScrewSize=\"Custom\"' `
+    -D 'CustomDiameter=10' `
+    -D 'CustomPitch=3' `
+    -D 'ThreadProfile=\"V60\"' `
+    -D 'ThreadStarts=3' `
+    -D 'RadialSegments=96' `
+    -D 'ProfileSamplesPerTurn=48' `
+    --imgsize=1200,560 `
+    --autocenter `
+    --viewall `
+    --projection=o `
+    --camera=0,0,0,0,0,0,50 `
+    -o $algorithmPngPath `
+    'LogoSC-Nuts-And-Bolts.scad'
+
+if ($LASTEXITCODE -ne 0)
+{
+    throw "OpenSCAD algorithm-figure export failed with exit code $LASTEXITCODE."
+}
+```
 
 ### What “printable approximation” means
 

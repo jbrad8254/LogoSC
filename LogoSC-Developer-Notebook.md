@@ -17,6 +17,7 @@
 - [Customizable nuts and bolts](#2026-07-21--customizable-nuts-bolts-and-helical-thread-profiles)
 - [Fastener Customizer separation](#2026-07-21--fastener-customizer-head-drive-and-boolean-refinement)
 - [Fastener gallery and chamfers](#2026-07-22--fastener-gallery-headless-drive-and-chamfer-refinement)
+- [Fastener algorithm documentation](#2026-07-22--fastener-algorithm-documentation-and-mapping-figure)
 - [Stroke and debug-rendering direction](#10-stroke-and-debug-rendering-direction)
 - [Current conceptual model](#7-current-conceptual-model)
 - [Command design conventions](#8-command-design-conventions)
@@ -2415,3 +2416,43 @@ Consequences:
   material datasheets alone while preserving the stronger conclusion that their actual strength
   remains unknown until representative testing.
 - This is documentation-only; it does not change the OpenSCAD model or LogoSC public API.
+
+### 2026-07-22 â€” Fastener algorithm documentation and mapping figure
+
+Context:
+
+- The fastener guide documented controls, simplified profiles, calibration, performance, and
+  safety, but it did not trace how the axial/radial LogoSC contour becomes the polar seed for
+  OpenSCAD's twisted extrusion.
+- The multi-start behavior was described at the parameter level without identifying the phase
+  copies, the `nStarts` role in lead, or the main implementation routine and variables.
+- A profile export command was mentioned in the general command-line guide but was not given as
+  a complete tested recipe.
+
+Decision:
+
+- Make `RenderFastenerThreadRidge()` the documented main subroutine and trace its calls through
+  `FastenerProfilePoints()`, `FastenerLogoPath()`, `RenderFastenerThreadSeed()`,
+  `FastenerResampleContour()`, and `FastenerWrapPoint()`.
+- Use `nStarts` as the algorithmic name for the Customizer's `ThreadStarts` and the ridge
+  module's `starts` argument. Record `lead = pitch * nStarts` and the
+  `i * 360 / nStarts` phase rotation explicitly.
+- Document the point mapping, slice equations, overrun and clipping behavior, and the nominal
+  `O(s * n * k)` ridge-mesh cost for `s = nStarts`, `n` sampled seed points, and `k` slices.
+  Keep CGAL boolean complexity separate because it depends on geometry and implementation.
+- Add `Algorithm Figure` output to the standalone fastener model, plus the space-free
+  command-line alias `Algorithm` for OpenSCAD 2021.01 on Windows.
+- Generate `images/fastener-thread-wrapping-three-start.png` from the actual LogoSC evaluation
+  and polar-mapping routines. The left panel shows three pitch-spaced axial profiles; the right
+  panel shows their three 120-degree-spaced polar seeds, equivalent to the unextruded input
+  slice.
+- Add exact tested PowerShell commands for the normal profile PNG and the mapping figure.
+
+Consequences:
+
+- Readers can connect the visual geometry, equations, implementation names, and Customizer
+  controls without reverse-engineering the OpenSCAD source.
+- The figure remains reproducible from the model and changes with the selected profile, size,
+  handedness, and number of starts rather than becoming a detached hand-drawn diagram.
+- LogoSC Core and its stable public API remain unchanged; the new output belongs only to the
+  standalone fastener demonstration.

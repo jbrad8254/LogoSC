@@ -245,6 +245,10 @@ six profile names, and use an `800,450` image. The head images use a short bolt 
 their drive-side view was selected with `--camera '0,0,0,235,0,25,50'`. The headless image uses
 the opposite `55`-degree X rotation because its drive is at the free shaft end.
 
+The fastener Customizer guide gives the complete tested PowerShell commands for both an ordinary
+profile PNG and the three-start algorithm figure, together with the polar-mapping equations and
+sampling-cost discussion. See [How the thread algorithm works][fastener-algorithm].
+
 ## Example 4: export a normal model
 
 For a normal 3D OpenSCAD model that includes LogoSC, export an STL with:
@@ -320,3 +324,4 @@ For the installed executable's exact capabilities, always also run:
 [pdf]: https://files.openscad.org/documentation/manual/OpenSCAD_User_Manual.pdf
 [customizer]: https://en.wikibooks.org/wiki/OpenSCAD_User_Manual/Customizer
 [assert]: https://en.wikibooks.org/wiki/OpenSCAD_User_Manual/The_OpenSCAD_Language#assert
+[fastener-algorithm]: LogoSC-Nuts-And-Bolts-Customizer.md#how-the-thread-algorithm-works
