@@ -48,11 +48,39 @@ Implemented:
 - Configurable closure tolerance
 - Duplicate nonconsecutive points
 - Configurable tiny nonzero edges
+- Proper self-intersections within one explicit path
 
 Remaining ideas:
 
-- Optional self-intersection detection
+- Collinear segment overlap and intersections between separate contours
 - Hole containment and overlap checks
+
+#### Deliberate non-goal: sweep-line crossing optimization
+
+The self-intersection validator compares each path's unique nonadjacent segment pairs. It skips
+neighboring segments, rejects pairs with disjoint bounding boxes, and uses tolerance-aware
+orientation tests only for the remaining candidates. It detects proper interior crossings;
+endpoint touches, collinear overlaps, intersections between separate contours, and hole-boundary
+relationships remain distinct checks with their own documented semantics.
+
+For a path with `S` segments, direct pairwise testing considers at most `S * (S - 1) / 2`
+pairs, so its worst-case time complexity is `O(S^2)`. Adjacency filtering and bounding-box
+rejection should make ordinary LogoSC contours cheaper in practice without changing that bound.
+The check needs `O(1)` working data per candidate pair and `O(K)` result storage when it reports
+`K` crossing pairs. For multiple independent paths, the initial within-path cost is the sum of
+the squared path sizes rather than the square of every segment in the model.
+
+Do not initially implement a sweep-line intersection algorithm. Although a conventional
+sweep-line design can approach `O((S + K) log S)` time for `K` reported intersections, it needs
+an event queue, an ordered active-segment structure, neighbor updates, and careful handling of
+vertical segments, coincident endpoints, collinear overlaps, and tolerance-dependent ordering.
+Those structures and degeneracies are disproportionately complicated in OpenSCAD's immutable,
+list-oriented language and would increase code size, allocations, recursion, testing burden,
+and maintenance risk in an optional validator.
+
+The public option allows self-intersection checking to be disabled for highly tessellated paths.
+Reconsider a sweep-line or spatial-index design only if measurements on real LogoSC models show
+that bounding-box-filtered pairwise testing is a material bottleneck.
 
 ---
 

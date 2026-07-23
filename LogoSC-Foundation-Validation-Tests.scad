@@ -44,6 +44,31 @@ let(
         [GOTO, 0, 10, 0],
         [GOTO, 0, 0, 0]
     ],
+    crossedPath =
+    [
+        [GOTO, 10, 10, 0],
+        [GOTO, 0, 10, 0],
+        [GOTO, 10, 0, 0],
+        [GOTO, 0, 0, 0]
+    ],
+    nearTouchPath =
+    [
+        [GOTO, 10, 0, 0],
+        [GOTO, 5, 0.0005, 0],
+        [GOTO, 5, 10, 0]
+    ],
+    collinearOverlapPath =
+    [
+        [GOTO, 10, 0, 0],
+        [GOTO, 5, 0, 0],
+        [GOTO, 15, 0, 0]
+    ],
+    implicitClosureCrossingPath =
+    [
+        [GOTO, 10, 0, 0],
+        [GOTO, 0, 10, 0],
+        [GOTO, 10, 10, 0]
+    ],
     nearClosedTriangle =
     [
         [GOTO, 10, 0, 0], [GOTO, 5, 8, 0], [GOTO, 0.0005, 0, 0]
@@ -70,6 +95,15 @@ let(
     tinyResult = ValidateLogoPaths(tinyEdge),
     tinyIssues = ValidationIssues(tinyResult),
     tinyDisabledResult = ValidateLogoPaths(tinyEdge, tinyEdgeThreshold = 0),
+    crossingResult = ValidateLogoPaths(crossedPath),
+    crossingIssues = ValidationIssues(crossingResult),
+    crossingDisabledResult = ValidateLogoPaths(
+        crossedPath,
+        checkSelfIntersections = false
+    ),
+    nearTouchResult = ValidateLogoPaths(nearTouchPath),
+    collinearOverlapResult = ValidateLogoPaths(collinearOverlapPath),
+    implicitClosureResult = ValidateLogoPaths(implicitClosureCrossingPath),
     nearResult = ValidateLogoPaths(nearClosedTriangle, tolerance = 0.001),
     strictNearResult = ValidateLogoPaths(nearClosedTriangle, tolerance = 0.0001),
     emptyResult = ValidateLogoPaths([]),
@@ -208,6 +242,59 @@ let(
         "validation tiny-edge check can be disabled",
         ValidationIsValid(tinyDisabledResult),
         ValidationIssues(tinyDisabledResult)
+    ),
+    LogoTestResult(
+        "validation proper self-intersection issue",
+        len(crossingIssues) == 1
+        && ValidationIssueCode(crossingIssues[0])
+            == LOGO_VALIDATION_SELF_INTERSECTION
+        && ValidationIssueName(LOGO_VALIDATION_SELF_INTERSECTION)
+            == "self-intersection",
+        crossingIssues
+    ),
+    LogoTestResult(
+        "validation self-intersection segment pair indexes",
+        LogoPathSelfIntersectionPairs(ValidationPaths(crossingResult)[0]) == [[0, 2]],
+        LogoPathSelfIntersectionPairs(ValidationPaths(crossingResult)[0])
+    ),
+    LogoTestResult(
+        "validation self-intersection checking defaults on",
+        ValidationChecksSelfIntersections(crossingResult),
+        ValidationChecksSelfIntersections(crossingResult)
+    ),
+    LogoTestResult(
+        "validation self-intersection checking can be disabled",
+        ValidationIsValid(crossingDisabledResult)
+        && !ValidationChecksSelfIntersections(crossingDisabledResult),
+        [
+            ValidationIssues(crossingDisabledResult),
+            ValidationChecksSelfIntersections(crossingDisabledResult)
+        ]
+    ),
+    LogoTestResult(
+        "validation ordinary closed path has no crossing pairs",
+        LogoPathSelfIntersectionPairs(closedPaths[0]) == [],
+        LogoPathSelfIntersectionPairs(closedPaths[0])
+    ),
+    LogoTestResult(
+        "validation nonadjacent endpoint touch is not a proper crossing",
+        LogoPathSelfIntersectionPairs(ValidationPaths(duplicateResult)[0]) == [],
+        LogoPathSelfIntersectionPairs(ValidationPaths(duplicateResult)[0])
+    ),
+    LogoTestResult(
+        "validation tolerance-level near touch is not a proper crossing",
+        LogoPathSelfIntersectionPairs(ValidationPaths(nearTouchResult)[0]) == [],
+        LogoPathSelfIntersectionPairs(ValidationPaths(nearTouchResult)[0])
+    ),
+    LogoTestResult(
+        "validation collinear overlap is not a proper crossing",
+        LogoPathSelfIntersectionPairs(ValidationPaths(collinearOverlapResult)[0]) == [],
+        LogoPathSelfIntersectionPairs(ValidationPaths(collinearOverlapResult)[0])
+    ),
+    LogoTestResult(
+        "validation does not invent an implicit closing edge",
+        LogoPathSelfIntersectionPairs(ValidationPaths(implicitClosureResult)[0]) == [],
+        LogoPathSelfIntersectionPairs(ValidationPaths(implicitClosureResult)[0])
     ),
     LogoTestResult(
         "validation closure tolerance accepts near endpoint",

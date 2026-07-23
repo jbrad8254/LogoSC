@@ -372,9 +372,10 @@ ReportLogoValidation(cmds, strict = true);   // assert on issues
 `PENUP`/`PENDOWN` boundaries, primitive paths, and outer-versus-hole roles. That
 information cannot be reconstructed reliably from the filled-region result.
 `ValidateLogoPaths()` currently reports open paths, paths with fewer than three usable
-vertices, zero-length segments, duplicate nonconsecutive points, and tiny nonzero edges. Its
-tolerance defaults to `0.001`; the tiny-edge threshold defaults to `0.01` and can be disabled
-with `tinyEdgeThreshold = 0`.
+vertices, zero-length segments, duplicate nonconsecutive points, tiny nonzero edges, and proper
+self-intersections within one explicit path. Its tolerance defaults to `0.001`; the tiny-edge
+threshold defaults to `0.01`. Set `tinyEdgeThreshold = 0` or
+`checkSelfIntersections = false` to disable the corresponding check.
 
 The validator is deliberately opt-in. `evalLogo()` and `RenderLogo2D()` retain
 their established behavior, including OpenSCAD's implicit polygon-closing edge.
@@ -386,8 +387,8 @@ LogoSC currently targets closed polygons because that maps cleanly to OpenSCAD a
 3D printing. Open-stroke rendering is deferred to a later rendering milestone.
 
 Optional path validation now exists without changing filled-region behavior. Future
-validation work may add self-intersection and hole-containment checks. These checks should
-remain opt-in and must not invent a synthetic turtle move.
+validation work may add collinear-overlap, inter-contour, and hole-containment checks. These
+checks should remain opt-in and must not invent a synthetic turtle move.
 
 A future stroke renderer should probably convert centerline paths into closed
 outline polygons. That design needs explicit stroke width, end-cap style, join

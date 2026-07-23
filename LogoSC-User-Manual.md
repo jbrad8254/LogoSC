@@ -1094,12 +1094,13 @@ Roles distinguish `LOGO_PATH_ROLE_OUTER` from `LOGO_PATH_ROLE_HOLE`; kinds disti
 `LOGO_PATH_KIND_TURTLE` from `LOGO_PATH_KIND_PRIMITIVE`.
 
 `ValidateLogoPaths(cmds, tolerance = 0.001, state = ..., maxRec = ...,
-tinyEdgeThreshold = 0.01)` returns the path result, issue list, applied tolerance, and
-tiny-edge threshold. `tinyEdgeThreshold` is appended after the older arguments for positional
-call compatibility; normally set it by name. Its accessors are `ValidationPathResult()`,
+tinyEdgeThreshold = 0.01, checkSelfIntersections = true)` returns the path result, issue list,
+applied tolerance, tiny-edge threshold, and crossing-check setting. The newer options are
+appended after the older arguments for positional call compatibility; normally set them by
+name. Its accessors are `ValidationPathResult()`,
 `ValidationPaths()`, `ValidationIssues()`, `ValidationTolerance()`,
-`ValidationTinyEdgeThreshold()`, and `ValidationIsValid()`. Each issue is
-`[pathIndex, issueCode]`, inspected with
+`ValidationTinyEdgeThreshold()`, `ValidationChecksSelfIntersections()`, and
+`ValidationIsValid()`. Each issue is `[pathIndex, issueCode]`, inspected with
 `ValidationIssuePathIndex()`, `ValidationIssueCode()`, and `ValidationIssueName()`.
 Current issue codes are:
 
@@ -1108,6 +1109,7 @@ Current issue codes are:
 - `LOGO_VALIDATION_ZERO_LENGTH_SEGMENT`
 - `LOGO_VALIDATION_DUPLICATE_POINT`
 - `LOGO_VALIDATION_TINY_EDGE`
+- `LOGO_VALIDATION_SELF_INTERSECTION`
 
 Duplicate-point validation checks nonadjacent vertices within `tolerance` while ignoring the
 normal repeated first/last point of a closed contour. `LogoPathDuplicatePointPairs()` returns
@@ -1115,18 +1117,26 @@ the matching point-index pairs for detailed inspection. Tiny edges are not zero-
 `tolerance` but are no longer than `tinyEdgeThreshold`; set `tinyEdgeThreshold = 0` to disable
 that check.
 
+Self-intersection validation compares unique nonadjacent segment pairs within each explicit
+path. `LogoPathSelfIntersectionPairs()` returns matching segment-index pairs. The initial check
+reports proper interior crossings only: normal adjacent joins, the first/last join of a closed
+path, endpoint touches, collinear overlaps, separate-contour intersections, and imaginary
+implicit closing edges are excluded. The bounding-box-filtered pair scan has worst-case
+`O(S^2)` time for `S` segments and `O(K)` result storage for `K` crossings. Set
+`checkSelfIntersections = false` to skip it for highly tessellated paths.
+
 `ReportLogoValidation(cmds, tolerance = 0.001, strict = false,
-tinyEdgeThreshold = 0.01)` echoes readable warnings. Set `strict = true` to assert after
-reporting when issues exist.
+tinyEdgeThreshold = 0.01, checkSelfIntersections = true)` echoes readable warnings. Set
+`strict = true` to assert after reporting when issues exist.
 
 Validation is deliberately opt-in. It does not alter `evalLogo()`, `RenderLogo2D()`,
 or OpenSCAD's implicit closing edge. Explicit path evaluation preserves initial
 turtle points, `PENUP`/`PENDOWN` boundaries, primitive paths, and hole roles—details
 that cannot be inferred reliably from the filled-region result alone.
 
-The current suite does not yet detect self-intersections/crossings, hole containment, or hole
-overlap. Self-intersection belongs in this optional companion and can build on the same explicit
-path records without adding a Core dependency.
+The current suite does not yet detect collinear segment overlap, intersections between separate
+contours, hole containment, or hole overlap. Those require distinct semantics beyond proper
+self-intersection within one explicit path.
 
 ### 7.12 OpenSCAD wrapper pattern
 
@@ -2074,8 +2084,8 @@ A successful run ends with output equivalent to:
 
 ```text
 LogoSC suite result, Foundation, PASS, tests, 130, passed, 130, failed, 0
-LogoSC suite result, Validation, PASS, tests, 27, passed, 27, failed, 0
-LOGOSC_AUTOMATED_TEST_RESULT, PASS, suites, 2, failedSuites, 0, tests, 157, passed, 157, failed, 0
+LogoSC suite result, Validation, PASS, tests, 36, passed, 36, failed, 0
+LOGOSC_AUTOMATED_TEST_RESULT, PASS, suites, 2, failedSuites, 0, tests, 166, passed, 166, failed, 0
 ```
 
 Counts grow as tests are added; use the final `PASS`/`FAIL` value rather than hard-coding

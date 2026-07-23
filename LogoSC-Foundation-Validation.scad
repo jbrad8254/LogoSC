@@ -35,16 +35,19 @@ LOGO_VALIDATION_TOO_FEW_POINTS      = 2 + 0;
 LOGO_VALIDATION_ZERO_LENGTH_SEGMENT = 3 + 0;
 LOGO_VALIDATION_DUPLICATE_POINT     = 4 + 0;
 LOGO_VALIDATION_TINY_EDGE           = 5 + 0;
+LOGO_VALIDATION_SELF_INTERSECTION   = 6 + 0;
 
 // Issue record: [pathIndex, issueCode]
 LVI_PATH_INDEX = 0 + 0;
 LVI_CODE       = 1 + 0;
 
-// Validation result: [pathResult, issues, tolerance, tinyEdgeThreshold]
-LVR_PATH_RESULT         = 0 + 0;
-LVR_ISSUES              = 1 + 0;
-LVR_TOLERANCE           = 2 + 0;
-LVR_TINY_EDGE_THRESHOLD = 3 + 0;
+// Validation result:
+// [pathResult, issues, tolerance, tinyEdgeThreshold, checkSelfIntersections]
+LVR_PATH_RESULT              = 0 + 0;
+LVR_ISSUES                   = 1 + 0;
+LVR_TOLERANCE                = 2 + 0;
+LVR_TINY_EDGE_THRESHOLD      = 3 + 0;
+LVR_CHECK_SELF_INTERSECTIONS = 4 + 0;
 
 LOGO_VALIDATION_DEFAULT_TOLERANCE = 0.001 + 0;
 LOGO_VALIDATION_DEFAULT_TINY_EDGE_THRESHOLD = 0.01 + 0;
@@ -546,10 +549,117 @@ function LogoPathHasDuplicateNonconsecutivePoint(
     tolerance = LOGO_VALIDATION_DEFAULT_TOLERANCE) =
     len(LogoPathDuplicatePointPairs(path, tolerance)) > 0;
 
+function LogoValidationSubtract2D(a, b) =
+    [a[0] - b[0], a[1] - b[1]];
+
+function LogoValidationCross2D(a, b) =
+    a[0] * b[1] - a[1] * b[0];
+
+// Return -1, 0, or 1 according to which side of directed segment a-b the
+// point lies. Scaling tolerance by segment length is equivalent to comparing
+// perpendicular distance in the same units as the public tolerance.
+function LogoValidationSegmentSide(a, b, point, tolerance) =
+    let(
+        segmentLength = LogoValidationPointDistance(a, b),
+        crossValue = LogoValidationCross2D(
+            LogoValidationSubtract2D(b, a),
+            LogoValidationSubtract2D(point, a)
+        ),
+        scaledTolerance = tolerance * segmentLength
+    )
+    LogoValidationPointsNear(a, b, tolerance)
+    || abs(crossValue) <= scaledTolerance
+        ? 0
+        : crossValue < 0 ? -1 : 1;
+
+function LogoValidationRangesOverlap(
+    firstMin,
+    firstMax,
+    secondMin,
+    secondMax,
+    tolerance) =
+    firstMax >= secondMin - tolerance
+    && secondMax >= firstMin - tolerance;
+
+function LogoValidationSegmentBoundsOverlap(a, b, c, d, tolerance) =
+    LogoValidationRangesOverlap(
+        min(a[0], b[0]),
+        max(a[0], b[0]),
+        min(c[0], d[0]),
+        max(c[0], d[0]),
+        tolerance
+    )
+    && LogoValidationRangesOverlap(
+        min(a[1], b[1]),
+        max(a[1], b[1]),
+        min(c[1], d[1]),
+        max(c[1], d[1]),
+        tolerance
+    );
+
+// Detect a proper interior intersection. A side value of zero represents an
+// endpoint touch, collinearity, or a tolerance-level near touch and is excluded.
+function LogoValidationSegmentsProperlyCross(a, b, c, d, tolerance) =
+    !LogoValidationSegmentBoundsOverlap(a, b, c, d, tolerance)
+        ? false
+        : let(
+            cSide = LogoValidationSegmentSide(a, b, c, tolerance),
+            dSide = LogoValidationSegmentSide(a, b, d, tolerance),
+            aSide = LogoValidationSegmentSide(c, d, a, tolerance),
+            bSide = LogoValidationSegmentSide(c, d, b, tolerance)
+        )
+        cSide * dSide < 0 && aSide * bSide < 0;
+
+function LogoPathSegmentsAreAdjacent(path, firstIndex, secondIndex, tolerance) =
+    secondIndex == firstIndex + 1
+    || (
+        firstIndex == 0
+        && secondIndex == PathSegmentCount(path) - 1
+        && PathIsClosed(path, tolerance)
+    );
+
+// Return [firstSegmentIndex, secondSegmentIndex] for every proper crossing in
+// one explicit path. This intentionally does not invent an implicit closing edge.
+function LogoPathSelfIntersectionPairs(
+    path,
+    tolerance = LOGO_VALIDATION_DEFAULT_TOLERANCE) =
+    let(
+        points = PathPoints(path),
+        segmentCount = PathSegmentCount(path)
+    )
+    segmentCount < 3
+        ? []
+        : [
+            for (firstIndex = [0 : segmentCount - 2])
+                for (secondIndex = [firstIndex + 1 : segmentCount - 1])
+                    if (
+                        !LogoPathSegmentsAreAdjacent(
+                            path,
+                            firstIndex,
+                            secondIndex,
+                            tolerance
+                        )
+                        && LogoValidationSegmentsProperlyCross(
+                            points[firstIndex],
+                            points[firstIndex + 1],
+                            points[secondIndex],
+                            points[secondIndex + 1],
+                            tolerance
+                        )
+                    )
+                    [firstIndex, secondIndex]
+        ];
+
+function LogoPathHasSelfIntersection(
+    path,
+    tolerance = LOGO_VALIDATION_DEFAULT_TOLERANCE) =
+    len(LogoPathSelfIntersectionPairs(path, tolerance)) > 0;
+
 function LogoPathIssueCodes(
     path,
     tolerance = LOGO_VALIDATION_DEFAULT_TOLERANCE,
-    tinyEdgeThreshold = LOGO_VALIDATION_DEFAULT_TINY_EDGE_THRESHOLD) =
+    tinyEdgeThreshold = LOGO_VALIDATION_DEFAULT_TINY_EDGE_THRESHOLD,
+    checkSelfIntersections = true) =
     concat(
         PathVertexCount(path, tolerance) < 3
             ? [LOGO_VALIDATION_TOO_FEW_POINTS]
@@ -565,6 +675,13 @@ function LogoPathIssueCodes(
             : [],
         LogoPathHasTinyEdge(path, tolerance, tinyEdgeThreshold)
             ? [LOGO_VALIDATION_TINY_EDGE]
+            : [],
+        checkSelfIntersections
+            ? (
+                LogoPathHasSelfIntersection(path, tolerance)
+                    ? [LOGO_VALIDATION_SELF_INTERSECTION]
+                    : []
+            )
             : []
     );
 
@@ -591,18 +708,22 @@ function ValidationIssueName(code) =
         ? "duplicate nonconsecutive point"
     : code == LOGO_VALIDATION_TINY_EDGE
         ? "tiny edge"
+    : code == LOGO_VALIDATION_SELF_INTERSECTION
+        ? "self-intersection"
     : str("unknown validation issue ", code);
 
 function LogoValidationResult(
     pathResult,
     issues,
     tolerance,
-    tinyEdgeThreshold = LOGO_VALIDATION_DEFAULT_TINY_EDGE_THRESHOLD) =
+    tinyEdgeThreshold = LOGO_VALIDATION_DEFAULT_TINY_EDGE_THRESHOLD,
+    checkSelfIntersections = true) =
 [
     pathResult,
     issues,
     tolerance,
-    tinyEdgeThreshold
+    tinyEdgeThreshold,
+    checkSelfIntersections
 ];
 
 function ValidationPathResult(result) =
@@ -620,6 +741,9 @@ function ValidationTolerance(result) =
 function ValidationTinyEdgeThreshold(result) =
     result[LVR_TINY_EDGE_THRESHOLD];
 
+function ValidationChecksSelfIntersections(result) =
+    result[LVR_CHECK_SELF_INTERSECTIONS];
+
 function ValidationIsValid(result) =
     len(ValidationIssues(result)) == 0;
 
@@ -630,7 +754,8 @@ function ValidateLogoPaths(
     tolerance = LOGO_VALIDATION_DEFAULT_TOLERANCE,
     state = stateGoto(0, 0, 0, 1),
     maxRec = maxRunRecursions,
-    tinyEdgeThreshold = LOGO_VALIDATION_DEFAULT_TINY_EDGE_THRESHOLD) =
+    tinyEdgeThreshold = LOGO_VALIDATION_DEFAULT_TINY_EDGE_THRESHOLD,
+    checkSelfIntersections = true) =
     let(
         pathResult = evalLogoPaths(vtCmds, state, maxRec),
         paths = PathResultPaths(pathResult),
@@ -641,12 +766,19 @@ function ValidateLogoPaths(
                     for (code = LogoPathIssueCodes(
                         paths[pathIndex],
                         tolerance,
-                        tinyEdgeThreshold
+                        tinyEdgeThreshold,
+                        checkSelfIntersections
                     ))
                         LogoValidationIssue(pathIndex, code)
             ]
     )
-    LogoValidationResult(pathResult, issues, tolerance, tinyEdgeThreshold);
+    LogoValidationResult(
+        pathResult,
+        issues,
+        tolerance,
+        tinyEdgeThreshold,
+        checkSelfIntersections
+    );
 
 // Print validation diagnostics. strict=false reports warnings and continues;
 // strict=true asserts after reporting when any issue exists.
@@ -654,12 +786,14 @@ module ReportLogoValidation(
     vtCmds,
     tolerance = LOGO_VALIDATION_DEFAULT_TOLERANCE,
     strict = false,
-    tinyEdgeThreshold = LOGO_VALIDATION_DEFAULT_TINY_EDGE_THRESHOLD)
+    tinyEdgeThreshold = LOGO_VALIDATION_DEFAULT_TINY_EDGE_THRESHOLD,
+    checkSelfIntersections = true)
 {
     result = ValidateLogoPaths(
         vtCmds,
         tolerance = tolerance,
-        tinyEdgeThreshold = tinyEdgeThreshold
+        tinyEdgeThreshold = tinyEdgeThreshold,
+        checkSelfIntersections = checkSelfIntersections
     );
     paths = ValidationPaths(result);
 

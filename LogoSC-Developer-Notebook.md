@@ -42,6 +42,7 @@
 - [Standalone Core and optional companions](#2026-07-20--standalone-core-and-optional-companion-boundary)
 - [Optional path validation implementation](#2026-07-20--optional-path-analysis-and-validation)
 - [Duplicate-point and tiny-edge validation](#2026-07-22--duplicate-point-and-tiny-edge-validation)
+- [Proper self-intersection validation](#2026-07-22--proper-self-intersection-validation)
 
 ### Documentation and workflow
 
@@ -274,8 +275,8 @@ Verified working state:
 Known open design issues:
 
 - Decide how validation should detect invalid hole containment or overlap.
-- Decide whether crossing/self-intersecting paths should merely be user-visible via debug
-  rendering, emit warnings, fail in hard-error mode, or remain entirely user responsibility.
+- Decide how future validation should classify collinear overlaps and intersections between
+  separate contours or hole boundaries.
 - README already includes a verified debug-overlay screenshot. Add another manual screenshot
   only if it teaches something the existing image does not.
 - Prepare a future release only after post-`v2026.2` work forms a coherent, verified milestone.
@@ -619,10 +620,10 @@ changes, verify links, headings, code examples, and retained accepted content.
 
 Near-term candidates:
 
-- expand optional validation with self-intersection and hole-containment checks where they
-  provide clear value;
+- expand optional validation with hole-containment, contour-overlap, and collinear-overlap checks
+  where they provide clear value;
 - expand the non-rendering evaluator and validation suites alongside eventual open-path support;
-- decide whether self-intersections need warnings, strict validation, or only debug visibility;
+- decide how collinear and inter-contour intersections should be classified and reported;
 - continue manufacturable stroke experiments separately from `RenderLogoDebug()` and
   `RenderLogo2D()`;
 - document recursion and generated command lists more fully;
@@ -2492,3 +2493,38 @@ Consequences:
 - Basic users still include only `LogoSC-Foundation-Core.scad`; validation users explicitly add
   the companion file.
 - The complete automated suite now contains 157 immutable results, all passing after this change.
+
+### 2026-07-22 — Proper self-intersection validation
+
+Context:
+
+- Debug rendering made crossings visible but did not provide a machine-readable validation
+  result.
+- The explicit path representation already preserves the real consecutive segments, including
+  pen boundaries and primitive closure, without inventing OpenSCAD's implicit closing edge.
+- A sweep-line algorithm offers a better asymptotic bound but requires event queues, active-set
+  ordering, and difficult degeneracy handling that are disproportionate in OpenSCAD.
+
+Decision:
+
+- Add `LOGO_VALIDATION_SELF_INTERSECTION` and enable proper within-path crossing checks by
+  default whenever users explicitly call the optional validator.
+- Return diagnostic segment-index pairs from `LogoPathSelfIntersectionPairs()` and use
+  bounding-box rejection followed by tolerance-aware orientation tests.
+- Exclude adjacent joins, the first/last join of a closed path, endpoint touches, collinear
+  overlaps, separate-contour intersections, and hypothetical implicit closing edges. Treat those
+  as valid joins or separately specified future validation problems rather than conflating them.
+- Append `checkSelfIntersections` to the validation APIs and result record. Allow users to set it
+  to `false` for highly tessellated paths.
+- Accept `O(S^2)` worst-case time for `S` segments, with `O(K)` result storage for `K` crossings.
+  Do not implement a sweep-line or spatial index unless measurements on real models demonstrate
+  a material bottleneck.
+
+Consequences:
+
+- Crossing detection remains isolated in `LogoSC-Foundation-Validation.scad`; Core evaluation
+  and rendering remain unchanged.
+- Nine focused tests cover a bow-tie crossing, reported pair indexes, default and disabled
+  behavior, normal closure, endpoint contact, tolerance-level contact, collinear overlap, and
+  the absence of a synthetic closing edge.
+- The complete Foundation and Validation suites now contain 166 immutable results.

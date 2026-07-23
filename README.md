@@ -76,7 +76,7 @@ open endpoints, crossing paths, pen-up travel, arc tessellation, and primitive-g
 A complete test run ends with per-suite totals and one machine-readable result such as:
 
 ```text
-LOGOSC_AUTOMATED_TEST_RESULT, PASS, suites, 2, failedSuites, 0, tests, 157, passed, 157, failed, 0
+LOGOSC_AUTOMATED_TEST_RESULT, PASS, suites, 2, failedSuites, 0, tests, 166, passed, 166, failed, 0
 ```
 
 Set `LogoTestReportLevel = 2` to list every named automated test; the default level `1`
@@ -162,9 +162,10 @@ RenderLogo2D(triangle);
 ```
 
 Basic models need only Core. The optional validator currently detects open paths, too few
-usable vertices, zero-length segments, duplicate nonconsecutive points, and tiny nonzero edges.
-Use `ReportLogoValidation(triangle, strict = true)` when any issue should stop evaluation.
-Self-intersection/crossing validation is planned but is not yet implemented.
+usable vertices, zero-length segments, duplicate nonconsecutive points, tiny nonzero edges, and
+proper self-intersections. Use `ReportLogoValidation(triangle, strict = true)` when any issue
+should stop evaluation. Set `checkSelfIntersections = false` for highly tessellated paths when
+the quadratic crossing scan is not wanted.
 
 ## Current public API
 
@@ -189,11 +190,12 @@ Optional path-analysis helpers in `LogoSC-Foundation-Validation.scad` include:
 
 ```scad
 evalLogoPaths(cmds);
-ValidateLogoPaths(cmds, tolerance = 0.001, ..., tinyEdgeThreshold = 0.01);
-ReportLogoValidation(cmds, tolerance = 0.001, strict = false, tinyEdgeThreshold = 0.01);
+ValidateLogoPaths(cmds, ..., tinyEdgeThreshold = 0.01, checkSelfIntersections = true);
+ReportLogoValidation(cmds, ..., strict = false, checkSelfIntersections = true);
 ValidationPaths(result);
 ValidationIssues(result);
 ValidationTinyEdgeThreshold(result);
+ValidationChecksSelfIntersections(result);
 ValidationIsValid(result);
 ```
 
@@ -273,7 +275,7 @@ more advanced topology checks remain future work.
 
 ## Near-term roadmap
 
-- Expand optional validation with self-intersection and hole-containment checks.
+- Expand optional validation with hole-containment and contour-overlap checks.
 - Keep manufacturable stroke rendering as a separate API with explicit width, cap, and join semantics.
 
 ## Requirements

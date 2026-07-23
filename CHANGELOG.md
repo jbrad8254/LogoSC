@@ -40,7 +40,11 @@
 - Expanded the optional validation companion with duplicate-nonconsecutive-point and configurable
   tiny-edge detection, keeping the repeated closing point valid and allowing the tiny-edge check
   to be disabled. Added focused automated coverage and Quick Start setup documentation while
-  retaining self-intersection/crossing analysis as the next optional validation increment.
+  retaining the companion boundary outside Core.
+- Added optional proper self-intersection detection within each explicit path, diagnostic
+  segment-index pairs, tolerance-aware orientation tests, bounding-box rejection, and a switch
+  for disabling the quadratic scan on highly tessellated paths. Endpoint touches, collinear
+  overlaps, separate-contour intersections, and implicit closing edges remain excluded.
 
 ## [2026.2.1] - 2026-07-21
 
