@@ -245,9 +245,10 @@ six profile names, and use an `800,450` image. The head images use a short bolt 
 their drive-side view was selected with `--camera '0,0,0,235,0,25,50'`. The headless image uses
 the opposite `55`-degree X rotation because its drive is at the free shaft end.
 
-The fastener Customizer guide gives the complete tested PowerShell commands for both an ordinary
-profile PNG and the three-start algorithm figure, together with the polar-mapping equations and
-sampling-cost discussion. See [How the thread algorithm works][fastener-algorithm].
+The fastener Customizer guide gives complete tested PowerShell commands for echoing the expanded
+LogoSC profile command list, exporting an ordinary profile PNG, and reproducing the sampled
+three-start algorithm figure. It also documents the polar mapping and exact sampling counts.
+See [How the thread algorithm works][fastener-algorithm].
 
 ## Example 4: export a normal model
 

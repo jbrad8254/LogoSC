@@ -2440,13 +2440,19 @@ Decision:
 - Document the point mapping, slice equations, overrun and clipping behavior, and the nominal
   `O(s * n * k)` ridge-mesh cost for `s = nStarts`, `n` sampled seed points, and `k` slices.
   Keep CGAL boolean complexity separate because it depends on geometry and implementation.
+- State the implementation boundary directly: native OpenSCAD calculates the profile points;
+  LogoSC expands and evaluates the closed 2D contour; native OpenSCAD then resamples, wraps,
+  extrudes, and performs booleans. Show the actual symbolic LogoSC command list rather than only
+  naming `FastenerLogoPath()` and `evalLogo()`.
 - Add `Algorithm Figure` output to the standalone fastener model, plus the space-free
   command-line alias `Algorithm` for OpenSCAD 2021.01 on Windows.
 - Generate `images/fastener-thread-wrapping-three-start.png` from the actual LogoSC evaluation
   and polar-mapping routines. The left panel shows three pitch-spaced axial profiles; the right
   panel shows their three 120-degree-spaced polar seeds, equivalent to the unextruded input
-  slice.
-- Add exact tested PowerShell commands for the normal profile PNG and the mapping figure.
+  slice. Mark the exact resampled contour points and label the 28-samples-per-start result.
+- Echo the generated point and LogoSC command arrays from `Profile` mode, report contour and
+  sample totals from `Algorithm Figure`, and add exact tested PowerShell commands for the echo,
+  normal profile PNG, and mapping figure.
 
 Consequences:
 

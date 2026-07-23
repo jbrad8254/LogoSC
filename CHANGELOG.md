@@ -30,9 +30,11 @@
   four-times-resolution fastener assembly PNG is generated with Customizer overrides, camera
   framing, explicit pixel dimensions, and elapsed-time reporting.
 - Documented the fastener thread algorithm, its main routines and variables, `nStarts`
-  multi-start phase construction, and profile/slice complexity. Added a reproducible
-  `Algorithm Figure` output, exact profile and figure export commands, and
-  `images/fastener-thread-wrapping-three-start.png` generated from the real polar seed.
+  multi-start phase construction, the actual generated LogoSC command list, contour expansion,
+  exact resampling counts, and profile/slice complexity. Added profile-command console
+  diagnostics, a reproducible sampled `Algorithm Figure` output, exact echo/profile/figure
+  commands, and `images/fastener-thread-wrapping-three-start.png` generated from the real polar
+  seed and sample arrays.
 - Kept the Core API unchanged: LogoSC supplies evaluated 2D profiles, while the new model uses
   native OpenSCAD twisted extrusion, cylinders, clipping, and boolean subtraction for 3D output.
 

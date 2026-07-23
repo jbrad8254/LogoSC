@@ -1258,9 +1258,12 @@ module RenderSelectedThreadProfile()
 {
     pitch = FastenerPitch(ScrewSize);
     baseDepth = 0.2 * pitch;
-    profileCommands =
-        FastenerLogoPath(FastenerProfilePoints(ThreadProfile, pitch));
+    profilePoints = FastenerProfilePoints(ThreadProfile, pitch);
+    profileCommands = FastenerLogoPath(profilePoints);
     baseCommands = [[RECT, pitch, baseDepth]];
+
+    echo("LogoSC fastener profile points", profilePoints);
+    echo("LogoSC fastener profile commands", profileCommands);
 
     linear_extrude(
         height = max(0.5, 0.3 * pitch),
@@ -1288,14 +1291,45 @@ module RenderFastenerAlgorithmFigure()
     profileCommands = FastenerLogoPath(profilePoints);
     profileDepth = FastenerProfileDepth(ThreadProfile, pitch);
     coreRadius = diameter / 2 - profileDepth;
+    profileResult = evalLogo(profileCommands);
+    profileRegions = ResultContours(profileResult);
+    profileContours =
+    [
+        for (region = profileRegions)
+            if (len(RegionOuter(region)) >= 3)
+                RegionOuter(region)
+    ];
+    profileContour = profileContours[0];
+    sampledContour = FastenerResampleContour(profileContour, lead);
+    wrappedSampledContour =
+    [
+        for (point = sampledContour)
+            FastenerWrapPoint(
+                point,
+                coreRadius,
+                lead,
+                FastenerTwistDirection(Handedness)
+            )
+    ];
     baseDepth = max(0.12 * pitch, 0.08);
     panelSpan = max(lead, diameter);
     panelOffset = 0.78 * panelSpan;
     labelSize = max(0.35 * pitch, 0.6);
     figureHeight = max(0.3, 0.18 * pitch);
+    markerRadius = max(0.025 * pitch, 0.04);
 
     assert(nStarts >= 1, "ThreadStarts must be at least one.");
+    assert(len(profileContours) == 1, "Algorithm figure expects one profile contour.");
     assert(coreRadius > 0, "Thread profile is too deep for this diameter.");
+
+    echo(
+        "LogoSC fastener algorithm figure",
+        "profileCommands", profileCommands,
+        "evaluatedContourPoints", len(profileContour),
+        "samplesPerStart", len(sampledContour),
+        "nStarts", nStarts,
+        "totalSeedSamples", nStarts * len(sampledContour)
+    );
 
     color("lightsteelblue")
     {
@@ -1378,9 +1412,54 @@ module RenderFastenerAlgorithmFigure()
 
     color("black")
     {
+        for (startIndex = [0 : nStarts - 1])
+        {
+            translate(
+                [
+                    -panelOffset
+                        + (startIndex - (nStarts - 1) / 2) * pitch,
+                    0,
+                    figureHeight
+                ])
+            {
+                for (point = sampledContour)
+                {
+                    translate([point[0], point[1], 0])
+                    {
+                        linear_extrude(height = FastenerEpsilon, center = false)
+                        {
+                            circle(r = markerRadius, $fn = 12);
+                        }
+                    }
+                }
+            }
+
+            translate([panelOffset, 0, figureHeight])
+            {
+                rotate([0, 0, startIndex * 360 / nStarts])
+                {
+                    for (point = wrappedSampledContour)
+                    {
+                        translate([point[0], point[1], 0])
+                        {
+                            linear_extrude(
+                                height = FastenerEpsilon,
+                                center = false)
+                            {
+                                circle(r = markerRadius, $fn = 12);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         for (label =
             [
-                [-panelOffset, str(nStarts, " axial profiles")],
+                [
+                    -panelOffset,
+                    str(len(sampledContour), " samples/start")
+                ],
                 [ panelOffset, str("nStarts = ", nStarts, " polar seed")]
             ])
         {

@@ -89,6 +89,54 @@ into the helical ridge later joined to a cylindrical core. `RenderFastenerThread
 that core, clips the ridge to the requested length and chamfers, and is also reused as the
 slightly enlarged cutter subtracted from a nut.
 
+### Where LogoSC is actually used
+
+LogoSC is used, but only for the 2D contour stage. The division of work is:
+
+- Native OpenSCAD functions calculate the profile's axial/radial point coordinates from the
+  selected pitch and profile ratios.
+- `FastenerLogoPath()` expands those points into a LogoSC command list. `evalLogo()` evaluates
+  that list into a LogoSC region, and `RenderLogo2D()` renders it in `Profile` and
+  `Algorithm Figure` modes.
+- Native OpenSCAD code then resamples the evaluated LogoSC contour, maps it into polar XY
+  coordinates, applies `linear_extrude(twist)`, and performs the cylinders and booleans.
+
+Thus LogoSC supplies the authoritative closed 2D ridge contour, but it does not calculate the
+thread proportions or perform the helical or 3D work. The generated profile uses absolute
+`GOTO` commands rather than relative `MOVE` and `TURN` commands because its coordinates come
+from the selected pitch and profile equations.
+
+For the three-start figure below (`CustomPitch = 3`, V60),
+`FastenerProfilePoints()` first returns:
+
+```scad
+[
+    [-1.24999, 0],
+    [-0.1875, 1.84029],
+    [ 0.1875, 1.84029],
+    [ 1.24999, 0]
+]
+```
+
+`FastenerLogoPath()` expands those four points into this actual LogoSC command list:
+
+```scad
+profileCommands =
+[
+    [PENUP],
+    [GOTO, -1.24999, 0, 0],
+    [PENDOWN],
+    [GOTO, -0.1875, 1.84029, 0],
+    [GOTO,  0.1875, 1.84029, 0],
+    [GOTO,  1.24999, 0, 0],
+    [GOTO, -1.24999, 0, 0]
+];
+```
+
+The final `GOTO` closes the ridge explicitly. LogoSC's opcodes are integer constants, so the
+OpenSCAD console prints the same list as `[[9], [4, ...], [10], ...]`; symbolically these are
+`PENUP = 9`, `GOTO = 4`, and `PENDOWN = 10`.
+
 The transformation proceeds as follows:
 
 1. `FastenerProfilePoints()` constructs one ridge in conventional axial/radial coordinates.
@@ -140,8 +188,43 @@ an exact slice height ensures the requested resolution and twist remain phase-co
 
 The left panel shows three V60 profiles at pitch spacing. The right panel is the actual polar
 seed for `nStarts = 3`, viewed straight down the thread axis. It is effectively the unextruded
-slice passed to `linear_extrude(twist)`; the light-blue circle is the core and the three gold
-lobes are the ridge seeds.
+slice passed to `linear_extrude(twist)`; the light-blue circle is the core, the three gold lobes
+are the ridge seeds, and the black dots are the resampled contour points.
+
+### How expansion and sampling work
+
+The four profile points become seven LogoSC commands because setup needs `PENUP`, the first
+`GOTO`, and `PENDOWN`, while explicit closure adds the last `GOTO`. Evaluating that list produces
+one usable contour with five points: the four corners plus the repeated closing point. The
+evaluation result also retains the empty initial region that precedes `PENDOWN`;
+`RenderFastenerThreadSeed()` ignores regions whose outer contour has fewer than three points.
+
+`FastenerResampleContour()` visits the four unique contour edges. For endpoints `a` and `b`,
+`FastenerProfileSegmentSamples()` selects:
+
+```text
+edgeSamples = max(
+    1,
+    ceil(abs(b[0] - a[0]) * ProfileSamplesPerTurn / lead),
+    ceil(abs(b[1] - a[1]) * ProfileSamplesPerTurn / (2 * lead))
+)
+```
+
+For the displayed values, `ProfileSamplesPerTurn = 48`, `pitch = 3`, and `nStarts = 3`, so
+`lead = 9`. The two sloping flanks receive 6 samples each, the crest receives 2, and the closing
+base receives 14. That produces `6 + 2 + 6 + 14 = 28` points per start. Each edge emits its
+starting point and intermediate samples but not its endpoint; the next edge emits that endpoint,
+so adjacent edges do not duplicate points.
+
+Axial distance gets the stronger sampling weight because it becomes angular travel in the polar
+map; radial distance uses the `2 * lead` denominator. The long closing base therefore receives
+the most samples: after wrapping, it is the inner circular boundary of the ridge seed. Without
+those intermediate points it would become one straight chord cutting across the core.
+
+`FastenerWrapPoint()` maps all 28 points into the first polar seed. Rotating that seed for three
+starts produces `3 * 28 = 84` seed points in each extrusion slice. The figure is generated from
+those exact arrays, and its console diagnostic reports `evaluatedContourPoints = 5`,
+`samplesPerStart = 28`, `nStarts = 3`, and `totalSeedSamples = 84`.
 
 ### Sampling cost
 
@@ -160,12 +243,35 @@ number of axial slices. Final CGAL union, intersection, and subtraction time is
 implementation- and geometry-dependent and does not have a useful simple `O(n)` bound here; in
 practice those booleans dominate full renders.
 
-### Generate the profile and mapping figure from the command line
+### Echo the LogoSC commands and generate the images
+
+`Profile` mode echoes both the calculated point list and expanded LogoSC command list. This
+tested PowerShell command captures them without exporting a mesh or image:
+
+```powershell
+$openScadCli = 'C:\Program Files\OpenSCAD\openscad.com'
+$profileEchoPath = Join-Path $env:TEMP 'LogoSC-fastener-profile.echo'
+
+& $openScadCli `
+    -D 'Part=\"Profile\"' `
+    -D 'ScrewSize=\"Custom\"' `
+    -D 'CustomDiameter=10' `
+    -D 'CustomPitch=3' `
+    -D 'ThreadProfile=\"V60\"' `
+    -o $profileEchoPath `
+    'LogoSC-Nuts-And-Bolts.scad'
+
+if ($LASTEXITCODE -ne 0)
+{
+    throw "OpenSCAD profile evaluation failed with exit code $LASTEXITCODE."
+}
+
+Get-Content -LiteralPath $profileEchoPath
+```
 
 This tested PowerShell command exports the ordinary M8 V60 profile to a temporary PNG:
 
 ```powershell
-$openScadCli = 'C:\Program Files\OpenSCAD\openscad.com'
 $profilePngPath = Join-Path $env:TEMP 'LogoSC-fastener-profile.png'
 
 & $openScadCli `
