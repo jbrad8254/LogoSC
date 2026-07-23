@@ -41,6 +41,7 @@
 - [Indexed debug-renderer gallery](#2026-07-20--indexed-debug-renderer-gallery)
 - [Standalone Core and optional companions](#2026-07-20--standalone-core-and-optional-companion-boundary)
 - [Optional path validation implementation](#2026-07-20--optional-path-analysis-and-validation)
+- [Duplicate-point and tiny-edge validation](#2026-07-22--duplicate-point-and-tiny-edge-validation)
 
 ### Documentation and workflow
 
@@ -272,8 +273,7 @@ Verified working state:
 
 Known open design issues:
 
-- Decide whether validation should later detect tiny edges, duplicate nonconsecutive points,
-  and invalid hole containment or overlap.
+- Decide how validation should detect invalid hole containment or overlap.
 - Decide whether crossing/self-intersecting paths should merely be user-visible via debug
   rendering, emit warnings, fail in hard-error mode, or remain entirely user responsibility.
 - README already includes a verified debug-overlay screenshot. Add another manual screenshot
@@ -619,8 +619,8 @@ changes, verify links, headings, code examples, and retained accepted content.
 
 Near-term candidates:
 
-- expand optional validation with self-intersection, tiny-edge, duplicate-point, and
-  hole-containment checks where they provide clear value;
+- expand optional validation with self-intersection and hole-containment checks where they
+  provide clear value;
 - expand the non-rendering evaluator and validation suites alongside eventual open-path support;
 - decide whether self-intersections need warnings, strict validation, or only debug visibility;
 - continue manufacturable stroke experiments separately from `RenderLogoDebug()` and
@@ -2462,3 +2462,33 @@ Consequences:
   handedness, and number of starts rather than becoming a detached hand-drawn diagram.
 - LogoSC Core and its stable public API remain unchanged; the new output belongs only to the
   standalone fastener demonstration.
+
+### 2026-07-22 — Duplicate-point and tiny-edge validation
+
+Context:
+
+- The optional validator detected open paths, too-few-points paths, and zero-length segments,
+  but it did not distinguish small nonzero edges or repeated nonadjacent vertices.
+- Advanced validation is useful for complicated contours, but ordinary LogoSC models should
+  continue to require only the standalone Core file.
+- Self-intersection/crossing analysis is planned next and may be substantially more expensive
+  than the basic per-path checks.
+
+Decision:
+
+- Keep all validation outside Core in `LogoSC-Foundation-Validation.scad`; users opt in with an
+  explicit second include rather than relying on a missing-file probe.
+- Add duplicate nonconsecutive-point detection using the validation tolerance. Exclude the
+  legitimate repeated first/last point of a closed contour and expose matching index pairs for
+  diagnosis.
+- Add tiny-edge detection for segments not classified as zero-length under the tolerance and no
+  longer than `tinyEdgeThreshold`, defaulting to `0.01`. Allow zero to disable the check.
+- Append the new threshold to existing validation result and call signatures so older positional
+  arguments retain their meaning. Reserve self-intersection as a later optional validator built
+  on the same explicit paths rather than adding it to Core.
+
+Consequences:
+
+- Basic users still include only `LogoSC-Foundation-Core.scad`; validation users explicitly add
+  the companion file.
+- The complete automated suite now contains 157 immutable results, all passing after this change.

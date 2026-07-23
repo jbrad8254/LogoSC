@@ -33,17 +33,21 @@ LPR_PEN   = 3 + 0;
 LOGO_VALIDATION_OPEN_PATH           = 1 + 0;
 LOGO_VALIDATION_TOO_FEW_POINTS      = 2 + 0;
 LOGO_VALIDATION_ZERO_LENGTH_SEGMENT = 3 + 0;
+LOGO_VALIDATION_DUPLICATE_POINT     = 4 + 0;
+LOGO_VALIDATION_TINY_EDGE           = 5 + 0;
 
 // Issue record: [pathIndex, issueCode]
 LVI_PATH_INDEX = 0 + 0;
 LVI_CODE       = 1 + 0;
 
-// Validation result: [pathResult, issues, tolerance]
-LVR_PATH_RESULT = 0 + 0;
-LVR_ISSUES      = 1 + 0;
-LVR_TOLERANCE   = 2 + 0;
+// Validation result: [pathResult, issues, tolerance, tinyEdgeThreshold]
+LVR_PATH_RESULT         = 0 + 0;
+LVR_ISSUES              = 1 + 0;
+LVR_TOLERANCE           = 2 + 0;
+LVR_TINY_EDGE_THRESHOLD = 3 + 0;
 
 LOGO_VALIDATION_DEFAULT_TOLERANCE = 0.001 + 0;
+LOGO_VALIDATION_DEFAULT_TINY_EDGE_THRESHOLD = 0.01 + 0;
 LOGO_PATH_CONTINUITY_TOLERANCE = 0.000000001 + 0;
 
 function LogoPath(role, kind, points, sourceOp = undef, explicitlyClosed = false) =
@@ -479,7 +483,73 @@ function LogoPathHasZeroLengthSegment(
             ? true
             : LogoPathHasZeroLengthSegment(path, tolerance, index + 1);
 
-function LogoPathIssueCodes(path, tolerance = LOGO_VALIDATION_DEFAULT_TOLERANCE) =
+function LogoValidationPointDistance(a, b) =
+    sqrt(pow(a[0] - b[0], 2) + pow(a[1] - b[1], 2));
+
+// A tiny edge is not classified as zero-length under the tolerance, but is no
+// longer than the configured threshold. Set the threshold to zero to disable.
+function LogoPathHasTinyEdge(
+    path,
+    tolerance = LOGO_VALIDATION_DEFAULT_TOLERANCE,
+    tinyEdgeThreshold = LOGO_VALIDATION_DEFAULT_TINY_EDGE_THRESHOLD,
+    index = 0) =
+    tinyEdgeThreshold <= tolerance || index >= PathSegmentCount(path)
+        ? false
+        : let(
+            edgeLength = LogoValidationPointDistance(
+                PathPoints(path)[index],
+                PathPoints(path)[index + 1]
+            )
+        )
+        !LogoValidationPointsNear(
+            PathPoints(path)[index],
+            PathPoints(path)[index + 1],
+            tolerance
+        )
+        && edgeLength <= tinyEdgeThreshold
+            ? true
+            : LogoPathHasTinyEdge(path, tolerance, tinyEdgeThreshold, index + 1);
+
+function LogoPathDuplicatePointPairs(
+    path,
+    tolerance = LOGO_VALIDATION_DEFAULT_TOLERANCE) =
+    let(
+        points = PathPoints(path),
+        pointCount = len(points)
+    )
+    pointCount < 3
+        ? []
+        : [
+            for (firstIndex = [0 : pointCount - 3])
+                for (secondIndex = [firstIndex + 2 : pointCount - 1])
+                    if (
+                        !(
+                            firstIndex == 0
+                            && secondIndex == pointCount - 1
+                            && LogoValidationPointsNear(
+                                points[firstIndex],
+                                points[secondIndex],
+                                tolerance
+                            )
+                        )
+                        && LogoValidationPointsNear(
+                            points[firstIndex],
+                            points[secondIndex],
+                            tolerance
+                        )
+                    )
+                    [firstIndex, secondIndex]
+        ];
+
+function LogoPathHasDuplicateNonconsecutivePoint(
+    path,
+    tolerance = LOGO_VALIDATION_DEFAULT_TOLERANCE) =
+    len(LogoPathDuplicatePointPairs(path, tolerance)) > 0;
+
+function LogoPathIssueCodes(
+    path,
+    tolerance = LOGO_VALIDATION_DEFAULT_TOLERANCE,
+    tinyEdgeThreshold = LOGO_VALIDATION_DEFAULT_TINY_EDGE_THRESHOLD) =
     concat(
         PathVertexCount(path, tolerance) < 3
             ? [LOGO_VALIDATION_TOO_FEW_POINTS]
@@ -489,6 +559,12 @@ function LogoPathIssueCodes(path, tolerance = LOGO_VALIDATION_DEFAULT_TOLERANCE)
             : [LOGO_VALIDATION_OPEN_PATH],
         LogoPathHasZeroLengthSegment(path, tolerance)
             ? [LOGO_VALIDATION_ZERO_LENGTH_SEGMENT]
+            : [],
+        LogoPathHasDuplicateNonconsecutivePoint(path, tolerance)
+            ? [LOGO_VALIDATION_DUPLICATE_POINT]
+            : [],
+        LogoPathHasTinyEdge(path, tolerance, tinyEdgeThreshold)
+            ? [LOGO_VALIDATION_TINY_EDGE]
             : []
     );
 
@@ -511,13 +587,22 @@ function ValidationIssueName(code) =
         ? "too few points"
     : code == LOGO_VALIDATION_ZERO_LENGTH_SEGMENT
         ? "zero-length segment"
+    : code == LOGO_VALIDATION_DUPLICATE_POINT
+        ? "duplicate nonconsecutive point"
+    : code == LOGO_VALIDATION_TINY_EDGE
+        ? "tiny edge"
     : str("unknown validation issue ", code);
 
-function LogoValidationResult(pathResult, issues, tolerance) =
+function LogoValidationResult(
+    pathResult,
+    issues,
+    tolerance,
+    tinyEdgeThreshold = LOGO_VALIDATION_DEFAULT_TINY_EDGE_THRESHOLD) =
 [
     pathResult,
     issues,
-    tolerance
+    tolerance,
+    tinyEdgeThreshold
 ];
 
 function ValidationPathResult(result) =
@@ -532,6 +617,9 @@ function ValidationIssues(result) =
 function ValidationTolerance(result) =
     result[LVR_TOLERANCE];
 
+function ValidationTinyEdgeThreshold(result) =
+    result[LVR_TINY_EDGE_THRESHOLD];
+
 function ValidationIsValid(result) =
     len(ValidationIssues(result)) == 0;
 
@@ -541,7 +629,8 @@ function ValidateLogoPaths(
     vtCmds,
     tolerance = LOGO_VALIDATION_DEFAULT_TOLERANCE,
     state = stateGoto(0, 0, 0, 1),
-    maxRec = maxRunRecursions) =
+    maxRec = maxRunRecursions,
+    tinyEdgeThreshold = LOGO_VALIDATION_DEFAULT_TINY_EDGE_THRESHOLD) =
     let(
         pathResult = evalLogoPaths(vtCmds, state, maxRec),
         paths = PathResultPaths(pathResult),
@@ -549,20 +638,29 @@ function ValidateLogoPaths(
             ? []
             : [
                 for (pathIndex = [0 : len(paths) - 1])
-                    for (code = LogoPathIssueCodes(paths[pathIndex], tolerance))
+                    for (code = LogoPathIssueCodes(
+                        paths[pathIndex],
+                        tolerance,
+                        tinyEdgeThreshold
+                    ))
                         LogoValidationIssue(pathIndex, code)
             ]
     )
-    LogoValidationResult(pathResult, issues, tolerance);
+    LogoValidationResult(pathResult, issues, tolerance, tinyEdgeThreshold);
 
 // Print validation diagnostics. strict=false reports warnings and continues;
 // strict=true asserts after reporting when any issue exists.
 module ReportLogoValidation(
     vtCmds,
     tolerance = LOGO_VALIDATION_DEFAULT_TOLERANCE,
-    strict = false)
+    strict = false,
+    tinyEdgeThreshold = LOGO_VALIDATION_DEFAULT_TINY_EDGE_THRESHOLD)
 {
-    result = ValidateLogoPaths(vtCmds, tolerance);
+    result = ValidateLogoPaths(
+        vtCmds,
+        tolerance = tolerance,
+        tinyEdgeThreshold = tinyEdgeThreshold
+    );
     paths = ValidationPaths(result);
 
     for (issue = ValidationIssues(result))

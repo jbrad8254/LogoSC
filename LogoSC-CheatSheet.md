@@ -46,12 +46,13 @@ crossing lines  unclosed contours  pen-up moves  primitive placement
 
 [`include <LogoSC-Foundation-Validation.scad>`](LogoSC-User-Manual.md#711-path-analysis-and-validation) after Core
 [`evalLogoPaths(cmds)`](LogoSC-User-Manual.md#711-path-analysis-and-validation)
-[`ValidateLogoPaths(cmds, tolerance = 0.001)`](LogoSC-User-Manual.md#711-path-analysis-and-validation)
+[`ValidateLogoPaths(cmds, ...)`](LogoSC-User-Manual.md#711-path-analysis-and-validation)
+named option: `tinyEdgeThreshold = 0.01`
 [`ValidationPaths(result)`](LogoSC-User-Manual.md#711-path-analysis-and-validation)
 [`ValidationIssues(result)`](LogoSC-User-Manual.md#711-path-analysis-and-validation)
 [`ValidationIsValid(result)`](LogoSC-User-Manual.md#711-path-analysis-and-validation)
 [`ReportLogoValidation(cmds, ...)`](LogoSC-User-Manual.md#711-path-analysis-and-validation)
-open path  too few points  zero-length segment
+open path  too few points  zero-length segment  duplicate point  tiny edge
 
 ## Region data
 

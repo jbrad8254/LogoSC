@@ -30,6 +30,20 @@ let(
         [MOVE, 10], [PUSH], [MOVE, 5], [POP], [TURN, 90], [MOVE, 10]
     ],
     zeroLength = [[MOVE, 0]],
+    duplicatePoint =
+    [
+        [GOTO, 10.0005, 0, 0],
+        [GOTO, 10, 10, 0],
+        [GOTO, 10, 0, 0],
+        [GOTO, 0, 0, 0]
+    ],
+    tinyEdge =
+    [
+        [GOTO, 0.005, 0, 0],
+        [GOTO, 10, 0, 0],
+        [GOTO, 0, 10, 0],
+        [GOTO, 0, 0, 0]
+    ],
     nearClosedTriangle =
     [
         [GOTO, 10, 0, 0], [GOTO, 5, 8, 0], [GOTO, 0.0005, 0, 0]
@@ -51,6 +65,11 @@ let(
     popResult = ValidateLogoPaths(popDiscontinuity),
     zeroResult = ValidateLogoPaths(zeroLength),
     zeroIssues = ValidationIssues(zeroResult),
+    duplicateResult = ValidateLogoPaths(duplicatePoint),
+    duplicateIssues = ValidationIssues(duplicateResult),
+    tinyResult = ValidateLogoPaths(tinyEdge),
+    tinyIssues = ValidationIssues(tinyResult),
+    tinyDisabledResult = ValidateLogoPaths(tinyEdge, tinyEdgeThreshold = 0),
     nearResult = ValidateLogoPaths(nearClosedTriangle, tolerance = 0.001),
     strictNearResult = ValidateLogoPaths(nearClosedTriangle, tolerance = 0.0001),
     emptyResult = ValidateLogoPaths([]),
@@ -155,6 +174,40 @@ let(
         ValidationIssueCode(zeroIssues[0]) == LOGO_VALIDATION_TOO_FEW_POINTS
         && ValidationIssueCode(zeroIssues[1]) == LOGO_VALIDATION_ZERO_LENGTH_SEGMENT,
         zeroIssues
+    ),
+    LogoTestResult(
+        "validation repeated closure point is not a duplicate",
+        len(LogoPathDuplicatePointPairs(ValidationPaths(closedResult)[0])) == 0,
+        LogoPathDuplicatePointPairs(ValidationPaths(closedResult)[0])
+    ),
+    LogoTestResult(
+        "validation duplicate nonconsecutive point issue",
+        len(duplicateIssues) == 1
+        && ValidationIssueCode(duplicateIssues[0])
+            == LOGO_VALIDATION_DUPLICATE_POINT,
+        duplicateIssues
+    ),
+    LogoTestResult(
+        "validation duplicate point pair indexes",
+        LogoPathDuplicatePointPairs(ValidationPaths(duplicateResult)[0]) == [[1, 3]],
+        LogoPathDuplicatePointPairs(ValidationPaths(duplicateResult)[0])
+    ),
+    LogoTestResult(
+        "validation tiny nonzero edge issue",
+        len(tinyIssues) == 1
+        && ValidationIssueCode(tinyIssues[0]) == LOGO_VALIDATION_TINY_EDGE,
+        tinyIssues
+    ),
+    LogoTestResult(
+        "validation tiny-edge threshold is recorded",
+        ValidationTinyEdgeThreshold(tinyResult)
+            == LOGO_VALIDATION_DEFAULT_TINY_EDGE_THRESHOLD,
+        ValidationTinyEdgeThreshold(tinyResult)
+    ),
+    LogoTestResult(
+        "validation tiny-edge check can be disabled",
+        ValidationIsValid(tinyDisabledResult),
+        ValidationIssues(tinyDisabledResult)
     ),
     LogoTestResult(
         "validation closure tolerance accepts near endpoint",

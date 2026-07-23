@@ -1093,27 +1093,40 @@ Use `PathRole()`, `PathKind()`, `PathPoints()`, `PathSourceOpcode()`,
 Roles distinguish `LOGO_PATH_ROLE_OUTER` from `LOGO_PATH_ROLE_HOLE`; kinds distinguish
 `LOGO_PATH_KIND_TURTLE` from `LOGO_PATH_KIND_PRIMITIVE`.
 
-`ValidateLogoPaths(cmds, tolerance = 0.001)` returns the path result, issue list,
-and applied tolerance. Its accessors are `ValidationPathResult()`,
-`ValidationPaths()`, `ValidationIssues()`, `ValidationTolerance()`, and
-`ValidationIsValid()`. Each issue is `[pathIndex, issueCode]`, inspected with
+`ValidateLogoPaths(cmds, tolerance = 0.001, state = ..., maxRec = ...,
+tinyEdgeThreshold = 0.01)` returns the path result, issue list, applied tolerance, and
+tiny-edge threshold. `tinyEdgeThreshold` is appended after the older arguments for positional
+call compatibility; normally set it by name. Its accessors are `ValidationPathResult()`,
+`ValidationPaths()`, `ValidationIssues()`, `ValidationTolerance()`,
+`ValidationTinyEdgeThreshold()`, and `ValidationIsValid()`. Each issue is
+`[pathIndex, issueCode]`, inspected with
 `ValidationIssuePathIndex()`, `ValidationIssueCode()`, and `ValidationIssueName()`.
 Current issue codes are:
 
 - `LOGO_VALIDATION_OPEN_PATH`
 - `LOGO_VALIDATION_TOO_FEW_POINTS`
 - `LOGO_VALIDATION_ZERO_LENGTH_SEGMENT`
+- `LOGO_VALIDATION_DUPLICATE_POINT`
+- `LOGO_VALIDATION_TINY_EDGE`
 
-`ReportLogoValidation(cmds, tolerance = 0.001, strict = false)` echoes readable
-warnings. Set `strict = true` to assert after reporting when issues exist.
+Duplicate-point validation checks nonadjacent vertices within `tolerance` while ignoring the
+normal repeated first/last point of a closed contour. `LogoPathDuplicatePointPairs()` returns
+the matching point-index pairs for detailed inspection. Tiny edges are not zero-length under
+`tolerance` but are no longer than `tinyEdgeThreshold`; set `tinyEdgeThreshold = 0` to disable
+that check.
+
+`ReportLogoValidation(cmds, tolerance = 0.001, strict = false,
+tinyEdgeThreshold = 0.01)` echoes readable warnings. Set `strict = true` to assert after
+reporting when issues exist.
 
 Validation is deliberately opt-in. It does not alter `evalLogo()`, `RenderLogo2D()`,
 or OpenSCAD's implicit closing edge. Explicit path evaluation preserves initial
 turtle points, `PENUP`/`PENDOWN` boundaries, primitive paths, and hole roles—details
 that cannot be inferred reliably from the filled-region result alone.
 
-The current suite does not detect self-intersections, tiny nonzero edges, duplicate
-nonconsecutive points, hole containment, or hole overlap.
+The current suite does not yet detect self-intersections/crossings, hole containment, or hole
+overlap. Self-intersection belongs in this optional companion and can build on the same explicit
+path records without adding a Core dependency.
 
 ### 7.12 OpenSCAD wrapper pattern
 
@@ -2061,8 +2074,8 @@ A successful run ends with output equivalent to:
 
 ```text
 LogoSC suite result, Foundation, PASS, tests, 130, passed, 130, failed, 0
-LogoSC suite result, Validation, PASS, tests, 21, passed, 21, failed, 0
-LOGOSC_AUTOMATED_TEST_RESULT, PASS, suites, 2, failedSuites, 0, tests, 151, passed, 151, failed, 0
+LogoSC suite result, Validation, PASS, tests, 27, passed, 27, failed, 0
+LOGOSC_AUTOMATED_TEST_RESULT, PASS, suites, 2, failedSuites, 0, tests, 157, passed, 157, failed, 0
 ```
 
 Counts grow as tests are added; use the final `PASS`/`FAIL` value rather than hard-coding

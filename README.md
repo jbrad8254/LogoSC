@@ -76,7 +76,7 @@ open endpoints, crossing paths, pen-up travel, arc tessellation, and primitive-g
 A complete test run ends with per-suite totals and one machine-readable result such as:
 
 ```text
-LOGOSC_AUTOMATED_TEST_RESULT, PASS, suites, 2, failedSuites, 0, tests, 151, passed, 151, failed, 0
+LOGOSC_AUTOMATED_TEST_RESULT, PASS, suites, 2, failedSuites, 0, tests, 157, passed, 157, failed, 0
 ```
 
 Set `LogoTestReportLevel = 2` to list every named automated test; the default level `1`
@@ -144,6 +144,28 @@ RenderLogoDebug(
 
 Use the debug view before assuming the filled polygon is broken. It is often showing you that the path crossed itself, the corners arrived in the wrong order, or the turtle endpoint did not return to the start point.
 
+### Validate the same path
+
+Validation is optional and remains outside the standalone Core file. To enable it, keep
+`LogoSC-Foundation-Validation.scad` beside Core and add a second include near the top of your
+model:
+
+```scad
+include <LogoSC-Foundation-Core.scad>
+include <LogoSC-Foundation-Validation.scad>
+
+validation = ValidateLogoPaths(triangle);
+echo("LogoSC path is valid", ValidationIsValid(validation));
+ReportLogoValidation(triangle); // Echo warnings and continue.
+
+RenderLogo2D(triangle);
+```
+
+Basic models need only Core. The optional validator currently detects open paths, too few
+usable vertices, zero-length segments, duplicate nonconsecutive points, and tiny nonzero edges.
+Use `ReportLogoValidation(triangle, strict = true)` when any issue should stop evaluation.
+Self-intersection/crossing validation is planned but is not yet implemented.
+
 ## Current public API
 
 The main user-facing renderer is:
@@ -167,10 +189,11 @@ Optional path-analysis helpers in `LogoSC-Foundation-Validation.scad` include:
 
 ```scad
 evalLogoPaths(cmds);
-ValidateLogoPaths(cmds, tolerance = 0.001);
-ReportLogoValidation(cmds, tolerance = 0.001, strict = false);
+ValidateLogoPaths(cmds, tolerance = 0.001, ..., tinyEdgeThreshold = 0.01);
+ReportLogoValidation(cmds, tolerance = 0.001, strict = false, tinyEdgeThreshold = 0.01);
 ValidationPaths(result);
 ValidationIssues(result);
+ValidationTinyEdgeThreshold(result);
 ValidationIsValid(result);
 ```
 
@@ -250,7 +273,7 @@ more advanced topology checks remain future work.
 
 ## Near-term roadmap
 
-- Expand optional validation with self-intersection, tiny-edge, and hole-containment checks.
+- Expand optional validation with self-intersection and hole-containment checks.
 - Keep manufacturable stroke rendering as a separate API with explicit width, cap, and join semantics.
 
 ## Requirements

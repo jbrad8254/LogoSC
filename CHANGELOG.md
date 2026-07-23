@@ -37,6 +37,10 @@
   seed and sample arrays.
 - Kept the Core API unchanged: LogoSC supplies evaluated 2D profiles, while the new model uses
   native OpenSCAD twisted extrusion, cylinders, clipping, and boolean subtraction for 3D output.
+- Expanded the optional validation companion with duplicate-nonconsecutive-point and configurable
+  tiny-edge detection, keeping the repeated closing point valid and allowing the tiny-edge check
+  to be disabled. Added focused automated coverage and Quick Start setup documentation while
+  retaining self-intersection/crossing analysis as the next optional validation increment.
 
 ## [2026.2.1] - 2026-07-21
 

@@ -46,11 +46,11 @@ Implemented:
 - Zero-length segments
 - Too-few-points detection
 - Configurable closure tolerance
+- Duplicate nonconsecutive points
+- Configurable tiny nonzero edges
 
 Remaining ideas:
 
-- Duplicate nonconsecutive points
-- Tiny edges
 - Optional self-intersection detection
 - Hole containment and overlap checks
 
