@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Corrected the complete internal test-helper naming family from `LogoSCest` to `LogoSCTest`,
+  including the `RunAllLogoSCTests()` Foundation-suite runner.
+
 ## [2026.3] - 2026-07-22
 
 This feature release adds a customizable printable-fastener application and substantially

@@ -76,10 +76,10 @@ TestColors =
     TestColor9
 ];
 
-function LogoSCestColor(index) =
+function LogoSCTestColor(index) =
     index >= 0 && index < len(TestColors) ? TestColors[floor(index)] : TestColorMax;
 
-function LogoSCestGridOffset(testIndex) =
+function LogoSCTestGridOffset(testIndex) =
 [
     testIndex[0] * TestGridXStep,
     testIndex[1] * TestGridYStep
@@ -90,10 +90,10 @@ function LogoSCestGridOffset(testIndex) =
 // suite even when the actual test geometry is complex. The marker itself is a
 // tiny LogoSC command list, not a special OpenSCAD square, so the visual test
 // image also exercises the public RenderLogo2D() path.
-module LogoSCestRowMarker(yIndex, testColor = undef, height = DefaultTestHeight)
+module LogoSCTestRowMarker(yIndex, testColor = undef, height = DefaultTestHeight)
 {
-    useColor = testColor == undef ? LogoSCestColor(yIndex) : testColor;
-    offset = LogoSCestGridOffset([TestMarkerXIndex, yIndex]);
+    useColor = testColor == undef ? LogoSCTestColor(yIndex) : testColor;
+    offset = LogoSCTestGridOffset([TestMarkerXIndex, yIndex]);
 
     translate([offset[0], offset[1], 0])
     {
@@ -107,11 +107,11 @@ module LogoSCestRowMarker(yIndex, testColor = undef, height = DefaultTestHeight)
     }
 }
 
-module LogoSCestRowMarkers()
+module LogoSCTestRowMarkers()
 {
     for (yIndex = [BasicY : FailureY])
     {
-        LogoSCestRowMarker(yIndex);
+        LogoSCTestRowMarker(yIndex);
     }
 }
 
@@ -121,7 +121,7 @@ module LogoSCestRowMarkers()
 // The grid scale constants below convert that logical index to an OpenSCAD
 // translation. This makes it easier to map rendered output back to test calls.
 // Test colors default to the X index. Columns past TestColor9 use TestColorMax.
-module LogoSCest(
+module LogoSCTest(
     testName,
     vtCmds,
     testIndex = [0, BasicY],
@@ -129,12 +129,12 @@ module LogoSCest(
     testColor = undef,
     expectGeometry = true)
 {
-    offset = LogoSCestGridOffset(testIndex);
-    useColor = testColor == undef ? LogoSCestColor(testIndex[0]) : testColor;
+    offset = LogoSCTestGridOffset(testIndex);
+    useColor = testColor == undef ? LogoSCTestColor(testIndex[0]) : testColor;
 
     echo("");
     echo("============================================================");
-    echo("LogoSCest:", testName);
+    echo("LogoSCTest:", testName);
     echo("Index:", testIndex);
     echo("Offset:", offset);
     echo("Color:", useColor);
@@ -163,13 +163,13 @@ module LogoSCest(
                 {
                     echo(
                         "[ERROR]",
-                        "LogoSCest did not produce enough polygon points",
+                        "LogoSCTest did not produce enough polygon points",
                         [testName, contours]
                     );
                 }
                 else
                 {
-                    echo("[EXPECTED]", "LogoSCest produced no polygon geometry", testName);
+                    echo("[EXPECTED]", "LogoSCTest produced no polygon geometry", testName);
                 }
 
                 linear_extrude(height = height, center = true)
@@ -302,7 +302,7 @@ module RenderLogoGeometryTestCases(testCases)
 {
     for (testCase = testCases)
     {
-        LogoSCest(
+        LogoSCTest(
             testCase[LTC_NAME],
             testCase[LTC_COMMANDS],
             testCase[LTC_GRID_INDEX],
@@ -1677,9 +1677,9 @@ function LogoFoundationTestSuiteResult() =
     );
 
 // Run all current LogoSC regression suites.
-module RunAllLogoSCests(reportResults = true)
+module RunAllLogoSCTests(reportResults = true)
 {
-    LogoSCestRowMarkers();
+    LogoSCTestRowMarkers();
 
     TestBasicSuiteLogo();
     TestRunSuiteLogo();

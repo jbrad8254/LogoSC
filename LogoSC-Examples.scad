@@ -994,7 +994,7 @@ module RenderAllDebugDemos()
     }
 }
 
-// Gallery routine similar in spirit to LogoSCest(): render all examples at once.
+// Gallery routine similar in spirit to LogoSCTest(): render all examples at once.
 module RenderAllLogoExamples()
 {
     RenderLogoExample("washer", ExampleWasher, [0, 0]);

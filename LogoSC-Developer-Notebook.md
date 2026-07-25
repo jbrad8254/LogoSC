@@ -2038,7 +2038,7 @@ Decision:
 - Add `LogoSC-Foundation-Test-Runner.scad` to assemble Core and the tests and run the complete
   suite directly.
 - Preserve `LogoSC-Examples.scad` test mode by explicitly loading the passive test definitions
-  and calling `RunAllLogoSCests()` only when `LogoSCRunMode == "Tests"`.
+  and calling `RunAllLogoSCTests()` only when `LogoSCRunMode == "Tests"`.
 - Implement future path analysis and contour validation in the optional
   `LogoSC-Foundation-Validation.scad` companion.
 - Put its focused tests in `LogoSC-Foundation-Validation-Tests.scad` and assemble both future
@@ -2569,3 +2569,34 @@ Verification boundary:
   CGAL STL exports for the default bolt and nut.
 - Create and publish tag `v2026.3` only after the release-preparation diff is reviewed and
   committed; do not move either earlier release tag.
+
+### 2026-07-24 — Deferred fastener test strategy
+
+Context:
+
+- `LogoSC-Nuts-And-Bolts.scad` has input assertions and has passed documented command-line CSG,
+  CGAL/STL, and mesh-verification checks, but it has no dedicated automated test suite.
+- The Foundation and Validation suites verify the underlying LogoSC behavior. They should not
+  acquire a dependency on the standalone fastener application.
+- Full threaded CGAL renders and the gallery are too slow for the normal LogoSC acceptance run.
+
+Decision:
+
+- When dedicated fastener tests are added, put them in a separate passive test companion and
+  invoke them through a separate fastener test runner.
+- Make the routine suite fast and deterministic by checking preset resolution, profile
+  dimensions, generated LogoSC command lists, contour and resampling counts, thread lead,
+  handedness, multi-start phase offsets, and polar wrapping calculations.
+- Add lightweight command-line CSG smoke exports for representative Bolt, Nut, Profile, and
+  Algorithm modes.
+- Keep default bolt and nut CGAL/STL exports, mesh inspection, the slow gallery, and the
+  high-resolution assembly in a smaller release-only verification matrix.
+- Do not add these tests now. Design their exact result-record format and fixtures when fastener
+  development resumes.
+
+Consequences:
+
+- Future fastener regressions can be detected without changing the Core dependency boundary or
+  slowing every Foundation and Validation acceptance run.
+- Expensive geometric verification remains available at release boundaries without being
+  mistaken for a fast unit-test suite.

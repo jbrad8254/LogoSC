@@ -354,7 +354,7 @@ module RunAllLogoTestSuites()
 {
     suites = LogoAllTestSuiteResults();
 
-    RunAllLogoSCests(false);
+    RunAllLogoSCTests(false);
     RunAllLogoValidationTests(false);
     ReportLogoTestRun(suites);
 }

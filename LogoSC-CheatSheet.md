@@ -71,7 +71,7 @@ open path  too few points  zero-length segment  duplicate point  tiny edge  self
 
 ## Test helpers
 
-[`LogoSCest(testName, vtCmds, testIndex, height, testColor)`](LogoSC-User-Manual.md#13-error-handling-and-tracing)
+[`LogoSCTest(testName, vtCmds, testIndex, height, testColor)`](LogoSC-User-Manual.md#13-error-handling-and-tracing)
 [`LogoTestReportLevel = 1`](LogoSC-User-Manual.md#automated-test-summaries)
 `0` global only  `1` suites + failures  `2` every test
 [`LogoTestFailFast = false`](LogoSC-User-Manual.md#automated-test-summaries)
