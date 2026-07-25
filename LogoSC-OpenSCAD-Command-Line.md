@@ -143,6 +143,49 @@ behavior. These expected diagnostics appear between `LogoSC expected-error tests
 When that record is `FAIL`, the aggregate reporter adds `*** Test Suite Failed ***` as its final
 line for quick human recognition. Fail-fast assertions can stop before this banner is reached.
 
+### Run the non-rendering fastener suite
+
+`LogoSC-Nuts-And-Bolts-Test-Runner.scad` is a separate fast, deterministic suite for the
+standalone fastener application. It imports the application without executing its top-level
+model dispatch, creates no geometry, and checks preset resolution, dimensions, profile commands,
+sampling, handed wrapping, and multi-start phase calculations.
+
+```powershell
+$fastenerTestLogPath = Join-Path $env:TEMP 'LogoSC-fastener-tests.echo'
+
+& $openScadCli `
+    -o $fastenerTestLogPath `
+    'LogoSC-Nuts-And-Bolts-Test-Runner.scad'
+
+if ($LASTEXITCODE -ne 0)
+{
+    throw "OpenSCAD fastener tests failed with exit code $LASTEXITCODE."
+}
+
+$fastenerPass = @(
+    Select-String `
+        -LiteralPath $fastenerTestLogPath `
+        -SimpleMatch '"LOGOSC_AUTOMATED_TEST_RESULT", "PASS"'
+)
+
+$fastenerFail = @(
+    Select-String `
+        -LiteralPath $fastenerTestLogPath `
+        -SimpleMatch '"LOGOSC_AUTOMATED_TEST_RESULT", "FAIL"'
+)
+
+if ($fastenerPass.Count -ne 1 -or $fastenerFail.Count -ne 0)
+{
+    throw 'LogoSC fastener tests did not report one successful complete run.'
+}
+
+Write-Output 'LogoSC fastener tests passed.'
+```
+
+Keep CSG smoke exports and the slower CGAL/STL, mesh, gallery, and high-resolution assembly
+checks as separate release verification. Parameter tests cannot prove boolean robustness or
+printable mesh quality.
+
 ## Example 2: export and inspect a debug PNG
 
 The command line can render the same debug demo that is available through the OpenSCAD

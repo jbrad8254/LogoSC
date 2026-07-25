@@ -70,6 +70,8 @@ LogoSC-Foundation-Validation-Tests.scad Passive focused validation tests.
 LogoSC-Foundation-Test-Runner.scad Direct entry point for the complete test suite.
 LogoSC-Examples.scad               Runnable example gallery.
 LogoSC-Nuts-And-Bolts.scad         Customizable printable fastener model.
+LogoSC-Nuts-And-Bolts-Tests.scad   Passive non-rendering fastener calculation tests.
+LogoSC-Nuts-And-Bolts-Test-Runner.scad Direct entry point for fastener tests.
 LogoSC-Nuts-And-Bolts-Customizer.md Detailed fastener Customizer guide.
 LogoSC-Experiments.scad            Experimental rendering and geometry workbench.
 LogoSC-OpenSCAD-Command-Line.md    Command-line testing, export, and PNG-preview guide.

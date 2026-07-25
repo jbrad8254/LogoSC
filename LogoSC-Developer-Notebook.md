@@ -2600,3 +2600,32 @@ Consequences:
   slowing every Foundation and Validation acceptance run.
 - Expensive geometric verification remains available at release boundaries without being
   mistaken for a fast unit-test suite.
+
+### 2026-07-24 — Non-rendering fastener test suite
+
+Context:
+
+- Fastener development resumed after the dedicated test strategy was intentionally deferred.
+- The gallery and full threaded CGAL renders remain too slow for routine regression checks, and
+  rendered output does not provide a precise automated assertion by itself.
+
+Decision:
+
+- Add passive `LogoSC-Nuts-And-Bolts-Tests.scad` definitions and a separate
+  `LogoSC-Nuts-And-Bolts-Test-Runner.scad`.
+- Import the standalone fastener application with OpenSCAD `use` semantics. Unlike `include`,
+  which behaves like inserting and evaluating the complete file, `use` makes its function and
+  module definitions callable without executing the top-level Bolt/Nut/Gallery dispatch. The
+  routine suite can therefore test the real calculation functions while creating no geometry.
+- Verify deterministic computed behavior: every named size preset, derived dimensions, drive
+  selection, all six profile families, LogoSC profile commands and contours, documented
+  resampling counts, handed polar wrapping, and multi-start phase offsets.
+- Continue to keep CSG smoke exports and slower CGAL/STL and mesh checks outside this routine
+  suite and outside the Foundation/Validation runner.
+
+Consequences:
+
+- Fastener calculation regressions now have a quick automated gate without slowing the normal
+  LogoSC acceptance run or changing Core's dependency boundary.
+- Visual and mesh verification remain necessary at release boundaries because parameter tests
+  cannot prove boolean robustness or printable mesh quality.

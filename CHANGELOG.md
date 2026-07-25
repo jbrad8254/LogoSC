@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+### Added
+
+- Added a separate deterministic, non-rendering fastener test suite and runner covering all
+  size presets, basic head/nut/drive dimensions, thread-profile construction, LogoSC command
+  generation, contour resampling, handed wrapping, and multi-start phase offsets without adding
+  the standalone fastener application to the Foundation/Validation acceptance dependency graph.
+- Made the profile-segment and contour-resampling helpers accept an optional sampling-density
+  argument, preserving the Customizer default while allowing deterministic checks of both the
+  default and documented high-resolution algorithm-figure counts.
+- Added a quick non-rendering parameter-test invocation to the fastener Customizer guide, with
+  explicit scope limits and a link to the detailed command-line verification workflow.
+
 ### Fixed
 
 - Corrected the complete internal test-helper naming family from `LogoSCest` to `LogoSCTest`,

@@ -42,6 +42,8 @@ LogoSC-Foundation-Validation-Tests.scad
 LogoSC-Foundation-Test-Runner.scad
 LogoSC-Examples.scad
 LogoSC-Nuts-And-Bolts.scad
+LogoSC-Nuts-And-Bolts-Tests.scad
+LogoSC-Nuts-And-Bolts-Test-Runner.scad
 LogoSC-Nuts-And-Bolts-Customizer.md
 LogoSC-Experiments.scad
 LogoSC-OpenSCAD-Command-Line.md
@@ -130,6 +132,8 @@ Before release:
 - Update regression tests as needed.
 - Run `LogoSC-Foundation-Test-Runner.scad`; do not add test dependencies to Core.
 - Keep validation tests in the passive validation-test companion and run them through the runner.
+- Run `LogoSC-Nuts-And-Bolts-Test-Runner.scad` after fastener calculation changes; keep its
+  non-rendering suite separate from the Foundation/Validation runner.
 - Require one final `LOGOSC_AUTOMATED_TEST_RESULT` with `PASS`; expected Core `[ERROR]`
   diagnostics in the bounded failure-condition row are not test-result failures.
 - Add new automated checks as immutable result records so failures accumulate through the run

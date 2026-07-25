@@ -356,16 +356,23 @@ function FastenerProfileDepth(profile, pitch) =
 
 // Return the number of samples required before nonlinearly wrapping one profile
 // segment around the thread axis. More axial span needs more angular samples.
-function FastenerProfileSegmentSamples(a, b, lead) =
+function FastenerProfileSegmentSamples(
+    a,
+    b,
+    lead,
+    samplesPerTurn = ProfileSamplesPerTurn) =
     max(
         1,
-        ceil(abs(b[0] - a[0]) * ProfileSamplesPerTurn / lead),
-        ceil(abs(b[1] - a[1]) * ProfileSamplesPerTurn / (2 * lead))
+        ceil(abs(b[0] - a[0]) * samplesPerTurn / lead),
+        ceil(abs(b[1] - a[1]) * samplesPerTurn / (2 * lead))
     );
 
 // Resample a closed LogoSC contour so nonlinear polar mapping does not replace
 // long arcs and helical flanks with incorrect straight chords.
-function FastenerResampleContour(contour, lead) =
+function FastenerResampleContour(
+    contour,
+    lead,
+    samplesPerTurn = ProfileSamplesPerTurn) =
     let(
         contourCount = len(contour),
         uniqueCount =
@@ -380,7 +387,12 @@ function FastenerResampleContour(contour, lead) =
                 a = contour[segmentIndex],
                 b = contour[(segmentIndex + 1) % uniqueCount],
                 segmentSamples =
-                    FastenerProfileSegmentSamples(a, b, lead)
+                    FastenerProfileSegmentSamples(
+                        a,
+                        b,
+                        lead,
+                        samplesPerTurn
+                    )
             )
             for (sampleIndex = [0 : segmentSamples - 1])
                 FastenerLerp(a, b, sampleIndex / segmentSamples)

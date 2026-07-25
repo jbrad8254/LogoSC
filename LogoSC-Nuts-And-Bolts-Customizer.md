@@ -27,6 +27,40 @@ The exact PowerShell command is in
 [Example 3 of the OpenSCAD
 command-line guide](LogoSC-OpenSCAD-Command-Line.md#example-3-generate-a-fastener-documentation-image).
 
+## Quickly verify the fastener calculations
+
+Before spending time on a threaded preview or full render, you can run the separate fastener
+parameter suite. It creates no geometry, so it normally completes much faster than even the
+gallery preview:
+
+```powershell
+$openScadCli = 'C:\Program Files\OpenSCAD\openscad.com'
+$fastenerTestLogPath = Join-Path $env:TEMP 'LogoSC-fastener-tests.echo'
+
+& $openScadCli `
+    -o $fastenerTestLogPath `
+    'LogoSC-Nuts-And-Bolts-Test-Runner.scad'
+
+Select-String `
+    -LiteralPath $fastenerTestLogPath `
+    -SimpleMatch '"LOGOSC_AUTOMATED_TEST_RESULT", "PASS"'
+```
+
+One matching `PASS` record confirms that the complete non-rendering run succeeded. The suite
+checks every bundled metric and Unified size preset, basic head/nut/drive dimensions, all six
+profile families, generated LogoSC commands and contours, sampling counts, handed wrapping, and
+multi-start phase offsets.
+
+This is especially useful after changing the fastener source, adding a preset, or adjusting a
+profile calculation. It validates the bundled fixtures and calculation paths; it does not prove
+that one arbitrary Customizer selection will produce robust boolean geometry, a printable mesh,
+proper fit, or sufficient strength. Preview and render the selected part and print a calibration
+pair where fit matters.
+
+For a command that also rejects missing or failed result records, plus guidance on fail-fast
+diagnosis and the separate CSG/CGAL release checks, see
+[Run the non-rendering fastener suite](LogoSC-OpenSCAD-Command-Line.md#run-the-non-rendering-fastener-suite).
+
 ## Why head, drive, and drive size are separate
 
 A head is the external shape, such as hex, pan, round, countersunk, carriage, or headless. A
