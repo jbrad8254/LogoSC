@@ -246,6 +246,7 @@ See `LogoSC-CheatSheet.md` and `LogoSC-User-Manual.md` for the complete command 
 - `LogoSC-README.md` — detailed project overview and roadmap.
 - `LogoSC-ARC-Implementation.md` — arc tessellation design notes.
 - `LogoSC-Holes-Implementation.md` — region and hole design notes.
+- `LogoSC-Transforms-Design.md` — preliminary local-transform design direction and open questions.
 - `LogoSC-LSystems-Notes.md` — L-system design/example notes.
 - `CHANGELOG.md` — release history.
 - `docs/ai-engineering-kit/` — maintainer-facing Codex/Git quick start plus AI handoff,

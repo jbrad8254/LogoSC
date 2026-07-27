@@ -56,6 +56,7 @@ LogoSC-Future-Ideas.md
 
 LogoSC-ARC-Implementation.md
 LogoSC-Holes-Implementation.md
+LogoSC-Transforms-Design.md
 LogoSC-LSystems-Notes.md
 
 images/

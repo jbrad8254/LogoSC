@@ -720,6 +720,7 @@ LogoSC-CheatSheet.md
 CHANGELOG.md
 LogoSC-ARC-Implementation.md
 LogoSC-Holes-Implementation.md
+LogoSC-Transforms-Design.md
 LogoSC-LSystems-Notes.md
 .gitattributes
 ```
@@ -1030,6 +1031,8 @@ Current docs are split by purpose:
 - `CHANGELOG.md`: release history and milestone notes.
 - `LogoSC-ARC-Implementation.md`: arc/segment-count design details.
 - `LogoSC-Holes-Implementation.md`: region/hole rendering design details.
+- `LogoSC-Transforms-Design.md`: preliminary local-transform direction, compatibility constraints,
+  and questions that must be resolved before implementation.
 - `LogoSC-LSystems-Notes.md`: design notes for L-system example helpers and future fractal examples.
 - `LogoSC-Examples.scad`: runnable examples and gallery.
 - `LogoSC-Experiments.scad`: experimental lab bench for unproven rendering approaches.
@@ -2629,3 +2632,33 @@ Consequences:
   LogoSC acceptance run or changing Core's dependency boundary.
 - Visual and mesh verification remain necessary at release boundaries because parameter tests
   cannot prove boolean robustness or printable mesh quality.
+
+### 2026-07-27 — Preliminary local-transform design direction
+
+Context:
+
+- Future reusable radial and reflected patterns, including possible interlaced-knot work, need
+  richer local transforms than the current position, heading, and uniform scale.
+- The transform discussion should be preserved now, but implementation should not interrupt the
+  active inter-contour and overlapping-hole validation work.
+
+Decision:
+
+- Record the preliminary direction and unresolved compatibility questions in
+  `LogoSC-Transforms-Design.md`.
+- Reuse the existing `PUSH`/`POP` state stack for the complete local transform; do not create a
+  separate matrix stack or add implicit loop save/restore behavior.
+- Preserve sequential transform accumulation through `REPEAT` and `RUN`.
+- Keep `TURN` as the relative rotation operation rather than adding a competing `ROTATE`
+  command.
+- Define relative movement and locally generated primitive points through the complete affine
+  transform.
+- Prefer a readable canonical state over exposing anonymous affine-matrix coefficients, while
+  leaving its exact representation and backward-compatible public-state migration for the
+  detailed design review.
+
+Consequences:
+
+- The upcoming hole-validation work retains a bounded scope and clean verification boundary.
+- Transform implementation remains deferred until canonicalization, `GOTO`/`DIR`, zero-scale,
+  winding, tessellation, and public-state compatibility decisions are resolved.

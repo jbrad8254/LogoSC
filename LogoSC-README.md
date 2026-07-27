@@ -35,6 +35,7 @@
 - `CHANGELOG.md` — milestone release history.
 - `LogoSC-ARC-Implementation.md` — design notes for ARC tessellation.
 - `LogoSC-Holes-Implementation.md` — design notes for regions and holes.
+- `LogoSC-Transforms-Design.md` — preliminary local-transform design direction and open questions.
 - `LogoSC-LSystems-Notes.md` — design notes for L-system examples.
 - `LogoSC-User-Manual.md` — command reference and practical examples.
 - `CONTRIBUTING.md` — contributor workflow, stability, testing, documentation, and packaging guidance.

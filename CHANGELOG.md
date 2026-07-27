@@ -4,6 +4,11 @@
 
 ### Added
 
+- Added preliminary local-transform design notes covering persistent transforms through
+  `REPEAT` and `RUN`, reuse of the existing `PUSH`/`POP` stack, `TURN` as the sole relative
+  rotation operation, full-transform relative movement, a readable canonical affine-state
+  candidate, compatibility constraints, and questions deferred to the implementation design
+  review.
 - Added a separate deterministic, non-rendering fastener test suite and runner covering all
   size presets, basic head/nut/drive dimensions, thread-profile construction, LogoSC command
   generation, contour resampling, handed wrapping, and multi-start phase offsets without adding
