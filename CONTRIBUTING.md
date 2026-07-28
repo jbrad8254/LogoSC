@@ -56,6 +56,7 @@ LogoSC-Future-Ideas.md
 
 LogoSC-ARC-Implementation.md
 LogoSC-Holes-Implementation.md
+LogoSC-Validation-Implementation.md
 LogoSC-Transforms-Design.md
 LogoSC-LSystems-Notes.md
 
@@ -94,6 +95,8 @@ The following APIs should remain stable whenever practical:
 - `RegionOuter()`
 - `RegionHoles()`
 - Path-result, path-record, validation-result, and validation-issue accessors
+- `LogoContourIsConvex()`, `LogoPathIsConvex()`, `LogoRegionIsConvex()`, and
+  `LogoRegionsAreIndividuallyConvex()`
 - Existing command opcodes
 
 Prefer extending existing functionality rather than changing established behavior.

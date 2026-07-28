@@ -35,6 +35,7 @@
 - `CHANGELOG.md` — milestone release history.
 - `LogoSC-ARC-Implementation.md` — design notes for ARC tessellation.
 - `LogoSC-Holes-Implementation.md` — design notes for regions and holes.
+- `LogoSC-Validation-Implementation.md` — validation algorithms, policies, complexity, and test matrix.
 - `LogoSC-Transforms-Design.md` — preliminary local-transform design direction and open questions.
 - `LogoSC-LSystems-Notes.md` — design notes for L-system examples.
 - `LogoSC-User-Manual.md` — command reference and practical examples.
@@ -372,11 +373,24 @@ ReportLogoValidation(cmds, strict = true);   // assert on issues
 `evalLogoPaths()` preserves the starting point of each turtle path, explicit
 `PENUP`/`PENDOWN` boundaries, primitive paths, and outer-versus-hole roles. That
 information cannot be reconstructed reliably from the filled-region result.
-`ValidateLogoPaths()` currently reports open paths, paths with fewer than three usable
-vertices, zero-length segments, duplicate nonconsecutive points, tiny nonzero edges, and proper
-self-intersections within one explicit path. Its tolerance defaults to `0.001`; the tiny-edge
-threshold defaults to `0.01`. Set `tinyEdgeThreshold = 0` or
-`checkSelfIntersections = false` to disable the corresponding check.
+`ValidateLogoPaths()` reports open paths, paths with fewer than three usable vertices,
+zero-length segments, duplicate nonconsecutive points, tiny nonzero edges, proper
+self-intersections, holes outside or touching their owning outer contour, and overlapping,
+touching, coincident, or nested holes. Its tolerance defaults to `0.001`; the tiny-edge
+threshold defaults to `0.01`. Set `tinyEdgeThreshold = 0`,
+`checkSelfIntersections = false`, or `checkHoleTopology = false` to disable the corresponding
+check.
+
+Two-path issues append an optional related path index; inspect it with
+`ValidationIssueRelatedPathIndex()`. Reusable relationship helpers include
+`LogoSegmentRelation()`, `LogoContourIntersectionPairs()`, `LogoPointContourRelation()`,
+`LogoPointRegionRelation()`, `LogoRegionBoundaryIntersections()`, `LogoRegionRelation()`, and
+`LogoRegionsIntersect()`. `LogoContourIsConvex()`, `LogoPathIsConvex()`,
+`LogoRegionIsConvex()`, and `LogoRegionsAreIndividuallyConvex()` provide Boolean convexity
+queries; concavity remains valid geometry and is not a validation issue. The multiple-region
+query checks members independently, not the convexity of their geometric union. Independent
+filled regions may overlap; the API reports that relationship without treating it as a
+validation error.
 
 The validator is deliberately opt-in. `evalLogo()` and `RenderLogo2D()` retain
 their established behavior, including OpenSCAD's implicit polygon-closing edge.
@@ -387,9 +401,8 @@ Basic models therefore still require only `LogoSC-Foundation-Core.scad`.
 LogoSC currently targets closed polygons because that maps cleanly to OpenSCAD and
 3D printing. Open-stroke rendering is deferred to a later rendering milestone.
 
-Optional path validation now exists without changing filled-region behavior. Future
-validation work may add collinear-overlap, inter-contour, and hole-containment checks. These
-checks should remain opt-in and must not invent a synthetic turtle move.
+Optional path and hole-topology validation exists without changing filled-region behavior.
+Further topology checks should remain opt-in and must not invent a synthetic turtle move.
 
 A future stroke renderer should probably convert centerline paths into closed
 outline polygons. That design needs explicit stroke width, end-cap style, join

@@ -239,7 +239,8 @@ clearance holes.
 
 ## Validation policy
 
-LogoSC currently validates command structure, not full polygon topology.
+LogoSC Core validates command structure. The optional Validation companion also checks selected
+polygon topology without changing Core evaluation or rendering.
 
 Validated cases:
 
@@ -248,16 +249,21 @@ Validated cases:
 - empty child command list;
 - child commands that produce no closed contours.
 
-Deferred topology checks:
+Optional topology checks:
 
-- whether holes are entirely inside the outer contour;
-- whether holes overlap each other;
-- whether holes intersect the outer boundary;
+- holes must be strictly inside their owning outer contour;
+- holes may not touch, cross, or share an edge with the outer boundary;
+- holes may not overlap, touch, coincide, or nest inside one another.
+
+Still deferred:
+
 - winding orientation;
-- self-intersections.
+- automatic topology repair.
 
-Those conditions are left to OpenSCAD/CGAL for now. LogoSC may add geometric
-validity checks later if they become useful.
+These checks use reusable tolerance-aware segment, contour, containment, and region-relation
+helpers in `LogoSC-Foundation-Validation.scad`. They default on when callers explicitly invoke
+the validator and can be disabled with `checkHoleTopology = false`. See
+`LogoSC-Validation-Implementation.md` for the algorithms and focused test matrix.
 
 ## Why not `difference()` here?
 

@@ -49,11 +49,16 @@ Implemented:
 - Duplicate nonconsecutive points
 - Configurable tiny nonzero edges
 - Proper self-intersections within one explicit path
+- Inter-contour segment relationship classification
+- Point-in-contour and point-in-region containment
+- General region boundary and filled-region relationship queries
+- Hole containment and overlap checks
+- Contour, explicit-path, and filled-region convexity queries
 
 Remaining ideas:
 
-- Collinear segment overlap and intersections between separate contours
-- Hole containment and overlap checks
+- Additional topology policies built on the general relationship helpers when clear use cases
+  justify them
 
 #### Deliberate non-goal: sweep-line crossing optimization
 

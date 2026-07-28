@@ -1096,14 +1096,16 @@ Roles distinguish `LOGO_PATH_ROLE_OUTER` from `LOGO_PATH_ROLE_HOLE`; kinds disti
 `LOGO_PATH_KIND_TURTLE` from `LOGO_PATH_KIND_PRIMITIVE`.
 
 `ValidateLogoPaths(cmds, tolerance = 0.001, state = ..., maxRec = ...,
-tinyEdgeThreshold = 0.01, checkSelfIntersections = true)` returns the path result, issue list,
-applied tolerance, tiny-edge threshold, and crossing-check setting. The newer options are
-appended after the older arguments for positional call compatibility; normally set them by
-name. Its accessors are `ValidationPathResult()`,
+tinyEdgeThreshold = 0.01, checkSelfIntersections = true, checkHoleTopology = true)` returns the
+path result, issue list, applied tolerance, tiny-edge threshold, and enabled-check settings. New
+options are appended after older arguments for positional call compatibility; normally set them
+by name. Its accessors are `ValidationPathResult()`,
 `ValidationPaths()`, `ValidationIssues()`, `ValidationTolerance()`,
 `ValidationTinyEdgeThreshold()`, `ValidationChecksSelfIntersections()`, and
-`ValidationIsValid()`. Each issue is `[pathIndex, issueCode]`, inspected with
-`ValidationIssuePathIndex()`, `ValidationIssueCode()`, and `ValidationIssueName()`.
+`ValidationChecksHoleTopology()`, and `ValidationIsValid()`. Each issue is
+`[pathIndex, issueCode, relatedPathIndex]`; the related path is `undef` for one-path issues.
+Inspect records with `ValidationIssuePathIndex()`, `ValidationIssueCode()`,
+`ValidationIssueRelatedPathIndex()`, and `ValidationIssueName()`.
 Current issue codes are:
 
 - `LOGO_VALIDATION_OPEN_PATH`
@@ -1112,6 +1114,9 @@ Current issue codes are:
 - `LOGO_VALIDATION_DUPLICATE_POINT`
 - `LOGO_VALIDATION_TINY_EDGE`
 - `LOGO_VALIDATION_SELF_INTERSECTION`
+- `LOGO_VALIDATION_HOLE_OUTSIDE_OUTER`
+- `LOGO_VALIDATION_HOLE_INTERSECTION`
+- `LOGO_VALIDATION_HOLE_OVERLAP`
 
 Duplicate-point validation checks nonadjacent vertices within `tolerance` while ignoring the
 normal repeated first/last point of a closed contour. `LogoPathDuplicatePointPairs()` returns
@@ -1127,18 +1132,67 @@ implicit closing edges are excluded. The bounding-box-filtered pair scan has wor
 `O(S^2)` time for `S` segments and `O(K)` result storage for `K` crossings. Set
 `checkSelfIntersections = false` to skip it for highly tessellated paths.
 
+Hole topology requires each hole to be strictly inside its most recent outer path. A hole that
+touches, crosses, or shares an edge with its outer boundary is invalid. Holes with the same
+owner may not overlap, touch, coincide, or nest. Two-path issues report the related outer or
+hole path index. Set `checkHoleTopology = false` only for already-trusted, highly tessellated
+models where the pairwise topology scan is not wanted.
+
+The reusable relationship API is also public from the optional companion:
+
+- `LogoSegmentRelation(a, b, c, d, tolerance)` classifies two finite segments as none, proper
+  crossing, touch, or collinear overlap.
+- `LogoContourIntersectionPairs(firstPoints, secondPoints, tolerance)` returns both segment
+  indexes and their relationship.
+- `LogoPointContourRelation()` and `LogoPointRegionRelation()` return outside, boundary, or
+  inside classifications.
+- `LogoRegionBoundaryIntersections()` returns detailed contour-boundary events.
+- `LogoRegionRelation()` distinguishes disjoint, touching, positive-area overlap, and
+  containment.
+- `LogoRegionsIntersect()` is the Boolean convenience query.
+- `LogoContourIsConvex()`, `LogoPathIsConvex()`, `LogoRegionIsConvex()`, and
+  `LogoRegionsAreIndividuallyConvex()` query convexity without treating valid concavity as an
+  error.
+
+Segment results use `LOGO_SEGMENT_RELATION_NONE`,
+`LOGO_SEGMENT_RELATION_PROPER_CROSSING`, `LOGO_SEGMENT_RELATION_TOUCH`, and
+`LOGO_SEGMENT_RELATION_COLLINEAR_OVERLAP`. Point results use
+`LOGO_POINT_RELATION_OUTSIDE`, `LOGO_POINT_RELATION_BOUNDARY`, and
+`LOGO_POINT_RELATION_INSIDE`. Region results use `LOGO_REGION_RELATION_DISJOINT`,
+`LOGO_REGION_RELATION_TOUCH`, `LOGO_REGION_RELATION_OVERLAP`,
+`LOGO_REGION_RELATION_A_CONTAINS_B`, and `LOGO_REGION_RELATION_B_CONTAINS_A`.
+Contour-intersection records should be inspected with
+`ContourIntersectionFirstSegment()`, `ContourIntersectionSecondSegment()`, and
+`ContourIntersectionRelation()`.
+
+Convexity queries accept clockwise or counterclockwise winding and reject too-few-point,
+zero-length, backtracking, and self-intersecting boundaries. The default `strict = false`
+allows forward collinear boundary points; `strict = true` requires a nonzero turn at every
+vertex. `LogoPathIsConvex()` additionally requires a closed explicit path.
+`LogoRegionIsConvex()` returns false for every region with a hole because convexity applies to
+the filled set, not merely to its outer contour.
+`LogoRegionsAreIndividuallyConvex()` requires every region in a list to pass that rule and
+returns true for an empty list. It does not test whether the union of multiple polygons is
+convex: disjoint convex polygons are individually convex, but their disconnected union is not.
+These queries are unrelated to OpenSCAD's `convexity` preview hint.
+
+These functions accept ordinary contour and region data. Independent regions are allowed to
+overlap; a reported relationship becomes an error only when a caller applies a policy such as
+LogoSC's strict hole rules. See `LogoSC-Validation-Implementation.md` for algorithm details,
+complexity boundaries, fixture rationale, and the complete Validation test matrix.
+
 `ReportLogoValidation(cmds, tolerance = 0.001, strict = false,
-tinyEdgeThreshold = 0.01, checkSelfIntersections = true)` echoes readable warnings. Set
-`strict = true` to assert after reporting when issues exist.
+tinyEdgeThreshold = 0.01, checkSelfIntersections = true, checkHoleTopology = true)` echoes
+readable warnings. Set `strict = true` to assert after reporting when issues exist.
 
 Validation is deliberately opt-in. It does not alter `evalLogo()`, `RenderLogo2D()`,
 or OpenSCAD's implicit closing edge. Explicit path evaluation preserves initial
 turtle points, `PENUP`/`PENDOWN` boundaries, primitive paths, and hole roles—details
 that cannot be inferred reliably from the filled-region result alone.
 
-The current suite does not yet detect collinear segment overlap, intersections between separate
-contours, hole containment, or hole overlap. Those require distinct semantics beyond proper
-self-intersection within one explicit path.
+The relationship helpers classify collinear and inter-contour contacts separately from proper
+self-intersection. The validator deliberately does not reject overlap between independent outer
+regions, because rendering separate regions may legitimately union them.
 
 ### 7.12 OpenSCAD wrapper pattern
 
@@ -1590,9 +1644,8 @@ multiHolePlate =
 ];
 ```
 
-LogoSC does not currently validate whether holes are fully inside the outer
-region, whether holes overlap, or whether regions are self-intersecting. Keep
-geometry sane; CGAL is not a therapist.
+Core rendering does not reject invalid holes. The optional Validation companion checks hole
+containment, outer-boundary contact, and overlap between holes before geometry reaches CGAL.
 
 ### `RUN`
 
@@ -2132,7 +2185,7 @@ Current limitations:
 - No `ROUNDEDREGPOLY` yet.
 - No variable/procedure system beyond OpenSCAD variables and `RUN` child lists.
 - Holes are attached to the most recently emitted outer region.
-- Hole containment and hole overlap are not validated by LogoSC.
+- Hole containment and overlap are checked by the optional Validation companion, not Core.
 - Crossing/self-intersecting contours are not rejected automatically.
 - `polygon()` closes paths automatically, so unclosed contours can still render as filled shapes.
 - Optional validation detects open paths, too few vertices, and zero-length segments,

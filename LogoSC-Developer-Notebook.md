@@ -43,6 +43,8 @@
 - [Optional path validation implementation](#2026-07-20--optional-path-analysis-and-validation)
 - [Duplicate-point and tiny-edge validation](#2026-07-22--duplicate-point-and-tiny-edge-validation)
 - [Proper self-intersection validation](#2026-07-22--proper-self-intersection-validation)
+- [General topology and hole validation](#2026-07-27--general-topology-relations-and-strict-hole-validation)
+- [Convexity query API](#2026-07-27--convexity-query-api)
 
 ### Documentation and workflow
 
@@ -213,8 +215,8 @@ Major implemented features include:
   versioning, and packaging guidance.
 - AI Engineering Kit stored under `docs/ai-engineering-kit/` by explicit user request as
   maintainer-facing companion material, separate from LogoSC public API and user documentation.
-- Optional path validation for open paths, too-few-points paths, zero-length segments, duplicate
-  nonconsecutive points, configurable tiny edges, and proper self-intersections.
+- Optional path and topology validation for basic path defects, proper self-intersections,
+  general segment/contour/region relationships, hole containment, and hole overlap.
 - Customizable printable fasteners with metric, Unified, and custom sizes; multiple thread,
   head, drive, handedness, and start options; gallery and algorithm outputs; and safety guidance.
 
@@ -281,9 +283,10 @@ Verified working state:
 
 Known open design issues:
 
-- Decide how validation should detect invalid hole containment or overlap.
-- Decide how future validation should classify collinear overlaps and intersections between
-  separate contours or hole boundaries.
+- Decide whether future validation should add equality, finer touch classifications, or policies
+  for relationships between independent outer regions.
+- Measure topology validation on real highly tessellated models before considering a sweep-line
+  or spatial index.
 - README already includes a verified debug-overlay screenshot. Add another manual screenshot
   only if it teaches something the existing image does not.
 - Prepare another release only after later work forms a coherent, verified milestone.
@@ -329,6 +332,8 @@ visualization; it does not create manufacturable stroke geometry or alter the ou
 - `ValidationPathResult()`, `ValidationPaths()`, `ValidationIssues()`
 - `ValidationTolerance()`, `ValidationIsValid()`
 - `ValidationIssuePathIndex()`, `ValidationIssueCode()`, `ValidationIssueName()`
+- `LogoContourIsConvex()`, `LogoPathIsConvex()`, `LogoRegionIsConvex()`
+- `LogoRegionsAreIndividuallyConvex()`
 
 ### Region helpers
 
@@ -627,10 +632,10 @@ changes, verify links, headings, code examples, and retained accepted content.
 
 Near-term candidates:
 
-- expand optional validation with hole-containment, contour-overlap, and collinear-overlap checks
-  where they provide clear value;
+- expand optional validation only when additional topology policies provide clear value;
 - expand the non-rendering evaluator and validation suites alongside eventual open-path support;
-- decide how collinear and inter-contour intersections should be classified and reported;
+- measure generalized pairwise topology costs on real highly tessellated models before
+  considering optimization;
 - continue manufacturable stroke experiments separately from `RenderLogoDebug()` and
   `RenderLogo2D()`;
 - document recursion and generated command lists more fully;
@@ -652,10 +657,15 @@ Current examples:
 - Which debug annotations are useful without overwhelming OpenSCAD preview?
 - Should a future stroke implementation remain entirely experimental, or should
   a small stable diagnostic API eventually move into the core?
-- What validation, if any, should LogoSC perform for invalid or overlapping holes?
+- Should future validation policies reject any relationships between independent outer regions,
+  or should those remain report-only because overlapping regions can be intentional?
 
 Resolved 2026-07-18: `RenderLogoDebug()` is the small stable diagnostic API in the core.
 The question of a separate manufacturable stroke API remains open.
+
+Resolved 2026-07-27: optional validation requires holes to be strictly contained and rejects
+outer-boundary contact plus overlapping, touching, coincident, or nested sibling holes.
+Independent outer-region relationships remain report-only.
 
 Append conclusions with dates rather than deleting the original question.
 
@@ -720,6 +730,7 @@ LogoSC-CheatSheet.md
 CHANGELOG.md
 LogoSC-ARC-Implementation.md
 LogoSC-Holes-Implementation.md
+LogoSC-Validation-Implementation.md
 LogoSC-Transforms-Design.md
 LogoSC-LSystems-Notes.md
 .gitattributes
@@ -1031,6 +1042,8 @@ Current docs are split by purpose:
 - `CHANGELOG.md`: release history and milestone notes.
 - `LogoSC-ARC-Implementation.md`: arc/segment-count design details.
 - `LogoSC-Holes-Implementation.md`: region/hole rendering design details.
+- `LogoSC-Validation-Implementation.md`: validation architecture, algorithms, topology policy,
+  complexity boundaries, and the complete automated test matrix.
 - `LogoSC-Transforms-Design.md`: preliminary local-transform direction, compatibility constraints,
   and questions that must be resolved before implementation.
 - `LogoSC-LSystems-Notes.md`: design notes for L-system example helpers and future fractal examples.
@@ -2662,3 +2675,73 @@ Consequences:
 - The upcoming hole-validation work retains a bounded scope and clean verification boundary.
 - Transform implementation remains deferred until canonicalization, `GOTO`/`DIR`, zero-scale,
   winding, tessellation, and public-state compatibility decisions are resolved.
+
+### 2026-07-27 — General topology relations and strict hole validation
+
+Context:
+
+- Proper self-intersection validation handled crossings within one path but deliberately
+  excluded relationships between separate contours.
+- Hole correctness requires both boundary-intersection classification and containment; boundary
+  scans alone cannot detect one contour wholly inside another.
+- General relationship queries are useful beyond hole policy, but quadratic analysis should not
+  become a dependency of the standalone Core evaluator and renderer.
+
+Decision:
+
+- Generalize the optional Validation companion with tolerance-aware segment relationships,
+  contour intersection records, point-in-contour and point-in-region classification, and
+  filled-region relationship queries.
+- Use bounding-box rejection, orientation tests, explicit collinear interval classification,
+  and odd-even ray containment. Retain direct pairwise scans rather than adding a sweep-line or
+  spatial index without measured need.
+- Queue child holes while an active turtle outer is still being built, then emit that outer
+  before its pending holes. This makes ownership deterministic without splitting the parent
+  contour or changing existing public path fields.
+- Require holes to be strictly inside their owning outer contour. Reject outer-boundary contact
+  and sibling holes that overlap, touch, coincide, or nest.
+- Append an optional related-path index to validation issues and append
+  `checkHoleTopology = true` to validation APIs and results, preserving older positional fields.
+- Permit overlap between independent outer regions. Expose their relationship without
+  automatically treating it as invalid LogoSC geometry.
+
+Consequences:
+
+- Core remains standalone and unchanged; topology users continue to opt into
+  `LogoSC-Foundation-Validation.scad`.
+- The complete Foundation and Validation acceptance run contains 201 immutable results after
+  adding focused predicate, containment, region, ownership, hole-policy, and opt-out tests.
+- Pairwise contour work remains worst-case quadratic and can be disabled for trusted,
+  highly tessellated models.
+
+### 2026-07-27 — Convexity query API
+
+Context:
+
+- Advanced geometry algorithms often require a convex contour, path, or filled region, but
+  concavity is valid LogoSC geometry and should not become a validation error.
+- A local-turn-only test can incorrectly classify self-intersecting or retraced boundaries.
+- Multiple polygons introduce two different questions: whether every member is convex and
+  whether their geometric union is convex.
+
+Decision:
+
+- Add public `LogoContourIsConvex()`, `LogoPathIsConvex()`, and `LogoRegionIsConvex()` queries
+  to the optional Validation/geometry companion rather than mandatory Core.
+- Require a simple boundary before checking turn signs: reject insufficient vertices,
+  zero-length edges, collinear backtracking, and all nonadjacent segment relationships.
+- Accept clockwise and counterclockwise winding. Allow forward collinear vertices by default
+  and provide `strict = true` when every turn must be nonzero.
+- Define a filled region with any hole as nonconvex.
+- Add `LogoRegionsAreIndividuallyConvex()` for lists of regions. Make its member-wise behavior
+  explicit; do not claim to compute convexity of the polygons' geometric union.
+
+Consequences:
+
+- Convexity is now a reusable Boolean query without altering `ValidateLogoPaths()` validity
+  policy.
+- The correctness-first contour query has a worst-case quadratic simplicity scan followed by
+  linear turn analysis.
+- Twelve focused Validation results cover winding, concavity, collinearity modes, malformed
+  boundaries, path closure, holes, and multiple-region behavior.
+- The complete Foundation and Validation acceptance run now contains 201 immutable results.

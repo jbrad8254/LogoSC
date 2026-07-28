@@ -4,6 +4,26 @@
 
 ### Added
 
+- Added reusable optional-validation helpers for segment relationships, contour intersection
+  pairs, point containment, region boundary intersections, and filled-region relationships.
+- Added documented `LogoContourIsConvex()`, `LogoPathIsConvex()`, and
+  `LogoRegionIsConvex()` public queries with winding-independent turn analysis, strict and
+  non-strict collinearity modes, simplicity checks, and defined hole semantics. Added
+  `LogoRegionsAreIndividuallyConvex()` for explicit all-members checks without misrepresenting
+  that result as convexity of the polygons' union.
+- Added default-on hole topology validation for holes outside or touching their outer contour
+  and for overlapping, touching, coincident, or nested holes, with related-path diagnostics and
+  a `checkHoleTopology` opt-out for trusted highly tessellated models.
+- Added focused topology tests covering predicate classifications, containment, independent
+  region relationships, hole ownership, invalid outer relationships, overlapping and nested
+  holes, valid separated holes, and disabled behavior.
+- Added nine focused convexity results covering winding, concavity, collinearity modes,
+  self-intersection, backtracking, insufficient points, explicit-path closure, and regions with
+  and without holes, plus three multiple-region results for all-convex, mixed-concavity, and
+  hole-containing lists.
+- Added `LogoSC-Validation-Implementation.md`, documenting explicit-path extraction, every
+  integrity and topology algorithm, complexity boundaries, hole-ownership ordering, all 71
+  Validation results by test group, fixture rationale, verification, and known limits.
 - Added preliminary local-transform design notes covering persistent transforms through
   `REPEAT` and `RUN`, reuse of the existing `PUSH`/`POP` stack, `TURN` as the sole relative
   rotation operation, full-transform relative movement, a readable canonical affine-state

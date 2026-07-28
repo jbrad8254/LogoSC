@@ -161,11 +161,14 @@ ReportLogoValidation(triangle); // Echo warnings and continue.
 RenderLogo2D(triangle);
 ```
 
-Basic models need only Core. The optional validator currently detects open paths, too few
-usable vertices, zero-length segments, duplicate nonconsecutive points, tiny nonzero edges, and
-proper self-intersections. Use `ReportLogoValidation(triangle, strict = true)` when any issue
-should stop evaluation. Set `checkSelfIntersections = false` for highly tessellated paths when
-the quadratic crossing scan is not wanted.
+Basic models need only Core. Enable the optional validator while developing parts whose bad
+topology could otherwise reach `polygon()` or CGAL: it detects basic path defects, proper
+self-intersections, holes outside or touching their outer contour, and overlapping or nested
+holes. Use `ReportLogoValidation(triangle, strict = true)` when any issue should stop
+evaluation. Set `checkSelfIntersections = false` or `checkHoleTopology = false` for highly
+tessellated, already-trusted command lists when the corresponding quadratic scan is not wanted.
+See `LogoSC-Validation-Implementation.md` for the algorithms, complexity, policy rationale, and
+complete Validation test matrix.
 
 ## Current public API
 
@@ -190,13 +193,18 @@ Optional path-analysis helpers in `LogoSC-Foundation-Validation.scad` include:
 
 ```scad
 evalLogoPaths(cmds);
-ValidateLogoPaths(cmds, ..., tinyEdgeThreshold = 0.01, checkSelfIntersections = true);
-ReportLogoValidation(cmds, ..., strict = false, checkSelfIntersections = true);
+ValidateLogoPaths(cmds, ..., checkSelfIntersections = true, checkHoleTopology = true);
+ReportLogoValidation(cmds, ..., checkSelfIntersections = true, checkHoleTopology = true);
 ValidationPaths(result);
 ValidationIssues(result);
 ValidationTinyEdgeThreshold(result);
 ValidationChecksSelfIntersections(result);
+ValidationChecksHoleTopology(result);
 ValidationIsValid(result);
+LogoContourIsConvex(points, tolerance = 0.001, strict = false);
+LogoPathIsConvex(path, tolerance = 0.001, strict = false);
+LogoRegionIsConvex(region, tolerance = 0.001, strict = false);
+LogoRegionsAreIndividuallyConvex(regions, tolerance = 0.001, strict = false);
 ```
 
 The current public API version is `2026.3`.
@@ -246,6 +254,7 @@ See `LogoSC-CheatSheet.md` and `LogoSC-User-Manual.md` for the complete command 
 - `LogoSC-README.md` — detailed project overview and roadmap.
 - `LogoSC-ARC-Implementation.md` — arc tessellation design notes.
 - `LogoSC-Holes-Implementation.md` — region and hole design notes.
+- `LogoSC-Validation-Implementation.md` — validation algorithms, policies, complexity, and test matrix.
 - `LogoSC-Transforms-Design.md` — preliminary local-transform design direction and open questions.
 - `LogoSC-LSystems-Notes.md` — L-system design/example notes.
 - `CHANGELOG.md` — release history.
@@ -265,10 +274,10 @@ LogoSC keeps the core narrow:
 ## Current status
 
 LogoSC currently focuses on filled 2D region rendering for final geometry. It also includes
-a preview-only debug renderer and an optional validator that detects open paths, paths with too
-few vertices, zero-length segments, duplicate nonconsecutive points, tiny edges, and proper
-self-intersections. Manufacturable stroke/open-path rendering and inter-contour topology checks
-remain future work.
+a preview-only debug renderer and an optional validator that detects basic path defects, proper
+self-intersections, invalid hole containment, and overlapping holes. The companion exposes
+reusable segment, contour, containment, and region-relation helpers without adding them to Core.
+Manufacturable stroke/open-path rendering remains future work.
 
 ## Version history
 
@@ -281,7 +290,7 @@ remain future work.
 
 ## Near-term roadmap
 
-- Expand optional validation with hole-containment and contour-overlap checks.
+- Expand optional validation only when additional topology policies provide clear value.
 - Keep manufacturable stroke rendering as a separate API with explicit width, cap, and join semantics.
 
 ## Requirements
