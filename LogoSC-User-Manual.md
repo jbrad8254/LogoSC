@@ -375,12 +375,14 @@ modeling tool rather than as a test harness. It contains a gallery module plus
 individual named examples for washers, mounting plates, radial holes, Koch
 snowflake geometry, L-system-generated fractal outlines, rotate-extruded
 profiles, twisted extrusions, a small spiral tower, and the LogoSC feature
-wordmark.
+wordmark. The wordmark is centered above the gallery as a masthead, and its two
+O glyphs use generated LogoSC shear for a visible right-leaning italic treatment. A dedicated
+six-cell row demonstrates canonical local transforms.
 
 ![Figure 4-1](images/examples-gallery.png)
 
 *Figure 4-1. The Examples gallery combines basic shapes, holes, native OpenSCAD linear and
-rotational extrusions, and recursive L-system-inspired models.*
+rotational extrusions, recursive L-system-inspired models, and local affine transforms.*
 
 Open `LogoSC-Examples.scad` directly in OpenSCAD. The top-level Customizer
 selector controls what is rendered:
@@ -407,6 +409,11 @@ Use it as a cookbook: copy a command list such as `ExampleMountingPlate`, or use
 one of the example rendering modules as a starting point for your own model.
 For the L-system examples, see `LogoSC-LSystems-Notes.md` for design context
 and limitations.
+
+The transform row demonstrates independent-axis ellipse scaling, shear generated
+by turning after nonuniform scale, persistent `TURN` across a six-iteration
+snowflake, negative-scale reflection, affine-transformed arcs, and a recursive
+tree whose branches combine `PUSH`/`POP`, `TURN`, and shrinking `SCALE`.
 
 Open `LogoSC-Nuts-And-Bolts.scad` for a more complete manufacturing example. Its Customizer
 selects bolt, nut, assembly, profile, or `Gallery (Slow!)` output; common metric and Unified sizes;

@@ -2821,5 +2821,14 @@ Verification boundary:
 
 Follow-up:
 
-- Exercise the model in reusable motif examples before exposing an explicit `SHEAR` opcode.
+- Added a six-cell gallery row using ordinary LogoSC command data: ellipse, generated shear,
+  persistent sixfold turning, reflection, transformed arcs, and a recursive scaled/turned tree.
+- Kept the tree within LogoSC's filled-region model by generating explicitly closed branch
+  contours and using pen-up motion only to reposition between recursive branch bases.
+- Move the wordmark from an isolated middle cell to a centered masthead above the gallery.
+  Apply a visible right-leaning generated shear to both O glyphs using nonuniform `SCALE`,
+  `TURN`, and `DIR` so the branding demonstrates the transform model without a `SHEAR` opcode.
+- Remove the resulting empty row by compacting the L-system and transform rows downward. Increase
+  the wordmark gallery scale from `0.46` to `0.69` so the masthead is 50 percent larger.
+- Continue exercising the model before exposing an explicit `SHEAR` opcode.
 - Use the transform behavior as the foundation for the proposed Gordian-knot feature design.

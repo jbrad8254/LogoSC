@@ -20,6 +20,14 @@
   helpers using a documented standard 2x3 column-vector matrix convention,
   deterministic reflection canonicalization, optional heading-reference
   recovery, and malformed/singular input rejection.
+- Added a six-cell affine-transform gallery row with documented ellipse, sheared
+  rectangle, persistent-turn snowflake, reflected butterfly, transformed arc
+  capsule, and recursively scaled/turned tree examples.
+- Moved the LogoSC feature wordmark to a centered gallery masthead and gave both
+  O glyphs a right-leaning generated-shear italic treatment using `SCALE`,
+  `TURN`, and world-absolute `DIR`.
+- Compacted the gallery after moving the wordmark by shifting the L-system and
+  transform rows downward, and enlarged the masthead by 50 percent.
 
 ## [2026.4] - 2026-07-27
 

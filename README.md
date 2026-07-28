@@ -64,7 +64,7 @@ automatic output in the examples file. Ordinary user models can omit `LogoSCRunM
 tests do not run unless explicitly selected.
 
 The default Examples view combines basic shapes, holes, linear and rotational extrusions,
-and recursive L-system-inspired models in one gallery.
+recursive L-system-inspired models, and a six-example local affine-transform row.
 
 ![LogoSC Examples gallery in OpenSCAD](images/examples-gallery.png)
 

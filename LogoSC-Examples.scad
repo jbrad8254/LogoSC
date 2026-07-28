@@ -459,6 +459,136 @@ ExampleLSystemQuadraticHolePlate =
     [HOLE, LSystemQuadraticKochIsland(0, 0, 22, 2)]
 ];
 
+// -----------------------------------------------------------------------------
+// Canonical affine-transform examples
+// -----------------------------------------------------------------------------
+// These six examples form one gallery row. All transformation happens inside
+// LogoSC command lists; the gallery's native scale is used only to fit a cell.
+
+// Independent local-axis scale turns an ordinary LogoSC circle into an ellipse.
+// This is the simplest visible demonstration of [SCALE, scaleX, scaleY].
+ExampleTransformEllipse =
+[
+    [SCALE, 1.8, 0.75],
+    [CIRCLE, 12, 64]
+];
+
+// A local TURN after nonuniform scale cannot remain rotation-plus-scale alone.
+// LogoSC composes the operations and recanonicalizes the result with explicit
+// shear, so this ordinary rectangle becomes a rotated parallelogram.
+ExampleTransformShearedRectangle =
+[
+    [SCALE, 1.7, 0.7],
+    [TURN, 35],
+    [RECT, 20, 12]
+];
+
+// PUSH/POP scopes each long lozenge, while TURN sits outside the restored
+// scope. The turn therefore persists from one REPEAT iteration to the next,
+// producing a sixfold snowflake without six manually rotated copies.
+ExampleTransformSixfoldSnowflake =
+[
+    [REPEAT, 6,
+        [
+            [PUSH],
+                [SCALE, 1.0, 0.42],
+                [ROUNDEDRECT, 30, 8, 3, 6],
+            [POP],
+            [TURN, 60]
+        ]
+    ],
+    [CIRCLE, 4, 32]
+];
+
+// The right wing is described once. A negative local X scale mirrors the same
+// commands for the left wing; no point-order reversal or alternate geometry is
+// required. The center body is emitted after both scoped wing transforms.
+ExampleTransformButterfly =
+[
+    [PUSH],
+        [SCALE, 1.25, 0.72],
+        [TURN, 25],
+        [ROUNDEDRECT, 18, 15, 5, 6],
+    [POP],
+    [PUSH],
+        [SCALE, -1, 1],
+        [SCALE, 1.25, 0.72],
+        [TURN, 25],
+        [ROUNDEDRECT, 18, 15, 5, 6],
+    [POP],
+    [SCALE, 0.45, 1.35],
+    [ROUNDEDRECT, 8, 24, 3, 6]
+];
+
+// ARC points are tessellated in local coordinates and then transformed. The
+// two semicircles and straight sides close a capsule; nonuniform scale followed
+// by TURN demonstrates that curved paths receive the same shear-aware transform
+// as MOVE and stamped primitives.
+ExampleTransformArcCapsule =
+[
+    [SCALE, 1.45, 0.65],
+    [TURN, 28],
+    [MOVE, 18],
+    [ARC, 5, 180, 12],
+    [MOVE, 18],
+    [ARC, 5, 180, 12]
+];
+
+// Generate one closed path-built branch and recursively add two smaller, turned
+// branches. Each child uses the same nominal dimensions; persistent local SCALE
+// makes the recursion shrink geometrically, while PUSH/POP restores its parent
+// frame. PENUP repositions between branch bases without leaving connector paths.
+function TransformTreeBranch(depth, length = 15, width = 3) =
+    concat(
+        [
+            [PENDOWN],
+            [TURN, 90],
+            [MOVE, width / 2],
+            [TURN, -90],
+            [MOVE, length],
+            [TURN, -90],
+            [MOVE, width],
+            [TURN, -90],
+            [MOVE, length],
+            [TURN, -90],
+            [MOVE, width / 2],
+            [TURN, -90]
+        ],
+        depth <= 0
+            ? [[PENUP]]
+            : concat(
+                [
+                    [PENUP],
+                    [MOVE, length]
+                ],
+                [
+                    [PUSH],
+                        [TURN, 28],
+                        [SCALE, 0.70]
+                ],
+                TransformTreeBranch(depth - 1, length, width),
+                [[POP]],
+                [
+                    [PUSH],
+                        [TURN, -32],
+                        [SCALE, 0.66]
+                ],
+                TransformTreeBranch(depth - 1, length, width),
+                [
+                    [POP],
+                    [MOVE, -length]
+                ]
+            )
+    );
+
+// The root points upward in world coordinates. All later turns and scales are
+// relative, making this a compact example of recursive transform composition.
+ExampleTransformTree =
+    concat(
+        [[DIR, 90]],
+        TransformTreeBranch(3)
+    );
+
 // 2D profile intended for native OpenSCAD rotate_extrude(). The profile is on
 // the positive-X side of the rotation axis. This one is path-built rather than
 // stamp-built so the whole profile is one closed region.
@@ -541,11 +671,24 @@ LogoGlyphL =
     [MOVE, 32]
 ];
 
-LogoGlyphO =
+// A small generated-shear transform used by both O glyphs. Nonuniform SCALE
+// followed by TURN creates shear; world-absolute DIR removes the overall
+// rotation while deliberately preserving that shear in canonical state.
+LogoWordmarkItalicTransform =
 [
-    [CIRCLE, 8, 64],
-    [HOLE, [[CIRCLE, 4, 32]]]
+    [SCALE, 1.2, 0.8],
+    [TURN, -78],
+    [DIR, 0]
 ];
+
+LogoGlyphO =
+    concat(
+        LogoWordmarkItalicTransform,
+        [
+            [CIRCLE, 8, 64],
+            [HOLE, [[CIRCLE, 4, 32]]]
+        ]
+    );
 
 LogoGlyphGBody =
 [
@@ -563,20 +706,43 @@ LogoGlyphGTail1 =
     [ROUNDEDRECT, 12, 4, 2, 6]
 ];
 
+// Local-relative Koch outline for a glyph transform. The general gallery
+// KochSnowflake() begins with world-absolute GOTO, which is useful for layout
+// but would leave the starting anchor outside this glyph's affine transform.
 function LogoGlyphKochOOuter(side = 18, depth = 2) =
-    KochSnowflake(0, 0, side, depth);
+    let(height = side * sqrt(3) / 2)
+    concat(
+        [
+            [PENUP],
+            [MOVE, -side / 2],
+            [TURN, 90],
+            [MOVE, height / 3],
+            [TURN, -90],
+            [PENDOWN]
+        ],
+        KochSegment(depth, side),
+        [[TURN, -120]],
+        KochSegment(depth, side),
+        [[TURN, -120]],
+        KochSegment(depth, side)
+    );
 
 function LogoGlyphKochOHole(radius = 4, segments = 36) =
 [
-    [GOTO, 0, 0, 0],
     [CIRCLE, radius, segments]
 ];
 
 // Gear-like O: a Koch snowflake outline with a larger center hole.
 // This keeps the mark as filled region geometry; no stroke API is used.
+// The outline is scoped because its path TURNs would otherwise persist and
+// recanonicalize the italic transform before HOLE inherits the current state.
+// POP restores the exact italic frame shared by the outer and centered hole.
 LogoGlyphKochO =
     concat(
+        LogoWordmarkItalicTransform,
+        [[PUSH]],
         LogoGlyphKochOOuter(),
+        [[POP]],
         [[HOLE, LogoGlyphKochOHole()]]
     );
 
@@ -747,7 +913,7 @@ module RenderLogoExample(
 
 // Render the wordmark as a 2D extruded badge. The wordmark is designed around
 // 126 units wide; the gallery scales it down to fit a cell.
-module RenderLogoSCWordmarkExample(index = [0, 2], exampleScale = 0.46)
+module RenderLogoSCWordmarkExample(index = [2, 4], exampleScale = 0.69)
 {
     offset = LogoExampleGridOffset(index);
 
@@ -1012,21 +1178,48 @@ module RenderAllLogoExamples()
     );
     RenderKnobProfile3DExample([3, 1], exampleScale = 1.0);
 
-    RenderLogoSCWordmarkExample([0, 2], exampleScale = 0.46);
+    // Center the LogoSC wordmark above the six-column gallery as a masthead.
+    RenderLogoSCWordmarkExample([2, 4], exampleScale = 0.69);
 
-    RenderLogoExample("L-system Koch medallion", ExampleLSystemKochMedallion, [0, 3]);
-    RenderLogoExample("L-system Koch hole disk", ExampleLSystemKochHoleDisk, [1, 3]);
+    RenderLogoExample("L-system Koch medallion", ExampleLSystemKochMedallion, [0, 2]);
+    RenderLogoExample("L-system Koch hole disk", ExampleLSystemKochHoleDisk, [1, 2]);
     RenderLogoExample(
         "L-system quadratic island",
         ExampleLSystemQuadraticIsland,
-        [2, 3],
+        [2, 2],
         exampleScale = 0.95
     );
     RenderLogoExample(
         "L-system quadratic hole plate",
         ExampleLSystemQuadraticHolePlate,
-        [3, 3],
+        [3, 2],
         exampleScale = 0.85
+    );
+
+    // One six-cell row dedicated to LogoSC's canonical local affine transforms.
+    RenderLogoExample("transform: ellipse", ExampleTransformEllipse, [0, 3]);
+    RenderLogoExample(
+        "transform: sheared rectangle",
+        ExampleTransformShearedRectangle,
+        [1, 3]
+    );
+    RenderLogoExample(
+        "transform: sixfold snowflake",
+        ExampleTransformSixfoldSnowflake,
+        [2, 3],
+        exampleScale = 0.82
+    );
+    RenderLogoExample("transform: reflected butterfly", ExampleTransformButterfly, [3, 3]);
+    RenderLogoExample(
+        "transform: affine arc capsule",
+        ExampleTransformArcCapsule,
+        [4, 3]
+    );
+    RenderLogoExample(
+        "transform: recursive tree",
+        ExampleTransformTree,
+        [5, 3],
+        exampleScale = 0.92
     );
 }
 
