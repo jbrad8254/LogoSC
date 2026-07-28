@@ -38,6 +38,8 @@
 - `LogoSC-Validation-Implementation.md` — validation algorithms, policies, complexity, and test matrix.
 - `LogoSC-Transforms-Design.md` — preliminary local-transform design direction and open questions.
 - `LogoSC-LSystems-Notes.md` — design notes for L-system examples.
+- `LogoSC-Knots-Design.md` — design and roadmap for parametric, braid, Celtic, ribbon, and
+  rounded-cord knot generation.
 - `LogoSC-User-Manual.md` — command reference and practical examples.
 - `CONTRIBUTING.md` — contributor workflow, stability, testing, documentation, and packaging guidance.
 - `AGENTS.md` — compact repository-specific operating guidance for Codex.

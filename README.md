@@ -261,6 +261,8 @@ See `LogoSC-CheatSheet.md` and `LogoSC-User-Manual.md` for the complete command 
 - `LogoSC-Validation-Implementation.md` — validation algorithms, policies, complexity, and test matrix.
 - `LogoSC-Transforms-Design.md` — preliminary local-transform design direction and open questions.
 - `LogoSC-LSystems-Notes.md` — L-system design/example notes.
+- `LogoSC-Knots-Design.md` — generative-knot algorithms, topology, rendering, verification,
+  and implementation roadmap.
 - `CHANGELOG.md` — release history.
 - `docs/ai-engineering-kit/` — maintainer-facing Codex/Git quick start plus AI handoff,
   bootstrap, collaboration, engineering-preference, and retrospective documents.

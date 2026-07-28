@@ -636,6 +636,12 @@ changes, verify links, headings, code examples, and retained accepted content.
 
 Near-term candidates:
 
+- implement the optional knot companion in the staged order recorded in
+  `LogoSC-Knots-Design.md`, beginning with shared strand records and torus-knot cords;
+- make adjacent multi-cord expansion a generator-independent post-topology stage, with shared
+  over/under motion and explicit lane-closing permutations for half-twisted bundles;
+- keep future AI-assisted figurative-knot import outside Core: AI supplies an inspectable vector
+  blueprint, while deterministic companion code synthesizes and validates the actual routes;
 - expand optional validation only when additional topology policies provide clear value;
 - expand the non-rendering evaluator and validation suites alongside eventual open-path support;
 - measure generalized pairwise topology costs on real highly tessellated models before
@@ -1051,6 +1057,8 @@ Current docs are split by purpose:
 - `LogoSC-Transforms-Design.md`: preliminary local-transform direction, compatibility constraints,
   and questions that must be resolved before implementation.
 - `LogoSC-LSystems-Notes.md`: design notes for L-system example helpers and future fractal examples.
+- `LogoSC-Knots-Design.md`: active plan for generative topology, knot algorithms, adjacent-cord
+  bundles, ribbons, bas-relief, rounded cords, verification, and optional-companion sequencing.
 - `LogoSC-Examples.scad`: runnable examples and gallery.
 - `LogoSC-Experiments.scad`: experimental lab bench for unproven rendering approaches.
 - `README.md`: short GitHub repository landing page.

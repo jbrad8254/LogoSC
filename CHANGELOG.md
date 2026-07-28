@@ -4,6 +4,21 @@
 
 ### Added
 
+- Added `LogoSC-Knots-Design.md`, an implementation roadmap covering a shared strand/crossing
+  representation; torus, braid-word, Celtic-grid, harmonic/Lissajous, polar, and medial-graph
+  generators; alternating crossing constraints; 2D ribbons; bas-relief; rounded capsule cords;
+  verification; and staged companion-library delivery.
+- Added adjacent multi-cord bundles as a required knot feature, including width/gap fitting,
+  symmetric lane expansion, synchronized crossing lifts, bundle-envelope clearance, stable 3D
+  frames, and explicit Möbius-like lane-closure permutations.
+
+- Added an AI-assisted figurative-knot import concept to the knot roadmap, using semantic
+  regions and vector guide data as a validated interchange rather than unchecked generated
+  LogoSC commands. Added reusable knot and zoomorphic-interlace references, their licensing
+  records, an overview of traditional grid, break, route, ribbon, and crossing construction,
+  and a reading list covering hand construction, algorithmic generation, example archives,
+  contemporary generators, practical tutorials, and artist galleries.
+
 - Added persistent canonical affine state
   `[x, y, heading, scaleX, scaleY, shear]`, preserving the historical first
   four indices and `SS` compatibility alias while adding `SSX`, `SSY`, and

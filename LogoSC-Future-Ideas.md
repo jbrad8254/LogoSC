@@ -158,6 +158,16 @@ Include Koch, Hilbert, Dragon, Sierpiński, and plant examples.
 
 ---
 
+### Generative Knot Companion
+
+Status: active design work is recorded in `LogoSC-Knots-Design.md`.
+
+Keep knot topology, parametric generators, Celtic tile tracing, ribbon expansion, bas-relief,
+and rounded-cord construction outside Core. Reuse Core regions and transforms where appropriate,
+with native OpenSCAD responsible for 3D hull, Minkowski, boolean, and extrusion operations.
+
+---
+
 ## Lower Priority
 
 ### Performance
