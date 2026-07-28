@@ -83,6 +83,7 @@
 - [2026.2 release preparation](#2026-07-13--consolidated-20262-release-preparation)
 - [2026.2 release identifier cleanup](#2026-07-18--20262-release-identifier-cleanup)
 - [2026.3 release preparation](#2026-07-22--20263-feature-release-preparation)
+- [2026.4 release preparation](#2026-07-27--20264-feature-release-preparation)
 - [Journal-entry template](#yyyy-mm-dd--topic)
 
 ## Quick Links
@@ -183,7 +184,7 @@ for OpenSCAD.
 
 Current stable milestone:
 
-- LogoSC release `2026.3`.
+- LogoSC release `2026.4`.
 
 License milestone:
 
@@ -192,7 +193,7 @@ License milestone:
   may copy, modify, redistribute, and use it in commercial or closed-source
   projects as long as the copyright/license notice is preserved. README files
   should link to `LICENSE` rather than embedding the full license text.
-- Current source snapshot public API version `2026.3`.
+- Current source snapshot public API version `2026.4`.
 
 Major implemented features include:
 
@@ -224,7 +225,7 @@ Append new milestones here. Do not rewrite this section as only the latest state
 
 ---
 
-## Restart Checkpoint — 2026.3 Fasteners and Validation Stable
+## Restart Checkpoint — 2026.4 Topology and Convexity Stable
 
 Current project state is suitable for a fresh chat/restart from the local Git repository or
 a repository ZIP.
@@ -247,8 +248,9 @@ Verified working state:
   `LogoSC-Foundation-Test-Runner.scad` is the direct suite entry point.
 - `LogoSC-Foundation-Core.scad` is standalone and does not include test or optional
   feature companions.
-- Optional `LogoSC-Foundation-Validation.scad` supplies explicit path records, basic integrity
-  checks, and proper self-intersection detection without changing Core evaluation or rendering.
+- Optional `LogoSC-Foundation-Validation.scad` supplies explicit path records, integrity and
+  topology checks, general geometry relationships, and convexity queries without changing Core
+  evaluation or rendering.
 - `LogoSC-Nuts-And-Bolts.scad` supplies the standalone customizable fastener application while
   keeping native OpenSCAD responsible for twisted extrusion and 3D booleans.
 - `RenderLogoDebug()` is implemented and visually verified.
@@ -277,9 +279,11 @@ Verified working state:
 - README Quick Start now shows the actual filled-triangle result immediately after
   the first code block and the debug-overlay result immediately after the
   `RenderLogoDebug()` code block.
-- Git tags `v2026.2` and `v2026.2.1` preserve the earlier release baselines.
+- Git tags `v2026.2`, `v2026.2.1`, and `v2026.3` preserve the earlier release baselines.
 - Release `2026.3` consolidates the later fastener application, expanded validation, tests,
   documentation, and reproducible images without rewriting those earlier tags.
+- Release `2026.4` consolidates general topology relationships, strict hole validation,
+  convexity queries, expanded deterministic suites, and preliminary transform design notes.
 
 Known open design issues:
 
@@ -1059,9 +1063,9 @@ should not become another manual.
 The current public baseline is:
 
 ```text
-Release: 2026.3
-Status: 166 automated results plus fastener CSG and default CGAL/STL exports verified
-Purpose: printable-fastener application and expanded optional-validation milestone
+Release: 2026.4
+Status: 201 Foundation/Validation results and 48 fastener results verified
+Purpose: general topology, strict hole validation, convexity queries, and test hardening
 ```
 
 `LogoSC-Experiments.scad` remains a separate lab bench. Keep experimental code there
@@ -2745,3 +2749,29 @@ Consequences:
 - Twelve focused Validation results cover winding, concavity, collinearity modes, malformed
   boundaries, path closure, holes, and multiple-region behavior.
 - The complete Foundation and Validation acceptance run now contains 201 immutable results.
+
+### 2026-07-27 — 2026.4 feature-release preparation
+
+Context:
+
+- Work after `2026.3` added public optional topology and convexity APIs, strict hole validation,
+  expanded Foundation/Validation and fastener tests, detailed algorithm documentation, and a
+  preliminary transform design note.
+- The transform implementation will change evaluator state and deserves a later independent
+  milestone rather than being coupled to this completed validation feature set.
+
+Decision:
+
+- Advance `LogoSCVersionMinor` from `3` to `4`.
+- Consolidate the current Unreleased work into release `2026.4`, dated 2026-07-27, and restore
+  an empty Unreleased section.
+- Update active current-version references while preserving historical `2026.3` release
+  rationale and records.
+- Leave commit, tag creation, and external release publication to the maintainer after review.
+
+Verification boundary:
+
+- Require the complete Foundation and Validation result to remain 201 of 201 passing.
+- Require the separate fastener result to remain 48 of 48 passing.
+- Verify `LogoSCVersion == "2026.4"`, documentation consistency, `git diff --check`, and the
+  final working-tree status before handoff.

@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [2026.4] - 2026-07-27
+
+This feature release adds general optional topology relationships, strict hole validation,
+convexity queries, expanded deterministic tests, and the preliminary local-transform design
+direction. The Core public API version advances to `2026.4`; Core evaluation and rendering
+remain backward compatible and independent of the optional Validation companion.
+
 ### Added
 
 - Added reusable optional-validation helpers for segment relationships, contour intersection

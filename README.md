@@ -207,7 +207,7 @@ LogoRegionIsConvex(region, tolerance = 0.001, strict = false);
 LogoRegionsAreIndividuallyConvex(regions, tolerance = 0.001, strict = false);
 ```
 
-The current public API version is `2026.3`.
+The current public API version is `2026.4`.
 
 ## Command examples
 
@@ -283,6 +283,7 @@ Manufacturable stroke/open-path rendering remains future work.
 
 | Version | Highlights |
 | --- | --- |
+| 2026.4 | Topology/hole validation, convexity queries, expanded tests, and transform design notes |
 | 2026.3 | Printable fastener application plus duplicate-point, tiny-edge, and proper self-intersection validation |
 | 2026.2.1 | Optional path validation, automated suite aggregation, galleries, and command-line verification |
 | 2026.2 | LogoSC identity, `RenderLogoDebug()`, unified run mode, licensing, branding, and documentation refresh |
