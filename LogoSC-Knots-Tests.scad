@@ -38,6 +38,7 @@ function KnotRecordTestResults() =
         && KnotStrandLaneClosurePermutation(strand) == [1, 0]
         && KnotStrandMetadata(strand) == ["name", "fixture"]
         && KnotStrandSampleCount(strand) == 3
+        && KnotStrandSegmentCount(strand) == 2
     ),
     LogoTestResult(
         "knot crossing accessors",
@@ -252,11 +253,45 @@ function KnotTorusTestResults() =
     )
 ];
 
+function KnotCordTestResults() =
+    let(
+        unknot = MakeTorusKnot(1, 1, 20, 6, 24),
+        trefoil = MakeTorusKnot(2, 3, 20, 6, 60),
+        hopf = MakeTorusKnot(2, 2, 20, 6, 32),
+        openStrand = MakeKnotStrand(
+            false,
+            [[0, 0, 0], [1, 0, 0], [2, 1, 0], [3, 1, 1]]
+        ),
+        malformedKnot = [1]
+    )
+[
+    LogoTestResult(
+        "knot cord closed segment count",
+        KnotStrandSegmentCount(KnotStrands(unknot)[0]) == 24
+        && KnotCordSegmentCount(unknot) == 24
+        && KnotCordSegmentCount(trefoil) == 60
+    ),
+    LogoTestResult(
+        "knot cord multi-component segment count",
+        KnotCordSegmentCount(hopf) == 64
+    ),
+    LogoTestResult(
+        "knot cord open strand segment count",
+        KnotStrandSegmentCount(openStrand) == 3
+        && KnotCordSegmentCount(MakeKnot([openStrand])) == 3
+    ),
+    LogoTestResult(
+        "knot cord malformed root has no segments",
+        KnotCordSegmentCount(malformedKnot) == 0
+    )
+];
+
 function KnotAutomatedTestResults() =
     concat(
         KnotRecordTestResults(),
         KnotValidationTestResults(),
-        KnotTorusTestResults()
+        KnotTorusTestResults(),
+        KnotCordTestResults()
     );
 
 function KnotTestSuiteResult() =

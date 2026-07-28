@@ -10,12 +10,19 @@
   with `gcd(p,q)` independently closed components.
 - Added selectable Planar and Spatial knot debug views. Planar mode projects centerline and
   sample diagnostics to `z = 0` without changing the stored 3D knot route.
-- Added a separate 24-result knot test suite and runner covering record accessors, valid and
+- Added a separate 28-result knot test suite and runner covering record accessors, valid and
   invalid structures, closure, crossings, encounter indexes, lane permutations, torus sample
-  counts, exact closure, distinct link components, and generated-result validation.
+  counts, exact closure, distinct link components, generated-result validation, and cord-segment
+  accounting.
 - Added `LogoSC-Knots-Examples.scad`, a small documented unknot, trefoil, Hopf-link, and explicit
-  crossing debug gallery. Ribbons, crossing lifts, adjacent cord bundles, and AI image import
-  remain deferred.
+  crossing gallery with diagnostic and cord output. Ribbons, crossing lifts, adjacent cord
+  bundles, and AI image import remain deferred.
+- Added validated `RenderKnotCords()` manufacturing geometry, converting every adjacent sampled
+  pair into a sphere-hulled capsule with explicit radius and fragment controls. Added segment
+  accounting helpers and four focused tests.
+- Documented the knot companion's actual dependency flow: current torus sampling, validation,
+  diagnostics, and cords do not invoke LogoSC Core; the test runner uses Core only for reporting;
+  and planned Core integration begins with planar motifs, transforms, ribbons, and masks.
 - Added `LogoSC-Knots-Design.md`, an implementation roadmap covering a shared strand/crossing
   representation; torus, braid-word, Celtic-grid, harmonic/Lissajous, polar, and medial-graph
   generators; alternating crossing constraints; 2D ribbons; bas-relief; rounded capsule cords;

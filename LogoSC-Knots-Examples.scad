@@ -4,8 +4,11 @@ include <LogoSC-Knots.scad>
 
 KnotExample = "Gallery"; // [Gallery, Unknot, Trefoil, HopfLink, CrossingRecord]
 KnotView = "Planar"; // [Planar, Spatial]
+KnotOutput = "Debug"; // [Debug, Cord]
 KnotShowSamples = false;
 KnotCenterlineRadius = 2; // [0.01:0.01:5]
+KnotCordRadius = 1.2; // [0.1:0.1:5]
+KnotCordFragments = 24; // [6:1:64]
 
 function KnotExampleResult(name) =
     name == "Unknot"
@@ -34,12 +37,23 @@ module RenderKnotExample(name)
 {
     knot = KnotExampleResult(name);
 
-    RenderKnotDebug(
-        knot,
-        viewMode = KnotView,
-        showSamples = KnotShowSamples,
-        centerlineRadius = KnotCenterlineRadius
-    );
+    if (KnotOutput == "Cord" && name != "CrossingRecord")
+    {
+        RenderKnotCords(
+            knot,
+            cordRadius = KnotCordRadius,
+            fragments = KnotCordFragments
+        );
+    }
+    else
+    {
+        RenderKnotDebug(
+            knot,
+            viewMode = KnotView,
+            showSamples = KnotShowSamples,
+            centerlineRadius = KnotCenterlineRadius
+        );
+    }
 }
 
 if (KnotExample == "Gallery")

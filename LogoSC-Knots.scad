@@ -1,9 +1,11 @@
 // ============================================================================
 // LogoSC Knots - optional sampled-knot companion
 //
-// This file is independent of LogoSC Core. It defines shared knot records,
-// structural validation, preview diagnostics, and the first torus-knot/link
-// generator. Native OpenSCAD remains responsible for final 3D construction.
+// This file is independent of LogoSC Core. It does not call evalLogo() or emit
+// LogoSC command lists. Pure OpenSCAD functions define and validate sampled
+// knot records; native OpenSCAD sphere/hull geometry produces diagnostics and
+// manufacturable rounded cords. Future planar motif and ribbon stages may
+// consume LogoSC Core without making this 3D companion a Core dependency.
 // ============================================================================
 
 KNOT_STRANDS = 0;
@@ -79,6 +81,23 @@ function KnotStrandLaneClosurePermutation(strand) =
 function KnotStrandMetadata(strand) =
     len(strand) > KNOT_STRAND_METADATA ? strand[KNOT_STRAND_METADATA] : [];
 function KnotStrandSampleCount(strand) = len(KnotStrandSamples(strand));
+function KnotStrandSegmentCount(strand) =
+    max(0, KnotStrandSampleCount(strand) - 1);
+
+function KnotCordSegmentCountFromStrands(strands, index = 0) =
+    index >= len(strands)
+    ? 0
+    : (
+        KnotStructureIsStrand(strands[index])
+        ? KnotStrandSegmentCount(strands[index])
+        : 0
+    )
+    + KnotCordSegmentCountFromStrands(strands, index + 1);
+
+function KnotCordSegmentCount(knot) =
+    !KnotStructureIsKnot(knot)
+    ? 0
+    : KnotCordSegmentCountFromStrands(KnotStrands(knot));
 
 // Construct one projected crossing. Parameters are normalized to [0, 1].
 // overStrand must equal strandA or strandB.
@@ -544,6 +563,63 @@ module RenderKnotDebugSegment(a, b, radius, colorValue, fragments)
             sphere(r = radius, $fn = fragments);
         translate(b)
             sphere(r = radius, $fn = fragments);
+    }
+}
+
+// Render one rounded capsule between adjacent centerline samples. This is an
+// implementation helper for RenderKnotCords(), not a general Core stroke API.
+module RenderKnotCordSegment(a, b, radius, fragments)
+{
+    hull()
+    {
+        translate(a)
+            sphere(r = radius, $fn = fragments);
+        translate(b)
+            sphere(r = radius, $fn = fragments);
+    }
+}
+
+// Convert every sampled strand into a manufacturable round cord by unioning
+// sphere-hulled capsules. Closed strands already repeat their first sample, so
+// their final segment closes exactly. The caller remains responsible for
+// choosing a radius and sampling density that preserve intended clearance.
+module RenderKnotCords(
+    knot,
+    cordRadius = 1,
+    fragments = 24,
+    validationTolerance = 0.001)
+{
+    validation = ValidateKnot(knot, validationTolerance);
+
+    assert(
+        KnotValidationIsValid(validation),
+        "RenderKnotCords requires a structurally valid knot."
+    );
+    assert(
+        is_num(cordRadius) && cordRadius > 0,
+        "Knot cord radius must be positive."
+    );
+    assert(
+        is_num(fragments) && floor(fragments) == fragments && fragments >= 3,
+        "Knot cord fragments must be an integer of at least 3."
+    );
+
+    union()
+    {
+        for (strand = KnotStrands(knot))
+        {
+            samples = KnotStrandSamples(strand);
+
+            for (sampleIndex = [0 : len(samples) - 2])
+            {
+                RenderKnotCordSegment(
+                    samples[sampleIndex],
+                    samples[sampleIndex + 1],
+                    cordRadius,
+                    fragments
+                );
+            }
+        }
     }
 }
 

@@ -2877,3 +2877,43 @@ Consequences:
 - `LogoSC-Knots-Examples.scad` provides a small unknot, trefoil, Hopf-link, and explicit-crossing
   diagnostic gallery. The next coherent milestone can add braid generation or manufacturable
   capsule cords without redesigning the common result.
+
+### 2026-07-28 — Manufacturable single-cord knot geometry
+
+Context:
+
+- The first knot-companion slice produced validated sampled 3D routes but only diagnostic
+  centerlines and markers.
+- The existing strand representation already repeats the first sample at the end of a closed
+  route, so it can drive capsule construction without changing record layouts or Core.
+
+Decision:
+
+- Add `RenderKnotCords()` as an optional-companion manufacturing module that validates the knot
+  and hulls equal-radius spheres at every adjacent sample pair.
+- Keep cord radius and sphere fragment count explicit. Route sampling remains a generator input,
+  and callers remain responsible for selecting dimensions that preserve printable clearance.
+- Add deterministic strand and complete-knot segment-count helpers. These verify that every
+  route segment reaches the manufacturing compiler without treating non-rendering tests as mesh
+  proof.
+- Keep `RenderKnotDebug()` preview-only and unchanged. The new cord module is not a general
+  LogoSC Core stroke API.
+- Defer adjacent bundle expansion, automatic clearance analysis, crossing lifts, ribbons, and
+  bas-relief. Those require additional topology and manufacturing policies.
+
+Verification boundary:
+
+- Expand the independent knot suite from 24 to 28 passing results.
+- Require a CSG smoke export of the trefoil cord example in addition to deterministic tests.
+- Continue to require the complete Foundation/Validation suite because documentation and shared
+  repository acceptance remain synchronized even though the knot companion has no Core
+  dependency.
+
+Documentation follow-up:
+
+- Make the absence of hidden Core evaluation explicit. The implemented torus path uses pure
+  OpenSCAD functions for sampling and validation and native OpenSCAD modules for 3D geometry.
+- Record that the knot test runner includes Core only for the shared automated-test result and
+  reporting framework.
+- Reserve actual LogoSC evaluator integration for planar Celtic motifs, transform-driven
+  repetition, ribbon regions, and crossing masks, with native OpenSCAD retaining 3D operations.

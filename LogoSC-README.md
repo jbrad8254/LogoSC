@@ -15,6 +15,7 @@
 - [Rendering API](#rendering-api)
 - [Debug rendering](#debug-rendering)
 - [Path analysis and validation](#path-analysis-and-validation)
+- [Optional knot companion](#optional-knot-companion)
 - [Future rendering work](#future-rendering-work)
 - [Cheat sheet](#cheat-sheet)
 - [Examples](#examples)
@@ -38,6 +39,10 @@
 - `LogoSC-Validation-Implementation.md` — validation algorithms, policies, complexity, and test matrix.
 - `LogoSC-Transforms-Design.md` — preliminary local-transform design direction and open questions.
 - `LogoSC-LSystems-Notes.md` — design notes for L-system examples.
+- `LogoSC-Knots.scad` — optional knot records, validation, torus generator, and rounded cords.
+- `LogoSC-Knots-Examples.scad` — selectable knot diagnostic and cord gallery.
+- `LogoSC-Knots-Tests.scad` — passive knot record, validation, generator, and cord tests.
+- `LogoSC-Knots-Test-Runner.scad` — direct entry point for the independent knot suite.
 - `LogoSC-Knots-Design.md` — design and roadmap for parametric, braid, Celtic, ribbon, and
   rounded-cord knot generation.
 - `LogoSC-User-Manual.md` — command reference and practical examples.
@@ -399,6 +404,30 @@ validation error.
 The validator is deliberately opt-in. `evalLogo()` and `RenderLogo2D()` retain
 their established behavior, including OpenSCAD's implicit polygon-closing edge.
 Basic models therefore still require only `LogoSC-Foundation-Core.scad`.
+
+## Optional knot companion
+
+`LogoSC-Knots.scad` remains independent of Core. It provides sampled strand and crossing records,
+structural validation, a torus-knot/link generator, preview diagnostics, and manufacturable
+rounded cords:
+
+```scad
+include <LogoSC-Knots.scad>
+
+trefoil = MakeTorusKnot(2, 3, majorRadius = 20, minorRadius = 6);
+ReportKnotValidation(trefoil, strict = true);
+RenderKnotCords(trefoil, cordRadius = 1.2, fragments = 24);
+```
+
+`RenderKnotCords()` hulls equal-radius spheres at each adjacent sample pair. The caller controls
+radius, route sampling, and sphere resolution and must preserve adequate clearance. Adjacent
+cord bundles, crossing lifts, braid words, ribbons, and bas-relief remain staged work described
+in `LogoSC-Knots-Design.md`.
+
+The current torus implementation does not call LogoSC Core behind the scenes. Pure OpenSCAD
+functions create and validate its sampled records, and native OpenSCAD creates the 3D solids.
+Planned Core use begins with planar motifs, transforms, ribbons, and crossing masks; the complete
+boundary is documented in `LogoSC-Knots-Design.md#how-logosc-is-used`.
 
 ## Future rendering work
 

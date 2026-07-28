@@ -74,8 +74,8 @@ LogoSC-Nuts-And-Bolts.scad         Customizable printable fastener model.
 LogoSC-Nuts-And-Bolts-Tests.scad   Passive non-rendering fastener calculation tests.
 LogoSC-Nuts-And-Bolts-Test-Runner.scad Direct entry point for fastener tests.
 LogoSC-Nuts-And-Bolts-Customizer.md Detailed fastener Customizer guide.
-LogoSC-Knots.scad                  Optional knot records, validation, debug, and torus generator.
-LogoSC-Knots-Examples.scad         Unknot, trefoil, Hopf-link, and crossing debug gallery.
+LogoSC-Knots.scad                  Optional knot records, validation, torus generator, and cords.
+LogoSC-Knots-Examples.scad         Unknot, trefoil, Hopf-link, crossing, and cord gallery.
 LogoSC-Knots-Tests.scad            Passive knot companion tests.
 LogoSC-Knots-Test-Runner.scad      Direct entry point for knot tests.
 LogoSC-Experiments.scad            Experimental rendering and geometry workbench.
@@ -1271,30 +1271,41 @@ regions, because rendering separate regions may legitimately union them.
 
 ### 7.12 Optional knot companion
 
-Knot functionality remains outside Core. The first companion slice stores one or more sampled
-3D strands in a shared knot result, validates record structure and closure, and provides
-preview-only centerline, sample, and crossing diagnostics.
+Knot functionality remains outside Core. The companion stores one or more sampled 3D strands
+in a shared knot result, validates record structure and closure, provides preview-only
+diagnostics, and converts sampled routes into rounded 3D cords.
 
 ```scad
 include <LogoSC-Knots.scad>
 
 hopfLink = MakeTorusKnot(2, 2, majorRadius = 20, minorRadius = 6);
 ReportKnotValidation(hopfLink, strict = true);
-RenderKnotDebug(hopfLink, viewMode = "Planar", showSamples = false);
+RenderKnotCords(hopfLink, cordRadius = 1.2, fragments = 24);
 ```
 
 When `p` and `q` are coprime, `MakeTorusKnot()` returns one strand. Otherwise it returns
 `gcd(p,q)` independently closed components without retracing them. The exact constructors and
 accessors, structural rules, deferred rendering stages, and implementation roadmap are in
-`LogoSC-Knots-Design.md`. Ribbons, crossing lifts, adjacent cord bundles, and AI image import
-are not part of this first slice.
+`LogoSC-Knots-Design.md`. `RenderKnotCords()` validates the record, then hulls equal-radius
+spheres at every pair of adjacent samples. Closed strands already repeat their first point, so
+the last capsule closes the route exactly. The caller remains responsible for selecting a cord
+radius, sampling density, and fragment count that preserve clearance and surface quality.
+Ribbons, crossing lifts, adjacent cord bundles, and AI image import remain deferred.
+
+There is no hidden LogoSC Core evaluation in this implementation. `MakeTorusKnot()` and
+`ValidateKnot()` are pure OpenSCAD functions, while `RenderKnotDebug()` and
+`RenderKnotCords()` use native OpenSCAD geometry. The knot test runner includes Core only to
+reuse the standard LogoSC automated-test reporting helpers. Planned planar Celtic generators,
+ribbon regions, repeated motifs, and crossing masks are the stages expected to use LogoSC
+commands, transforms, and region rendering. The exact current and planned dependency flow is
+documented in `LogoSC-Knots-Design.md#how-logosc-is-used`.
 
 `viewMode = "Planar"` projects the stored 3D samples onto `z = 0`; `"Spatial"` displays their
 original height. Projection does not alter the knot record. Torus projections do not yet cut
 underpass gaps because automatic crossing discovery remains a later milestone.
 
 Run `LogoSC-Knots-Test-Runner.scad` for its independent automated suite, and open
-`LogoSC-Knots-Examples.scad` for the small debug gallery.
+`LogoSC-Knots-Examples.scad` to select either diagnostic or cord output.
 
 ### 7.13 OpenSCAD wrapper pattern
 

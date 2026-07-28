@@ -189,7 +189,7 @@ printable mesh quality.
 ### Run the optional knot-companion suite
 
 `LogoSC-Knots-Test-Runner.scad` is the separate deterministic suite for knot records,
-validation, debug inputs, and generators:
+validation, debug inputs, generators, and cord-segment accounting:
 
 ```powershell
 $knotTestLogPath = Join-Path $env:TEMP 'LogoSC-knot-tests.echo'
@@ -212,6 +212,27 @@ if ($LASTEXITCODE -ne 0 -or $knotPass.Count -ne 1)
 
 The knot suite remains independent of the Foundation/Validation and fastener suites so the
 optional companion cannot become an accidental Core dependency.
+
+A quick CSG smoke export exercises the manufacturable capsule module without requiring a slower
+mesh render:
+
+```powershell
+$knotCsgPath = Join-Path $env:TEMP 'LogoSC-knot-cords.csg'
+
+& $openScadCli `
+    -D 'KnotExample=\"Trefoil\"' `
+    -D 'KnotOutput=\"Cord\"' `
+    -o $knotCsgPath `
+    'LogoSC-Knots-Examples.scad'
+
+if ($LASTEXITCODE -ne 0 -or !(Test-Path -LiteralPath $knotCsgPath))
+{
+    throw 'LogoSC knot cord CSG smoke export failed.'
+}
+```
+
+This confirms that OpenSCAD can construct the capsule tree. It does not replace an STL/mesh
+export and slicer inspection for a chosen radius, sampling density, and print process.
 
 ## Example 2: export and inspect a debug PNG
 

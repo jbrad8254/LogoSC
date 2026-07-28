@@ -3,12 +3,13 @@
 ## Status and purpose
 
 This is the authoritative design plan for generative knot work in LogoSC. It covers organic or
-Gordian-style parametric knots and traditional Celtic interlace. The first optional-companion
-vertical slice is implemented; later milestones remain proposals until their APIs are reviewed.
+Gordian-style parametric knots and traditional Celtic interlace. The torus generator and
+single-cord manufacturing slice are implemented; later milestones remain proposals until their
+APIs are reviewed.
 
 LogoSC remains a 2D filled-region evaluator. A future optional companion may use LogoSC for
 planar routes, ribbon footprints, masks, local transforms, and repeated motifs. Native OpenSCAD
-remains responsible for extrusion, hulls, Minkowski operations, booleans, and 3D cords.
+remains responsible for extrusion, hulls, Minkowski operations, booleans, and 3D construction.
 
 ### Implemented first vertical slice
 
@@ -22,12 +23,55 @@ remains responsible for extrusion, hulls, Minkowski operations, booleans, and 3D
   markers;
 - `MakeTorusKnot()`, producing one component for coprime `p` and `q` or
   `gcd(p,q)` independently closed components for a torus link;
+- `RenderKnotCords()`, producing manufacturable round cords from sphere-hulled capsules with
+  explicit radius and fragment controls;
 - selectable planar-projection and spatial debug views;
-- a dedicated 24-result automated suite and an unknot/trefoil/Hopf-link/crossing debug gallery.
+- a dedicated 28-result automated suite and an unknot/trefoil/Hopf-link/crossing gallery with
+  selectable diagnostic or cord output.
 
-This slice deliberately does not implement ribbons, crossing lifts, adjacent cord bundles, or
-AI image import. Reserved strand fields and metadata allow those milestones to extend the
-representation without changing its established leading fields.
+This slice deliberately does not implement ribbons, crossing lifts, adjacent cord bundles, or AI
+image import. It also does not infer printable clearance: callers must select a cord radius and
+sampling density appropriate for the route. Reserved strand fields and metadata allow later
+milestones to extend the representation without changing its established leading fields.
+
+## How LogoSC is used
+
+The knot companion belongs to the LogoSC project, follows its record-oriented and deterministic
+design style, and is intended to interoperate with Core. The current implementation does not,
+however, call the LogoSC evaluator behind the scenes.
+
+The present execution path is:
+
+```text
+MakeTorusKnot()
+  -> pure OpenSCAD functions calculate sampled 3D strand records
+  -> ValidateKnot() checks those records without producing geometry
+  -> RenderKnotDebug() uses native color(), translate(), sphere(), and hull()
+  -> RenderKnotCords() uses native sphere(), hull(), and union() to make 3D solids
+```
+
+`LogoSC-Knots.scad` therefore does not include `LogoSC-Foundation-Core.scad`, call `evalLogo()`,
+or emit LogoSC command lists. A model that only includes the knot companion has no Core
+dependency. This is deliberate: LogoSC Core evaluates command lists into 2D polygonal regions,
+whereas the implemented torus routes and capsule cords are sampled 3D geometry.
+
+`LogoSC-Knots-Test-Runner.scad` does include Core and `LogoSC-Foundation-Tests.scad`, but only to
+reuse the established `LogoTestResult()`, suite aggregation, and automated PASS/FAIL reporting.
+The production knot companion does not acquire a Core dependency through its test harness.
+
+LogoSC Core is planned to participate where its actual strengths apply:
+
+- reusable 2D Celtic cells and motifs can be authored as LogoSC command lists;
+- Core transforms, `RUN`, `REPEAT`, and `PUSH`/`POP` can place, rotate, reflect, and repeat those
+  motifs;
+- planar knot centerlines can be expanded into closed ribbon and crossing-mask regions;
+- `RenderContours2D()` or `RenderRegion2D()` can render those compiled 2D regions before native
+  OpenSCAD extrusion, relief, and boolean operations;
+- native OpenSCAD remains responsible for sampled 3D cords, hulls, extrusion, and mesh output.
+
+Those integration points are roadmap intent, not claims about the current torus implementation.
+They should be documented again with concrete call flow when the first LogoSC-backed planar
+generator or ribbon compiler is implemented.
 
 ## Further reading and example collections
 
@@ -531,6 +575,18 @@ final = difference(underCord, expandedOverpassEnvelope) + overCord
 Difference is collision insurance, not a substitute for adequate Z separation. Excessive
 subtraction can sever the under strand.
 
+### Implemented single-cord boundary
+
+`RenderKnotCords(knot, cordRadius, fragments, validationTolerance)` now implements the basic
+capsule construction above. It validates the complete knot before emitting geometry, renders
+each adjacent sample pair, and relies on OpenSCAD's union semantics to join the capsules and
+components. `KnotStrandSegmentCount()` and `KnotCordSegmentCount()` expose deterministic route
+accounting for tests and downstream estimation.
+
+This boundary intentionally has no automatic radius-to-clearance analysis, crossing lift,
+bundle expansion, or mesh-quality guarantee. Those policies require topology and manufacturing
+decisions beyond simply converting an already-spaced 3D route into a solid.
+
 ## AI-assisted image-to-knot import
 
 Figurative knotwork, such as an animal or character whose body regions are filled with
@@ -725,9 +781,10 @@ links where supported by the selected generator.
 
 1. **Shared sampled-strand and knot-result records** — implemented
    - Define constructors, accessors, closure rules, lane permutations, and debug output.
-2. **Torus knots and capsule cords** — generator and debug centerlines implemented
-   - Closed 3D routes and correct link-component handling are complete.
-   - Manufacturable capsule cords and adjacent bundle expansion remain deferred.
+2. **Torus knots and capsule cords** — implemented for single cords
+   - Closed 3D routes, correct link-component handling, and validated capsule rendering are
+     complete.
+   - Adjacent bundle expansion and automatic clearance analysis remain deferred.
 3. **Braid words**
    - Establish crossing records, lane tracking, Z bumps, and closure.
 4. **Celtic tile grids**
