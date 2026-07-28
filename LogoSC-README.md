@@ -156,7 +156,9 @@ want to evaluate once and inspect or reuse the generated regions.
 | `RenderLogoDebug(cmds, ...)` | module | Render preview-only 3D debug capsules and point markers for command-level path inspection. |
 | `evalLogo(cmds)` | function | Evaluate commands into an `EvalResult` without rendering geometry. |
 | `ResultContours(result)` | function | Return the evaluated region list from an `EvalResult`. |
-| `ResultState(result)` | function | Return the final `[x, y, heading, scale]` state. |
+| `ResultState(result)` | function | Return canonical `[x, y, heading, scaleX, scaleY, shear]` state. |
+| `LogoStateToAffine(state)` | function | Convert canonical state to a standard 2x3 affine matrix. |
+| `LogoAffineToState(matrix, headingReference = undef)` | function | Recanonicalize a nonsingular 2x3 affine matrix. |
 | `RenderContours2D(regions, convexity = 10)` | module | Render an already-evaluated region list. |
 | `RenderRegion2D(region, convexity = 10)` | module | Render one region: outer ring plus any holes. |
 | `evalLogoPaths(cmds)` | function | Evaluate explicit paths. Requires Validation. |

@@ -21,7 +21,10 @@ Compact LogoSC `2026.4` reference. Full docs:
 
 ## Motion / state
 
-[`[MOVE, len]`](LogoSC-User-Manual.md#move)  [`[TURN, deltaHeading]`](LogoSC-User-Manual.md#turn)  [`[DIR, absoluteHeading]`](LogoSC-User-Manual.md#dir)  [`[SCALE, scaleMultiplier]`](LogoSC-User-Manual.md#scale)  [`[GOTO, x, y, heading]`](LogoSC-User-Manual.md#goto)
+[`[MOVE, len]`](LogoSC-User-Manual.md#move)  [`[TURN, deltaHeading]`](LogoSC-User-Manual.md#turn)
+[`[DIR, absoluteHeading]`](LogoSC-User-Manual.md#dir)  [`[GOTO, x, y, heading]`](LogoSC-User-Manual.md#goto)
+[`[SCALE, uniform]`](LogoSC-User-Manual.md#scale)
+[`[SCALE, scaleX, scaleY]`](LogoSC-User-Manual.md#scale)
 
 ## Closed geometry
 

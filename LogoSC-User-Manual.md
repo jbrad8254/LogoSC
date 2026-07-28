@@ -638,7 +638,7 @@ contours rather than assuming every region contains geometry.
 A Logo state is:
 
 ```text
-state = [x, y, heading, scale]
+state = [x, y, heading, scaleX, scaleY, shear]
 ```
 
 The public field-index constants are:
@@ -647,7 +647,10 @@ The public field-index constants are:
 state[SX]  // x coordinate
 state[SY]  // y coordinate
 state[SH]  // heading in degrees
-state[SS]  // cumulative movement scale
+state[SS]  // compatibility alias for scaleX
+state[SSX] // local X scale; always nonnegative after canonicalization
+state[SSY] // signed local Y scale; a negative value carries reflection
+state[SSH] // X-shear factor
 ```
 
 The default initial state is equivalent to:
@@ -657,6 +660,65 @@ stateGoto(0, 0, 0, 1)
 ```
 
 Headings use the coordinate and turn conventions described in Section 5.
+
+The linear portion is interpreted as rotation, then X shear, then independent
+XY scale. Commands compose in local turtle coordinates. LogoSC may temporarily
+expand this readable state into a 2x2 transform internally, but matrix
+coefficients are not part of the public state.
+
+The four-argument `stateMake(x, y, heading, scale)` form remains a convenient
+uniform-scale constructor. Evaluator state itself uses the canonical six-field
+form.
+
+#### Affine matrix conversion
+
+Advanced integrations can convert between canonical LogoSC state and a standard
+2x3 affine matrix:
+
+```scad
+matrix = LogoStateToAffine(state);
+state = LogoAffineToState(matrix, headingReference = undef);
+```
+
+The matrix uses column-vector convention:
+
+```text
+[
+    [a, c, tx],
+    [b, d, ty]
+]
+```
+
+A local point `[x, y]` maps to:
+
+```text
+[a*x + c*y + tx, b*x + d*y + ty]
+```
+
+This is the upper portion of the homogeneous matrix
+`[[a,c,tx], [b,d,ty], [0,0,1]]`. LogoSC accepts and returns the compact 2x3
+form; it does not use a 3x2 layout.
+
+`LogoAffineToState()` rejects malformed 2x3 matrices and matrices with a
+singular linear portion. It recanonicalizes reflection into signed `scaleY` and
+keeps `scaleX` nonnegative.
+
+A matrix cannot distinguish equivalent headings such as `30`, `390`, and
+`750` degrees. Without `headingReference`, conversion returns the principal
+`atan2()` heading. When a reference is supplied, LogoSC selects the equivalent
+heading nearest that value.
+
+LogoSC transforms column-vector points as `worldPoint = matrix * localPoint`.
+Local `TURN` and `SCALE` commands use:
+
+```text
+newMatrix = currentMatrix * localOperation
+```
+
+This is postmultiplication. A world-space operation would instead use
+`newMatrix = worldOperation * currentMatrix`, which is premultiplication.
+Conversion preserves geometry, although floating-point canonical fields should
+be compared with a suitable tolerance after a round trip.
 
 #### State stack
 
@@ -833,7 +895,7 @@ finalPen   = ResultPen(result);
 
 | Accessor | Return format | Meaning |
 |---|---|---|
-| `ResultState(result)` | `[x, y, heading, scale]` | State after the last evaluated command. |
+| `ResultState(result)` | canonical six-field state | State after the last evaluated command. |
 | `ResultContours(result)` | region list | All accumulated outer and hole contours. |
 | `ResultStack(result)` | list of states | Remaining `PUSH`/`POP` stack. |
 | `ResultPen(result)` | `PEN_UP` or `PEN_DOWN` | Final pen state. |
@@ -1326,9 +1388,11 @@ Syntax:
 [TURN, deltaHeading]
 ```
 
-Adds `deltaHeading` degrees to the current heading. Positive values rotate
+Composes a local rotation by `deltaHeading` degrees. Positive values rotate
 counterclockwise in the XY plane, using the standard right-handed +Z-axis
-rotation convention.
+rotation convention. After nonuniform scaling, a turn can change the canonical
+scale values and produce a nonzero shear; this is the readable decomposition of
+the composed affine transform rather than loss of geometry.
 
 Example:
 
@@ -1349,7 +1413,9 @@ Syntax:
 [DIR, absoluteHeading]
 ```
 
-Sets the heading to an absolute angle in degrees.
+Sets the heading to an absolute world angle in degrees. It preserves the current
+canonical scale and shear values. `DIR` is intentionally the only absolute
+heading operation; there is no separate local/world command pair.
 
 Example:
 
@@ -1367,9 +1433,13 @@ Syntax:
 
 ```scad
 [SCALE, scaleMultiplier]
+[SCALE, scaleXMultiplier, scaleYMultiplier]
 ```
 
-Multiplies the current scale by `scaleMultiplier`.
+The one-factor form multiplies both local axes uniformly and preserves historical
+behavior. The two-factor form independently scales the current local X and Y
+axes. Negative factors reflect an axis. Neither factor may be zero because a
+singular transform cannot be recanonicalized.
 
 Example:
 
@@ -1385,6 +1455,18 @@ part =
 
 The second circle has effective radius `10`.
 
+For example, this turns a circle into an ellipse and then rotates its local
+frame. The resulting state can contain shear:
+
+```scad
+part =
+[
+    [SCALE, 2, 1],
+    [TURN, 45],
+    [CIRCLE, 5]
+];
+```
+
 ### `GOTO`
 
 Syntax:
@@ -1393,7 +1475,8 @@ Syntax:
 [GOTO, x, y, heading]
 ```
 
-Sets absolute position and heading.
+Sets absolute world position and heading while preserving the current canonical
+scale and shear values.
 
 If the pen is down, the new position is appended to the active contour. If the
 pen is up, this repositions without drawing.
@@ -1739,10 +1822,14 @@ state.
 The stack stores:
 
 ```text
-[x, y, heading, scale]
+[x, y, heading, scaleX, scaleY, shear]
 ```
 
 It does not store the contour list or pen state.
+
+Transforms remain active through `RUN` and between `REPEAT` iterations. Use
+`PUSH` and `POP` where a command body should inherit a transform temporarily
+without changing the caller's complete state.
 
 Example:
 
@@ -2236,10 +2323,12 @@ control smoothness globally.
 - [`evalLogoPaths()`](#711-path-analysis-and-validation)
 - [`GOTO`](#goto)
 - [`HOLE`](#hole)
+- [`LogoAffineToState()`](#affine-matrix-conversion)
 - [`LogoSC-CheatSheet.md`](#quick-lookup-cheat-sheet)
 - [`LogoSC-Examples.scad`](#4-runnable-examples)
 - [`LogoSCVersion`](#library-version)
 - [`LogoSCVersionAtLeast()`](#library-version)
+- [`LogoStateToAffine()`](#affine-matrix-conversion)
 - [`LogoTestReportLevel`](#automated-test-summaries)
 - [`MOVE`](#move)
 - [`PENDOWN`](#penup-and-pendown), [`PENUP`](#penup-and-pendown)

@@ -395,7 +395,34 @@ function LogoStateNearlyEqual(a, b, tol = 0.001) =
     LogoNearlyEqual(a[SX], b[SX], tol)
     && LogoNearlyEqual(a[SY], b[SY], tol)
     && LogoNearlyEqual(a[SH], b[SH], tol)
-    && LogoNearlyEqual(a[SS], b[SS], tol);
+    && LogoNearlyEqual(a[SSX], b[SSX], tol)
+    && LogoNearlyEqual(a[SSY], b[SSY], tol)
+    && LogoNearlyEqual(a[SSH], b[SSH], tol);
+
+// Return true when corresponding 2D points are approximately equal.
+function LogoPointNearlyEqual(a, b, tol = 0.001) =
+    LogoNearlyEqual(a[0], b[0], tol)
+    && LogoNearlyEqual(a[1], b[1], tol);
+
+// Return true when two point lists have approximately equal coordinates.
+function LogoPointListsNearlyEqual(a, b, tol = 0.001, index = 0) =
+    len(a) != len(b)
+        ? false
+        : index >= len(a)
+            ? true
+            : LogoPointNearlyEqual(a[index], b[index], tol)
+                && LogoPointListsNearlyEqual(a, b, tol, index + 1);
+
+// Return true when two 2x3 affine matrices are approximately equal.
+function LogoAffineNearlyEqual(a, b, tol = 0.001) =
+    LogoAffineIs2x3(a)
+    && LogoAffineIs2x3(b)
+    && LogoNearlyEqual(a[0][0], b[0][0], tol)
+    && LogoNearlyEqual(a[0][1], b[0][1], tol)
+    && LogoNearlyEqual(a[0][2], b[0][2], tol)
+    && LogoNearlyEqual(a[1][0], b[1][0], tol)
+    && LogoNearlyEqual(a[1][1], b[1][1], tol)
+    && LogoNearlyEqual(a[1][2], b[1][2], tol);
 
 function LogoCheckResultResults(
     label,
@@ -1537,6 +1564,16 @@ let(
     [
         [RECT, 10, 10],
         [HOLE, [[MOVE, 5]]]
+    ],
+
+    zeroAxisScale =
+    [
+        [SCALE, 1, 0]
+    ],
+
+    zeroRunScale =
+    [
+        [RUN, [[MOVE, 5]], 0]
     ]
 )
 [
@@ -1643,6 +1680,18 @@ let(
         holeChildNoClosedContour,
         [18, FailureY],
         true
+    ),
+    LogoExpectedErrorTestCase(
+        "FAIL expected: SCALE zero axis is singular",
+        zeroAxisScale,
+        [19, FailureY],
+        false
+    ),
+    LogoExpectedErrorTestCase(
+        "FAIL expected: RUN zero scale is singular",
+        zeroRunScale,
+        [20, FailureY],
+        false
     )
 ];
 
@@ -1652,6 +1701,218 @@ module TestFailureSuiteLogo()
     RenderLogoGeometryTestCases(TestFailureCasesLogo());
     echo("LogoSC expected-error tests: END");
 }
+
+// Canonical affine-state and transformed-geometry contract tests.
+function TestAffineTransformResultsLogo() =
+    let(
+        scaledMove = evalLogo([[SCALE, 2, 3], [MOVE, 10]]),
+        scaledMoveState = ResultState(scaledMove),
+        turned = evalLogo([[SCALE, 2, 1], [TURN, 45], [MOVE, 10]]),
+        turnedState = ResultState(turned),
+        reflected = evalLogo([[SCALE, -1, 1], [MOVE, 10]]),
+        reflectedState = ResultState(reflected),
+        absoluteDir = evalLogo([[SCALE, 2, 1], [TURN, 45], [DIR, 90]]),
+        absoluteDirState = ResultState(absoluteDir),
+        absoluteGoto = evalLogo(
+            [[SCALE, 2, 1], [TURN, 45], [GOTO, 7, 8, 30]]
+        ),
+        absoluteGotoState = ResultState(absoluteGoto),
+        restored = evalLogo(
+            [[SCALE, 2, 1], [PUSH], [TURN, 45], [SCALE, -1, 3], [POP]]
+        ),
+        looped = evalLogo(
+            [[REPEAT, 6, [[PUSH], [MOVE, 10], [POP], [TURN, 60]]]]
+        ),
+        loopPoints = RegionOuter(ResultContours(looped)[0]),
+        arcResult = evalLogo([[SCALE, 2, 1], [ARC, 10, 90, 2]]),
+        arcPoints = RegionOuter(ResultContours(arcResult)[0]),
+        rectResult = evalLogo([[SCALE, 2, 3], [RECT, 10, 1]]),
+        rectPoints = RegionOuter(ResultContours(rectResult)[0]),
+        reflectedRect = evalLogo([[SCALE, -1, 1], [RECT, 2, 2]]),
+        reflectedRectPoints = RegionOuter(ResultContours(reflectedRect)[0]),
+        runResult = evalLogo([[SCALE, 2, 1], [RUN, [[MOVE, 5]], 3]]),
+        holeResult = evalLogo(
+            [
+                [SCALE, 2, 1],
+                [RECT, 10, 10],
+                [HOLE, [[CIRCLE, 2, 4]]]
+            ]
+        ),
+        holePoints = RegionHoles(ResultContours(holeResult)[0])[0],
+        affineState = stateMake(10, -5, 390, 2, -3, 0.25),
+        affineMatrix = LogoStateToAffine(affineState),
+        affinePrincipalState = LogoAffineToState(affineMatrix),
+        affineReferencedState = LogoAffineToState(affineMatrix, affineState[SH]),
+        malformedAffineState =
+            let($LogoSCSuppressErrors = true)
+            LogoAffineToState([[1, 0], [0, 1]]),
+        singularAffineState =
+            let($LogoSCSuppressErrors = true)
+            LogoAffineToState([[1, 2, 3], [2, 4, 5]]),
+        debugResult = evalLogoDebug([[SCALE, 2, 1], [TURN, 45], [MOVE, 10]]),
+        debugEnd =
+            ResultDebugSegments(debugResult)[len(ResultDebugSegments(debugResult)) - 1][DS_TO]
+    )
+    [
+        LogoTestResult(
+            "affine: two-axis SCALE transforms MOVE and state",
+            LogoStateNearlyEqual(scaledMoveState, stateMake(20, 0, 0, 2, 3, 0)),
+            scaledMoveState
+        ),
+        LogoTestResult(
+            "affine: TURN after anisotropic SCALE generates canonical shear",
+            LogoStateNearlyEqual(
+                turnedState,
+                stateMake(10 * sqrt(2), 5 * sqrt(2), 26.565051, sqrt(2.5), sqrt(1.6), -0.75)
+            ),
+            turnedState
+        ),
+        LogoTestResult(
+            "affine: negative axis SCALE reflects MOVE",
+            LogoStateNearlyEqual(reflectedState, stateMake(-10, 0, 180, 1, -1, 0)),
+            reflectedState
+        ),
+        LogoTestResult(
+            "affine: DIR is world-absolute and preserves canonical linear factors",
+            LogoStateNearlyEqual(
+                absoluteDirState,
+                stateMake(
+                    0,
+                    0,
+                    90,
+                    turnedState[SSX],
+                    turnedState[SSY],
+                    turnedState[SSH]
+                )
+            ),
+            absoluteDirState
+        ),
+        LogoTestResult(
+            "affine: GOTO is world-absolute and preserves canonical linear factors",
+            LogoStateNearlyEqual(
+                absoluteGotoState,
+                stateMake(
+                    7,
+                    8,
+                    30,
+                    turnedState[SSX],
+                    turnedState[SSY],
+                    turnedState[SSH]
+                )
+            ),
+            absoluteGotoState
+        ),
+        LogoTestResult(
+            "affine: PUSH and POP restore the complete transform",
+            LogoStateNearlyEqual(ResultState(restored), stateMake(0, 0, 0, 2, 1, 0)),
+            ResultState(restored)
+        ),
+        LogoTestResult(
+            "affine: REPEAT preserves turns between iterations",
+            LogoPointListsNearlyEqual(
+                loopPoints,
+                [
+                    [10, 0],
+                    [5, 5 * sqrt(3)],
+                    [-5, 5 * sqrt(3)],
+                    [-10, 0],
+                    [-5, -5 * sqrt(3)],
+                    [5, -5 * sqrt(3)]
+                ]
+            ),
+            loopPoints
+        ),
+        LogoTestResult(
+            "affine: local ARC becomes an ellipse under anisotropic scale",
+            LogoPointListsNearlyEqual(
+                arcPoints,
+                [[10 * sqrt(2), 10 - 5 * sqrt(2)], [20, 10]]
+            ),
+            arcPoints
+        ),
+        LogoTestResult(
+            "affine: primitive vertices use the complete transform",
+            LogoPointListsNearlyEqual(
+                rectPoints,
+                [[10, -1.5], [10, 1.5], [-10, 1.5], [-10, -1.5]]
+            ),
+            rectPoints
+        ),
+        LogoTestResult(
+            "affine: reflection preserves generated primitive point order",
+            LogoPointListsNearlyEqual(
+                reflectedRectPoints,
+                [[-1, -1], [-1, 1], [1, 1], [1, -1]]
+            ),
+            reflectedRectPoints
+        ),
+        LogoTestResult(
+            "affine: automatic tessellation uses maximum linear stretch",
+            ArcSegmentCount([ARC, 10, 90], stateMake(0, 0, 0, 2, 3, 0))
+                == ArcAutoSegments(30, 90),
+            ArcSegmentCount([ARC, 10, 90], stateMake(0, 0, 0, 2, 3, 0))
+        ),
+        LogoTestResult(
+            "affine: RUN scale remains a uniform local multiplier",
+            LogoStateNearlyEqual(ResultState(runResult), stateMake(30, 0, 0, 6, 3, 0)),
+            ResultState(runResult)
+        ),
+        LogoTestResult(
+            "affine: HOLE child inherits the parent transform",
+            LogoPointListsNearlyEqual(
+                holePoints,
+                [[4, 0], [0, 2], [-4, 0], [0, -2]]
+            ),
+            holePoints
+        ),
+        LogoTestResult(
+            "affine API: canonical state converts to standard 2x3 matrix",
+            LogoAffineNearlyEqual(
+                affineMatrix,
+                [
+                    [
+                        2 * cos(390),
+                        -3 * (0.25 * cos(390) - sin(390)),
+                        10
+                    ],
+                    [
+                        2 * sin(390),
+                        -3 * (0.25 * sin(390) + cos(390)),
+                        -5
+                    ]
+                ]
+            ),
+            affineMatrix
+        ),
+        LogoTestResult(
+            "affine API: matrix converts to principal canonical state",
+            LogoStateNearlyEqual(
+                affinePrincipalState,
+                stateMake(10, -5, 30, 2, -3, 0.25)
+            ),
+            affinePrincipalState
+        ),
+        LogoTestResult(
+            "affine API: heading reference restores equivalent complete turns",
+            LogoStateNearlyEqual(affineReferencedState, affineState),
+            affineReferencedState
+        ),
+        LogoTestResult(
+            "affine API: malformed matrix is rejected",
+            malformedAffineState == undef,
+            malformedAffineState
+        ),
+        LogoTestResult(
+            "affine API: singular matrix is rejected",
+            singularAffineState == undef,
+            singularAffineState
+        ),
+        LogoTestResult(
+            "affine: debug evaluator uses transformed MOVE geometry",
+            LogoPointNearlyEqual(debugEnd, [10 * sqrt(2), 5 * sqrt(2)]),
+            debugEnd
+        )
+    ];
 
 function LogoFoundationAutomatedTestResults() =
 concat(
@@ -1667,7 +1928,8 @@ concat(
     TestClosedShapeDetailedResultsLogo(),
     LogoGeometryTestResults(TestHoleCasesLogo()),
     TestHoleDetailedResultsLogo(),
-    LogoGeometryTestResults(TestFailureCasesLogo())
+    LogoGeometryTestResults(TestFailureCasesLogo()),
+    TestAffineTransformResultsLogo()
 );
 
 function LogoFoundationTestSuiteResult() =

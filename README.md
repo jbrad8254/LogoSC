@@ -185,6 +185,8 @@ RenderLogoDebug(cmds, ...);
 evalLogo(cmds);
 ResultContours(result);
 ResultState(result);
+LogoStateToAffine(state);
+LogoAffineToState(matrix, headingReference = undef);
 RenderContours2D(regions, convexity = 10);
 RenderRegion2D(region, convexity = 10);
 ```
@@ -215,6 +217,8 @@ The current public API version is `2026.4`.
 [MOVE,        len]
 [TURN,        deltaHeading]
 [DIR,         absoluteHeading]
+[SCALE,       uniform]
+[SCALE,       scaleX, scaleY]
 [GOTO,        x, y, heading]
 [ARC,         radius, degrees]
 [CIRCLE,      radius]

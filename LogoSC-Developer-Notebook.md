@@ -2775,3 +2775,51 @@ Verification boundary:
 - Require the separate fastener result to remain 48 of 48 passing.
 - Verify `LogoSCVersion == "2026.4"`, documentation consistency, `git diff --check`, and the
   final working-tree status before handoff.
+
+### 2026-07-27 — Canonical local affine transforms
+
+Context:
+
+- The validation and convexity checkpoint was complete, allowing the deferred local-transform
+  review to proceed.
+- Planned knot and repeated-motif work needs transforms to persist through `REPEAT` and `RUN`
+  while remaining restorable through the existing state stack.
+
+Decision:
+
+- Extend public state to `[x, y, heading, scaleX, scaleY, shear]`.
+- Preserve the historical `SX`, `SY`, `SH`, and `SS` indices; retain `SS` as the compatibility
+  alias for `scaleX` and add `SSX`, `SSY`, and `SSH`.
+- Canonicalize as rotation, X shear, then XY scale. Keep `scaleX` nonnegative and carry
+  reflection orientation in signed `scaleY`.
+- Compose `TURN` and `SCALE` on the right in local turtle coordinates. A turn following
+  nonuniform scaling may generate explicit shear.
+- Keep the existing `DIR` and `GOTO` names. They remain world-absolute operations and preserve
+  the current canonical scale and shear fields.
+- Extend `SCALE` to accept independent X/Y factors; negative values reflect and zero values are
+  rejected as singular.
+- Transform `MOVE`, locally tessellated arcs, and primitive points through the complete state.
+  Use maximum affine stretch for automatic curve tessellation.
+- Preserve generated point order under reflection.
+- Keep transforms persistent through loops and calls. Existing `PUSH`/`POP` stores the complete
+  state; no second stack or implicit loop/call scope is introduced.
+- Keep `HOLE` child evaluation scoped while inheriting the parent's complete transform.
+- Use temporary 2x2 coefficients only for internal composition and immediate
+  recanonicalization; do not expose matrices as state.
+- Expose `LogoStateToAffine()` and `LogoAffineToState()` in Core as interoperability helpers,
+  using the standard 2x3 column-vector layout `[[a,c,tx], [b,d,ty]]`.
+- Document that local operations postmultiply the current transform. Accept an optional heading
+  reference during matrix-to-state conversion because matrices cannot retain complete turns.
+- Reject malformed and singular external affine matrices rather than creating degenerate state.
+
+Verification boundary:
+
+- The pre-transform Foundation and Validation wall remained 201/201 passing.
+- Focused affine results cover decomposition, transformed points, persistent loops, reflections,
+  world-absolute commands, restoration, arcs, primitives, `RUN`, holes, debug parity, and
+  singular-scale errors.
+
+Follow-up:
+
+- Exercise the model in reusable motif examples before exposing an explicit `SHEAR` opcode.
+- Use the transform behavior as the foundation for the proposed Gordian-knot feature design.

@@ -21,6 +21,7 @@
 //     [TURN,   deltaHeading]
 //     [DIR,    absoluteHeading]
 //     [SCALE,  scaleMultiplier]
+//     [SCALE,  scaleXMultiplier, scaleYMultiplier]
 //     [GOTO,   x, y, heading]
 //
 //     [ARC,         radius, degrees[, segments]]
@@ -172,12 +173,15 @@ HOLE        = 16 + 0; // [HOLE, cmds] attaches child contours to the latest regi
 LOGOT_PI = 3.141592653589793 + 0;
 
 // -----------------------------------------------------------------------------
-// Logo state indices: [x, y, heading, scale]
+// Logo state indices: [x, y, heading, scaleX, scaleY, shear]
 // -----------------------------------------------------------------------------
 SX = 0 + 0;
 SY = 1 + 0;
 SH = 2 + 0;
 SS = 3 + 0;
+SSX = SS;      // Explicit X-scale name; SS remains the compatibility alias.
+SSY = 4 + 0;
+SSH = 5 + 0;
 
 // -----------------------------------------------------------------------------
 // Pen state values
@@ -598,7 +602,7 @@ function DebugEvalMove(vCmd, state, stack, pen, segments, points) =
         ? let(_err = SoftError("Malformed MOVE command", vCmd))
         DebugResult(state, stack, pen, segments, points)
         : let(
-            nextState = stateMove(state, CmdArg(vCmd, CA1), state[SS]),
+            nextState = stateMove(state, CmdArg(vCmd, CA1)),
             nextSegment = DebugSegmentFromStates(
                 DEBUG_SEG_MOVE,
                 state,
@@ -624,7 +628,9 @@ function DebugEvalGoto(vCmd, state, stack, pen, segments, points) =
                 CmdArg(vCmd, CA1),
                 CmdArg(vCmd, CA2),
                 CmdArg(vCmd, CA3),
-                state[SS]
+                StateScaleX(state),
+                StateScaleY(state),
+                StateShear(state)
             ),
             nextSegment = DebugSegmentFromStates(
                 DEBUG_SEG_GOTO,
@@ -670,8 +676,18 @@ function DebugEvalScale(vCmd, state, stack, pen, segments, points) =
     (len(vCmd) <= CA1)
         ? let(_err = SoftError("Malformed SCALE command", vCmd))
         DebugResult(state, stack, pen, segments, points)
+        : (
+            CmdArg(vCmd, CA1) == 0
+            || CmdArg(vCmd, CA2, CmdArg(vCmd, CA1)) == 0
+        )
+        ? let(_err = SoftError("SCALE factors must be nonzero", vCmd))
+        DebugResult(state, stack, pen, segments, points)
         : DebugAppendStationaryPoint(
-            stateScale(state, CmdArg(vCmd, CA1)),
+            stateScale(
+                state,
+                CmdArg(vCmd, CA1),
+                CmdArg(vCmd, CA2, CmdArg(vCmd, CA1))
+            ),
             stack,
             pen,
             segments,
@@ -716,7 +732,7 @@ function DebugEvalArc(vCmd, state, stack, pen, segments, points) =
                 DebugResult(state, stack, pen, segments, points)
                 : (ArcDegrees(vCmd) == 0)
                     ? DebugResult(state, stack, pen, segments, points)
-                    : (ArcRadius(vCmd) == 0 || ArcRadius(vCmd) * state[SS] == 0)
+                    : (ArcRadius(vCmd) == 0)
                         ? DebugAppendStationaryPoint(
                             stateTurn(state, ArcDegrees(vCmd)),
                             stack,
@@ -727,11 +743,10 @@ function DebugEvalArc(vCmd, state, stack, pen, segments, points) =
                         : let(
                             radius = ArcRadius(vCmd),
                             degrees = ArcDegrees(vCmd),
-                            scaledRadius = radius * state[SS],
                             arcSegments = ArcSegmentCount(vCmd, state),
-                            arcPoints = ArcPoints(state, scaledRadius, degrees, arcSegments),
+                            arcPoints = ArcPoints(state, radius, degrees, arcSegments),
                             pathPoints = concat([DebugPointFromState(state)], arcPoints),
-                            nextState = stateArc(state, radius, degrees, state[SS])
+                            nextState = stateArc(state, radius, degrees)
                         )
                         DebugResult(
                             nextState,
@@ -754,15 +769,12 @@ function DebugEvalCircle(vCmd, state, stack, pen, segments, points) =
             : (CircleHasExplicitSegments(vCmd) && CircleExplicitSegments(vCmd) < 3)
                 ? let(_err = SoftError("CIRCLE segment count must be at least 3", vCmd))
                 DebugResult(state, stack, pen, segments, points)
-                : let(
-                    scaledRadius = CircleRadius(vCmd) * abs(state[SS])
-                )
-                (scaledRadius == 0)
+                : (CircleRadius(vCmd) == 0)
                     ? DebugResult(state, stack, pen, segments, points)
                     : let(
                         contour = CircleContour(
                             state,
-                            scaledRadius,
+                            CircleRadius(vCmd),
                             CircleSegmentCount(vCmd, state)
                         )
                     )
@@ -792,15 +804,12 @@ function DebugEvalRegPoly(vCmd, state, stack, pen, segments, points) =
             : (RegPolyRadius(vCmd) < 0)
                 ? let(_err = SoftError("REGPOLY radius must be nonnegative", vCmd))
                 DebugResult(state, stack, pen, segments, points)
-                : let(
-                    scaledRadius = RegPolyRadius(vCmd) * abs(state[SS])
-                )
-                (scaledRadius == 0)
+                : (RegPolyRadius(vCmd) == 0)
                     ? DebugResult(state, stack, pen, segments, points)
                     : let(
                         contour = RegPolyContour(
                             state,
-                            scaledRadius,
+                            RegPolyRadius(vCmd),
                             RegPolySides(vCmd),
                             RegPolyRotation(vCmd)
                         )
@@ -829,14 +838,8 @@ function DebugEvalRect(vCmd, state, stack, pen, segments, points) =
             ? let(_err = SoftError("RECT width and height must be positive", vCmd))
             DebugResult(state, stack, pen, segments, points)
             : let(
-                scaledWidth = RectWidth(vCmd) * abs(state[SS]),
-                scaledHeight = RectHeight(vCmd) * abs(state[SS])
+                contour = RectContour(state, RectWidth(vCmd), RectHeight(vCmd))
             )
-            (scaledWidth == 0 || scaledHeight == 0)
-                ? DebugResult(state, stack, pen, segments, points)
-                : let(
-                    contour = RectContour(state, scaledWidth, scaledHeight)
-                )
                 DebugResult(
                     state,
                     stack,
@@ -875,21 +878,14 @@ function DebugEvalRoundedRect(vCmd, state, stack, pen, segments, points) =
                     )
                     DebugResult(state, stack, pen, segments, points)
                     : let(
-                        scaledWidth = RoundedRectWidth(vCmd) * abs(state[SS]),
-                        scaledHeight = RoundedRectHeight(vCmd) * abs(state[SS]),
-                        scaledRadius = RoundedRectRadius(vCmd) * abs(state[SS])
-                    )
-                    (scaledWidth == 0 || scaledHeight == 0)
-                        ? DebugResult(state, stack, pen, segments, points)
-                        : let(
-                            contour = RoundedRectContour(
-                                state,
-                                scaledWidth,
-                                scaledHeight,
-                                scaledRadius,
-                                RoundedRectSegmentCount(vCmd, state)
-                            )
+                        contour = RoundedRectContour(
+                            state,
+                            RoundedRectWidth(vCmd),
+                            RoundedRectHeight(vCmd),
+                            RoundedRectRadius(vCmd),
+                            RoundedRectSegmentCount(vCmd, state)
                         )
+                    )
                         DebugResult(
                             state,
                             stack,
@@ -943,13 +939,15 @@ function DebugEvalRun(vCmd, state, stack, pen, segments, points, maxRec) =
     )
     (len(childCmds) == 0)
         ? DebugResult(state, stack, pen, segments, points)
+        : (RunScale(vCmd) == 0)
+            ? let(_err = SoftError("RUN scale must be nonzero", vCmd))
+            DebugResult(state, stack, pen, segments, points)
         : (maxRec <= 0 || localMaxRec <= 0)
             ? let(_err = SoftError("RUN recursion limit reached", vCmd))
             DebugResult(state, stack, pen, segments, points)
             : let(
                 nextMaxRec = min2(maxRec - 1, localMaxRec - 1),
-                nextScale = RunScale(vCmd) * state[SS],
-                nextState = stateMake(state[SX], state[SY], state[SH], nextScale),
+                nextState = stateScale(state, RunScale(vCmd)),
                 childResult = evalLogoDebug(
                     childCmds,
                     nextState,
@@ -1366,146 +1364,261 @@ function min2(a, b) =
 function max2(a, b) =
     (a > b) ? a : b;
 
-// Construct a Logo state vector [x, y, heading, scale].
-function stateMake(x, y, heading, scale) =
+// Construct canonical Logo state [x, y, heading, scaleX, scaleY, shear].
+// Omitting scaleY preserves the historical uniform-scale constructor.
+function stateMake(x, y, heading, scaleX, scaleY = undef, shear = 0) =
 [
     x,
     y,
     heading,
-    scale
+    scaleX,
+    (scaleY == undef) ? scaleX : scaleY,
+    shear
 ];
 
-// Create a new absolute Logo state at x/y with heading h and scale s.
-function stateGoto(x, y, h, s = 1) =
-    stateMake(x, y, h, s);
+// Create a new absolute Logo state. Extended arguments preserve affine state.
+function stateGoto(x, y, h, scaleX = 1, scaleY = undef, shear = 0) =
+    stateMake(x, y, h, scaleX, scaleY, shear);
 
-// Low-level Logo state transform: move by len * scale along the current heading.
-function stateMove(vState, len, scale) =
+// Read the canonical affine fields.
+function StateScaleX(vState) =
+    vState[SSX];
+
+function StateScaleY(vState) =
+    vState[SSY];
+
+function StateShear(vState) =
+    vState[SSH];
+
+// Return the canonical state's temporary 2x2 linear transform [a,b,c,d],
+// where [a*x + c*y, b*x + d*y] maps a local vector into world coordinates.
+function StateLinear(vState) =
     let(
         h = vState[SH],
-        x = vState[SX] + scale * len * cos(h),
-        y = vState[SY] + scale * len * sin(h),
-        s = vState[SS]
+        sx = StateScaleX(vState),
+        sy = StateScaleY(vState),
+        k = StateShear(vState)
     )
-    stateMake(x, y, h, s);
+    [
+        sx * cos(h),
+        sx * sin(h),
+        sy * (k * cos(h) - sin(h)),
+        sy * (k * sin(h) + cos(h))
+    ];
 
-// Low-level Logo state transform: rotate heading by a relative angle.
+// Recanonicalize a nonsingular 2x2 linear transform as
+// rotation * X-shear * XY-scale. scaleX is always nonnegative and scaleY
+// carries the determinant/reflection sign.
+function StateFromLinear(x, y, linear, headingReference = undef) =
+    let(
+        a = linear[0],
+        b = linear[1],
+        c = linear[2],
+        d = linear[3],
+        sx = sqrt(a * a + b * b),
+        rawHeading = atan2(b, a),
+        h = (headingReference == undef)
+            ? rawHeading
+            : rawHeading + 360 * round((headingReference - rawHeading) / 360),
+        sy = (a * d - b * c) / sx,
+        k = (a * c + b * d) / (sx * sy)
+    )
+    stateMake(x, y, h, sx, sy, k);
+
+// Return true when a value has LogoSC's public 2x3 affine-matrix shape.
+function LogoAffineIs2x3(matrix) =
+    matrix != undef
+    && len(matrix) == 2
+    && matrix[0] != undef
+    && matrix[1] != undef
+    && len(matrix[0]) == 3
+    && len(matrix[1]) == 3;
+
+// Convert canonical Logo state to a standard 2x3 column-vector affine matrix:
+//     [[a, c, tx], [b, d, ty]]
+// A local point [x,y] maps to [a*x+c*y+tx, b*x+d*y+ty].
+function LogoStateToAffine(state) =
+    let(linear = StateLinear(state))
+    [
+        [linear[0], linear[2], state[SX]],
+        [linear[1], linear[3], state[SY]]
+    ];
+
+// Convert a nonsingular 2x3 affine matrix to canonical Logo state. A matrix
+// cannot retain complete heading revolutions; headingReference optionally
+// selects the equivalent heading nearest a caller-supplied value.
+function LogoAffineToState(matrix, headingReference = undef) =
+    !LogoAffineIs2x3(matrix)
+        ? let(_err = SoftError("Affine matrix must be 2x3", matrix))
+        undef
+        : let(
+            linear = [
+                matrix[0][0],
+                matrix[1][0],
+                matrix[0][1],
+                matrix[1][1]
+            ],
+            determinant =
+                linear[0] * linear[3] - linear[1] * linear[2]
+        )
+        (determinant == 0)
+            ? let(_err = SoftError("Affine matrix must be nonsingular", matrix))
+            undef
+            : StateFromLinear(
+                matrix[0][2],
+                matrix[1][2],
+                linear,
+                headingReference
+            );
+
+// Compose the current linear transform on the right with another local
+// transform [a,b,c,d], then immediately return canonical state.
+function StateComposeLocal(vState, operation, headingReference = undef) =
+    let(
+        m = StateLinear(vState),
+        linear =
+        [
+            m[0] * operation[0] + m[2] * operation[1],
+            m[1] * operation[0] + m[3] * operation[1],
+            m[0] * operation[2] + m[2] * operation[3],
+            m[1] * operation[2] + m[3] * operation[3]
+        ]
+    )
+    StateFromLinear(vState[SX], vState[SY], linear, headingReference);
+
+// Return the greatest linear stretch, used for conservative curve tessellation.
+function StateMaxStretch(vState) =
+    let(
+        m = StateLinear(vState),
+        trace = m[0] * m[0] + m[1] * m[1] + m[2] * m[2] + m[3] * m[3],
+        det = m[0] * m[3] - m[1] * m[2]
+    )
+    sqrt((trace + sqrt(max2(0, trace * trace - 4 * det * det))) / 2);
+
+// Move by a local [len, 0] displacement through the complete affine transform.
+function stateMove(vState, len, scale = undef) =
+    let(
+        delta = LocalVectorToWorld(vState, [len, 0])
+    )
+    stateMake(
+        vState[SX] + delta[0],
+        vState[SY] + delta[1],
+        vState[SH],
+        StateScaleX(vState),
+        StateScaleY(vState),
+        StateShear(vState)
+    );
+
+// Compose a relative local rotation. With non-uniform scaling this can produce
+// shear, which is made explicit by immediate canonicalization.
 function stateTurn(vState, dh) =
-    let(
-        x = vState[SX],
-        y = vState[SY],
-        h = vState[SH] + dh,
-        s = vState[SS]
-    )
-    stateMake(x, y, h, s);
+    StateComposeLocal(
+        vState,
+        [cos(dh), sin(dh), -sin(dh), cos(dh)],
+        vState[SH] + dh
+    );
 
-// Low-level Logo state transform: set the heading to an absolute angle.
+// Set world-absolute heading while preserving scale and shear.
 function stateDir(vState, absh) =
-    let(
-        x = vState[SX],
-        y = vState[SY],
-        h = absh,
-        s = vState[SS]
-    )
-    stateMake(x, y, h, s);
+    stateMake(
+        vState[SX],
+        vState[SY],
+        absh,
+        StateScaleX(vState),
+        StateScaleY(vState),
+        StateShear(vState)
+    );
 
-// Low-level Logo state transform: multiply the movement scale.
-function stateScale(vState, ss) =
-    let(
-        x = vState[SX],
-        y = vState[SY],
-        h = vState[SH],
-        s = vState[SS] * ss
-    )
-    stateMake(x, y, h, s);
+// Compose local uniform or independent-axis scaling.
+function stateScale(vState, scaleX, scaleY = undef) =
+    let(sy = (scaleY == undef) ? scaleX : scaleY)
+    StateComposeLocal(
+        vState,
+        [scaleX, 0, 0, sy],
+        vState[SH] + ((scaleX < 0) ? 180 : 0)
+    );
 
 // Return the side of the heading vector used as the center of curvature.
 function ArcSign(degrees) =
     (degrees >= 0) ? 1 : -1;
 
-// Return the center point for an arc beginning at vState.
-function ArcCenter(vState, scaledRadius, degrees) =
+// Return one local circular-arc point from a turtle initially facing local +X.
+function ArcLocalPoint(radius, degrees, fraction) =
     let(
         side = ArcSign(degrees),
-        h = vState[SH]
+        angle = abs(degrees) * fraction
     )
     [
-        vState[SX] - side * scaledRadius * sin(h),
-        vState[SY] + side * scaledRadius * cos(h)
-    ];
-
-// Return one tessellated point along an arc.
-function ArcPoint(vState, scaledRadius, degrees, fraction) =
-    let(
-        side = ArcSign(degrees),
-        center = ArcCenter(vState, scaledRadius, degrees),
-        radialAngle = vState[SH] - side * 90 + degrees * fraction
-    )
-    [
-        center[0] + scaledRadius * cos(radialAngle),
-        center[1] + scaledRadius * sin(radialAngle)
+        radius * sin(angle),
+        side * radius * (1 - cos(angle))
     ];
 
 // Return the tessellated point list for an arc, excluding the starting point.
-function ArcPoints(vState, scaledRadius, degrees, segments) =
+function ArcPoints(vState, radius, degrees, segments) =
     [
         for (i = [1 : segments])
-            ArcPoint(vState, scaledRadius, degrees, i / segments)
+            LocalPointToWorld(vState, ArcLocalPoint(radius, degrees, i / segments))
     ];
 
-// Low-level Logo state transform: follow a circular arc.
-function stateArc(vState, radius, degrees, scale) =
+// Follow a local circular arc and rotate the local transform by its angle.
+function stateArc(vState, radius, degrees, scale = undef) =
     let(
-        scaledRadius = radius * scale,
-        nextPoint = ArcPoint(vState, scaledRadius, degrees, 1)
+        nextPoint = LocalPointToWorld(vState, ArcLocalPoint(radius, degrees, 1)),
+        turned = stateTurn(vState, degrees)
     )
     stateMake(
         nextPoint[0],
         nextPoint[1],
-        vState[SH] + degrees,
-        vState[SS]
+        turned[SH],
+        turned[SSX],
+        turned[SSY],
+        turned[SSH]
     );
 
-
-// Convert a local point into world coordinates using current position and heading.
-function LocalPointToWorld(vState, localPoint) =
+// Transform a local vector without translation.
+function LocalVectorToWorld(vState, localVector) =
     let(
-        h = vState[SH]
+        m = StateLinear(vState)
     )
     [
-        vState[SX] + localPoint[0] * cos(h) - localPoint[1] * sin(h),
-        vState[SY] + localPoint[0] * sin(h) + localPoint[1] * cos(h)
+        m[0] * localVector[0] + m[2] * localVector[1],
+        m[1] * localVector[0] + m[3] * localVector[1]
     ];
 
+// Convert a local point into world coordinates through the complete transform.
+function LocalPointToWorld(vState, localPoint) =
+    let(worldVector = LocalVectorToWorld(vState, localPoint))
+    [vState[SX] + worldVector[0], vState[SY] + worldVector[1]];
+
 // Return a radial point around the current Logo position.
-function ShapeRadialPoint(vState, scaledRadius, angle) =
+function ShapeRadialPoint(vState, radius, angle) =
     LocalPointToWorld(
         vState,
         [
-            scaledRadius * cos(angle),
-            scaledRadius * sin(angle)
+            radius * cos(angle),
+            radius * sin(angle)
         ]
     );
 
 // Return a closed circle contour centered on the current Logo position.
-function CircleContour(vState, scaledRadius, segments) =
+function CircleContour(vState, radius, segments) =
     [
         for (i = [0 : segments - 1])
-            ShapeRadialPoint(vState, scaledRadius, 360 * i / segments)
+            ShapeRadialPoint(vState, radius, 360 * i / segments)
     ];
 
 // Return a closed regular-polygon contour centered on the current Logo position.
-function RegPolyContour(vState, scaledRadius, sides, rotation) =
+function RegPolyContour(vState, radius, sides, rotation) =
     [
         for (i = [0 : sides - 1])
-            ShapeRadialPoint(vState, scaledRadius, rotation + 360 * i / sides)
+            ShapeRadialPoint(vState, radius, rotation + 360 * i / sides)
     ];
 
 // Return a closed rectangle contour centered on the current Logo position.
-function RectContour(vState, scaledWidth, scaledHeight) =
+function RectContour(vState, width, height) =
     let(
-        hw = scaledWidth / 2,
-        hh = scaledHeight / 2
+        hw = width / 2,
+        hh = height / 2
     )
     [
         LocalPointToWorld(vState, [ hw, -hh]),
@@ -1518,7 +1631,7 @@ function RectContour(vState, scaledWidth, scaledHeight) =
 function RoundedRectCornerPoints(
     vState,
     cornerCenter,
-    scaledRadius,
+    radius,
     startAngle,
     segments) =
     [
@@ -1526,21 +1639,21 @@ function RoundedRectCornerPoints(
             LocalPointToWorld(
                 vState,
                 [
-                    cornerCenter[0] + scaledRadius * cos(startAngle + 90 * i / segments),
-                    cornerCenter[1] + scaledRadius * sin(startAngle + 90 * i / segments)
+                    cornerCenter[0] + radius * cos(startAngle + 90 * i / segments),
+                    cornerCenter[1] + radius * sin(startAngle + 90 * i / segments)
                 ]
             )
     ];
 
 // Return a closed rounded-rectangle contour centered on the current Logo position.
-function RoundedRectContour(vState, scaledWidth, scaledHeight, scaledRadius, segments) =
+function RoundedRectContour(vState, width, height, radius, segments) =
     let(
-        hw = scaledWidth / 2,
-        hh = scaledHeight / 2,
-        r = min2(scaledRadius, min2(scaledWidth, scaledHeight) / 2)
+        hw = width / 2,
+        hh = height / 2,
+        r = min2(radius, min2(width, height) / 2)
     )
     (r <= 0)
-        ? RectContour(vState, scaledWidth, scaledHeight)
+        ? RectContour(vState, width, height)
         : concat(
             RoundedRectCornerPoints(vState, [ hw - r,  hh - r], r,   0, segments),
             RoundedRectCornerPoints(vState, [-hw + r,  hh - r], r,  90, segments),
@@ -1621,7 +1734,10 @@ function ArcAutoSegments(effectiveRadius, degrees) =
 function ArcSegmentCount(logoCmd, state) =
     ArcHasExplicitSegments(logoCmd)
         ? ArcExplicitSegments(logoCmd)
-        : ArcAutoSegments(ArcRadius(logoCmd) * state[SS], ArcDegrees(logoCmd));
+        : ArcAutoSegments(
+            ArcRadius(logoCmd) * StateMaxStretch(state),
+            ArcDegrees(logoCmd)
+        );
 
 
 // Extract the CIRCLE radius.
@@ -1640,7 +1756,7 @@ function CircleExplicitSegments(logoCmd) =
 function CircleSegmentCount(logoCmd, state) =
     CircleHasExplicitSegments(logoCmd)
         ? CircleExplicitSegments(logoCmd)
-        : ArcAutoSegments(CircleRadius(logoCmd) * abs(state[SS]), 360);
+        : ArcAutoSegments(CircleRadius(logoCmd) * StateMaxStretch(state), 360);
 
 // Extract the REGPOLY side count.
 function RegPolySides(logoCmd) =
@@ -1686,7 +1802,10 @@ function RoundedRectExplicitSegments(logoCmd) =
 function RoundedRectSegmentCount(logoCmd, state) =
     RoundedRectHasExplicitSegments(logoCmd)
         ? RoundedRectExplicitSegments(logoCmd)
-        : ArcAutoSegments(RoundedRectRadius(logoCmd) * abs(state[SS]), 90);
+        : ArcAutoSegments(
+            RoundedRectRadius(logoCmd) * StateMaxStretch(state),
+            90
+        );
 
 // Convert an opcode to a printable command name.
 function CmdName(op) =
@@ -1718,7 +1837,9 @@ function TraceExec(level, index, state, vCmd, tag = "TRACE") =
             "op=", (vCmd == undef) ? "UNDEF" : CmdName(vCmd[COP]),
             "pos=", [state[SX], state[SY]],
             "heading=", state[SH],
-            "scale=", state[SS],
+            "scaleX=", StateScaleX(state),
+            "scaleY=", StateScaleY(state),
+            "shear=", StateShear(state),
             "cmd=", vCmd
           )
           0
@@ -1742,7 +1863,9 @@ module TraceCmd(level, index, state, vCmd, indent = "")
             " Pos=(",
             state[SX], ",", state[SY],
             ") H=", state[SH],
-            " S=", state[SS],
+            " SX=", StateScaleX(state),
+            " SY=", StateScaleY(state),
+            " K=", StateShear(state),
             " Cmd=", vCmd
         );
     }
@@ -1852,7 +1975,7 @@ function EvalMove(vCmd, state, contours, stack, pen) =
         )
         EvalResult(state, contours, stack, pen)
         : let(
-            nextState = stateMove(state, CmdArg(vCmd, CA1), state[SS]),
+            nextState = stateMove(state, CmdArg(vCmd, CA1)),
             nextPoint = [nextState[SX], nextState[SY]],
             nextContours =
                 (pen == PEN_DOWN)
@@ -1876,7 +1999,9 @@ function EvalGoto(vCmd, state, contours, stack, pen) =
                 CmdArg(vCmd, CA1),
                 CmdArg(vCmd, CA2),
                 CmdArg(vCmd, CA3),
-                state[SS]
+                StateScaleX(state),
+                StateScaleY(state),
+                StateShear(state)
             ),
             nextPoint = [nextState[SX], nextState[SY]],
             nextContours =
@@ -1917,11 +2042,26 @@ function EvalScale(vCmd, state, contours, stack, pen) =
             _err = SoftError("Malformed SCALE command", vCmd)
         )
         EvalResult(state, contours, stack, pen)
-        : EvalResult(stateScale(state, CmdArg(vCmd, CA1)), contours, stack, pen);
+        : (
+            CmdArg(vCmd, CA1) == 0
+            || CmdArg(vCmd, CA2, CmdArg(vCmd, CA1)) == 0
+        )
+            ? let(_err = SoftError("SCALE factors must be nonzero", vCmd))
+            EvalResult(state, contours, stack, pen)
+            : EvalResult(
+                stateScale(
+                    state,
+                    CmdArg(vCmd, CA1),
+                    CmdArg(vCmd, CA2, CmdArg(vCmd, CA1))
+                ),
+                contours,
+                stack,
+                pen
+            );
 
 // Handle PUSH.
 //
-// Saves the full Logo state [x, y, heading, scale].
+// Saves the full Logo state, including scaleY and shear.
 function EvalPush(vCmd, state, contours, stack, pen) =
     EvalResult(state, contours, concat(stack, [state]), pen);
 
@@ -1985,7 +2125,7 @@ function EvalArc(vCmd, state, contours, stack, pen) =
                 EvalResult(state, contours, stack, pen)
                 : (ArcDegrees(vCmd) == 0)
                     ? EvalResult(state, contours, stack, pen)
-                    : (ArcRadius(vCmd) == 0 || ArcRadius(vCmd) * state[SS] == 0)
+                    : (ArcRadius(vCmd) == 0)
                         ? EvalResult(
                             stateTurn(state, ArcDegrees(vCmd)),
                             contours,
@@ -1995,15 +2135,14 @@ function EvalArc(vCmd, state, contours, stack, pen) =
                         : let(
                             radius = ArcRadius(vCmd),
                             degrees = ArcDegrees(vCmd),
-                            scaledRadius = radius * state[SS],
                             segments = ArcSegmentCount(vCmd, state),
                             arcPoints = ArcPoints(
                                 state,
-                                scaledRadius,
+                                radius,
                                 degrees,
                                 segments
                             ),
-                            nextState = stateArc(state, radius, degrees, state[SS]),
+                            nextState = stateArc(state, radius, degrees),
                             nextContours =
                                 (pen == PEN_DOWN)
                                     ? AddPointsToContours(contours, arcPoints)
@@ -2032,14 +2171,11 @@ function EvalCircle(vCmd, state, contours, stack, pen) =
                     _err = SoftError("CIRCLE segment count must be at least 3", vCmd)
                 )
                 EvalResult(state, contours, stack, pen)
-                : let(
-                    scaledRadius = CircleRadius(vCmd) * abs(state[SS])
-                )
-                (scaledRadius == 0)
+                : (CircleRadius(vCmd) == 0)
                     ? EvalResult(state, contours, stack, pen)
                     : let(
                         segments = CircleSegmentCount(vCmd, state),
-                        contour = CircleContour(state, scaledRadius, segments)
+                        contour = CircleContour(state, CircleRadius(vCmd), segments)
                     )
                     EvalResult(
                         state,
@@ -2067,15 +2203,12 @@ function EvalRegPoly(vCmd, state, contours, stack, pen) =
                     _err = SoftError("REGPOLY radius must be nonnegative", vCmd)
                 )
                 EvalResult(state, contours, stack, pen)
-                : let(
-                    scaledRadius = RegPolyRadius(vCmd) * abs(state[SS])
-                )
-                (scaledRadius == 0)
+                : (RegPolyRadius(vCmd) == 0)
                     ? EvalResult(state, contours, stack, pen)
                     : let(
                         contour = RegPolyContour(
                             state,
-                            scaledRadius,
+                            RegPolyRadius(vCmd),
                             RegPolySides(vCmd),
                             RegPolyRotation(vCmd)
                         )
@@ -2103,14 +2236,8 @@ function EvalRect(vCmd, state, contours, stack, pen) =
             )
             EvalResult(state, contours, stack, pen)
             : let(
-                scaledWidth = RectWidth(vCmd) * abs(state[SS]),
-                scaledHeight = RectHeight(vCmd) * abs(state[SS])
+                contour = RectContour(state, RectWidth(vCmd), RectHeight(vCmd))
             )
-            (scaledWidth == 0 || scaledHeight == 0)
-                ? EvalResult(state, contours, stack, pen)
-                : let(
-                    contour = RectContour(state, scaledWidth, scaledHeight)
-                )
                 EvalResult(
                     state,
                     EmitClosedContour(contours, contour, pen),
@@ -2152,22 +2279,15 @@ function EvalRoundedRect(vCmd, state, contours, stack, pen) =
                     )
                     EvalResult(state, contours, stack, pen)
                     : let(
-                        scaledWidth = RoundedRectWidth(vCmd) * abs(state[SS]),
-                        scaledHeight = RoundedRectHeight(vCmd) * abs(state[SS]),
-                        scaledRadius = RoundedRectRadius(vCmd) * abs(state[SS])
-                    )
-                    (scaledWidth == 0 || scaledHeight == 0)
-                        ? EvalResult(state, contours, stack, pen)
-                        : let(
-                            segments = RoundedRectSegmentCount(vCmd, state),
-                            contour = RoundedRectContour(
-                                state,
-                                scaledWidth,
-                                scaledHeight,
-                                scaledRadius,
-                                segments
-                            )
+                        segments = RoundedRectSegmentCount(vCmd, state),
+                        contour = RoundedRectContour(
+                            state,
+                            RoundedRectWidth(vCmd),
+                            RoundedRectHeight(vCmd),
+                            RoundedRectRadius(vCmd),
+                            segments
                         )
+                    )
                         EvalResult(
                             state,
                             EmitClosedContour(contours, contour, pen),
@@ -2239,6 +2359,9 @@ function EvalRun(vCmd, state, contours, stack, pen, maxRec) =
     )
     (len(childCmds) == 0)
         ? EvalResult(state, contours, stack, pen)
+        : (RunScale(vCmd) == 0)
+            ? let(_err = SoftError("RUN scale must be nonzero", vCmd))
+            EvalResult(state, contours, stack, pen)
         : (maxRec <= 0 || localMaxRec <= 0)
             ? let(
                 _err = SoftError("RUN recursion limit reached", vCmd)
@@ -2246,13 +2369,7 @@ function EvalRun(vCmd, state, contours, stack, pen, maxRec) =
             EvalResult(state, contours, stack, pen)
             : let(
                 nextMaxRec = min2(maxRec - 1, localMaxRec - 1),
-                nextScale = RunScale(vCmd) * state[SS],
-                nextState = stateMake(
-                    state[SX],
-                    state[SY],
-                    state[SH],
-                    nextScale
-                ),
+                nextState = stateScale(state, RunScale(vCmd)),
                 recResult = evalLogoR(
                     childCmds,
                     nextState,

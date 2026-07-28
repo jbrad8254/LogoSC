@@ -2,6 +2,25 @@
 
 ## [Unreleased]
 
+### Added
+
+- Added persistent canonical affine state
+  `[x, y, heading, scaleX, scaleY, shear]`, preserving the historical first
+  four indices and `SS` compatibility alias while adding `SSX`, `SSY`, and
+  `SSH`.
+- Extended `SCALE` with `[SCALE, scaleX, scaleY]`; negative factors provide
+  reflection, while singular zero factors are rejected.
+- Applied the complete local transform to `MOVE`, `ARC`, closed primitives,
+  `RUN`, `REPEAT`, `HOLE`, `PUSH`/`POP`, and preview debug geometry. Automatic
+  curve tessellation now accounts for maximum affine stretch.
+- Added affine contract tests for generated shear, transformed coordinates,
+  loop persistence, reflections, world-absolute `DIR`/`GOTO`, stack restoration,
+  arcs, primitives, `RUN`, holes, and debug-evaluator parity.
+- Added Core `LogoStateToAffine()` and `LogoAffineToState()` interoperability
+  helpers using a documented standard 2x3 column-vector matrix convention,
+  deterministic reflection canonicalization, optional heading-reference
+  recovery, and malformed/singular input rejection.
+
 ## [2026.4] - 2026-07-27
 
 This feature release adds general optional topology relationships, strict hole validation,
