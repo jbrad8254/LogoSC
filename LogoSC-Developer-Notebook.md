@@ -2840,3 +2840,40 @@ Follow-up:
   the wordmark gallery scale from `0.46` to `0.69` so the masthead is 50 percent larger.
 - Continue exercising the model before exposing an explicit `SHEAR` opcode.
 - Use the transform behavior as the foundation for the proposed Gordian-knot feature design.
+
+### 2026-07-27 — Optional knot companion first vertical slice
+
+Context:
+
+- `LogoSC-Knots-Design.md` established a broad roadmap, but implementation needed a narrow first
+  boundary that proved the shared representation without pulling ribbons, cords, bundles, or
+  image import into LogoSC Core.
+- Torus links require special component handling when `p` and `q` are not coprime; naively
+  sampling the unreduced curve once per component retraces geometry.
+
+Decision:
+
+- Add standalone `LogoSC-Knots.scad` with knot, strand, crossing, validation-result, and
+  validation-issue records plus documented constructors and accessors.
+- Make multiple components first-class. Closed strands repeat their first 3D sample, crossing
+  encounters index the shared crossing list, and a reserved lane-closure permutation supports
+  later bundles without changing the leading record fields.
+- Validate record structure, sample shape, closure tolerance, crossing references and
+  parameters, over-strand ownership, encounter indexes, and lane permutations. Keep reporting
+  and debug rendering preview-only.
+- Implement torus knots and links by reducing `p` and `q` by `gcd(p,q)` and phase-shifting each
+  independently closed component around the minor circle.
+- Keep ribbons, crossing lifts, adjacent cord bundles, capsule-cord manufacturing geometry, and
+  AI image import deferred even though metadata and lane-closure fields can accommodate them.
+
+Consequences:
+
+- Core and the optional Foundation Validation companion remain unchanged and unaware of knots.
+- Add Planar and Spatial debug-view modes. Planar projection changes only diagnostic display,
+  retains the original 3D samples, and deliberately does not invent underpass gaps before
+  crossing discovery exists.
+- A dedicated 24-result suite covers records, invalid structures, closure, crossings, torus
+  sample counts, exact component closure, distinct components, and validation.
+- `LogoSC-Knots-Examples.scad` provides a small unknot, trefoil, Hopf-link, and explicit-crossing
+  diagnostic gallery. The next coherent milestone can add braid generation or manufacturable
+  capsule cords without redesigning the common result.

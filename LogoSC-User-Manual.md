@@ -36,7 +36,8 @@ be passed to `linear_extrude()` or `rotate_extrude()`.
   - [Choosing an entry point](#79-choosing-an-entry-point)
   - [Debug visualization](#710-debug-visualization)
   - [Path analysis and validation](#711-path-analysis-and-validation)
-  - [OpenSCAD wrapper pattern](#712-openscad-wrapper-pattern)
+  - [Optional knot companion](#712-optional-knot-companion)
+  - [OpenSCAD wrapper pattern](#713-openscad-wrapper-pattern)
 - [8. 3D printing workflow](#8-3d-printing-workflow)
 - [9. Segment-count controls](#9-segment-count-controls)
 - [10. Command reference](#10-command-reference)
@@ -73,6 +74,10 @@ LogoSC-Nuts-And-Bolts.scad         Customizable printable fastener model.
 LogoSC-Nuts-And-Bolts-Tests.scad   Passive non-rendering fastener calculation tests.
 LogoSC-Nuts-And-Bolts-Test-Runner.scad Direct entry point for fastener tests.
 LogoSC-Nuts-And-Bolts-Customizer.md Detailed fastener Customizer guide.
+LogoSC-Knots.scad                  Optional knot records, validation, debug, and torus generator.
+LogoSC-Knots-Examples.scad         Unknot, trefoil, Hopf-link, and crossing debug gallery.
+LogoSC-Knots-Tests.scad            Passive knot companion tests.
+LogoSC-Knots-Test-Runner.scad      Direct entry point for knot tests.
 LogoSC-Experiments.scad            Experimental rendering and geometry workbench.
 LogoSC-OpenSCAD-Command-Line.md    Command-line testing, export, and PNG-preview guide.
 
@@ -85,6 +90,7 @@ LogoSC-Future-Ideas.md             Longer-term feature concepts and future direc
 
 LogoSC-ARC-Implementation.md        ARC tessellation design notes.
 LogoSC-Holes-Implementation.md     Region/hole design notes.
+LogoSC-Knots-Design.md             Authoritative knot architecture and staged roadmap.
 LogoSC-LSystems-Notes.md           L-system design and example notes.
 
 images/                            Documentation wordmark, icon, and screenshots.
@@ -1263,7 +1269,34 @@ The relationship helpers classify collinear and inter-contour contacts separatel
 self-intersection. The validator deliberately does not reject overlap between independent outer
 regions, because rendering separate regions may legitimately union them.
 
-### 7.12 OpenSCAD wrapper pattern
+### 7.12 Optional knot companion
+
+Knot functionality remains outside Core. The first companion slice stores one or more sampled
+3D strands in a shared knot result, validates record structure and closure, and provides
+preview-only centerline, sample, and crossing diagnostics.
+
+```scad
+include <LogoSC-Knots.scad>
+
+hopfLink = MakeTorusKnot(2, 2, majorRadius = 20, minorRadius = 6);
+ReportKnotValidation(hopfLink, strict = true);
+RenderKnotDebug(hopfLink, viewMode = "Planar", showSamples = false);
+```
+
+When `p` and `q` are coprime, `MakeTorusKnot()` returns one strand. Otherwise it returns
+`gcd(p,q)` independently closed components without retracing them. The exact constructors and
+accessors, structural rules, deferred rendering stages, and implementation roadmap are in
+`LogoSC-Knots-Design.md`. Ribbons, crossing lifts, adjacent cord bundles, and AI image import
+are not part of this first slice.
+
+`viewMode = "Planar"` projects the stored 3D samples onto `z = 0`; `"Spatial"` displays their
+original height. Projection does not alter the knot record. Torus projections do not yet cut
+underpass gaps because automatic crossing discovery remains a later milestone.
+
+Run `LogoSC-Knots-Test-Runner.scad` for its independent automated suite, and open
+`LogoSC-Knots-Examples.scad` for the small debug gallery.
+
+### 7.13 OpenSCAD wrapper pattern
 
 LogoSC intentionally remains a 2D geometry generator. Wrap its output with native
 OpenSCAD modules for final modeling:
@@ -2234,7 +2267,7 @@ A successful run ends with output equivalent to:
 ```text
 LogoSC suite result, Foundation, PASS, tests, 130, passed, 130, failed, 0
 LogoSC suite result, Validation, PASS, tests, 36, passed, 36, failed, 0
-LOGOSC_AUTOMATED_TEST_RESULT, PASS, suites, 2, failedSuites, 0, tests, 166, passed, 166, failed, 0
+LOGOSC_AUTOMATED_TEST_RESULT, PASS, suites, 2, failedSuites, 0, tests, 222, passed, 222, failed, 0
 ```
 
 Counts grow as tests are added; use the final `PASS`/`FAIL` value rather than hard-coding

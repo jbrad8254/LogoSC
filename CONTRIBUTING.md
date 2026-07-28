@@ -45,6 +45,10 @@ LogoSC-Nuts-And-Bolts.scad
 LogoSC-Nuts-And-Bolts-Tests.scad
 LogoSC-Nuts-And-Bolts-Test-Runner.scad
 LogoSC-Nuts-And-Bolts-Customizer.md
+LogoSC-Knots.scad
+LogoSC-Knots-Examples.scad
+LogoSC-Knots-Tests.scad
+LogoSC-Knots-Test-Runner.scad
 LogoSC-Experiments.scad
 LogoSC-OpenSCAD-Command-Line.md
 
@@ -58,6 +62,7 @@ LogoSC-ARC-Implementation.md
 LogoSC-Holes-Implementation.md
 LogoSC-Validation-Implementation.md
 LogoSC-Transforms-Design.md
+LogoSC-Knots-Design.md
 LogoSC-LSystems-Notes.md
 
 images/
@@ -138,6 +143,8 @@ Before release:
 - Keep validation tests in the passive validation-test companion and run them through the runner.
 - Run `LogoSC-Nuts-And-Bolts-Test-Runner.scad` after fastener calculation changes; keep its
   non-rendering suite separate from the Foundation/Validation runner.
+- Run `LogoSC-Knots-Test-Runner.scad` after knot-record, validation, debug, or generator changes;
+  keep the optional companion and its suite separate from Core and Foundation/Validation.
 - Require one final `LOGOSC_AUTOMATED_TEST_RESULT` with `PASS`; expected Core `[ERROR]`
   diagnostics in the bounded failure-condition row are not test-result failures.
 - Add new automated checks as immutable result records so failures accumulate through the run

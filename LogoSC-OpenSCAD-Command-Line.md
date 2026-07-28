@@ -186,6 +186,33 @@ Keep CSG smoke exports and the slower CGAL/STL, mesh, gallery, and high-resoluti
 checks as separate release verification. Parameter tests cannot prove boolean robustness or
 printable mesh quality.
 
+### Run the optional knot-companion suite
+
+`LogoSC-Knots-Test-Runner.scad` is the separate deterministic suite for knot records,
+validation, debug inputs, and generators:
+
+```powershell
+$knotTestLogPath = Join-Path $env:TEMP 'LogoSC-knot-tests.echo'
+
+& $openScadCli `
+    -o $knotTestLogPath `
+    'LogoSC-Knots-Test-Runner.scad'
+
+$knotPass = @(
+    Select-String `
+        -LiteralPath $knotTestLogPath `
+        -SimpleMatch '"LOGOSC_AUTOMATED_TEST_RESULT", "PASS"'
+)
+
+if ($LASTEXITCODE -ne 0 -or $knotPass.Count -ne 1)
+{
+    throw 'LogoSC knot tests did not report one successful run.'
+}
+```
+
+The knot suite remains independent of the Foundation/Validation and fastener suites so the
+optional companion cannot become an accidental Core dependency.
+
 ## Example 2: export and inspect a debug PNG
 
 The command line can render the same debug demo that is available through the OpenSCAD

@@ -14,6 +14,8 @@ LogoSC is not trying to be a full Logo language. It is a lightweight OpenSCAD ge
 - Supports reusable relative command lists through `RUN`.
 - Provides a preview-only debug renderer for visualizing low-level path execution.
 - Provides optional path analysis and validation without changing filled-region rendering.
+- Provides an optional sampled-knot companion with structural validation, debug rendering, and
+  torus knots or links with correct multi-component behavior.
 - Leaves 3D composition to native OpenSCAD tools such as `linear_extrude()`, `difference()`, `union()`, and `translate()`.
 
 ## Engineering guidance and restart order
@@ -76,7 +78,7 @@ open endpoints, crossing paths, pen-up travel, arc tessellation, and primitive-g
 A complete test run ends with per-suite totals and one machine-readable result such as:
 
 ```text
-LOGOSC_AUTOMATED_TEST_RESULT, PASS, suites, 2, failedSuites, 0, tests, 166, passed, 166, failed, 0
+LOGOSC_AUTOMATED_TEST_RESULT, PASS, suites, 2, failedSuites, 0, tests, 222, passed, 222, failed, 0
 ```
 
 Set `LogoTestReportLevel = 2` to list every named automated test; the default level `1`
@@ -170,6 +172,25 @@ tessellated, already-trusted command lists when the corresponding quadratic scan
 See `LogoSC-Validation-Implementation.md` for the algorithms, complexity, policy rationale, and
 complete Validation test matrix.
 
+### Generate a torus knot or link
+
+Knot work remains outside LogoSC Core. Include the optional companion directly:
+
+```scad
+include <LogoSC-Knots.scad>
+
+trefoil = MakeTorusKnot(2, 3, majorRadius = 20, minorRadius = 6);
+ReportKnotValidation(trefoil, strict = true);
+RenderKnotDebug(trefoil, viewMode = "Planar", showSamples = false);
+```
+
+`MakeTorusKnot(p, q, ...)` returns one closed sampled strand when `p` and `q` are coprime.
+Otherwise it returns `gcd(p,q)` independently closed components. Open
+`LogoSC-Knots-Examples.scad` for the unknot, trefoil, Hopf-link, and explicit-crossing gallery.
+This first slice is diagnostic: ribbons, crossing lifts, cord bundles, and image import remain
+deferred. Planar debug mode projects the original 3D samples onto `z = 0`; Spatial mode preserves
+their torus height. Automatic underpass gaps require the later crossing-discovery milestone.
+
 ## Current public API
 
 The main user-facing renderer is:
@@ -249,6 +270,10 @@ See `LogoSC-CheatSheet.md` and `LogoSC-User-Manual.md` for the complete command 
 - `LogoSC-Nuts-And-Bolts.scad` — customizable printable fastener and thread-profile model.
 - `LogoSC-Nuts-And-Bolts-Tests.scad` — passive non-rendering fastener calculation tests.
 - `LogoSC-Nuts-And-Bolts-Test-Runner.scad` — direct entry point for the fastener test suite.
+- `LogoSC-Knots.scad` — optional shared knot records, validation/debug tools, and torus generator.
+- `LogoSC-Knots-Examples.scad` — small unknot, trefoil, Hopf-link, and crossing debug gallery.
+- `LogoSC-Knots-Tests.scad` — passive knot record, validation, and torus-link tests.
+- `LogoSC-Knots-Test-Runner.scad` — direct entry point for the knot companion suite.
 - `LogoSC-Nuts-And-Bolts-Customizer.md` — detailed fastener parameter and calibration guide.
 - `LogoSC-User-Manual.md` — practical user documentation.
 - `CONTRIBUTING.md` — contribution philosophy, coding, testing, documentation, versioning, and packaging guidance.
@@ -306,6 +331,7 @@ Manufacturable stroke/open-path rendering remains future work.
 - No external OpenSCAD library dependency; basic LogoSC use requires only
   `LogoSC-Foundation-Core.scad`.
 - Optional validation additionally requires `LogoSC-Foundation-Validation.scad`.
+- Optional knot generation additionally requires `LogoSC-Knots.scad`; it does not change Core.
 
 Maintainers can use [LogoSC-OpenSCAD-Command-Line.md](LogoSC-OpenSCAD-Command-Line.md)
 to run tests, capture diagnostics, and export geometry or PNG previews without opening the GUI.

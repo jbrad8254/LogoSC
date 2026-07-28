@@ -2,13 +2,32 @@
 
 ## Status and purpose
 
-This is the active design plan for generative knot work in LogoSC. It covers organic or
-Gordian-style parametric knots and traditional Celtic interlace. No knot API or implementation
-is approved yet.
+This is the authoritative design plan for generative knot work in LogoSC. It covers organic or
+Gordian-style parametric knots and traditional Celtic interlace. The first optional-companion
+vertical slice is implemented; later milestones remain proposals until their APIs are reviewed.
 
 LogoSC remains a 2D filled-region evaluator. A future optional companion may use LogoSC for
 planar routes, ribbon footprints, masks, local transforms, and repeated motifs. Native OpenSCAD
 remains responsible for extrusion, hulls, Minkowski operations, booleans, and 3D cords.
+
+### Implemented first vertical slice
+
+`LogoSC-Knots.scad` currently provides:
+
+- documented knot, strand, crossing, validation-result, and validation-issue constructors and
+  accessors;
+- structural validation for sampled strands, closure, crossings, encounter indexes, and future
+  bundle lane-closure permutations;
+- `ReportKnotValidation()` diagnostics and `RenderKnotDebug()` centerline, sample, and crossing
+  markers;
+- `MakeTorusKnot()`, producing one component for coprime `p` and `q` or
+  `gcd(p,q)` independently closed components for a torus link;
+- selectable planar-projection and spatial debug views;
+- a dedicated 24-result automated suite and an unknot/trefoil/Hopf-link/crossing debug gallery.
+
+This slice deliberately does not implement ribbons, crossing lifts, adjacent cord bundles, or
+AI image import. Reserved strand fields and metadata allow those milestones to extend the
+representation without changing its established leading fields.
 
 ## Further reading and example collections
 
@@ -144,13 +163,15 @@ every invalid graph, and a general manufacturable stroke API in Core.
 All generators should compile to a common intermediate result:
 
 ```text
-Knot = [strands, crossings]
+Knot = [strands, crossings, metadata]
 
 Strand =
 [
     closed,
     centerlineSamples,
-    crossingEncounters
+    crossingEncounters,
+    laneClosurePermutation,
+    metadata
 ]
 
 Crossing =
@@ -174,6 +195,11 @@ separation is:
 
 Samples used for 3D output receive a Z coordinate after crossing assignment. The original 2D
 centerline remains available for ribbons, masks, diagnostics, and validation.
+
+The implemented first slice uses explicit 3D samples throughout; planar generators can use
+`z = 0`. Closed strands repeat the first sample at the end. Crossing parameters are normalized
+to `[0, 1]`, and encounter lists contain indexes into the knot's crossing list. The initial
+single-lane closure permutation is `[0]`.
 
 ## Required feature: adjacent multi-cord bundles
 
@@ -269,7 +295,23 @@ z(t) = r*sin(q*t)
 
 `R` is the major radius, `r` is the minor path radius, and `p` and `q` are winding counts.
 When `gcd(p,q) = 1`, the result is one strand; a larger greatest common divisor produces a link
-with multiple components.
+with multiple components. The implementation divides `p` and `q` by the common divisor and
+samples one full period of each reduced curve. A phase offset of `360/gcd(p,q)` around the minor
+circle selects each component. This avoids retracing every component multiple times.
+
+Example:
+
+```scad
+include <LogoSC-Knots.scad>
+
+trefoil = MakeTorusKnot(2, 3, majorRadius = 20, minorRadius = 6);
+ReportKnotValidation(trefoil, strict = true);
+RenderKnotDebug(trefoil, viewMode = "Planar", showSamples = false);
+```
+
+Planar debug mode projects the stored samples to `z = 0`; it does not modify the knot record.
+Until automatic crossing discovery is implemented, torus projections show overlaps without
+inventing underpass gaps. Spatial mode displays the original sampled Z coordinates.
 
 Advantages:
 
@@ -637,7 +679,7 @@ design; the intended use is user-owned, licensed, or newly generated source imag
 [inspiration-fyffe]: https://www.neilfyffe.co.uk/celtic-knotwork/
 [inspiration-gaelic]: https://www.gaelicmatters.com/celtic-knot-designs.html
 
-## Proposed companion files
+## Companion files
 
 ```text
 LogoSC-Knots.scad
@@ -648,7 +690,8 @@ LogoSC-Knots-Test-Runner.scad
 LogoSC-Knots-Design.md
 ```
 
-Core should not depend on this companion.
+The first, examples, tests, runner, and design files are implemented.
+`LogoSC-Knots-Import.scad` remains deferred. Core does not depend on this companion.
 
 ## Verification requirements
 
@@ -680,11 +723,11 @@ links where supported by the selected generator.
 
 ## Implementation sequence
 
-1. **Shared sampled-strand and knot-result records**
+1. **Shared sampled-strand and knot-result records** — implemented
    - Define constructors, accessors, closure rules, lane permutations, and debug output.
-2. **Torus knots and capsule cords**
-   - Prove closed 3D routes, component handling, adjacent bundle expansion, and inexpensive
-     rounded rendering.
+2. **Torus knots and capsule cords** — generator and debug centerlines implemented
+   - Closed 3D routes and correct link-component handling are complete.
+   - Manufacturable capsule cords and adjacent bundle expansion remain deferred.
 3. **Braid words**
    - Establish crossing records, lane tracking, Z bumps, and closure.
 4. **Celtic tile grids**
@@ -702,8 +745,9 @@ gallery, and a clean optional-companion boundary.
 ## Open questions
 
 - Is the organic family named Gordian knots, Gorgon knots, or generative knots?
-- Should centerlines use only samples or preserve analytic lines and arcs until tessellation?
-- Are multi-component links first-class results from the beginning?
+- Centerlines initially use explicit samples. Analytic source descriptions may be preserved in
+  metadata later without replacing the sampled rendering contract.
+- Multi-component links are first-class results from the beginning.
 - Are bundle lanes individually labeled in public results, or exposed only as traced components
   after applying the closure permutation?
 - Does the first bundle milestone support only untwisted planar offsets, reserving explicit

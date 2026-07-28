@@ -4,6 +4,18 @@
 
 ### Added
 
+- Added the first optional knot-companion vertical slice in `LogoSC-Knots.scad`: extensible knot,
+  strand, crossing, validation-result, and issue records; structural validation and diagnostic
+  reporting; preview centerline, sample, and crossing rendering; and a torus-knot/link generator
+  with `gcd(p,q)` independently closed components.
+- Added selectable Planar and Spatial knot debug views. Planar mode projects centerline and
+  sample diagnostics to `z = 0` without changing the stored 3D knot route.
+- Added a separate 24-result knot test suite and runner covering record accessors, valid and
+  invalid structures, closure, crossings, encounter indexes, lane permutations, torus sample
+  counts, exact closure, distinct link components, and generated-result validation.
+- Added `LogoSC-Knots-Examples.scad`, a small documented unknot, trefoil, Hopf-link, and explicit
+  crossing debug gallery. Ribbons, crossing lifts, adjacent cord bundles, and AI image import
+  remain deferred.
 - Added `LogoSC-Knots-Design.md`, an implementation roadmap covering a shared strand/crossing
   representation; torus, braid-word, Celtic-grid, harmonic/Lissajous, polar, and medial-graph
   generators; alternating crossing constraints; 2D ribbons; bas-relief; rounded capsule cords;
