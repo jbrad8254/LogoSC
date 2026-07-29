@@ -1290,13 +1290,12 @@ accessors, structural rules, deferred rendering stages, and implementation roadm
 spheres at every pair of adjacent samples. Closed strands already repeat their first point, so
 the last capsule closes the route exactly. The caller remains responsible for selecting a cord
 radius, sampling density, and fragment count that preserve clearance and surface quality.
-Ribbons, recorded-crossing remapping, crossing lifts, explicit bundle twist, and AI image import
-remain deferred.
+Ribbons, explicit bundle twist, and AI image import remain deferred.
 
-There is no hidden LogoSC Core evaluation in this implementation. `MakeTorusKnot()` and
-`ValidateKnot()` are pure OpenSCAD functions, while `RenderKnotDebug()` and
-`RenderKnotCords()` use native OpenSCAD geometry. The knot test runner includes Core only to
-reuse the standard LogoSC automated-test reporting helpers. Planned planar Celtic generators,
+There is no hidden LogoSC Core evaluation in this implementation. The torus, braid, and Celtic
+tile-grid generators and `ValidateKnot()` are pure OpenSCAD functions, while
+`RenderKnotDebug()` and `RenderKnotCords()` use native OpenSCAD geometry. The knot test runner
+includes Core only to reuse the standard LogoSC automated-test reporting helpers. Planned
 ribbon regions, repeated motifs, and crossing masks are the stages expected to use LogoSC
 commands, transforms, and region rendering. The exact current and planned dependency flow is
 documented in `LogoSC-Knots-Design.md#how-logosc-is-used`.
@@ -1306,11 +1305,11 @@ original height. Projection does not alter the knot record. Torus projections do
 underpass gaps because automatic crossing discovery remains a later milestone.
 
 In `LogoSC-Knots-Examples.scad`, the `KnotView` Customizer control applies to diagnostic,
-single-cord, bundle, `CordGallery`, and `BundleGallery` output. Planar creates a projected copy
-before rendering or bundle expansion and removes the galleries' presentation tilt. Spatial
-preserves the original samples and uses the tilted 3D presentation. Planar cords can touch or
-fuse at projected crossings; use the flattened result for comparison and planar design work, not
-as an automatic printable-knot guarantee.
+single-cord, bundle, and all presentation-gallery output, including `CelticGallery`. Planar
+creates a projected copy before rendering or bundle expansion and removes the galleries'
+presentation tilt. Spatial preserves the original samples and uses the tilted 3D presentation.
+Planar cords can touch or fuse at projected crossings; use the flattened result for comparison
+and planar design work, not as an automatic printable-knot guarantee.
 
 Run `LogoSC-Knots-Test-Runner.scad` for its independent automated suite, and open
 `LogoSC-Knots-Examples.scad` to select either diagnostic or cord output.
@@ -1335,6 +1334,55 @@ OpenSCAD lighting and surface shading, not additional strand or crossing states.
 
 Choose `KnotExample = "CordGallery"` for this labeled presentation scene. It is generated from
 the same knot records and capsule renderer used for normal cord output.
+
+#### Celtic tile grids
+
+`MakeCelticTileGridKnot()` compiles an explicit rectangular grid into ordinary sampled knot
+records:
+
+```scad
+celtic = MakeCelticTileGridKnot(
+    [
+        ["NE_SW", "X", "NW_ES"],
+        ["X", "NE_SW", "X"],
+        ["NW_ES", "X", "NE_SW"]
+    ],
+    cellSize = 12,
+    samplesPerTile = 6,
+    samplesPerBoundary = 4,
+    crossingHeight = 4
+);
+
+ReportKnotValidation(celtic, strict = true);
+RenderKnotCords(celtic, cordRadius = 0.7);
+```
+
+Every MVP tile has north, east, south, and west ports:
+
+- `"X"` pairs north with south and east with west, creating one crossing;
+- `"NE_SW"` pairs north with east and south with west;
+- `"NW_ES"` pairs north with west and east with south.
+
+Interior exits connect only to the opposite port of the neighboring cell. Because all three
+tiles have four ports, a finite rectangle also needs an explicit edge policy: boundary ports
+are enumerated clockwise and paired consecutively around the outside. The policy is stored as
+`"boundaryClosure", "clockwisePairs"` in knot metadata rather than hidden in rendering.
+
+The tracer follows the resulting port permutation until it returns to its starting state. It
+removes the reverse-direction duplicate of every route, emits one exactly closed strand record
+per component, and samples straight crossings and quadratic corner curves. `"X"` cells receive
+equal/opposite Z bumps. Checkerboard parity chooses which branch is over, and construction
+asserts unless every component alternates over and under around its complete closure.
+
+![LogoSC Celtic tile-grid knots](images/knot-celtic-grid-gallery.png)
+
+Colors distinguish complete components only. The left grid closes as two components, the middle
+all-crossing grid closes as one, and the right example shows the same rules on a 4-by-4 grid.
+Choose `KnotExample = "CelticGallery"` for the presentation scene or `"CelticGrid"` for the
+focused example.
+
+This MVP deliberately excludes random tile filling, user-selectable boundary pairing, flat
+ribbon regions, and underpass masks. The last two are the next rendering milestone.
 
 #### Circular braid closures
 

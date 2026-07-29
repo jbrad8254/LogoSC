@@ -334,6 +334,31 @@ $braidedBundleGalleryPath = Join-Path `
 The scene uses the actual crossing remapper and capsule renderer. Each master crossing expands
 to all cord-lane pairs and must pass the configured clearance check before geometry is emitted.
 
+### Render the Celtic tile-grid gallery
+
+The Celtic gallery traces three explicit tile grids into closed alternating knot records:
+
+![LogoSC Celtic tile-grid knots](images/knot-celtic-grid-gallery.png)
+
+```powershell
+$celticGalleryPath = Join-Path `
+    (Get-Location) `
+    'images\knot-celtic-grid-gallery.png'
+
+& $openScadCli `
+    -D 'KnotExample=\"CelticGallery\"' `
+    -D 'KnotView=\"Spatial\"' `
+    -D 'KnotCordFragments=18' `
+    --imgsize '1400,700' `
+    --camera '85,4,0,0,0,0,220' `
+    --projection o `
+    -o $celticGalleryPath `
+    'LogoSC-Knots-Examples.scad'
+```
+
+The examples use the real tile validator, boundary closure, route tracer, crossing assignment,
+alternation check, and capsule renderer. Colors distinguish complete components only.
+
 ## Example 2: export and inspect a debug PNG
 
 The command line can render the same debug demo that is available through the OpenSCAD

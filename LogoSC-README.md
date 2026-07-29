@@ -408,8 +408,8 @@ Basic models therefore still require only `LogoSC-Foundation-Core.scad`.
 ## Optional knot companion
 
 `LogoSC-Knots.scad` remains independent of Core. It provides sampled strand and crossing records,
-structural validation, a torus-knot/link generator, preview diagnostics, and manufacturable
-rounded cords:
+structural validation, torus, braid, and Celtic tile-grid generators, preview diagnostics, and
+manufacturable rounded cords:
 
 ```scad
 include <LogoSC-Knots.scad>
@@ -427,13 +427,14 @@ RenderKnotCordBundle(
 ```
 
 `RenderKnotCords()` hulls equal-radius spheres at each adjacent sample pair. The caller controls
-radius, route sampling, and sphere resolution. Adjacent cord bundles and signed braid words are
-implemented; ribbons and bas-relief remain staged work described in `LogoSC-Knots-Design.md`.
+radius, route sampling, and sphere resolution. Adjacent cord bundles, signed braid words, and
+explicit Celtic tile grids are implemented; ribbons and bas-relief remain staged work described
+in `LogoSC-Knots-Design.md`.
 
-The current torus implementation does not call LogoSC Core behind the scenes. Pure OpenSCAD
-functions create and validate its sampled records, and native OpenSCAD creates the 3D solids.
-Planned Core use begins with planar motifs, transforms, ribbons, and crossing masks; the complete
-boundary is documented in `LogoSC-Knots-Design.md#how-logosc-is-used`.
+The current generators do not call LogoSC Core behind the scenes. Pure OpenSCAD functions create
+and validate their sampled records, and native OpenSCAD creates the 3D solids. Planned Core use
+begins with ribbon regions, transforms, and crossing masks; the complete boundary is documented
+in `LogoSC-Knots-Design.md#how-logosc-is-used`.
 
 ![LogoSC manufacturable knot-cord gallery](images/knot-cord-gallery.png)
 
@@ -457,6 +458,12 @@ established leading record fields.
 ![LogoSC circular braid closures](images/knot-braid-gallery.png)
 
 ![LogoSC crossing-aware braided cord bundles](images/knot-braided-bundle-gallery.png)
+
+Explicit Celtic tile grids use `"X"`, `"NE_SW"`, and `"NW_ES"` four-port cells. Interior ports
+join matching neighbors, perimeter ports close in deterministic clockwise pairs, reverse traces
+are removed, and checkerboard crossing height is accepted only when every component alternates.
+
+![LogoSC Celtic tile-grid knots](images/knot-celtic-grid-gallery.png)
 
 ## Future rendering work
 

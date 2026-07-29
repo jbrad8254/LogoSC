@@ -3,11 +3,11 @@
 //
 // This file is independent of LogoSC Core. It does not call evalLogo() or emit
 // LogoSC command lists. Pure OpenSCAD functions define and validate sampled
-// knot records; native OpenSCAD functions generate torus and circular-braid
-// routes, while sphere/hull geometry produces diagnostics, manufacturable
-// rounded cords, and untwisted adjacent cord bundles. Future planar motif and
-// ribbon stages may consume LogoSC Core without making this 3D companion a
-// Core dependency.
+// knot records; native OpenSCAD functions generate torus, circular-braid, and
+// Celtic tile-grid routes, while sphere/hull geometry produces diagnostics,
+// manufacturable rounded cords, and untwisted adjacent cord bundles. Future
+// ribbon stages may consume LogoSC Core without making this companion a Core
+// dependency.
 // ============================================================================
 
 KNOT_STRANDS = 0;
@@ -957,6 +957,700 @@ function MakeCircularBraidKnot(
             "samplesPerGenerator", samplesPerGenerator
         ]
     );
+
+KNOT_CELTIC_NORTH = 0;
+KNOT_CELTIC_EAST = 1;
+KNOT_CELTIC_SOUTH = 2;
+KNOT_CELTIC_WEST = 3;
+
+function KnotCelticTileIsValid(tile) =
+    tile == "X" || tile == "NE_SW" || tile == "NW_ES";
+
+function KnotCelticGridColumnCount(grid) =
+    is_list(grid) && len(grid) > 0 && is_list(grid[0])
+    ? len(grid[0])
+    : 0;
+
+function KnotCelticGridIsRectangular(grid) =
+    is_list(grid)
+    && len(grid) > 0
+    && KnotCelticGridColumnCount(grid) > 0
+    && len([
+        for (row = grid)
+            if (!is_list(row) || len(row) != KnotCelticGridColumnCount(grid))
+                row
+    ]) == 0;
+
+function KnotCelticGridTilesAreValid(grid) =
+    KnotCelticGridIsRectangular(grid)
+    && len([
+        for (row = grid)
+            for (tile = row)
+                if (!KnotCelticTileIsValid(tile))
+                    tile
+    ]) == 0;
+
+function KnotCelticOppositePort(port) = (port + 2) % 4;
+
+function KnotCelticTilePairedPort(tile, port) =
+    assert(KnotCelticTileIsValid(tile), "Unknown Celtic grid tile.")
+    tile == "X"
+    ? KnotCelticOppositePort(port)
+    : tile == "NE_SW"
+        ? port == KNOT_CELTIC_NORTH
+            ? KNOT_CELTIC_EAST
+            : port == KNOT_CELTIC_EAST
+                ? KNOT_CELTIC_NORTH
+                : port == KNOT_CELTIC_SOUTH
+                    ? KNOT_CELTIC_WEST
+                    : KNOT_CELTIC_SOUTH
+        : port == KNOT_CELTIC_NORTH
+            ? KNOT_CELTIC_WEST
+            : port == KNOT_CELTIC_WEST
+                ? KNOT_CELTIC_NORTH
+                : port == KNOT_CELTIC_EAST
+                    ? KNOT_CELTIC_SOUTH
+                    : KNOT_CELTIC_EAST;
+
+function KnotCelticStateId(row, column, port, columnCount) =
+    (row * columnCount + column) * 4 + port;
+
+function KnotCelticStateFromId(stateId, columnCount) =
+    let(
+        cellIndex = floor(stateId / 4),
+        port = stateId % 4
+    )
+    [
+        floor(cellIndex / columnCount),
+        cellIndex % columnCount,
+        port
+    ];
+
+function KnotCelticPortDelta(port) =
+    port == KNOT_CELTIC_NORTH
+    ? [-1, 0]
+    : port == KNOT_CELTIC_EAST
+        ? [0, 1]
+        : port == KNOT_CELTIC_SOUTH
+            ? [1, 0]
+            : [0, -1];
+
+function KnotCelticBoundaryStates(rowCount, columnCount) =
+    concat(
+        [
+            for (column = [0 : columnCount - 1])
+                [0, column, KNOT_CELTIC_NORTH]
+        ],
+        [
+            for (row = [0 : rowCount - 1])
+                [row, columnCount - 1, KNOT_CELTIC_EAST]
+        ],
+        [
+            for (column = [columnCount - 1 : -1 : 0])
+                [rowCount - 1, column, KNOT_CELTIC_SOUTH]
+        ],
+        [
+            for (row = [rowCount - 1 : -1 : 0])
+                [row, 0, KNOT_CELTIC_WEST]
+        ]
+    );
+
+function KnotCelticStateEquals(a, b) =
+    a[0] == b[0] && a[1] == b[1] && a[2] == b[2];
+
+function KnotCelticStateIndex(states, state, index = 0) =
+    index >= len(states)
+    ? undef
+    : KnotCelticStateEquals(states[index], state)
+        ? index
+        : KnotCelticStateIndex(states, state, index + 1);
+
+function KnotCelticBoundaryPartner(state, rowCount, columnCount) =
+    let(
+        boundaryStates = KnotCelticBoundaryStates(rowCount, columnCount),
+        boundaryIndex = KnotCelticStateIndex(boundaryStates, state),
+        partnerIndex = boundaryIndex % 2 == 0
+        ? boundaryIndex + 1
+        : boundaryIndex - 1
+    )
+    assert(!is_undef(boundaryIndex), "Celtic boundary state was not found.")
+    boundaryStates[partnerIndex];
+
+function KnotCelticExternalState(state, rowCount, columnCount) =
+    let(
+        delta = KnotCelticPortDelta(state[2]),
+        nextRow = state[0] + delta[0],
+        nextColumn = state[1] + delta[1]
+    )
+    nextRow >= 0
+    && nextRow < rowCount
+    && nextColumn >= 0
+    && nextColumn < columnCount
+    ? [nextRow, nextColumn, KnotCelticOppositePort(state[2])]
+    : KnotCelticBoundaryPartner(state, rowCount, columnCount);
+
+function KnotCelticInternalState(grid, state) =
+    [
+        state[0],
+        state[1],
+        KnotCelticTilePairedPort(grid[state[0]][state[1]], state[2])
+    ];
+
+function KnotCelticSuccessorStateId(grid, stateId) =
+    let(
+        rowCount = len(grid),
+        columnCount = KnotCelticGridColumnCount(grid),
+        entryState = KnotCelticStateFromId(stateId, columnCount),
+        exitState = KnotCelticInternalState(grid, entryState),
+        nextState = KnotCelticExternalState(
+            exitState,
+            rowCount,
+            columnCount
+        )
+    )
+    KnotCelticStateId(
+        nextState[0],
+        nextState[1],
+        nextState[2],
+        columnCount
+    );
+
+function KnotCelticTraceCycle(
+    grid,
+    startStateId,
+    stateId = undef,
+    path = []) =
+    let(currentStateId = is_undef(stateId) ? startStateId : stateId)
+    len(path) > 0 && currentStateId == startStateId
+    ? path
+    : assert(
+        !KnotListContains(path, currentStateId),
+        "Celtic grid route entered a non-closing cycle."
+    )
+      KnotCelticTraceCycle(
+          grid,
+          startStateId,
+          KnotCelticSuccessorStateId(grid, currentStateId),
+          concat(path, [currentStateId])
+      );
+
+function KnotCelticReverseCycleStateIds(grid, cycle) =
+    let(columnCount = KnotCelticGridColumnCount(grid))
+[
+    for (stateId = cycle)
+        let(
+            state = KnotCelticStateFromId(stateId, columnCount),
+            reverseState = KnotCelticInternalState(grid, state)
+        )
+        KnotCelticStateId(
+            reverseState[0],
+            reverseState[1],
+            reverseState[2],
+            columnCount
+        )
+];
+
+function KnotCelticFirstUnvisitedState(
+    stateCount,
+    visited,
+    stateId = 0) =
+    stateId >= stateCount
+    ? undef
+    : KnotListContains(visited, stateId)
+        ? KnotCelticFirstUnvisitedState(
+            stateCount,
+            visited,
+            stateId + 1
+        )
+        : stateId;
+
+function KnotCelticTraceCycles(
+    grid,
+    visited = [],
+    cycles = []) =
+    let(
+        stateCount = len(grid) * KnotCelticGridColumnCount(grid) * 4,
+        startStateId = KnotCelticFirstUnvisitedState(
+            stateCount,
+            visited
+        )
+    )
+    is_undef(startStateId)
+    ? cycles
+    : let(
+        cycle = KnotCelticTraceCycle(grid, startStateId),
+        reverseCycle = KnotCelticReverseCycleStateIds(grid, cycle)
+    )
+    KnotCelticTraceCycles(
+        grid,
+        concat(visited, cycle, reverseCycle),
+        concat(cycles, [cycle])
+    );
+
+function KnotCelticPortPoint(state, cellSize) =
+    let(
+        center = [
+            (state[1] + 0.5) * cellSize,
+            -(state[0] + 0.5) * cellSize,
+            0
+        ],
+        half = cellSize / 2
+    )
+    state[2] == KNOT_CELTIC_NORTH
+    ? [center[0], center[1] + half, 0]
+    : state[2] == KNOT_CELTIC_EAST
+        ? [center[0] + half, center[1], 0]
+        : state[2] == KNOT_CELTIC_SOUTH
+            ? [center[0], center[1] - half, 0]
+            : [center[0] - half, center[1], 0];
+
+function KnotCelticCurveControl(entryState, exitState, cellSize) =
+    let(
+        entry = KnotCelticPortPoint(entryState, cellSize),
+        exit = KnotCelticPortPoint(exitState, cellSize)
+    )
+    KnotCelticOppositePort(entryState[2]) == exitState[2]
+    ? [(entry[0] + exit[0]) / 2, (entry[1] + exit[1]) / 2, 0]
+    : [
+        entryState[2] == KNOT_CELTIC_NORTH
+        || entryState[2] == KNOT_CELTIC_SOUTH
+        ? exit[0]
+        : entry[0],
+        entryState[2] == KNOT_CELTIC_NORTH
+        || entryState[2] == KNOT_CELTIC_SOUTH
+        ? entry[1]
+        : exit[1],
+        0
+    ];
+
+function KnotCelticQuadraticPoint(start, control, end, blend) =
+    KnotVectorAdd(
+        KnotVectorAdd(
+            KnotVectorScale(start, (1 - blend) * (1 - blend)),
+            KnotVectorScale(control, 2 * (1 - blend) * blend)
+        ),
+        KnotVectorScale(end, blend * blend)
+    );
+
+function KnotCelticTileBranchIsVertical(entryPort, exitPort) =
+    (
+        entryPort == KNOT_CELTIC_NORTH
+        && exitPort == KNOT_CELTIC_SOUTH
+    )
+    || (
+        entryPort == KNOT_CELTIC_SOUTH
+        && exitPort == KNOT_CELTIC_NORTH
+    );
+
+function KnotCelticTilePoint(
+    grid,
+    state,
+    blend,
+    cellSize,
+    crossingHeight) =
+    let(
+        exitState = KnotCelticInternalState(grid, state),
+        start = KnotCelticPortPoint(state, cellSize),
+        end = KnotCelticPortPoint(exitState, cellSize),
+        control = KnotCelticCurveControl(state, exitState, cellSize),
+        basePoint = KnotCelticQuadraticPoint(start, control, end, blend),
+        tile = grid[state[0]][state[1]],
+        verticalBranch = KnotCelticTileBranchIsVertical(
+            state[2],
+            exitState[2]
+        ),
+        verticalOver = (state[0] + state[1]) % 2 == 0,
+        over = verticalBranch == verticalOver,
+        height = tile == "X"
+        ? (over ? 1 : -1) * crossingHeight * sin(180 * blend) / 2
+        : 0
+    )
+    [basePoint[0], basePoint[1], height];
+
+function KnotCelticStateHasBoundaryConnector(
+    grid,
+    stateId) =
+    let(
+        columnCount = KnotCelticGridColumnCount(grid),
+        entryState = KnotCelticStateFromId(stateId, columnCount),
+        exitState = KnotCelticInternalState(grid, entryState),
+        delta = KnotCelticPortDelta(exitState[2]),
+        nextRow = exitState[0] + delta[0],
+        nextColumn = exitState[1] + delta[1]
+    )
+    nextRow < 0
+    || nextRow >= len(grid)
+    || nextColumn < 0
+    || nextColumn >= columnCount;
+
+function KnotCelticBoundaryConnectorPoint(
+    grid,
+    stateId,
+    blend,
+    cellSize) =
+    let(
+        columnCount = KnotCelticGridColumnCount(grid),
+        entryState = KnotCelticStateFromId(stateId, columnCount),
+        exitState = KnotCelticInternalState(grid, entryState),
+        nextState = KnotCelticExternalState(
+            exitState,
+            len(grid),
+            columnCount
+        ),
+        start = KnotCelticPortPoint(exitState, cellSize),
+        end = KnotCelticPortPoint(nextState, cellSize),
+        outward = KnotCelticPortDelta(exitState[2]),
+        control = [
+            (start[0] + end[0]) / 2 + outward[1] * cellSize * 0.45,
+            (start[1] + end[1]) / 2 - outward[0] * cellSize * 0.45,
+            0
+        ]
+    )
+    KnotCelticQuadraticPoint(start, control, end, blend);
+
+function KnotCelticCycleSamples(
+    grid,
+    cycle,
+    cellSize,
+    samplesPerTile,
+    samplesPerBoundary,
+    crossingHeight) =
+    let(
+        columnCount = KnotCelticGridColumnCount(grid),
+        openSamples = [
+            for (stateId = cycle)
+                let(state = KnotCelticStateFromId(stateId, columnCount))
+                each concat(
+                    [
+                        for (sampleIndex = [0 : samplesPerTile - 1])
+                            KnotCelticTilePoint(
+                                grid,
+                                state,
+                                sampleIndex / samplesPerTile,
+                                cellSize,
+                                crossingHeight
+                            )
+                    ],
+                    KnotCelticStateHasBoundaryConnector(grid, stateId)
+                    ? [
+                        for (
+                            sampleIndex = [0 : samplesPerBoundary - 1]
+                        )
+                            KnotCelticBoundaryConnectorPoint(
+                                grid,
+                                stateId,
+                                sampleIndex / samplesPerBoundary,
+                                cellSize
+                            )
+                    ]
+                    : []
+                )
+        ]
+    )
+    concat(openSamples, [openSamples[0]]);
+
+function KnotCelticCycleSegmentCount(
+    grid,
+    cycle,
+    samplesPerTile,
+    samplesPerBoundary) =
+    len(cycle) * samplesPerTile
+    + len([
+        for (stateId = cycle)
+            if (KnotCelticStateHasBoundaryConnector(grid, stateId))
+                stateId
+    ]) * samplesPerBoundary;
+
+function KnotCelticCyclePointOffset(
+    grid,
+    cycle,
+    statePosition,
+    samplesPerTile,
+    samplesPerBoundary,
+    index = 0,
+    offset = 0) =
+    index >= statePosition
+    ? offset
+    : KnotCelticCyclePointOffset(
+        grid,
+        cycle,
+        statePosition,
+        samplesPerTile,
+        samplesPerBoundary,
+        index + 1,
+        offset
+        + samplesPerTile
+        + (
+            KnotCelticStateHasBoundaryConnector(grid, cycle[index])
+            ? samplesPerBoundary
+            : 0
+        )
+    );
+
+function KnotCelticCycleStatePosition(
+    cycle,
+    candidateStateIds,
+    index = 0) =
+    index >= len(cycle)
+    ? undef
+    : KnotListContains(candidateStateIds, cycle[index])
+        ? index
+        : KnotCelticCycleStatePosition(
+            cycle,
+            candidateStateIds,
+            index + 1
+        );
+
+function KnotCelticCrossingBranch(
+    grid,
+    cycles,
+    row,
+    column,
+    ports,
+    samplesPerTile,
+    samplesPerBoundary) =
+    let(
+        columnCount = KnotCelticGridColumnCount(grid),
+        candidateStateIds = [
+            for (port = ports)
+                KnotCelticStateId(row, column, port, columnCount)
+        ],
+        matches = [
+            for (strandIndex = [0 : len(cycles) - 1])
+                let(
+                    statePosition = KnotCelticCycleStatePosition(
+                        cycles[strandIndex],
+                        candidateStateIds
+                    )
+                )
+                if (!is_undef(statePosition))
+                    [strandIndex, statePosition]
+        ],
+        match = matches[0],
+        cycle = cycles[match[0]],
+        sampleOffset = KnotCelticCyclePointOffset(
+            grid,
+            cycle,
+            match[1],
+            samplesPerTile,
+            samplesPerBoundary
+        ),
+        segmentCount = KnotCelticCycleSegmentCount(
+            grid,
+            cycle,
+            samplesPerTile,
+            samplesPerBoundary
+        )
+    )
+    [
+        match[0],
+        (sampleOffset + samplesPerTile / 2) / segmentCount
+    ];
+
+function KnotCelticGridCrossings(
+    grid,
+    cycles,
+    cellSize,
+    samplesPerTile,
+    samplesPerBoundary) =
+[
+    for (row = [0 : len(grid) - 1])
+        for (column = [0 : KnotCelticGridColumnCount(grid) - 1])
+            if (grid[row][column] == "X")
+                let(
+                    vertical = KnotCelticCrossingBranch(
+                        grid,
+                        cycles,
+                        row,
+                        column,
+                        [KNOT_CELTIC_NORTH, KNOT_CELTIC_SOUTH],
+                        samplesPerTile,
+                        samplesPerBoundary
+                    ),
+                    horizontal = KnotCelticCrossingBranch(
+                        grid,
+                        cycles,
+                        row,
+                        column,
+                        [KNOT_CELTIC_EAST, KNOT_CELTIC_WEST],
+                        samplesPerTile,
+                        samplesPerBoundary
+                    ),
+                    verticalOver = (row + column) % 2 == 0
+                )
+                MakeKnotCrossing(
+                    [
+                        (column + 0.5) * cellSize,
+                        -(row + 0.5) * cellSize
+                    ],
+                    vertical[0],
+                    vertical[1],
+                    horizontal[0],
+                    horizontal[1],
+                    verticalOver ? vertical[0] : horizontal[0],
+                    verticalOver ? "A" : "B"
+                )
+];
+
+function KnotCelticStrandCrossingEvents(knot, strandIndex) =
+[
+    for (crossing = KnotCrossings(knot))
+        each concat(
+            KnotCrossingStrandA(crossing) == strandIndex
+            ? [[
+                KnotCrossingParameterA(crossing),
+                KnotCrossingOverBranch(crossing) == "A"
+            ]]
+            : [],
+            KnotCrossingStrandB(crossing) == strandIndex
+            ? [[
+                KnotCrossingParameterB(crossing),
+                KnotCrossingOverBranch(crossing) == "B"
+            ]]
+            : []
+        )
+];
+
+function KnotCelticMinimumEventIndex(events, index = 1, minimumIndex = 0) =
+    index >= len(events)
+    ? minimumIndex
+    : KnotCelticMinimumEventIndex(
+        events,
+        index + 1,
+        events[index][0] < events[minimumIndex][0]
+        ? index
+        : minimumIndex
+    );
+
+function KnotCelticRemoveListIndex(values, removeIndex) =
+[
+    for (index = [0 : len(values) - 1])
+        if (index != removeIndex)
+            values[index]
+];
+
+function KnotCelticSortEvents(events) =
+    len(events) <= 1
+    ? events
+    : let(minimumIndex = KnotCelticMinimumEventIndex(events))
+      concat(
+          [events[minimumIndex]],
+          KnotCelticSortEvents(
+              KnotCelticRemoveListIndex(events, minimumIndex)
+          )
+      );
+
+function KnotCelticEventsAlternate(events, index = 0) =
+    len(events) < 2
+    || (
+        events[index][1] != events[(index + 1) % len(events)][1]
+        && (
+            index + 1 >= len(events)
+            || KnotCelticEventsAlternate(events, index + 1)
+        )
+    );
+
+function KnotCelticKnotIsAlternating(knot) =
+    len([
+        for (strandIndex = [0 : len(KnotStrands(knot)) - 1])
+            if (
+                !KnotCelticEventsAlternate(
+                    KnotCelticSortEvents(
+                        KnotCelticStrandCrossingEvents(
+                            knot,
+                            strandIndex
+                        )
+                    )
+                )
+            )
+                strandIndex
+    ]) == 0;
+
+function MakeCelticTileGridKnot(
+    grid,
+    cellSize = 12,
+    samplesPerTile = 6,
+    samplesPerBoundary = 4,
+    crossingHeight = 4) =
+    assert(
+        KnotCelticGridIsRectangular(grid),
+        "Celtic grid must be a nonempty rectangular list of rows."
+    )
+    assert(
+        KnotCelticGridTilesAreValid(grid),
+        "Celtic grid contains an unknown tile."
+    )
+    assert(is_num(cellSize) && cellSize > 0, "Celtic cell size must be positive.")
+    assert(
+        is_num(samplesPerTile)
+        && floor(samplesPerTile) == samplesPerTile
+        && samplesPerTile >= 4
+        && samplesPerTile % 2 == 0,
+        "Celtic tile samples must be an even integer of at least 4."
+    )
+    assert(
+        is_num(samplesPerBoundary)
+        && floor(samplesPerBoundary) == samplesPerBoundary
+        && samplesPerBoundary >= 2,
+        "Celtic boundary samples must be an integer of at least 2."
+    )
+    assert(
+        is_num(crossingHeight) && crossingHeight > 0,
+        "Celtic crossing height must be positive."
+    )
+    let(
+        cycles = KnotCelticTraceCycles(grid),
+        crossings = KnotCelticGridCrossings(
+            grid,
+            cycles,
+            cellSize,
+            samplesPerTile,
+            samplesPerBoundary
+        ),
+        strands = [
+            for (strandIndex = [0 : len(cycles) - 1])
+                MakeKnotStrand(
+                    true,
+                    KnotCelticCycleSamples(
+                        grid,
+                        cycles[strandIndex],
+                        cellSize,
+                        samplesPerTile,
+                        samplesPerBoundary,
+                        crossingHeight
+                    ),
+                    KnotBraidComponentEncounters(
+                        crossings,
+                        strandIndex
+                    ),
+                    metadata = [
+                        "generator", "celticTileGrid",
+                        "component", strandIndex,
+                        "stateCycle", cycles[strandIndex]
+                    ]
+                )
+        ],
+        knot = MakeKnot(
+            strands,
+            crossings,
+            [
+                "generator", "celticTileGrid",
+                "rows", len(grid),
+                "columns", KnotCelticGridColumnCount(grid),
+                "grid", grid,
+                "cellSize", cellSize,
+                "samplesPerTile", samplesPerTile,
+                "samplesPerBoundary", samplesPerBoundary,
+                "crossingHeight", crossingHeight,
+                "boundaryClosure", "clockwisePairs"
+            ]
+        )
+    )
+    assert(
+        KnotCelticKnotIsAlternating(knot),
+        "Celtic grid does not produce alternating crossing encounters."
+    )
+    knot;
 
 function KnotBundleOccupiedWidth(cordCount, cordRadius, cordGap = 0) =
     assert(

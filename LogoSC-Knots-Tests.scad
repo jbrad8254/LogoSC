@@ -662,6 +662,139 @@ function KnotBraidTestResults() =
     )
 ];
 
+function KnotCelticTestResults() =
+    let(
+        grid = [
+            ["NE_SW", "X", "NW_ES"],
+            ["X", "NE_SW", "X"],
+            ["NW_ES", "X", "NE_SW"]
+        ],
+        cycles = KnotCelticTraceCycles(grid),
+        celtic = MakeCelticTileGridKnot(grid, 12, 6, 4, 4),
+        strands = KnotStrands(celtic),
+        crossings = KnotCrossings(celtic),
+        firstCrossing = crossings[0],
+        firstEvents = KnotCelticSortEvents(
+            KnotCelticStrandCrossingEvents(celtic, 0)
+        )
+    )
+[
+    LogoTestResult(
+        "Celtic tile vocabulary and pairings",
+        KnotCelticTileIsValid("X")
+        && KnotCelticTileIsValid("NE_SW")
+        && KnotCelticTileIsValid("NW_ES")
+        && !KnotCelticTileIsValid("UNKNOWN")
+        && KnotCelticTilePairedPort("X", KNOT_CELTIC_NORTH)
+            == KNOT_CELTIC_SOUTH
+        && KnotCelticTilePairedPort("NE_SW", KNOT_CELTIC_NORTH)
+            == KNOT_CELTIC_EAST
+        && KnotCelticTilePairedPort("NW_ES", KNOT_CELTIC_NORTH)
+            == KNOT_CELTIC_WEST
+    ),
+    LogoTestResult(
+        "Celtic grid structure validation",
+        KnotCelticGridIsRectangular(grid)
+        && KnotCelticGridTilesAreValid(grid)
+        && !KnotCelticGridIsRectangular([
+            ["X"],
+            ["X", "X"]
+        ])
+        && !KnotCelticGridTilesAreValid([["BAD"]])
+    ),
+    LogoTestResult(
+        "Celtic boundary enumeration and pairing",
+        len(KnotCelticBoundaryStates(3, 3)) == 12
+        && KnotCelticBoundaryPartner(
+            [0, 0, KNOT_CELTIC_NORTH],
+            3,
+            3
+        ) == [0, 1, KNOT_CELTIC_NORTH]
+        && KnotCelticBoundaryPartner(
+            [0, 2, KNOT_CELTIC_NORTH],
+            3,
+            3
+        ) == [0, 2, KNOT_CELTIC_EAST]
+    ),
+    LogoTestResult(
+        "Celtic route tracing removes reverse duplicates",
+        len(cycles) == 2
+        && len(cycles[0]) == 9
+        && len(cycles[1]) == 9
+        && len([
+            for (cycle = cycles)
+                each concat(
+                    cycle,
+                    KnotCelticReverseCycleStateIds(grid, cycle)
+                )
+        ]) == 36
+    ),
+    LogoTestResult(
+        "Celtic generated component and sample counts",
+        len(strands) == 2
+        && KnotStrandSampleCount(strands[0]) == 67
+        && KnotStrandSampleCount(strands[1]) == 67
+        && KnotCordSegmentCount(celtic) == 132
+    ),
+    LogoTestResult(
+        "Celtic generated routes close and validate",
+        KnotTestPointNearlyEqual(
+            KnotStrandSamples(strands[0])[0],
+            KnotStrandSamples(strands[0])[
+                KnotStrandSampleCount(strands[0]) - 1
+            ]
+        )
+        && KnotTestPointNearlyEqual(
+            KnotStrandSamples(strands[1])[0],
+            KnotStrandSamples(strands[1])[
+                KnotStrandSampleCount(strands[1]) - 1
+            ]
+        )
+        && KnotValidationIsValid(ValidateKnot(celtic))
+    ),
+    LogoTestResult(
+        "Celtic crossing records and height",
+        len(crossings) == 4
+        && KnotCrossingStrandA(firstCrossing) == 0
+        && KnotCrossingStrandB(firstCrossing) == 0
+        && KnotCrossingParameterA(firstCrossing)
+            != KnotCrossingParameterB(firstCrossing)
+        && KnotCrossingOverBranch(firstCrossing) == "B"
+        && KnotTestNearlyEqual(
+            KnotCrossingCenterDistance(celtic, firstCrossing),
+            4
+        )
+    ),
+    LogoTestResult(
+        "Celtic crossing encounters cover both branches",
+        KnotStrandCrossingEncounters(strands[0]) == [0, 0, 2, 2]
+        && KnotStrandCrossingEncounters(strands[1]) == [1, 1, 3, 3]
+    ),
+    LogoTestResult(
+        "Celtic crossing events alternate around closure",
+        len(firstEvents) == 4
+        && firstEvents[0][1]
+        && !firstEvents[1][1]
+        && firstEvents[2][1]
+        && !firstEvents[3][1]
+        && KnotCelticKnotIsAlternating(celtic)
+    ),
+    LogoTestResult(
+        "Celtic metadata records deterministic boundary policy",
+        KnotMetadata(celtic) == [
+            "generator", "celticTileGrid",
+            "rows", 3,
+            "columns", 3,
+            "grid", grid,
+            "cellSize", 12,
+            "samplesPerTile", 6,
+            "samplesPerBoundary", 4,
+            "crossingHeight", 4,
+            "boundaryClosure", "clockwisePairs"
+        ]
+    )
+];
+
 function KnotAutomatedTestResults() =
     concat(
         KnotRecordTestResults(),
@@ -669,7 +802,8 @@ function KnotAutomatedTestResults() =
         KnotTorusTestResults(),
         KnotCordTestResults(),
         KnotBundleTestResults(),
-        KnotBraidTestResults()
+        KnotBraidTestResults(),
+        KnotCelticTestResults()
     );
 
 function KnotTestSuiteResult() =

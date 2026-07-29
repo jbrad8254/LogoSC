@@ -10,7 +10,7 @@
   with `gcd(p,q)` independently closed components.
 - Added selectable Planar and Spatial knot debug views. Planar mode projects centerline and
   sample diagnostics to `z = 0` without changing the stored 3D knot route.
-- Added a separate 55-result knot test suite and runner covering record accessors, valid and
+- Added a separate 65-result knot test suite and runner covering record accessors, valid and
   invalid structures, closure, crossings, encounter indexes, lane permutations, torus sample
   counts, exact closure, distinct link components, generated-result validation, and cord-segment
   and bundle accounting, plus signed braid topology and closure.
@@ -52,6 +52,16 @@
   and passing/failing clearance configurations, bringing the independent knot suite to 55.
 - Added `BraidBundleGallery` with two-cord Hopf, trefoil, and three-lane braid compositions plus
   a reproducible documentation image.
+- Added `MakeCelticTileGridKnot()` with the three explicit four-port tiles `"X"`, `"NE_SW"`,
+  and `"NW_ES"`; rectangular validation; matching interior ports; deterministic clockwise
+  perimeter pairing; cycle tracing; reverse-route elimination; exact closure; quadratic corner
+  sampling; checkerboard crossing lifts; normalized crossing records; and cyclic alternation
+  enforcement.
+- Added ten Celtic-grid results covering tile pairings, malformed grids, boundary enumeration,
+  trace de-duplication, components, samples, closure, crossing height, encounters, alternation,
+  and metadata, bringing the knot suite to 65.
+- Added a Spatial/Planar `CelticGallery` generated from real one-, two-, and larger-grid knot
+  records, plus a reproducible documentation image.
 - Added a side-by-side User Manual comparison clarifying that braids generate crossing topology
   by exchanging strand ownership across logical lanes, while bundles generate parallel
   manufacturing geometry around an existing master route.

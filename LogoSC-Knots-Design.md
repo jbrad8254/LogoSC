@@ -3,9 +3,9 @@
 ## Status and purpose
 
 This is the authoritative design plan for generative knot work in LogoSC. It covers organic or
-Gordian-style parametric knots and traditional Celtic interlace. The torus and circular-braid
-generators, single-cord manufacturing, and untwisted adjacent bundle slices are implemented;
-later milestones remain proposals until their APIs are reviewed.
+Gordian-style parametric knots and traditional Celtic interlace. The torus, circular-braid, and
+explicit Celtic tile-grid generators, single-cord manufacturing, and untwisted adjacent bundle
+slices are implemented; later milestones remain proposals until their APIs are reviewed.
 
 LogoSC remains a 2D filled-region evaluator. A future optional companion may use LogoSC for
 planar routes, ribbon footprints, masks, local transforms, and repeated motifs. Native OpenSCAD
@@ -30,10 +30,12 @@ remains responsible for extrusion, hulls, Minkowski operations, booleans, and 3D
   remapping, collective lift, and lane-pair clearance checks;
 - `MakeCircularBraidKnot()`, compiling signed adjacent-lane crossings into standard circular
   closures with permutation-cycle components and explicit crossing topology;
+- `MakeCelticTileGridKnot()`, validating three four-port tiles, closing finite boundaries,
+  tracing components, removing reverse duplicates, and enforcing alternating crossings;
 - selectable planar-projection and spatial views across diagnostics, cords, bundles, and
   presentation galleries;
-- a dedicated 55-result automated suite plus topology, bundle, braid, and braided-bundle
-  presentation galleries.
+- a dedicated 65-result automated suite plus topology, bundle, braid, braided-bundle, and Celtic
+  tile-grid presentation galleries.
 
 This slice deliberately does not implement ribbons, explicit twist, Möbius closure, general
 collision discovery, tight-curve rejection, or AI image import. Callers must select dimensions
@@ -49,8 +51,8 @@ however, call the LogoSC evaluator behind the scenes.
 The present execution path is:
 
 ```text
-MakeTorusKnot()
-  -> pure OpenSCAD functions calculate sampled 3D strand records
+MakeTorusKnot(), MakeCircularBraidKnot(), or MakeCelticTileGridKnot()
+  -> pure OpenSCAD functions calculate sampled strand and crossing records
   -> ValidateKnot() checks those records without producing geometry
   -> RenderKnotDebug() uses native color(), translate(), sphere(), and hull()
   -> RenderKnotCords() uses native sphere(), hull(), and union() to make 3D solids
@@ -59,7 +61,7 @@ MakeTorusKnot()
 `LogoSC-Knots.scad` therefore does not include `LogoSC-Foundation-Core.scad`, call `evalLogo()`,
 or emit LogoSC command lists. A model that only includes the knot companion has no Core
 dependency. This is deliberate: LogoSC Core evaluates command lists into 2D polygonal regions,
-whereas the implemented torus routes and capsule cords are sampled 3D geometry.
+whereas the implemented knot routes and capsule cords are sampled 3D geometry.
 
 `LogoSC-Knots-Test-Runner.scad` does include Core and `LogoSC-Foundation-Tests.scad`, but only to
 reuse the established `LogoTestResult()`, suite aggregation, and automated PASS/FAIL reporting.
@@ -67,7 +69,7 @@ The production knot companion does not acquire a Core dependency through its tes
 
 LogoSC Core is planned to participate where its actual strengths apply:
 
-- reusable 2D Celtic cells and motifs can be authored as LogoSC command lists;
+- reusable 2D ribbon footprints and masks can be authored as LogoSC command lists;
 - Core transforms, `RUN`, `REPEAT`, and `PUSH`/`POP` can place, rotate, reflect, and repeat those
   motifs;
 - planar knot centerlines can be expanded into closed ribbon and crossing-mask regions;
@@ -75,9 +77,9 @@ LogoSC Core is planned to participate where its actual strengths apply:
   OpenSCAD extrusion, relief, and boolean operations;
 - native OpenSCAD remains responsible for sampled 3D cords, hulls, extrusion, and mesh output.
 
-Those integration points are roadmap intent, not claims about the current torus implementation.
-They should be documented again with concrete call flow when the first LogoSC-backed planar
-generator or ribbon compiler is implemented.
+Those integration points are roadmap intent, not claims about the current generators. They
+should be documented again with concrete call flow when the first LogoSC-backed ribbon compiler
+is implemented.
 
 `KnotForView()` supplies the current display boundary. It returns a copy whose samples are either
 unchanged for Spatial or projected to `z = 0` for Planar. Cord rendering consumes that copy
@@ -520,6 +522,27 @@ Grid construction strategies may include:
 LogoSC transforms should let one canonical corner or crossing motif produce rotated and
 reflected variants. This is the principal traditional Celtic generator.
 
+### Implemented explicit-grid boundary
+
+`MakeCelticTileGridKnot()` implements the deterministic topology slice above with the literal
+tile names `"X"`, `"NE_SW"`, and `"NW_ES"`. All are four-port tiles. Interior exits connect to
+the opposite port of the neighboring cell.
+
+A finite rectangle cannot close four-port cells without an edge policy. The MVP enumerates
+perimeter ports clockwise and pairs consecutive ports with sampled exterior curves. The policy
+is recorded in metadata as `"clockwisePairs"`. Future APIs may add explicit user-authored
+boundary pairings, but they must not silently change this established default.
+
+Tracing treats the grid as a permutation of directed port states. Each cycle becomes one closed
+strand; the internally paired reverse states are marked visited so the same physical route is
+not emitted twice. Straight `"X"` branches and quadratic corner branches are sampled directly.
+Every `"X"` cell creates a crossing record with normalized parameters. Checkerboard parity
+assigns equal/opposite Z bumps, and the complete result is rejected unless sorted encounters
+alternate cyclically on every component.
+
+This boundary deliberately excludes random filling, substitution systems, LogoSC-backed ribbon
+regions, and underpass masks.
+
 ## Generator 4: harmonic and Lissajous curves
 
 Organic closed routes can use multiple harmonic terms:
@@ -879,8 +902,10 @@ links where supported by the selected generator.
    - Signed crossings, lane tracking, Z bumps, crossing records, self-crossing branches,
      permutation-cycle closure, tests, and a presentation gallery are complete.
    - Rectangular exterior closure remains deferred.
-4. **Celtic tile grids**
-   - Add traditional interlace, port validation, tracing, and relief output.
+4. **Celtic tile grids** — topology implemented
+   - Explicit tiles, rectangular validation, deterministic boundary closure, component tracing,
+     alternating crossings, tests, and a gallery are complete.
+   - Random filling, explicit boundary maps, ribbons, and relief remain deferred.
 5. **2D ribbon and bas-relief compiler**
    - Add offsets, rounded joins, underpass masks, and overpass footprints.
 6. **Harmonic/Lissajous and polar generators**

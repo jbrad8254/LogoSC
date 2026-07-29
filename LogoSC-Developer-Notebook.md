@@ -3048,3 +3048,44 @@ Verification boundary:
   two manufacturing cords per master strand.
 - Require the complete knot, Foundation/Validation, and fastener suites, Planar and Spatial
   gallery exports, a documentation PNG, and a representative braided-bundle STL.
+
+### 2026-07-29 — Explicit Celtic tile-grid topology
+
+Context:
+
+- Torus and braid generators established sampled routes and explicit crossings, but neither
+  produced traditional rectilinear Celtic interlace from user-authored local motifs.
+- The roadmap's smallest useful vocabulary contains three four-port cells: one straight
+  crossing and the two complementary corner pairings.
+- A finite rectangle made entirely from four-port cells necessarily exposes perimeter ports.
+  Treating those ports as implicitly closed would hide a material topology decision.
+
+Decision:
+
+- Implement literal `"X"`, `"NE_SW"`, and `"NW_ES"` tile names and reject ragged grids or
+  unknown cells before route construction.
+- Connect every interior exit to the opposite port of its neighbor. Enumerate perimeter ports
+  clockwise and pair consecutive ports with sampled exterior curves. Record this first closure
+  policy as `"clockwisePairs"` in knot metadata.
+- Model tracing as a permutation of directed `[row, column, port]` states. Follow each cycle to
+  exact closure and mark its internally paired reverse states visited so one physical route is
+  not emitted twice.
+- Sample `"X"` branches as straight paths and corner pairings as quadratic curves. Assign
+  equal/opposite Z bumps at crossings by checkerboard parity.
+- Build ordinary crossing records with normalized branch parameters and normal strand encounter
+  indexes. Sort encounters by parameter and reject a grid unless over/under states alternate
+  cyclically on every component.
+- Keep this slice independent of LogoSC Core. Core becomes relevant in the next stage, where
+  sampled planar centerlines compile into closed ribbon and crossing-mask regions.
+- Defer random grids, substitution systems, user-authored boundary pairing maps, ribbons, and
+  relief so topology failures remain isolated.
+
+Verification boundary:
+
+- Add ten deterministic results for tile vocabulary, grid validation, boundary pairing, cycle
+  tracing, reverse de-duplication, component and sample counts, exact closure, crossing records
+  and height, encounters, alternation, and metadata. The knot suite grows from 55 to 65.
+- Add `CelticGallery` with one-component, two-component, and 4-by-4 examples generated through
+  the normal knot records and capsule renderer.
+- Require the complete knot, Foundation/Validation, and fastener suites, Planar and Spatial
+  gallery exports, a documentation PNG, and a representative Celtic-grid STL.

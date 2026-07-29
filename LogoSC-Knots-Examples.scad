@@ -2,7 +2,7 @@
 
 include <LogoSC-Knots.scad>
 
-KnotExample = "BraidBundleGallery"; // [BraidBundleGallery,BraidGallery,BundleGallery,CordGallery,Unknot,Trefoil,HopfLink,CrossingRecord]
+KnotExample = "CelticGallery"; // [CelticGallery,BraidBundleGallery,BraidGallery,BundleGallery,CordGallery,CelticGrid,Unknot,Trefoil,HopfLink,CrossingRecord]
 KnotView = "Spatial"; // [Planar, Spatial]
 KnotOutput = "Debug"; // [Debug, Cord, Bundle]
 KnotShowSamples = false;
@@ -16,6 +16,26 @@ KnotBundleWidth = 8; // [1:0.5:30]
 KnotBundleMinimumClearance = 0; // [0:0.1:5]
 KnotGalleryLabels = true;
 
+function KnotCelticExampleGrid(variant = 0) =
+    variant == 1
+    ? [
+        ["X", "X", "X"],
+        ["X", "X", "X"],
+        ["X", "X", "X"]
+    ]
+    : variant == 2
+        ? [
+            ["NE_SW", "X", "NW_ES", "X"],
+            ["X", "NW_ES", "X", "NE_SW"],
+            ["NW_ES", "X", "NE_SW", "X"],
+            ["X", "NE_SW", "X", "NW_ES"]
+        ]
+        : [
+            ["NE_SW", "X", "NW_ES"],
+            ["X", "NE_SW", "X"],
+            ["NW_ES", "X", "NE_SW"]
+        ];
+
 function KnotExampleResult(name) =
     name == "Unknot"
     ? MakeTorusKnot(1, 1, 18, 5, 72)
@@ -24,7 +44,15 @@ function KnotExampleResult(name) =
         : name == "BraidTrefoil"
             ? MakeCircularBraidKnot(2, [1, 1, 1], 18, 5, 5, 8)
             : name == "BraidThree"
-                ? MakeCircularBraidKnot(3, [1, -2, 1, -2], 18, 4, 5, 8)
+            ? MakeCircularBraidKnot(3, [1, -2, 1, -2], 18, 4, 5, 8)
+            : name == "CelticGrid"
+                ? MakeCelticTileGridKnot(
+                    KnotCelticExampleGrid(),
+                    10,
+                    8,
+                    6,
+                    4
+                )
     : name == "HopfLink"
         ? MakeTorusKnot(2, 2, 18, 5, 96)
         : name == "CrossingRecord"
@@ -342,7 +370,68 @@ module RenderKnotBraidBundleGallery()
     RenderKnotGalleryLabel("3-LANE  -  2 CORDS", [145, -30, -8], 3.5);
 }
 
-if (KnotExample == "BraidBundleGallery")
+module RenderKnotCelticGalleryExample(
+    variant,
+    position,
+    rotation,
+    strandColors)
+{
+    grid = KnotCelticExampleGrid(variant);
+    cellSize = variant == 2 ? 8 : 9;
+    knot = MakeCelticTileGridKnot(grid, cellSize, 8, 6, 4);
+    width = KnotCelticGridColumnCount(grid) * cellSize;
+    height = len(grid) * cellSize;
+
+    translate(position)
+    rotate(KnotView == "Planar" ? [0, 0, rotation[2]] : rotation)
+    translate([-width / 2, height / 2, 0])
+        RenderKnotGalleryCords(knot, strandColors, 0.62);
+}
+
+module RenderKnotCelticGallery()
+{
+    RenderKnotGalleryLabel(
+        str("LogoSC  CELTIC TILE GRIDS  -  ", KnotView),
+        [85, 39, -8],
+        5.8
+    );
+
+    RenderKnotCelticGalleryExample(
+        0,
+        [25, 4, 0],
+        [55, 0, -8],
+        [
+            [0.02, 0.62, 0.76],
+            [0.12, 0.82, 0.62]
+        ]
+    );
+    RenderKnotGalleryLabel("2 COMPONENTS", [25, -30, -8], 3.5);
+
+    RenderKnotCelticGalleryExample(
+        1,
+        [85, 4, 0],
+        [55, 0, 7],
+        [[0.98, 0.58, 0.06]]
+    );
+    RenderKnotGalleryLabel("1 COMPONENT", [85, -30, -8], 3.5);
+
+    RenderKnotCelticGalleryExample(
+        2,
+        [145, 4, 0],
+        [55, 0, -7],
+        [
+            [0.35, 0.18, 0.75],
+            [0.82, 0.32, 0.72]
+        ]
+    );
+    RenderKnotGalleryLabel("4 x 4 GRID", [145, -30, -8], 3.5);
+}
+
+if (KnotExample == "CelticGallery")
+{
+    RenderKnotCelticGallery();
+}
+else if (KnotExample == "BraidBundleGallery")
 {
     RenderKnotBraidBundleGallery();
 }

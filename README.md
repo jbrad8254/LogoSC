@@ -210,9 +210,9 @@ Spatial retains the original 3D route. A flattened cord view can fuse where the 
 crosses itself, so Planar manufacturing geometry is a comparison/design view rather than an
 automatic printable-knot guarantee.
 
-The current torus and cord path does not invoke LogoSC Core: sampling and validation are pure
-OpenSCAD functions, and native OpenSCAD constructs the 3D capsules. Core is reserved for planned
-2D Celtic motifs, transforms, ribbon regions, and crossing masks. See
+The current torus, braid, Celtic-grid, and cord paths do not invoke LogoSC Core: sampling and
+validation are pure OpenSCAD functions, and native OpenSCAD constructs the 3D capsules. Core is
+reserved for planned ribbon regions, transforms, and crossing masks. See
 `LogoSC-Knots-Design.md#how-logosc-is-used` for the complete dependency and call-flow boundary.
 
 ![LogoSC manufacturable knot-cord gallery](images/knot-cord-gallery.png)
@@ -267,6 +267,34 @@ A braid and a bundle are different layers: braids exchange physical strands thro
 lanes and determine topology, while bundles place parallel manufacturing cords around an
 already-defined master route. The new gallery demonstrates their composition. See the User
 Manual's **Braid versus bundle** comparison for the details.
+
+### Generate a Celtic tile grid
+
+The first traditional interlace generator compiles an explicit rectangular grid from three
+four-port tiles:
+
+```scad
+celtic = MakeCelticTileGridKnot([
+    ["NE_SW", "X", "NW_ES"],
+    ["X", "NE_SW", "X"],
+    ["NW_ES", "X", "NE_SW"]
+]);
+
+ReportKnotValidation(celtic, strict = true);
+RenderKnotCords(celtic, cordRadius = 0.7);
+```
+
+`"X"` connects north-to-south and east-to-west with a crossing. `"NE_SW"` and `"NW_ES"`
+provide the two complementary corner pairings. Interior ports connect to the matching neighbor;
+the finite grid closes its perimeter ports in deterministic clockwise pairs. Routes are traced
+into independently closed components, duplicate reverse traces are removed, crossing height is
+assigned by checkerboard parity, and non-alternating results are rejected.
+
+![LogoSC Celtic tile-grid knots](images/knot-celtic-grid-gallery.png)
+
+Choose `CelticGallery` for one-, two-, and larger-grid examples. This stage emits sampled knot
+records and rounded cords; flat ribbon regions and visible underpass cutouts are the next
+milestone.
 
 ## Current public API
 
@@ -402,7 +430,7 @@ LogoSC Core's filled-region contract.
 ## Near-term roadmap
 
 - Expand optional validation only when additional topology policies provide clear value.
-- Continue the optional knot companion with Celtic tile grids and 2D ribbon regions.
+- Continue the optional knot companion with 2D ribbon regions and underpass masks.
 - Keep manufacturable stroke rendering as a separate API with explicit width, cap, and join semantics.
 
 ## Requirements
