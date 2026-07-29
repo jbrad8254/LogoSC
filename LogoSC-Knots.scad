@@ -3,9 +3,10 @@
 //
 // This file is independent of LogoSC Core. It does not call evalLogo() or emit
 // LogoSC command lists. Pure OpenSCAD functions define and validate sampled
-// knot records; native OpenSCAD sphere/hull geometry produces diagnostics and
-// manufacturable rounded cords. Future planar motif and ribbon stages may
-// consume LogoSC Core without making this 3D companion a Core dependency.
+// knot records; native OpenSCAD sphere/hull geometry produces diagnostics,
+// manufacturable rounded cords, and untwisted adjacent cord bundles. Future
+// planar motif and ribbon stages may consume LogoSC Core without making this
+// 3D companion a Core dependency.
 // ============================================================================
 
 KNOT_STRANDS = 0;
@@ -165,6 +166,56 @@ function KnotPointDistance(a, b) =
         (a[0] - b[0]) * (a[0] - b[0])
         + (a[1] - b[1]) * (a[1] - b[1])
         + (a[2] - b[2]) * (a[2] - b[2])
+    );
+
+function KnotVectorAdd(a, b) =
+    [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
+
+function KnotVectorSubtract(a, b) =
+    [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+
+function KnotVectorScale(vector, scale) =
+    [vector[0] * scale, vector[1] * scale, vector[2] * scale];
+
+function KnotVectorDot(a, b) =
+    a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+
+function KnotVectorCross(a, b) =
+[
+    a[1] * b[2] - a[2] * b[1],
+    a[2] * b[0] - a[0] * b[2],
+    a[0] * b[1] - a[1] * b[0]
+];
+
+function KnotVectorLength(vector) =
+    sqrt(KnotVectorDot(vector, vector));
+
+function KnotVectorNormalize(vector, tolerance = 0.000001) =
+    let(length = KnotVectorLength(vector))
+    assert(length > tolerance, "Cannot normalize a near-zero knot vector.")
+    KnotVectorScale(vector, 1 / length);
+
+function KnotVectorRotateAroundAxis(vector, axis, angle) =
+    let(
+        unitAxis = KnotVectorNormalize(axis),
+        cosine = cos(angle),
+        sine = sin(angle)
+    )
+    KnotVectorAdd(
+        KnotVectorAdd(
+            KnotVectorScale(vector, cosine),
+            KnotVectorScale(KnotVectorCross(unitAxis, vector), sine)
+        ),
+        KnotVectorScale(
+            unitAxis,
+            KnotVectorDot(unitAxis, vector) * (1 - cosine)
+        )
+    );
+
+function KnotVectorSignedAngle(from, to, axis) =
+    atan2(
+        KnotVectorDot(axis, KnotVectorCross(from, to)),
+        KnotVectorDot(from, to)
     );
 
 function KnotAllSamplesAre3D(samples, index = 0) =
@@ -554,6 +605,238 @@ function MakeTorusKnot(
         ]
     );
 
+function KnotBundleOccupiedWidth(cordCount, cordRadius, cordGap = 0) =
+    assert(
+        is_num(cordCount) && floor(cordCount) == cordCount && cordCount > 0,
+        "Knot bundle cord count must be a positive integer."
+    )
+    assert(
+        is_num(cordRadius) && cordRadius > 0,
+        "Knot bundle cord radius must be positive."
+    )
+    assert(is_num(cordGap) && cordGap >= 0, "Knot bundle gap must be nonnegative.")
+    2 * cordCount * cordRadius + (cordCount - 1) * cordGap;
+
+function KnotBundleFittedRadius(cordCount, bundleWidth, cordGap = 0) =
+    assert(
+        is_num(cordCount) && floor(cordCount) == cordCount && cordCount > 0,
+        "Knot bundle cord count must be a positive integer."
+    )
+    assert(
+        is_num(bundleWidth) && bundleWidth > 0,
+        "Knot bundle width must be positive."
+    )
+    assert(is_num(cordGap) && cordGap >= 0, "Knot bundle gap must be nonnegative.")
+    assert(
+        bundleWidth > (cordCount - 1) * cordGap,
+        "Knot bundle width must leave positive space for every cord."
+    )
+    (bundleWidth - (cordCount - 1) * cordGap) / (2 * cordCount);
+
+function KnotBundleResolvedRadius(
+    cordCount,
+    cordRadius,
+    cordGap,
+    bundleWidth) =
+    is_undef(bundleWidth)
+    ? assert(
+        is_num(cordRadius) && cordRadius > 0,
+        "Knot bundle cord radius must be positive when width is not supplied."
+    )
+      cordRadius
+    : KnotBundleFittedRadius(cordCount, bundleWidth, cordGap);
+
+function KnotBundleLaneOffset(
+    laneIndex,
+    cordCount,
+    cordRadius,
+    cordGap = 0) =
+    assert(
+        is_num(laneIndex)
+        && floor(laneIndex) == laneIndex
+        && laneIndex >= 0
+        && laneIndex < cordCount,
+        "Knot bundle lane index is outside the bundle."
+    )
+    (laneIndex - (cordCount - 1) / 2) * (2 * cordRadius + cordGap);
+
+function KnotStrandUniqueSampleCount(strand) =
+    KnotStrandClosed(strand)
+    ? max(0, KnotStrandSampleCount(strand) - 1)
+    : KnotStrandSampleCount(strand);
+
+function KnotStrandSampleTangent(strand, sampleIndex) =
+    let(
+        samples = KnotStrandSamples(strand),
+        uniqueCount = KnotStrandUniqueSampleCount(strand),
+        previousIndex = KnotStrandClosed(strand)
+        ? (sampleIndex - 1 + uniqueCount) % uniqueCount
+        : max(0, sampleIndex - 1),
+        nextIndex = KnotStrandClosed(strand)
+        ? (sampleIndex + 1) % uniqueCount
+        : min(uniqueCount - 1, sampleIndex + 1)
+    )
+    assert(uniqueCount >= 2, "Knot bundle strands require at least two unique samples.")
+    assert(
+        sampleIndex >= 0 && sampleIndex < uniqueCount,
+        "Knot bundle tangent sample index is outside the strand."
+    )
+    KnotVectorNormalize(
+        KnotVectorSubtract(samples[nextIndex], samples[previousIndex])
+    );
+
+function KnotInitialLateral(tangent) =
+    let(
+        reference = abs(KnotVectorDot(tangent, [0, 0, 1])) < 0.9
+        ? [0, 0, 1]
+        : [0, 1, 0]
+    )
+    KnotVectorNormalize(KnotVectorCross(reference, tangent));
+
+function KnotTransportLateral(priorLateral, tangent, tolerance = 0.000001) =
+    let(
+        projected = KnotVectorSubtract(
+            priorLateral,
+            KnotVectorScale(tangent, KnotVectorDot(priorLateral, tangent))
+        )
+    )
+    KnotVectorLength(projected) > tolerance
+    ? KnotVectorNormalize(projected)
+    : KnotInitialLateral(tangent);
+
+function KnotStrandRawLaterals(strand, sampleIndex = 0, priorLateral = undef) =
+    let(uniqueCount = KnotStrandUniqueSampleCount(strand))
+    sampleIndex >= uniqueCount
+    ? []
+    : let(
+        tangent = KnotStrandSampleTangent(strand, sampleIndex),
+        lateral = is_undef(priorLateral)
+        ? KnotInitialLateral(tangent)
+        : KnotTransportLateral(priorLateral, tangent)
+    )
+    concat(
+        [lateral],
+        KnotStrandRawLaterals(strand, sampleIndex + 1, lateral)
+    );
+
+function KnotStrandClosureCorrection(strand, rawLaterals) =
+    !KnotStrandClosed(strand) || len(rawLaterals) < 2
+    ? 0
+    : let(
+        firstTangent = KnotStrandSampleTangent(strand, 0),
+        transportedEnd = KnotTransportLateral(
+            rawLaterals[len(rawLaterals) - 1],
+            firstTangent
+        )
+    )
+    KnotVectorSignedAngle(transportedEnd, rawLaterals[0], firstTangent);
+
+function KnotStrandStableLaterals(strand) =
+    let(
+        rawLaterals = KnotStrandRawLaterals(strand),
+        correction = KnotStrandClosureCorrection(strand, rawLaterals),
+        uniqueCount = len(rawLaterals)
+    )
+[
+    for (sampleIndex = [0 : uniqueCount - 1])
+        KnotVectorNormalize(
+            KnotVectorRotateAroundAxis(
+                rawLaterals[sampleIndex],
+                KnotStrandSampleTangent(strand, sampleIndex),
+                correction * sampleIndex / uniqueCount
+            )
+        )
+];
+
+function KnotBundleLaneSamples(strand, laneOffset) =
+    let(
+        samples = KnotStrandSamples(strand),
+        uniqueCount = KnotStrandUniqueSampleCount(strand),
+        laterals = KnotStrandStableLaterals(strand),
+        uniqueLaneSamples = [
+            for (sampleIndex = [0 : uniqueCount - 1])
+                KnotVectorAdd(
+                    samples[sampleIndex],
+                    KnotVectorScale(laterals[sampleIndex], laneOffset)
+                )
+        ]
+    )
+    KnotStrandClosed(strand)
+    ? concat(uniqueLaneSamples, [uniqueLaneSamples[0]])
+    : uniqueLaneSamples;
+
+function MakeKnotBundle(
+    knot,
+    cordCount = 3,
+    cordRadius = 1,
+    cordGap = 0.4,
+    bundleWidth = undef) =
+    assert(
+        KnotValidationIsValid(ValidateKnot(knot)),
+        "MakeKnotBundle requires a structurally valid knot."
+    )
+    assert(
+        len(KnotCrossings(knot)) == 0,
+        "Initial knot bundles require routes without recorded crossings."
+    )
+    assert(
+        is_num(cordCount) && floor(cordCount) == cordCount && cordCount > 0,
+        "Knot bundle cord count must be a positive integer."
+    )
+    assert(is_num(cordGap) && cordGap >= 0, "Knot bundle gap must be nonnegative.")
+    let(
+        resolvedRadius = KnotBundleResolvedRadius(
+            cordCount,
+            cordRadius,
+            cordGap,
+            bundleWidth
+        ),
+        masterStrands = KnotStrands(knot),
+        bundleStrands = [
+            for (masterIndex = [0 : len(masterStrands) - 1])
+                for (laneIndex = [0 : cordCount - 1])
+                    let(
+                        masterStrand = masterStrands[masterIndex],
+                        laneOffset = KnotBundleLaneOffset(
+                            laneIndex,
+                            cordCount,
+                            resolvedRadius,
+                            cordGap
+                        )
+                    )
+                    MakeKnotStrand(
+                        KnotStrandClosed(masterStrand),
+                        KnotBundleLaneSamples(masterStrand, laneOffset),
+                        laneClosurePermutation = [0],
+                        metadata = concat(
+                            KnotStrandMetadata(masterStrand),
+                            [
+                                "bundleMasterStrand", masterIndex,
+                                "bundleLane", laneIndex,
+                                "bundleLaneOffset", laneOffset
+                            ]
+                        )
+                    )
+        ]
+    )
+    MakeKnot(
+        bundleStrands,
+        [],
+        concat(
+            KnotMetadata(knot),
+            [
+                "bundleCordCount", cordCount,
+                "bundleCordRadius", resolvedRadius,
+                "bundleCordGap", cordGap,
+                "bundleWidth", KnotBundleOccupiedWidth(
+                    cordCount,
+                    resolvedRadius,
+                    cordGap
+                )
+            ]
+        )
+    );
+
 module RenderKnotDebugSegment(a, b, radius, colorValue, fragments)
 {
     color(colorValue)
@@ -621,6 +904,40 @@ module RenderKnotCords(
             }
         }
     }
+}
+
+// Expand each master strand into symmetric, untwisted lanes and render every
+// lane through the existing capsule-cord path. Recorded crossing remapping,
+// crossing lifts, explicit bundle twist, and Möbius closure remain deferred.
+module RenderKnotCordBundle(
+    knot,
+    cordCount = 3,
+    cordRadius = 1,
+    cordGap = 0.4,
+    bundleWidth = undef,
+    fragments = 24,
+    validationTolerance = 0.001)
+{
+    resolvedRadius = KnotBundleResolvedRadius(
+        cordCount,
+        cordRadius,
+        cordGap,
+        bundleWidth
+    );
+    bundle = MakeKnotBundle(
+        knot,
+        cordCount,
+        resolvedRadius,
+        cordGap,
+        bundleWidth
+    );
+
+    RenderKnotCords(
+        bundle,
+        cordRadius = resolvedRadius,
+        fragments = fragments,
+        validationTolerance = validationTolerance
+    );
 }
 
 function KnotDebugViewPoint(point, viewMode) =

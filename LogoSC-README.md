@@ -39,9 +39,9 @@
 - `LogoSC-Validation-Implementation.md` — validation algorithms, policies, complexity, and test matrix.
 - `LogoSC-Transforms-Design.md` — preliminary local-transform design direction and open questions.
 - `LogoSC-LSystems-Notes.md` — design notes for L-system examples.
-- `LogoSC-Knots.scad` — optional knot records, validation, torus generator, and rounded cords.
-- `LogoSC-Knots-Examples.scad` — selectable knot diagnostic and cord gallery.
-- `LogoSC-Knots-Tests.scad` — passive knot record, validation, generator, and cord tests.
+- `LogoSC-Knots.scad` — optional knot records, validation, torus generator, cords, and bundles.
+- `LogoSC-Knots-Examples.scad` — selectable knot diagnostics plus cord and bundle galleries.
+- `LogoSC-Knots-Tests.scad` — passive knot record, validation, generator, cord, and bundle tests.
 - `LogoSC-Knots-Test-Runner.scad` — direct entry point for the independent knot suite.
 - `LogoSC-Knots-Design.md` — design and roadmap for parametric, braid, Celtic, ribbon, and
   rounded-cord knot generation.
@@ -417,6 +417,13 @@ include <LogoSC-Knots.scad>
 trefoil = MakeTorusKnot(2, 3, majorRadius = 20, minorRadius = 6);
 ReportKnotValidation(trefoil, strict = true);
 RenderKnotCords(trefoil, cordRadius = 1.2, fragments = 24);
+
+RenderKnotCordBundle(
+    trefoil,
+    cordCount = 3,
+    cordRadius = 0.8,
+    cordGap = 0.35
+);
 ```
 
 `RenderKnotCords()` hulls equal-radius spheres at each adjacent sample pair. The caller controls
@@ -430,6 +437,12 @@ Planned Core use begins with planar motifs, transforms, ribbons, and crossing ma
 boundary is documented in `LogoSC-Knots-Design.md#how-logosc-is-used`.
 
 ![LogoSC manufacturable knot-cord gallery](images/knot-cord-gallery.png)
+
+The companion also expands each master route into stable, symmetric, untwisted adjacent lanes.
+It supports explicit cord radius or automatic equal-radius fitting within a requested bundle
+width. Recorded-crossing remapping, crossing lifts, and explicit bundle twist remain deferred.
+
+![LogoSC adjacent knot-cord bundle gallery](images/knot-bundle-gallery.png)
 
 ## Future rendering work
 

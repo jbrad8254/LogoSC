@@ -2926,3 +2926,40 @@ Presentation follow-up:
   colors, and extruded labels to make the manufacturing output immediately legible.
 - Use presentation-specific route sampling so command-line PNG generation remains practical;
   retain the standalone examples' higher sampling for closer inspection and mesh export.
+
+### 2026-07-28 — Untwisted adjacent knot-cord bundles
+
+Context:
+
+- The single-cord renderer proved sampled-route manufacturing, while the knot roadmap required
+  generators to remain independent of requested bundle count.
+- Bundle twist, Möbius closure, and crossing lifts combine geometry with additional topology.
+  Coupling them to the first lane-expansion slice would make closure and failures ambiguous.
+
+Decision:
+
+- Implement `MakeKnotBundle()` as a deterministic expansion from each master strand to
+  individually exposed lane strands.
+- Implement the documented equal-radius width equation and symmetric lane-center equation.
+  Accept either explicit radius or automatic fitting within `bundleWidth`.
+- Derive tangents from adjacent unique samples and parallel-transport a perpendicular lateral.
+  Distribute the signed frame mismatch around closed routes, then repeat the first expanded
+  sample exactly to preserve validation and manufacturing closure.
+- Preserve an odd bundle's center lane exactly on the master route. Record master index, lane
+  index, and signed offset in each expanded strand's metadata.
+- Reject input knots with recorded crossings for now. Silent crossing deletion or guessed
+  over/under remapping would create plausible-looking but topologically false results.
+- Render expanded lanes through the existing `RenderKnotCords()` capsule path. Keep native
+  OpenSCAD responsible for 3D geometry and keep Core independent.
+- Defer explicit frame twist, Möbius closure permutations, synchronized crossing lifts,
+  bundle-envelope clearance, and tight-curve rejection to later focused milestones.
+
+Verification boundary:
+
+- Add ten deterministic results for vector math, width fitting, symmetric offsets, straight and
+  curved frames, expansion counts, center-route preservation, lane spacing, closure, validation,
+  and multi-component links, bringing the knot suite to 38 results.
+- Add direct Customizer bundle output and a presentation gallery using two, three, and four
+  lanes on the same trefoil master route.
+- Require CSG/PNG gallery exports, a representative bundle STL mesh export, the complete knot
+  suite, and the repository's Foundation/Validation and fastener acceptance suites.

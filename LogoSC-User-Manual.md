@@ -74,8 +74,8 @@ LogoSC-Nuts-And-Bolts.scad         Customizable printable fastener model.
 LogoSC-Nuts-And-Bolts-Tests.scad   Passive non-rendering fastener calculation tests.
 LogoSC-Nuts-And-Bolts-Test-Runner.scad Direct entry point for fastener tests.
 LogoSC-Nuts-And-Bolts-Customizer.md Detailed fastener Customizer guide.
-LogoSC-Knots.scad                  Optional knot records, validation, torus generator, and cords.
-LogoSC-Knots-Examples.scad         Unknot, trefoil, Hopf-link, crossing, and cord gallery.
+LogoSC-Knots.scad                  Optional knot records, validation, cords, and bundles.
+LogoSC-Knots-Examples.scad         Knot diagnostics plus cord and bundle galleries.
 LogoSC-Knots-Tests.scad            Passive knot companion tests.
 LogoSC-Knots-Test-Runner.scad      Direct entry point for knot tests.
 LogoSC-Experiments.scad            Experimental rendering and geometry workbench.
@@ -1290,7 +1290,8 @@ accessors, structural rules, deferred rendering stages, and implementation roadm
 spheres at every pair of adjacent samples. Closed strands already repeat their first point, so
 the last capsule closes the route exactly. The caller remains responsible for selecting a cord
 radius, sampling density, and fragment count that preserve clearance and surface quality.
-Ribbons, crossing lifts, adjacent cord bundles, and AI image import remain deferred.
+Ribbons, recorded-crossing remapping, crossing lifts, explicit bundle twist, and AI image import
+remain deferred.
 
 There is no hidden LogoSC Core evaluation in this implementation. `MakeTorusKnot()` and
 `ValidateKnot()` are pure OpenSCAD functions, while `RenderKnotDebug()` and
@@ -1327,6 +1328,55 @@ OpenSCAD lighting and surface shading, not additional strand or crossing states.
 
 Choose `KnotExample = "CordGallery"` for this labeled presentation scene. It is generated from
 the same knot records and capsule renderer used for normal cord output.
+
+#### Adjacent cord bundles
+
+`RenderKnotCordBundle()` expands each master strand into symmetric adjacent lanes before passing
+them to the ordinary capsule renderer:
+
+```scad
+trefoil = MakeTorusKnot(2, 3, majorRadius = 20, minorRadius = 6);
+
+RenderKnotCordBundle(
+    trefoil,
+    cordCount = 3,
+    cordRadius = 0.8,
+    cordGap = 0.35,
+    fragments = 24
+);
+```
+
+For `N` cords of radius `r` with surface gap `g`, the occupied bundle width is
+`2*N*r + (N-1)*g`. Set `bundleWidth` to fit the cord radius automatically:
+
+```scad
+RenderKnotCordBundle(
+    trefoil,
+    cordCount = 4,
+    cordGap = 0.3,
+    bundleWidth = 9
+);
+```
+
+When `bundleWidth` is supplied, `cordRadius` is ignored and the fitted radius is
+`(bundleWidth - (N-1)*g)/(2*N)`. Lane centers are evenly spaced and symmetric around the master
+route. An odd bundle retains one center lane exactly on the original route.
+
+The companion derives a unit tangent at every sample and parallel-transports a perpendicular
+lateral direction along the route. Closed routes receive a distributed frame correction and
+repeat their first expanded sample exactly, avoiding an open seam. This produces stable
+untwisted lanes through straight and curved 3D samples without relying on a fragile Frenet frame.
+
+This first bundle boundary accepts knots without recorded crossing objects. Torus knots and links
+qualify because their separation is already encoded in their 3D samples. Crossing-record
+remapping, collective crossing lifts, automatic bundle-envelope clearance, explicit twist, and
+Möbius lane closure remain later milestones.
+
+![LogoSC adjacent knot-cord bundle gallery](images/knot-bundle-gallery.png)
+
+The gallery applies two, three, and four lanes to the same master trefoil. Colors distinguish
+individual lanes and carry no manufacturing or topology semantics. Choose
+`KnotExample = "BundleGallery"` to open the scene in the Customizer.
 
 ### 7.13 OpenSCAD wrapper pattern
 

@@ -182,6 +182,13 @@ include <LogoSC-Knots.scad>
 trefoil = MakeTorusKnot(2, 3, majorRadius = 20, minorRadius = 6);
 ReportKnotValidation(trefoil, strict = true);
 RenderKnotCords(trefoil, cordRadius = 1.2, fragments = 24);
+
+RenderKnotCordBundle(
+    trefoil,
+    cordCount = 3,
+    cordRadius = 0.8,
+    cordGap = 0.35
+);
 ```
 
 `MakeTorusKnot(p, q, ...)` returns one closed sampled strand when `p` and `q` are coprime.
@@ -189,9 +196,12 @@ Otherwise it returns `gcd(p,q)` independently closed components. Open
 `LogoSC-Knots-Examples.scad` for the unknot, trefoil, Hopf-link, and explicit-crossing gallery.
 `RenderKnotCords()` converts every sampled strand into printable sphere-hulled capsules.
 The caller chooses cord radius, sphere resolution, sampling density, and sufficient clearance.
-`RenderKnotDebug()` remains the preview-only diagnostic view. Ribbons, crossing lifts, adjacent
-cord bundles, and image import remain deferred. Planar debug mode projects the original 3D
-samples onto `z = 0`; Spatial mode preserves their torus height.
+`RenderKnotDebug()` remains the preview-only diagnostic view. Ribbons, recorded-crossing
+remapping, crossing lifts, explicit bundle twist, and image import remain deferred. The
+implemented bundle stage uses stable transported lateral frames to create symmetric untwisted
+lanes. Supply either `cordRadius` or `bundleWidth`; a supplied width fits the largest equal
+radius that preserves `cordGap`. Planar debug mode projects the original 3D samples onto `z = 0`;
+Spatial mode preserves their torus height.
 
 The current torus and cord path does not invoke LogoSC Core: sampling and validation are pure
 OpenSCAD functions, and native OpenSCAD constructs the 3D capsules. Core is reserved for planned
@@ -203,6 +213,11 @@ OpenSCAD functions, and native OpenSCAD constructs the 3D capsules. Core is rese
 Choose `CordGallery` in `LogoSC-Knots-Examples.scad` for the presentation scene. It uses the
 actual torus generator and cord renderer; per-strand colors distinguish the two Hopf-link
 components without changing their geometry.
+
+![LogoSC adjacent knot-cord bundle gallery](images/knot-bundle-gallery.png)
+
+Choose `BundleGallery` to compare two-, three-, and four-cord trefoil bundles. Colors identify
+lanes for presentation only; the manufacturing renderer emits ordinary geometry.
 
 ## Current public API
 
@@ -283,9 +298,9 @@ See `LogoSC-CheatSheet.md` and `LogoSC-User-Manual.md` for the complete command 
 - `LogoSC-Nuts-And-Bolts.scad` — customizable printable fastener and thread-profile model.
 - `LogoSC-Nuts-And-Bolts-Tests.scad` — passive non-rendering fastener calculation tests.
 - `LogoSC-Nuts-And-Bolts-Test-Runner.scad` — direct entry point for the fastener test suite.
-- `LogoSC-Knots.scad` — optional knot records, validation/debug tools, torus generator, and cords.
-- `LogoSC-Knots-Examples.scad` — unknot, trefoil, Hopf-link, crossing, and cord gallery.
-- `LogoSC-Knots-Tests.scad` — passive knot record, validation, torus-link, and cord tests.
+- `LogoSC-Knots.scad` — optional knot records, validation, torus generator, cords, and bundles.
+- `LogoSC-Knots-Examples.scad` — knot diagnostics plus cord and bundle presentation galleries.
+- `LogoSC-Knots-Tests.scad` — passive knot record, validation, generator, cord, and bundle tests.
 - `LogoSC-Knots-Test-Runner.scad` — direct entry point for the knot companion suite.
 - `LogoSC-Nuts-And-Bolts-Customizer.md` — detailed fastener parameter and calibration guide.
 - `LogoSC-User-Manual.md` — practical user documentation.
@@ -338,7 +353,7 @@ LogoSC Core's filled-region contract.
 ## Near-term roadmap
 
 - Expand optional validation only when additional topology policies provide clear value.
-- Continue the optional knot companion with adjacent cord bundles, then braid-word generation.
+- Continue the optional knot companion with braid-word generation and crossing-aware bundles.
 - Keep manufacturable stroke rendering as a separate API with explicit width, cap, and join semantics.
 
 ## Requirements

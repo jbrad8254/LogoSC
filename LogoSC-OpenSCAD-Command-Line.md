@@ -189,7 +189,7 @@ printable mesh quality.
 ### Run the optional knot-companion suite
 
 `LogoSC-Knots-Test-Runner.scad` is the separate deterministic suite for knot records,
-validation, debug inputs, generators, and cord-segment accounting:
+validation, debug inputs, generators, cord-segment accounting, and bundle mathematics:
 
 ```powershell
 $knotTestLogPath = Join-Path $env:TEMP 'LogoSC-knot-tests.echo'
@@ -236,8 +236,7 @@ export and slicer inspection for a chosen radius, sampling density, and print pr
 
 ### Render the knot-cord presentation gallery
 
-`LogoSC-Knots-Examples.scad` defaults to a labeled presentation scene generated from the real
-unknot, trefoil, and Hopf-link cord geometry:
+The `CordGallery` scene is generated from the real unknot, trefoil, and Hopf-link cord geometry:
 
 ![LogoSC manufacturable knot-cord gallery](images/knot-cord-gallery.png)
 
@@ -259,6 +258,29 @@ $knotGalleryPath = Join-Path (Get-Location) 'images\knot-cord-gallery.png'
 The gallery uses a lower route-sampling density than the standalone examples to keep interactive
 preview and PNG generation practical. It retains the same `MakeTorusKnot()` and
 `RenderKnotCords()` execution path.
+
+### Render the adjacent bundle gallery
+
+The bundle gallery applies two, three, and four colored lanes to the same generated trefoil:
+
+![LogoSC adjacent knot-cord bundle gallery](images/knot-bundle-gallery.png)
+
+```powershell
+$bundleGalleryPath = Join-Path (Get-Location) 'images\knot-bundle-gallery.png'
+
+& $openScadCli `
+    -D 'KnotExample=\"BundleGallery\"' `
+    -D 'KnotCordFragments=18' `
+    --imgsize '1400,700' `
+    --camera '85,4,0,0,0,0,220' `
+    --projection o `
+    -o $bundleGalleryPath `
+    'LogoSC-Knots-Examples.scad'
+```
+
+The colors distinguish lanes but do not modify manufacturing geometry. Use
+`KnotOutput = "Bundle"` with an individual example to exercise the uncolored
+`RenderKnotCordBundle()` module and its Customizer parameters directly.
 
 ## Example 2: export and inspect a debug PNG
 

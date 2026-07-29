@@ -3,9 +3,9 @@
 ## Status and purpose
 
 This is the authoritative design plan for generative knot work in LogoSC. It covers organic or
-Gordian-style parametric knots and traditional Celtic interlace. The torus generator and
-single-cord manufacturing slice are implemented; later milestones remain proposals until their
-APIs are reviewed.
+Gordian-style parametric knots and traditional Celtic interlace. The torus generator,
+single-cord manufacturing, and untwisted adjacent bundle slices are implemented; later
+milestones remain proposals until their APIs are reviewed.
 
 LogoSC remains a 2D filled-region evaluator. A future optional companion may use LogoSC for
 planar routes, ribbon footprints, masks, local transforms, and repeated motifs. Native OpenSCAD
@@ -25,14 +25,17 @@ remains responsible for extrusion, hulls, Minkowski operations, booleans, and 3D
   `gcd(p,q)` independently closed components for a torus link;
 - `RenderKnotCords()`, producing manufacturable round cords from sphere-hulled capsules with
   explicit radius and fragment controls;
+- `MakeKnotBundle()` and `RenderKnotCordBundle()`, expanding each master route into stable,
+  symmetric, untwisted adjacent lanes with explicit or width-fitted cord radius;
 - selectable planar-projection and spatial debug views;
-- a dedicated 28-result automated suite and an unknot/trefoil/Hopf-link/crossing gallery with
-  selectable diagnostic or cord output.
+- a dedicated 38-result automated suite, a single-cord topology gallery, and a two-, three-, and
+  four-cord bundle gallery.
 
-This slice deliberately does not implement ribbons, crossing lifts, adjacent cord bundles, or AI
-image import. It also does not infer printable clearance: callers must select a cord radius and
-sampling density appropriate for the route. Reserved strand fields and metadata allow later
-milestones to extend the representation without changing its established leading fields.
+This slice deliberately does not implement ribbons, recorded-crossing remapping, crossing lifts,
+automatic bundle-envelope clearance, explicit twist, Möbius closure, or AI image import. Callers
+must select dimensions and sampling appropriate for the route. Reserved strand fields and
+metadata allow later milestones to extend the representation without changing its established
+leading fields.
 
 ## How LogoSC is used
 
@@ -307,6 +310,34 @@ generator
   -> bundle lane expansion
   -> ribbon, relief, or rounded-cord rendering
 ```
+
+### Implemented untwisted bundle boundary
+
+`MakeKnotBundle()` now performs the first bundle-expansion stage for sampled 3D routes without
+recorded crossing objects. `RenderKnotCordBundle()` renders the expanded result through the
+existing capsule renderer.
+
+The implementation provides:
+
+- positive integer cord counts and nonnegative surface gaps;
+- either an explicit `cordRadius` or equal-radius fitting from `bundleWidth`;
+- the occupied-width and symmetric lane-offset equations above;
+- one unit tangent per unique master sample;
+- an initial perpendicular lateral selected from a stable reference axis;
+- parallel transport by projecting the prior lateral into each new tangent plane;
+- a distributed signed closure correction for closed routes;
+- exact repetition of each expanded lane's first sample at its endpoint;
+- expansion of every master component in a knot or link;
+- lane metadata recording its master index, lane index, and signed offset.
+
+An odd cord count preserves one lane exactly on the master centerline. Even bundles remain
+symmetric without inventing a center lane. The expanded result exposes lanes as individual
+strand records, which keeps them directly renderable and testable during this untwisted stage.
+
+The initial function rejects knots with recorded crossings rather than discarding or incorrectly
+remapping their topology. Torus routes are supported because their 3D separation is already
+present in the sample coordinates. Crossing-aware expansion will need to replicate encounters,
+map over/under ownership to complete bundle envelopes, and apply synchronized lifts to all lanes.
 
 ### Möbius-like bundle twists
 
@@ -781,10 +812,11 @@ links where supported by the selected generator.
 
 1. **Shared sampled-strand and knot-result records** — implemented
    - Define constructors, accessors, closure rules, lane permutations, and debug output.
-2. **Torus knots and capsule cords** — implemented for single cords
-   - Closed 3D routes, correct link-component handling, and validated capsule rendering are
-     complete.
-   - Adjacent bundle expansion and automatic clearance analysis remain deferred.
+2. **Torus knots, capsule cords, and untwisted bundles** — implemented
+   - Closed 3D routes, correct link-component handling, validated capsule rendering, stable
+     transported lane frames, symmetric bundle expansion, and width fitting are complete.
+   - Recorded-crossing remapping, crossing lifts, explicit twist, Möbius closure, and automatic
+     clearance analysis remain deferred.
 3. **Braid words**
    - Establish crossing records, lane tracking, Z bumps, and closure.
 4. **Celtic tile grids**
@@ -805,10 +837,10 @@ gallery, and a clean optional-companion boundary.
 - Centerlines initially use explicit samples. Analytic source descriptions may be preserved in
   metadata later without replacing the sampled rendering contract.
 - Multi-component links are first-class results from the beginning.
-- Are bundle lanes individually labeled in public results, or exposed only as traced components
-  after applying the closure permutation?
-- Does the first bundle milestone support only untwisted planar offsets, reserving explicit
-  frame twist and Möbius closure for a later 3D milestone?
+- Implemented decision: untwisted bundle lanes are exposed as individual strand records with
+  master/lane metadata. A later twist milestone must trace closure permutations deliberately.
+- Implemented decision: the first bundle milestone uses stable untwisted 3D offsets. Explicit
+  frame twist and Möbius closure remain later topology work.
 - Should braid closure initially be rectangular, circular, or both?
 - What is the smallest useful Celtic tile vocabulary?
 - Should flat ribbons cut a visible underpass gap or retain continuous color-coded layers?

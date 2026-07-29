@@ -10,10 +10,10 @@
   with `gcd(p,q)` independently closed components.
 - Added selectable Planar and Spatial knot debug views. Planar mode projects centerline and
   sample diagnostics to `z = 0` without changing the stored 3D knot route.
-- Added a separate 28-result knot test suite and runner covering record accessors, valid and
+- Added a separate 38-result knot test suite and runner covering record accessors, valid and
   invalid structures, closure, crossings, encounter indexes, lane permutations, torus sample
   counts, exact closure, distinct link components, generated-result validation, and cord-segment
-  accounting.
+  and bundle accounting.
 - Added `LogoSC-Knots-Examples.scad`, a small documented unknot, trefoil, Hopf-link, and explicit
   crossing gallery with diagnostic and cord output. Ribbons, crossing lifts, adjacent cord
   bundles, and AI image import remain deferred.
@@ -23,6 +23,15 @@
 - Added a labeled `CordGallery` presentation scene generated from actual unknot, trefoil, and
   Hopf-link cord geometry, including per-component link colors and a reproducible documentation
   PNG command.
+- Added adjacent multi-cord bundle expansion and `RenderKnotCordBundle()`, with explicit or
+  width-fitted cord radius, symmetric lane offsets, stable transported 3D frames, exact closed
+  seams, per-master link expansion, and an explicit initial restriction to routes without
+  recorded crossings.
+- Added ten focused bundle results covering vector math, width fitting, lane symmetry, straight
+  and curved frames, strand/sample expansion, preserved center routes, lane separation, closure,
+  validation, and multi-component links, bringing the independent knot suite to 38 results.
+- Added a labeled two-, three-, and four-cord `BundleGallery` generated from real expanded
+  trefoil routes, plus a reproducible documentation image.
 - Documented the knot companion's actual dependency flow: current torus sampling, validation,
   diagnostics, and cords do not invoke LogoSC Core; the test runner uses Core only for reporting;
   and planned Core integration begins with planar motifs, transforms, ribbons, and masks.

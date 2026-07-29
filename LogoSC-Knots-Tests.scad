@@ -286,12 +286,162 @@ function KnotCordTestResults() =
     )
 ];
 
+function KnotBundleTestResults() =
+    let(
+        straightStrand = MakeKnotStrand(
+            false,
+            [[0, 0, 0], [5, 0, 0], [10, 0, 0]]
+        ),
+        straightLaterals = KnotStrandStableLaterals(straightStrand),
+        trefoil = MakeTorusKnot(2, 3, 20, 6, 60),
+        trefoilStrand = KnotStrands(trefoil)[0],
+        trefoilTangents = [
+            for (sampleIndex = [0 : KnotStrandUniqueSampleCount(trefoilStrand) - 1])
+                KnotStrandSampleTangent(trefoilStrand, sampleIndex)
+        ],
+        trefoilLaterals = KnotStrandStableLaterals(trefoilStrand),
+        threeCordTrefoil = MakeKnotBundle(trefoil, 3, 1, 0.5),
+        bundledStrands = KnotStrands(threeCordTrefoil),
+        masterSamples = KnotStrandSamples(trefoilStrand),
+        leftSamples = KnotStrandSamples(bundledStrands[0]),
+        centerSamples = KnotStrandSamples(bundledStrands[1]),
+        rightSamples = KnotStrandSamples(bundledStrands[2]),
+        fittedRadius = KnotBundleFittedRadius(3, 9, 0.75),
+        fittedBundle = MakeKnotBundle(
+            MakeTorusKnot(1, 1, 20, 6, 24),
+            3,
+            cordGap = 0.75,
+            bundleWidth = 9
+        ),
+        hopfBundle = MakeKnotBundle(
+            MakeTorusKnot(2, 2, 20, 6, 24),
+            3,
+            0.8,
+            0.3
+        )
+    )
+[
+    LogoTestResult(
+        "knot bundle vector helpers",
+        KnotVectorAdd([1, 2, 3], [4, 5, 6]) == [5, 7, 9]
+        && KnotVectorSubtract([4, 5, 6], [1, 2, 3]) == [3, 3, 3]
+        && KnotVectorDot([1, 0, 0], [0, 1, 0]) == 0
+        && KnotVectorCross([1, 0, 0], [0, 1, 0]) == [0, 0, 1]
+        && KnotTestPointNearlyEqual(
+            KnotVectorNormalize([3, 0, 0]),
+            [1, 0, 0]
+        )
+    ),
+    LogoTestResult(
+        "knot bundle width and fitted radius",
+        KnotBundleOccupiedWidth(3, fittedRadius, 0.75) == 9
+        && KnotTestNearlyEqual(fittedRadius, 1.25)
+        && KnotTestNearlyEqual(
+            KnotBundleResolvedRadius(3, 2, 0.75, 9),
+            fittedRadius
+        )
+    ),
+    LogoTestResult(
+        "knot bundle symmetric lane offsets",
+        KnotBundleLaneOffset(0, 3, 1, 0.5) == -2.5
+        && KnotBundleLaneOffset(1, 3, 1, 0.5) == 0
+        && KnotBundleLaneOffset(2, 3, 1, 0.5) == 2.5
+        && KnotBundleLaneOffset(0, 4, 1, 0) == -3
+        && KnotBundleLaneOffset(3, 4, 1, 0) == 3
+    ),
+    LogoTestResult(
+        "knot bundle straight stable frame",
+        len(straightLaterals) == 3
+        && KnotTestPointNearlyEqual(straightLaterals[0], [0, 1, 0])
+        && KnotTestPointNearlyEqual(straightLaterals[1], [0, 1, 0])
+        && KnotTestPointNearlyEqual(straightLaterals[2], [0, 1, 0])
+    ),
+    LogoTestResult(
+        "knot bundle curved frames are orthonormal",
+        len(trefoilLaterals) == 60
+        && len([
+            for (sampleIndex = [0 : len(trefoilLaterals) - 1])
+                if (
+                    !KnotTestNearlyEqual(
+                        KnotVectorLength(trefoilLaterals[sampleIndex]),
+                        1
+                    )
+                    || !KnotTestNearlyEqual(
+                        KnotVectorDot(
+                            trefoilLaterals[sampleIndex],
+                            trefoilTangents[sampleIndex]
+                        ),
+                        0
+                    )
+                    || (
+                        sampleIndex > 0
+                        && KnotVectorDot(
+                            trefoilLaterals[sampleIndex - 1],
+                            trefoilLaterals[sampleIndex]
+                        ) <= 0
+                    )
+                )
+                    sampleIndex
+        ]) == 0
+    ),
+    LogoTestResult(
+        "knot bundle expands strand and sample counts",
+        len(bundledStrands) == 3
+        && KnotStrandSampleCount(bundledStrands[0]) == 61
+        && KnotStrandSampleCount(bundledStrands[1]) == 61
+        && KnotStrandSampleCount(bundledStrands[2]) == 61
+        && KnotCordSegmentCount(threeCordTrefoil) == 180
+    ),
+    LogoTestResult(
+        "knot bundle center lane preserves master route",
+        len([
+            for (sampleIndex = [0 : len(masterSamples) - 1])
+                if (!KnotTestPointNearlyEqual(
+                    centerSamples[sampleIndex],
+                    masterSamples[sampleIndex]
+                ))
+                    sampleIndex
+        ]) == 0
+    ),
+    LogoTestResult(
+        "knot bundle adjacent lane separation",
+        KnotTestNearlyEqual(
+            KnotPointDistance(leftSamples[0], centerSamples[0]),
+            2.5
+        )
+        && KnotTestNearlyEqual(
+            KnotPointDistance(centerSamples[0], rightSamples[0]),
+            2.5
+        )
+    ),
+    LogoTestResult(
+        "knot bundle exact closure and validation",
+        KnotTestPointNearlyEqual(
+            leftSamples[0],
+            leftSamples[len(leftSamples) - 1]
+        )
+        && KnotTestPointNearlyEqual(
+            rightSamples[0],
+            rightSamples[len(rightSamples) - 1]
+        )
+        && KnotValidationIsValid(ValidateKnot(threeCordTrefoil))
+        && KnotValidationIsValid(ValidateKnot(fittedBundle))
+    ),
+    LogoTestResult(
+        "knot bundle expands every link component",
+        len(KnotStrands(hopfBundle)) == 6
+        && KnotCordSegmentCount(hopfBundle) == 144
+        && KnotValidationIsValid(ValidateKnot(hopfBundle))
+    )
+];
+
 function KnotAutomatedTestResults() =
     concat(
         KnotRecordTestResults(),
         KnotValidationTestResults(),
         KnotTorusTestResults(),
-        KnotCordTestResults()
+        KnotCordTestResults(),
+        KnotBundleTestResults()
     );
 
 function KnotTestSuiteResult() =
