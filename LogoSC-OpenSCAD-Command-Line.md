@@ -308,6 +308,32 @@ $braidGalleryPath = Join-Path (Get-Location) 'images\knot-braid-gallery.png'
 Every displayed route comes from `MakeCircularBraidKnot()` and the normal capsule renderer.
 Colors distinguish components or examples and do not alter crossing topology.
 
+### Render the crossing-aware braided-bundle gallery
+
+The braided-bundle gallery applies two manufacturing cords to braid-generated Hopf, trefoil,
+and three-lane routes:
+
+![LogoSC crossing-aware braided cord bundles](images/knot-braided-bundle-gallery.png)
+
+```powershell
+$braidedBundleGalleryPath = Join-Path `
+    (Get-Location) `
+    'images\knot-braided-bundle-gallery.png'
+
+& $openScadCli `
+    -D 'KnotExample=\"BraidBundleGallery\"' `
+    -D 'KnotView=\"Spatial\"' `
+    -D 'KnotCordFragments=18' `
+    --imgsize '1400,700' `
+    --camera '85,4,0,0,0,0,220' `
+    --projection o `
+    -o $braidedBundleGalleryPath `
+    'LogoSC-Knots-Examples.scad'
+```
+
+The scene uses the actual crossing remapper and capsule renderer. Each master crossing expands
+to all cord-lane pairs and must pass the configured clearance check before geometry is emitted.
+
 ## Example 2: export and inspect a debug PNG
 
 The command line can render the same debug demo that is available through the OpenSCAD

@@ -195,13 +195,14 @@ RenderKnotCordBundle(
 Otherwise it returns `gcd(p,q)` independently closed components. Open
 `LogoSC-Knots-Examples.scad` for the unknot, trefoil, Hopf-link, and explicit-crossing gallery.
 `RenderKnotCords()` converts every sampled strand into printable sphere-hulled capsules.
-The caller chooses cord radius, sphere resolution, sampling density, and sufficient clearance.
-`RenderKnotDebug()` remains the preview-only diagnostic view. Ribbons, recorded-crossing
-remapping, crossing lifts, explicit bundle twist, and image import remain deferred. The
-implemented bundle stage uses stable transported lateral frames to create symmetric untwisted
-lanes. Supply either `cordRadius` or `bundleWidth`; a supplied width fits the largest equal
-radius that preserves `cordGap`. Planar debug mode projects the original 3D samples onto `z = 0`;
-Spatial mode preserves their torus height.
+The caller chooses cord radius, sphere resolution, and sampling density.
+`RenderKnotDebug()` remains the preview-only diagnostic view. The implemented bundle stage uses
+stable transported lateral frames to create symmetric untwisted lanes. Supply either
+`cordRadius` or `bundleWidth`; a supplied width fits the largest equal radius that preserves
+`cordGap`. Recorded braid crossings expand to every bundle lane pair, inherit the master
+over/under lift, and are checked against `2*cordRadius + minimumClearance`. Explicit bundle
+twist, ribbons, and image import remain deferred. Planar debug mode projects the original 3D
+samples onto `z = 0`; Spatial mode preserves their torus height.
 
 `KnotView` applies consistently to Debug, Cord, Bundle, `CordGallery`, and `BundleGallery`
 output. Planar projects a copy of the master samples before cord rendering or bundle expansion;
@@ -239,7 +240,13 @@ braidTrefoil = MakeCircularBraidKnot(
 );
 
 ReportKnotValidation(braidTrefoil, strict = true);
-RenderKnotCords(braidTrefoil, cordRadius = 0.9);
+RenderKnotCordBundle(
+    braidTrefoil,
+    cordCount = 2,
+    cordRadius = 0.7,
+    cordGap = 0.3,
+    minimumClearance = 0.2
+);
 ```
 
 Generator `+i` makes the strand entering lane `i` cross over lane `i+1`; `-i` reverses the
@@ -250,14 +257,16 @@ established leading crossing-record fields.
 
 ![LogoSC circular braid closures](images/knot-braid-gallery.png)
 
-Choose `BraidGallery` for the Hopf, trefoil, and three-lane presentation scene. Braid records
-already contain crossings, so bundle expansion remains deferred until crossing ownership and
-height can be remapped to complete bundle envelopes.
+Choose `BraidGallery` for the Hopf, trefoil, and three-lane presentation scene. Choose
+`BraidBundleGallery` to see those crossing-aware routes expanded into multiple manufacturing
+cords.
+
+![LogoSC crossing-aware braided cord bundles](images/knot-braided-bundle-gallery.png)
 
 A braid and a bundle are different layers: braids exchange physical strands through logical
 lanes and determine topology, while bundles place parallel manufacturing cords around an
-already-defined master route. See the User Manual's **Braid versus bundle** comparison for
-side-by-side images and the planned composition pipeline.
+already-defined master route. The new gallery demonstrates their composition. See the User
+Manual's **Braid versus bundle** comparison for the details.
 
 ## Current public API
 
@@ -393,7 +402,7 @@ LogoSC Core's filled-region contract.
 ## Near-term roadmap
 
 - Expand optional validation only when additional topology policies provide clear value.
-- Continue the optional knot companion with crossing-aware bundles and clearance validation.
+- Continue the optional knot companion with Celtic tile grids and 2D ribbon regions.
 - Keep manufacturable stroke rendering as a separate API with explicit width, cap, and join semantics.
 
 ## Requirements

@@ -862,17 +862,19 @@ function KnotBraidCrossings(
 ];
 
 function KnotBraidComponentEncounters(crossings, componentIndex) =
-[
-    for (crossingIndex = [0 : len(crossings) - 1])
-        each concat(
-            KnotCrossingStrandA(crossings[crossingIndex]) == componentIndex
-            ? [crossingIndex]
-            : [],
-            KnotCrossingStrandB(crossings[crossingIndex]) == componentIndex
-            ? [crossingIndex]
-            : []
-        )
-];
+    len(crossings) == 0
+    ? []
+    : [
+        for (crossingIndex = [0 : len(crossings) - 1])
+            each concat(
+                KnotCrossingStrandA(crossings[crossingIndex]) == componentIndex
+                ? [crossingIndex]
+                : [],
+                KnotCrossingStrandB(crossings[crossingIndex]) == componentIndex
+                ? [crossingIndex]
+                : []
+            )
+    ];
 
 // Generate the standard closure of a signed braid word around a circular axis.
 // Positive generator i makes the strand entering lower lane i cross over lane
@@ -1116,19 +1118,153 @@ function KnotBundleLaneSamples(strand, laneOffset) =
     ? concat(uniqueLaneSamples, [uniqueLaneSamples[0]])
     : uniqueLaneSamples;
 
+// Interpolate a normalized route parameter through a sampled strand. Crossing
+// parameters refer to segments, so a parameter of 1 selects the final sample.
+function KnotStrandPointAtParameter(strand, parameter) =
+    let(
+        samples = KnotStrandSamples(strand),
+        segmentCount = KnotStrandSegmentCount(strand),
+        scaled = parameter * segmentCount,
+        segmentIndex = min(segmentCount - 1, floor(scaled)),
+        blend = parameter == 1 ? 1 : scaled - segmentIndex
+    )
+    assert(
+        is_num(parameter) && parameter >= 0 && parameter <= 1,
+        "Knot strand parameter must be normalized to [0, 1]."
+    )
+    assert(segmentCount > 0, "Knot strand interpolation requires a segment.")
+    KnotVectorAdd(
+        KnotVectorScale(samples[segmentIndex], 1 - blend),
+        KnotVectorScale(samples[segmentIndex + 1], blend)
+    );
+
+function KnotBundleExpandedStrandIndex(masterIndex, laneIndex, cordCount) =
+    masterIndex * cordCount + laneIndex;
+
+function KnotBundleCrossingForLanes(
+    crossing,
+    bundleStrands,
+    cordCount,
+    laneA,
+    laneB) =
+    let(
+        strandA = KnotBundleExpandedStrandIndex(
+            KnotCrossingStrandA(crossing),
+            laneA,
+            cordCount
+        ),
+        strandB = KnotBundleExpandedStrandIndex(
+            KnotCrossingStrandB(crossing),
+            laneB,
+            cordCount
+        ),
+        pointA = KnotStrandPointAtParameter(
+            bundleStrands[strandA],
+            KnotCrossingParameterA(crossing)
+        ),
+        pointB = KnotStrandPointAtParameter(
+            bundleStrands[strandB],
+            KnotCrossingParameterB(crossing)
+        ),
+        overBranch = KnotCrossingOverBranch(crossing)
+    )
+    MakeKnotCrossing(
+        [
+            (pointA[0] + pointB[0]) / 2,
+            (pointA[1] + pointB[1]) / 2
+        ],
+        strandA,
+        KnotCrossingParameterA(crossing),
+        strandB,
+        KnotCrossingParameterB(crossing),
+        overBranch == "A" ? strandA : strandB,
+        overBranch
+    );
+
+// Expand every master crossing into all lane-pair crossings. This N squared
+// mapping lets validation and clearance analysis reason about actual cords.
+function KnotBundleCrossings(knot, bundleStrands, cordCount) =
+[
+    for (crossing = KnotCrossings(knot))
+        for (laneA = [0 : cordCount - 1])
+            for (laneB = [0 : cordCount - 1])
+                KnotBundleCrossingForLanes(
+                    crossing,
+                    bundleStrands,
+                    cordCount,
+                    laneA,
+                    laneB
+                )
+];
+
+function KnotCrossingCenterDistance(knot, crossing) =
+    KnotPointDistance(
+        KnotStrandPointAtParameter(
+            KnotStrands(knot)[KnotCrossingStrandA(crossing)],
+            KnotCrossingParameterA(crossing)
+        ),
+        KnotStrandPointAtParameter(
+            KnotStrands(knot)[KnotCrossingStrandB(crossing)],
+            KnotCrossingParameterB(crossing)
+        )
+    );
+
+function KnotBundleCrossingClearances(
+    knot,
+    cordRadius,
+    minimumClearance = 0) =
+    assert(
+        is_num(cordRadius) && cordRadius > 0,
+        "Knot bundle clearance radius must be positive."
+    )
+    assert(
+        is_num(minimumClearance) && minimumClearance >= 0,
+        "Knot bundle minimum clearance must be nonnegative."
+    )
+    len(KnotCrossings(knot)) == 0
+    ? []
+    : [
+        for (crossingIndex = [0 : len(KnotCrossings(knot)) - 1])
+            let(
+                crossing = KnotCrossings(knot)[crossingIndex],
+                centerDistance = KnotCrossingCenterDistance(knot, crossing),
+                requiredDistance = 2 * cordRadius + minimumClearance
+            )
+            [
+                crossingIndex,
+                centerDistance,
+                requiredDistance,
+                centerDistance >= requiredDistance
+            ]
+    ];
+
+function KnotBundleHasCrossingClearance(
+    knot,
+    cordRadius,
+    minimumClearance = 0) =
+    len([
+        for (
+            result = KnotBundleCrossingClearances(
+                knot,
+                cordRadius,
+                minimumClearance
+            )
+        )
+            if (!result[3])
+                result
+    ]) == 0;
+
 function MakeKnotBundle(
     knot,
     cordCount = 3,
     cordRadius = 1,
     cordGap = 0.4,
-    bundleWidth = undef) =
+    bundleWidth = undef,
+    minimumClearance = 0,
+    checkCrossingClearance = true) =
     assert(
         KnotValidationIsValid(ValidateKnot(knot)),
         "MakeKnotBundle requires a structurally valid knot."
-    )
-    assert(
-        len(KnotCrossings(knot)) == 0,
-        "Initial knot bundles require routes without recorded crossings."
     )
     assert(
         is_num(cordCount) && floor(cordCount) == cordCount && cordCount > 0,
@@ -1143,7 +1279,7 @@ function MakeKnotBundle(
             bundleWidth
         ),
         masterStrands = KnotStrands(knot),
-        bundleStrands = [
+        routeStrands = [
             for (masterIndex = [0 : len(masterStrands) - 1])
                 for (laneIndex = [0 : cordCount - 1])
                     let(
@@ -1168,25 +1304,55 @@ function MakeKnotBundle(
                             ]
                         )
                     )
-        ]
-    )
-    MakeKnot(
-        bundleStrands,
-        [],
-        concat(
-            KnotMetadata(knot),
-            [
-                "bundleCordCount", cordCount,
-                "bundleCordRadius", resolvedRadius,
-                "bundleCordGap", cordGap,
-                "bundleWidth", KnotBundleOccupiedWidth(
-                    cordCount,
-                    resolvedRadius,
-                    cordGap
+        ],
+        bundleCrossings = KnotBundleCrossings(
+            knot,
+            routeStrands,
+            cordCount
+        ),
+        bundleStrands = [
+            for (strandIndex = [0 : len(routeStrands) - 1])
+                let(strand = routeStrands[strandIndex])
+                MakeKnotStrand(
+                    KnotStrandClosed(strand),
+                    KnotStrandSamples(strand),
+                    KnotBraidComponentEncounters(
+                        bundleCrossings,
+                        strandIndex
+                    ),
+                    KnotStrandLaneClosurePermutation(strand),
+                    KnotStrandMetadata(strand)
                 )
-            ]
+        ],
+        bundle = MakeKnot(
+            bundleStrands,
+            bundleCrossings,
+            concat(
+                KnotMetadata(knot),
+                [
+                    "bundleCordCount", cordCount,
+                    "bundleCordRadius", resolvedRadius,
+                    "bundleCordGap", cordGap,
+                    "bundleWidth", KnotBundleOccupiedWidth(
+                        cordCount,
+                        resolvedRadius,
+                        cordGap
+                    ),
+                    "bundleMinimumClearance", minimumClearance
+                ]
+            )
         )
-    );
+    )
+    assert(
+        !checkCrossingClearance
+        || KnotBundleHasCrossingClearance(
+            bundle,
+            resolvedRadius,
+            minimumClearance
+        ),
+        "Knot bundle cords do not preserve the requested crossing clearance."
+    )
+    bundle;
 
 module RenderKnotDebugSegment(a, b, radius, colorValue, fragments)
 {
@@ -1258,8 +1424,8 @@ module RenderKnotCords(
 }
 
 // Expand each master strand into symmetric, untwisted lanes and render every
-// lane through the existing capsule-cord path. Recorded crossing remapping,
-// crossing lifts, explicit bundle twist, and Möbius closure remain deferred.
+// lane through the existing capsule-cord path. Crossing-aware lanes inherit
+// the master lift and are checked pairwise; explicit twist remains deferred.
 module RenderKnotCordBundle(
     knot,
     cordCount = 3,
@@ -1267,7 +1433,9 @@ module RenderKnotCordBundle(
     cordGap = 0.4,
     bundleWidth = undef,
     fragments = 24,
-    validationTolerance = 0.001)
+    validationTolerance = 0.001,
+    minimumClearance = 0,
+    checkCrossingClearance = true)
 {
     resolvedRadius = KnotBundleResolvedRadius(
         cordCount,
@@ -1280,7 +1448,9 @@ module RenderKnotCordBundle(
         cordCount,
         resolvedRadius,
         cordGap,
-        bundleWidth
+        bundleWidth,
+        minimumClearance,
+        checkCrossingClearance
     );
 
     RenderKnotCords(

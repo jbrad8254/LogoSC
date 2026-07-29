@@ -26,18 +26,19 @@ remains responsible for extrusion, hulls, Minkowski operations, booleans, and 3D
 - `RenderKnotCords()`, producing manufacturable round cords from sphere-hulled capsules with
   explicit radius and fragment controls;
 - `MakeKnotBundle()` and `RenderKnotCordBundle()`, expanding each master route into stable,
-  symmetric, untwisted adjacent lanes with explicit or width-fitted cord radius;
+  symmetric, untwisted adjacent lanes with explicit or width-fitted cord radius, crossing
+  remapping, collective lift, and lane-pair clearance checks;
 - `MakeCircularBraidKnot()`, compiling signed adjacent-lane crossings into standard circular
   closures with permutation-cycle components and explicit crossing topology;
 - selectable planar-projection and spatial views across diagnostics, cords, bundles, and
   presentation galleries;
-- a dedicated 51-result automated suite plus topology, bundle, and braid presentation galleries.
+- a dedicated 55-result automated suite plus topology, bundle, braid, and braided-bundle
+  presentation galleries.
 
-This slice deliberately does not implement ribbons, recorded-crossing remapping, crossing lifts,
-automatic bundle-envelope clearance, explicit twist, Möbius closure, or AI image import. Callers
-must select dimensions and sampling appropriate for the route. Reserved strand fields and
-metadata allow later milestones to extend the representation without changing its established
-leading fields.
+This slice deliberately does not implement ribbons, explicit twist, Möbius closure, general
+collision discovery, tight-curve rejection, or AI image import. Callers must select dimensions
+and sampling appropriate for the route. Reserved strand fields and metadata allow later
+milestones to extend the representation without changing its established leading fields.
 
 ## How LogoSC is used
 
@@ -324,11 +325,10 @@ generator
   -> ribbon, relief, or rounded-cord rendering
 ```
 
-### Implemented untwisted bundle boundary
+### Implemented crossing-aware untwisted bundle boundary
 
-`MakeKnotBundle()` now performs the first bundle-expansion stage for sampled 3D routes without
-recorded crossing objects. `RenderKnotCordBundle()` renders the expanded result through the
-existing capsule renderer.
+`MakeKnotBundle()` expands sampled 3D master routes after crossing assignment.
+`RenderKnotCordBundle()` renders the result through the existing capsule renderer.
 
 The implementation provides:
 
@@ -341,16 +341,23 @@ The implementation provides:
 - a distributed signed closure correction for closed routes;
 - exact repetition of each expanded lane's first sample at its endpoint;
 - expansion of every master component in a knot or link;
-- lane metadata recording its master index, lane index, and signed offset.
+- lane metadata recording its master index, lane index, and signed offset;
+- `N*N` lane-pair records for each master crossing;
+- preserved branch parameters and over/under ownership;
+- rebuilt encounter indexes for every expanded strand;
+- collective lift inherited from the master braid route;
+- clearance analysis against every remapped cord pair.
 
 An odd cord count preserves one lane exactly on the master centerline. Even bundles remain
 symmetric without inventing a center lane. The expanded result exposes lanes as individual
 strand records, which keeps them directly renderable and testable during this untwisted stage.
 
-The initial function rejects knots with recorded crossings rather than discarding or incorrectly
-remapping their topology. Torus routes are supported because their 3D separation is already
-present in the sample coordinates. Crossing-aware expansion will need to replicate encounters,
-map over/under ownership to complete bundle envelopes, and apply synchronized lifts to all lanes.
+Torus routes remain supported because their 3D separation is already present in the sample
+coordinates. For recorded crossings, each master event expands to the Cartesian product of
+branch-A and branch-B lanes. The required center distance is
+`2*cordRadius + minimumClearance`; construction fails by default when any mapped pair is too
+close. This checks the complete recorded crossing envelope, but it is not general collision
+discovery for unrecorded near approaches or tight offset curves.
 
 ### Möbius-like bundle twists
 
@@ -475,11 +482,10 @@ The word *lane* appears in both features but has a different role:
 - A bundle lane is a geometric offset from one master strand. Untwisted bundle lanes preserve
   their relative order and do not create crossing topology.
 
-`MakeCircularBraidKnot()` therefore runs before any future crossing-aware bundle expansion. It
-decides master routes, components, crossing parameters, and over/under branches.
-`MakeKnotBundle()` takes already-decided master geometry and produces adjacent manufacturing
-cords. The current bundle boundary accepts only records without crossings because a correct
-composition must lift every offset cord together and test clearance against the full envelope.
+`MakeCircularBraidKnot()` therefore runs before crossing-aware bundle expansion. It decides
+master routes, components, crossing parameters, and over/under branches. `MakeKnotBundle()`
+takes that already-decided topology, produces adjacent manufacturing cords, maps each master
+crossing to every lane pair, and checks clearance against the full recorded crossing envelope.
 
 The User Manual's **Braid versus bundle** section provides paired gallery images and a
 user-facing comparison.
@@ -867,12 +873,12 @@ links where supported by the selected generator.
 2. **Torus knots, capsule cords, and untwisted bundles** — implemented
    - Closed 3D routes, correct link-component handling, validated capsule rendering, stable
      transported lane frames, symmetric bundle expansion, and width fitting are complete.
-   - Recorded-crossing remapping, crossing lifts, explicit twist, Möbius closure, and automatic
-     clearance analysis remain deferred.
+   - Explicit twist, Möbius closure, tight-curve rejection, and general collision discovery
+     remain deferred.
 3. **Circular braid words** — implemented
    - Signed crossings, lane tracking, Z bumps, crossing records, self-crossing branches,
      permutation-cycle closure, tests, and a presentation gallery are complete.
-   - Rectangular exterior closure and crossing-aware bundle expansion remain deferred.
+   - Rectangular exterior closure remains deferred.
 4. **Celtic tile grids**
    - Add traditional interlace, port validation, tracing, and relief output.
 5. **2D ribbon and bas-relief compiler**

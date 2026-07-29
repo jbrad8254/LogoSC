@@ -10,13 +10,13 @@
   with `gcd(p,q)` independently closed components.
 - Added selectable Planar and Spatial knot debug views. Planar mode projects centerline and
   sample diagnostics to `z = 0` without changing the stored 3D knot route.
-- Added a separate 51-result knot test suite and runner covering record accessors, valid and
+- Added a separate 55-result knot test suite and runner covering record accessors, valid and
   invalid structures, closure, crossings, encounter indexes, lane permutations, torus sample
   counts, exact closure, distinct link components, generated-result validation, and cord-segment
   and bundle accounting, plus signed braid topology and closure.
-- Added `LogoSC-Knots-Examples.scad`, documented topology, cord, bundle, and braid presentation
-  galleries, plus focused individual examples. Ribbons, crossing-aware bundle expansion,
-  explicit twist, and AI image import remain deferred.
+- Added `LogoSC-Knots-Examples.scad`, documented topology, cord, bundle, braid, and braided-bundle
+  presentation galleries, plus focused individual examples. Ribbons, explicit twist, and AI
+  image import remain deferred.
 - Added validated `RenderKnotCords()` manufacturing geometry, converting every adjacent sampled
   pair into a sphere-hulled capsule with explicit radius and fragment controls. Added segment
   accounting helpers and four focused tests.
@@ -45,6 +45,13 @@
   parameters, signed height, encounters, three-lane closure, and generated validation.
 - Added a labeled `BraidGallery` with Hopf, trefoil, and three-lane circular closures plus a
   reproducible documentation image.
+- Added crossing-aware bundle expansion. Every recorded master crossing now expands to all
+  `N*N` cord-lane pairs with preserved parameters and over-branch ownership, rebuilt encounter
+  indexes, inherited collective Z lift, and enforced minimum surface-clearance analysis.
+- Added four focused results for crossing remapping, encounter reconstruction, interpolation,
+  and passing/failing clearance configurations, bringing the independent knot suite to 55.
+- Added `BraidBundleGallery` with two-cord Hopf, trefoil, and three-lane braid compositions plus
+  a reproducible documentation image.
 - Added a side-by-side User Manual comparison clarifying that braids generate crossing topology
   by exchanging strand ownership across logical lanes, while bundles generate parallel
   manufacturing geometry around an existing master route.

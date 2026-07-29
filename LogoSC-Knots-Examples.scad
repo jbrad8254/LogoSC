@@ -2,8 +2,8 @@
 
 include <LogoSC-Knots.scad>
 
-KnotExample = "BraidGallery"; // [BraidGallery,BundleGallery,CordGallery,Unknot,Trefoil,HopfLink,CrossingRecord]
-KnotView = "Planar"; // [Planar, Spatial]
+KnotExample = "BraidBundleGallery"; // [BraidBundleGallery,BraidGallery,BundleGallery,CordGallery,Unknot,Trefoil,HopfLink,CrossingRecord]
+KnotView = "Spatial"; // [Planar, Spatial]
 KnotOutput = "Debug"; // [Debug, Cord, Bundle]
 KnotShowSamples = false;
 KnotCenterlineRadius = 2; // [0.01:0.01:5]
@@ -13,6 +13,7 @@ KnotBundleCordCount = 3; // [1:1:7]
 KnotBundleCordGap = 0.4; // [0:0.1:3]
 KnotBundleFitWidth = false;
 KnotBundleWidth = 8; // [1:0.5:30]
+KnotBundleMinimumClearance = 0; // [0:0.1:5]
 KnotGalleryLabels = true;
 
 function KnotExampleResult(name) =
@@ -57,7 +58,9 @@ module RenderKnotExample(name)
             cordRadius = KnotCordRadius,
             cordGap = KnotBundleCordGap,
             bundleWidth = KnotBundleFitWidth ? KnotBundleWidth : undef,
-            fragments = KnotCordFragments
+            fragments = KnotCordFragments,
+            minimumClearance = KnotBundleMinimumClearance,
+            checkCrossingClearance = KnotView == "Spatial"
         );
     }
     else if (KnotOutput == "Cord" && name != "CrossingRecord")
@@ -272,7 +275,78 @@ module RenderKnotBraidGallery()
     RenderKnotGalleryLabel("3-LANE BRAID", [145, -30, -8]);
 }
 
-if (KnotExample == "BraidGallery")
+module RenderKnotBraidBundleGalleryExample(
+    name,
+    cordCount,
+    position,
+    rotation,
+    strandColors)
+{
+    bundle = MakeKnotBundle(
+        KnotExampleResult(name),
+        cordCount,
+        cordRadius = 0.58,
+        cordGap = 0.26,
+        minimumClearance = 0.2
+    );
+
+    translate(position)
+    rotate(KnotView == "Planar" ? [0, 0, rotation[2]] : rotation)
+        RenderKnotGalleryCords(bundle, strandColors, 0.58);
+}
+
+module RenderKnotBraidBundleGallery()
+{
+    RenderKnotGalleryLabel(
+        str("LogoSC  BRAIDED CORD BUNDLES  -  ", KnotView),
+        [85, 39, -8],
+        5.4
+    );
+
+    RenderKnotBraidBundleGalleryExample(
+        "BraidHopf",
+        2,
+        [25, 4, 0],
+        [56, 0, -12],
+        [
+            [0.02, 0.62, 0.76],
+            [0.12, 0.82, 0.62],
+            [0.96, 0.62, 0.10],
+            [0.94, 0.30, 0.08]
+        ]
+    );
+    RenderKnotGalleryLabel("HOPF  -  2 x 2 CORDS", [25, -30, -8], 3.5);
+
+    RenderKnotBraidBundleGalleryExample(
+        "BraidTrefoil",
+        2,
+        [85, 4, 0],
+        [56, 0, 18],
+        [
+            [0.98, 0.66, 0.08],
+            [0.84, 0.16, 0.12]
+        ]
+    );
+    RenderKnotGalleryLabel("TREFOIL  -  2 CORDS", [85, -30, -8], 3.5);
+
+    RenderKnotBraidBundleGalleryExample(
+        "BraidThree",
+        2,
+        [145, 4, 0],
+        [56, 0, -12],
+        [
+            [0.35, 0.18, 0.75],
+            [0.82, 0.32, 0.72]
+        ]
+    );
+    RenderKnotGalleryLabel("3-LANE  -  2 CORDS", [145, -30, -8], 3.5);
+}
+
+if (KnotExample == "BraidBundleGallery")
+{
+    RenderKnotBraidBundleGallery();
+}
+else if (KnotExample == "BraidGallery")
 {
     RenderKnotBraidGallery();
 }

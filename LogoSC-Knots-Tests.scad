@@ -345,6 +345,30 @@ function KnotBundleTestResults() =
             3,
             0.8,
             0.3
+        ),
+        braidTrefoil = MakeCircularBraidKnot(
+            2,
+            [1, 1, 1],
+            20,
+            5,
+            5,
+            8
+        ),
+        braidedBundle = MakeKnotBundle(
+            braidTrefoil,
+            2,
+            0.7,
+            0.3,
+            minimumClearance = 0.2
+        ),
+        braidedCrossings = KnotCrossings(braidedBundle),
+        firstBraidedCrossing = braidedCrossings[0],
+        oversizedUncheckedBundle = MakeKnotBundle(
+            braidTrefoil,
+            2,
+            8,
+            0,
+            checkCrossingClearance = false
         )
     )
 [
@@ -465,6 +489,56 @@ function KnotBundleTestResults() =
         len(KnotStrands(hopfBundle)) == 6
         && KnotCordSegmentCount(hopfBundle) == 144
         && KnotValidationIsValid(ValidateKnot(hopfBundle))
+    ),
+    LogoTestResult(
+        "knot bundle remaps braid crossing lane pairs",
+        len(KnotStrands(braidedBundle)) == 2
+        && len(braidedCrossings) == 12
+        && KnotCrossingStrandA(firstBraidedCrossing) == 0
+        && KnotCrossingStrandB(firstBraidedCrossing) == 0
+        && KnotCrossingOverStrand(firstBraidedCrossing) == 0
+        && KnotCrossingOverBranch(firstBraidedCrossing) == "A"
+        && KnotCrossingStrandA(braidedCrossings[1]) == 0
+        && KnotCrossingStrandB(braidedCrossings[1]) == 1
+        && KnotCrossingOverStrand(braidedCrossings[1]) == 0
+    ),
+    LogoTestResult(
+        "knot bundle preserves crossing parameters and encounters",
+        KnotCrossingParameterA(firstBraidedCrossing)
+            == KnotCrossingParameterA(KnotCrossings(braidTrefoil)[0])
+        && KnotCrossingParameterB(firstBraidedCrossing)
+            == KnotCrossingParameterB(KnotCrossings(braidTrefoil)[0])
+        && len(
+            KnotStrandCrossingEncounters(KnotStrands(braidedBundle)[0])
+        ) == 12
+        && len(
+            KnotStrandCrossingEncounters(KnotStrands(braidedBundle)[1])
+        ) == 12
+        && KnotValidationIsValid(ValidateKnot(braidedBundle))
+    ),
+    LogoTestResult(
+        "knot bundle reports collective crossing clearance",
+        len(KnotBundleCrossingClearances(braidedBundle, 0.7, 0.2))
+            == 12
+        && KnotBundleHasCrossingClearance(braidedBundle, 0.7, 0.2)
+        && !KnotBundleHasCrossingClearance(
+            oversizedUncheckedBundle,
+            8,
+            0
+        )
+    ),
+    LogoTestResult(
+        "knot bundle normalized interpolation",
+        KnotTestPointNearlyEqual(
+            KnotStrandPointAtParameter(KnotStrands(braidedBundle)[0], 0),
+            KnotStrandSamples(KnotStrands(braidedBundle)[0])[0]
+        )
+        && KnotTestPointNearlyEqual(
+            KnotStrandPointAtParameter(KnotStrands(braidedBundle)[0], 1),
+            KnotStrandSamples(KnotStrands(braidedBundle)[0])[
+                KnotStrandSampleCount(KnotStrands(braidedBundle)[0]) - 1
+            ]
+        )
     )
 ];
 

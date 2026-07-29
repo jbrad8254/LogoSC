@@ -1380,9 +1380,10 @@ The gallery shows a two-component Hopf closure in cyan/green, a one-component tr
 gold, and a three-lane signed braid in purple. Colors distinguish components or examples only.
 Choose `KnotExample = "BraidGallery"` and use `KnotView` to compare Planar and Spatial output.
 
-Recorded braid crossings are not yet accepted by `MakeKnotBundle()`. Crossing-aware bundle
-expansion must synchronize each Z bump across every lane and test the full bundle envelope;
-silently dropping the records would produce incorrect topology.
+Recorded braid crossings are accepted by `MakeKnotBundle()`. Each master crossing expands to
+every pair of bundle lanes, so an `N`-cord bundle produces `N*N` lane-pair records per master
+crossing. Every lane inherits the master Z-bump profile and branch ownership. The expansion then
+checks every actual cord-center pair against the requested surface clearance.
 
 #### Braid versus bundle
 
@@ -1418,7 +1419,7 @@ does not make them cross one another. For example, a three-cord bundle of one tr
 creates three neighboring trefoil-shaped cords; it does not reinterpret the trefoil as a
 three-lane braid.
 
-The two concepts are intended to compose eventually:
+The two concepts now compose:
 
 ```text
 signed braid word
@@ -1428,10 +1429,15 @@ signed braid word
   -> capsule rendering
 ```
 
-That composition is not implemented yet. Applying a bundle to a recorded braid requires every
-cord in the bundle to share the master crossing lift while maintaining clearance for the entire
-bundle envelope. Until that mapping is defined and validated, `MakeKnotBundle()` rejects braid
-results instead of silently producing misleading geometry.
+`MakeKnotBundle()` maps each crossing branch to its expanded strand indexes, preserves normalized
+parameters and the `"A"`/`"B"` over-branch decision, and rebuilds every lane's encounter list.
+Because all `N*N` lane pairs are represented, the clearance test covers the complete bundle
+envelope rather than only the two master centerlines.
+
+![LogoSC crossing-aware braided cord bundles](images/knot-braided-bundle-gallery.png)
+
+The gallery combines braid topology with two manufacturing cords per master strand. Colors
+identify expanded cords for presentation only.
 
 #### Adjacent cord bundles
 
@@ -1449,6 +1455,37 @@ RenderKnotCordBundle(
     fragments = 24
 );
 ```
+
+Recorded braids use the same renderer. `minimumClearance` is the requested surface-to-surface
+distance at every remapped crossing:
+
+```scad
+braidTrefoil = MakeCircularBraidKnot(
+    2,
+    [1, 1, 1],
+    majorRadius = 20,
+    laneSpacing = 5,
+    crossingHeight = 5
+);
+
+RenderKnotCordBundle(
+    braidTrefoil,
+    cordCount = 2,
+    cordRadius = 0.7,
+    cordGap = 0.3,
+    minimumClearance = 0.2
+);
+```
+
+The required crossing center distance is `2*cordRadius + minimumClearance`.
+`KnotBundleCrossingClearances()` returns one result for each remapped crossing, and
+`KnotBundleHasCrossingClearance()` provides a Boolean summary. The bundle constructor and
+renderer enforce the check by default; set `checkCrossingClearance = false` only for deliberate
+diagnostic inspection of a failing configuration.
+
+The example file does exactly that for Planar bundle output because projection intentionally
+removes all crossing height. Spatial output retains normal enforcement and is the manufacturing
+view.
 
 For `N` cords of radius `r` with surface gap `g`, the occupied bundle width is
 `2*N*r + (N-1)*g`. Set `bundleWidth` to fit the cord radius automatically:
@@ -1471,9 +1508,9 @@ lateral direction along the route. Closed routes receive a distributed frame cor
 repeat their first expanded sample exactly, avoiding an open seam. This produces stable
 untwisted lanes through straight and curved 3D samples without relying on a fragile Frenet frame.
 
-This first bundle boundary accepts knots without recorded crossing objects. Torus knots and links
-qualify because their separation is already encoded in their 3D samples. Crossing-record
-remapping, collective crossing lifts, automatic bundle-envelope clearance, explicit twist, and
+Torus knots and links remain usable because their separation is already encoded in their 3D
+samples. Recorded crossings add explicit lane-pair clearance analysis; implicit near approaches
+on routes without crossing records are not yet discovered automatically. Explicit twist,
 Möbius lane closure remain later milestones.
 
 ![LogoSC adjacent knot-cord bundle gallery](images/knot-bundle-gallery.png)
@@ -1481,6 +1518,8 @@ Möbius lane closure remain later milestones.
 The gallery applies two, three, and four lanes to the same master trefoil. Colors distinguish
 individual lanes and carry no manufacturing or topology semantics. Choose
 `KnotExample = "BundleGallery"` to open the scene in the Customizer.
+
+Choose `KnotExample = "BraidBundleGallery"` for the crossing-aware composition gallery.
 
 ### 7.13 OpenSCAD wrapper pattern
 

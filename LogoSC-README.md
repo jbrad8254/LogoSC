@@ -427,9 +427,8 @@ RenderKnotCordBundle(
 ```
 
 `RenderKnotCords()` hulls equal-radius spheres at each adjacent sample pair. The caller controls
-radius, route sampling, and sphere resolution and must preserve adequate clearance. Adjacent
-cord bundles, crossing lifts, braid words, ribbons, and bas-relief remain staged work described
-in `LogoSC-Knots-Design.md`.
+radius, route sampling, and sphere resolution. Adjacent cord bundles and signed braid words are
+implemented; ribbons and bas-relief remain staged work described in `LogoSC-Knots-Design.md`.
 
 The current torus implementation does not call LogoSC Core behind the scenes. Pure OpenSCAD
 functions create and validate its sampled records, and native OpenSCAD creates the 3D solids.
@@ -440,7 +439,9 @@ boundary is documented in `LogoSC-Knots-Design.md#how-logosc-is-used`.
 
 The companion also expands each master route into stable, symmetric, untwisted adjacent lanes.
 It supports explicit cord radius or automatic equal-radius fitting within a requested bundle
-width. Recorded-crossing remapping, crossing lifts, and explicit bundle twist remain deferred.
+width. Recorded braid crossings expand to every lane pair, preserve branch ownership, inherit
+the master crossing lift, and support a minimum surface-clearance check. Explicit bundle twist
+remains deferred.
 
 ![LogoSC adjacent knot-cord bundle gallery](images/knot-bundle-gallery.png)
 
@@ -454,6 +455,8 @@ records for every generator. Self-crossings use an additive branch field while p
 established leading record fields.
 
 ![LogoSC circular braid closures](images/knot-braid-gallery.png)
+
+![LogoSC crossing-aware braided cord bundles](images/knot-braided-bundle-gallery.png)
 
 ## Future rendering work
 

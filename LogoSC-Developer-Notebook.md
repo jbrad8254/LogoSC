@@ -3012,3 +3012,39 @@ Verification boundary:
   indexes, three-lane closure, and complete validation.
 - Add a spatial/planar `BraidGallery` generated from the real braid records and normal cord
   renderer, plus a reproducible documentation PNG.
+
+### 2026-07-29 — Crossing-aware braided cord bundles
+
+Context:
+
+- Circular braids now provide explicit normalized crossings and branch-level over/under
+  ownership, while untwisted bundles already expand sampled 3D routes through stable transported
+  frames.
+- Silently discarding braid crossings was never acceptable, but retaining only one master
+  crossing would also miss collisions between offset cords.
+
+Decision:
+
+- Expand every master crossing to the Cartesian product of its branch-A and branch-B bundle
+  lanes. An `N`-cord bundle therefore records `N*N` crossings per master event.
+- Map master strand indexes to `masterIndex*N + laneIndex`, preserve both normalized parameters
+  and the over-branch field, and rebuild encounter indexes from the expanded crossing list.
+- Let every lane inherit the master's equal/opposite braid Z profile. This produces a
+  synchronized collective crossing lift without introducing an independent per-lane topology.
+- Interpolate each remapped branch at its crossing parameter and require center distance
+  `2*cordRadius + minimumClearance`. Checking all remapped pairs evaluates the complete recorded
+  bundle envelope.
+- Enforce clearance by default in `MakeKnotBundle()` and `RenderKnotCordBundle()`. Retain an
+  explicit opt-out only for diagnostic construction of known failing cases.
+- Keep the restriction precise: this is recorded-crossing clearance, not automatic collision
+  discovery for unrecorded near approaches or tight offset curves.
+
+Verification boundary:
+
+- Add four deterministic results for lane-pair remapping, parameters and encounters, normalized
+  interpolation, and passing/failing collective clearance, bringing the knot suite from 51 to
+  55.
+- Add `BraidBundleGallery` using actual Hopf, trefoil, and three-lane braid records expanded to
+  two manufacturing cords per master strand.
+- Require the complete knot, Foundation/Validation, and fastener suites, Planar and Spatial
+  gallery exports, a documentation PNG, and a representative braided-bundle STL.
