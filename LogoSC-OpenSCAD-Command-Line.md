@@ -189,7 +189,8 @@ printable mesh quality.
 ### Run the optional knot-companion suite
 
 `LogoSC-Knots-Test-Runner.scad` is the separate deterministic suite for knot records,
-validation, debug inputs, generators, cord-segment accounting, and bundle mathematics:
+validation, debug inputs, torus and braid generators, cord-segment accounting, and bundle
+mathematics:
 
 ```powershell
 $knotTestLogPath = Join-Path $env:TEMP 'LogoSC-knot-tests.echo'
@@ -283,6 +284,29 @@ $bundleGalleryPath = Join-Path (Get-Location) 'images\knot-bundle-gallery.png'
 The colors distinguish lanes but do not modify manufacturing geometry. Use
 `KnotOutput = "Bundle"` with an individual example to exercise the uncolored
 `RenderKnotCordBundle()` module and its Customizer parameters directly.
+
+### Render the circular braid gallery
+
+The braid gallery shows Hopf, trefoil, and three-lane standard circular closures:
+
+![LogoSC circular braid closures](images/knot-braid-gallery.png)
+
+```powershell
+$braidGalleryPath = Join-Path (Get-Location) 'images\knot-braid-gallery.png'
+
+& $openScadCli `
+    -D 'KnotExample=\"BraidGallery\"' `
+    -D 'KnotView=\"Spatial\"' `
+    -D 'KnotCordFragments=18' `
+    --imgsize '1400,700' `
+    --camera '85,4,0,0,0,0,220' `
+    --projection o `
+    -o $braidGalleryPath `
+    'LogoSC-Knots-Examples.scad'
+```
+
+Every displayed route comes from `MakeCircularBraidKnot()` and the normal capsule renderer.
+Colors distinguish components or examples and do not alter crossing topology.
 
 ## Example 2: export and inspect a debug PNG
 

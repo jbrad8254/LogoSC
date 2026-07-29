@@ -3,9 +3,9 @@
 ## Status and purpose
 
 This is the authoritative design plan for generative knot work in LogoSC. It covers organic or
-Gordian-style parametric knots and traditional Celtic interlace. The torus generator,
-single-cord manufacturing, and untwisted adjacent bundle slices are implemented; later
-milestones remain proposals until their APIs are reviewed.
+Gordian-style parametric knots and traditional Celtic interlace. The torus and circular-braid
+generators, single-cord manufacturing, and untwisted adjacent bundle slices are implemented;
+later milestones remain proposals until their APIs are reviewed.
 
 LogoSC remains a 2D filled-region evaluator. A future optional companion may use LogoSC for
 planar routes, ribbon footprints, masks, local transforms, and repeated motifs. Native OpenSCAD
@@ -27,10 +27,11 @@ remains responsible for extrusion, hulls, Minkowski operations, booleans, and 3D
   explicit radius and fragment controls;
 - `MakeKnotBundle()` and `RenderKnotCordBundle()`, expanding each master route into stable,
   symmetric, untwisted adjacent lanes with explicit or width-fitted cord radius;
+- `MakeCircularBraidKnot()`, compiling signed adjacent-lane crossings into standard circular
+  closures with permutation-cycle components and explicit crossing topology;
 - selectable planar-projection and spatial views across diagnostics, cords, bundles, and
   presentation galleries;
-- a dedicated 38-result automated suite, a single-cord topology gallery, and a two-, three-, and
-  four-cord bundle gallery.
+- a dedicated 51-result automated suite plus topology, bundle, and braid presentation galleries.
 
 This slice deliberately does not implement ribbons, recorded-crossing remapping, crossing lifts,
 automatic bundle-envelope clearance, explicit twist, Möbius closure, or AI image import. Callers
@@ -235,12 +236,17 @@ Crossing =
     parameterA,
     strandB,
     parameterB,
-    overStrand
+    overStrand,
+    overBranch
 ]
 ```
 
-Exact OpenSCAD field indices and constructors remain an implementation decision. The important
-separation is:
+The implemented `overBranch` field is additive and optional for compatibility. Distinct-strand
+crossings infer `"A"` or `"B"` from `overStrand`. Self-crossings have the same strand index on
+both branches at different normalized parameters, so they must record the over branch
+explicitly. The established first six crossing fields retain their original indexes.
+
+The important separation is:
 
 - generators decide routes;
 - crossing analysis records encounters;
@@ -438,6 +444,45 @@ blend(u) = (1 - cos(180*u)) / 2
 Output lanes must then close back to input lanes around a rectangular border or cyclic
 medallion. Braids provide explicit topology and strong validation fixtures, so they should
 precede automatic crossing discovery.
+
+### Implemented circular braid boundary
+
+`MakeCircularBraidKnot(laneCount, word, majorRadius, laneSpacing, crossingHeight,
+samplesPerGenerator)` implements the cyclic-medallion choice:
+
+- signed nonzero integer generators are validated against `laneCount`;
+- lane state is recorded before and after every adjacent swap;
+- a cosine blend exchanges the selected lane radii;
+- positive generators lift branch A and lower branch B; negative generators reverse them;
+- every instruction emits one crossing at its midpoint with normalized branch parameters;
+- the final label-to-lane permutation is decomposed into disjoint cycles;
+- each cycle traces one independently closed strand through all corresponding label paths;
+- self-crossings record explicit branch ownership and duplicate encounter indexes for their two
+  appearances on the same component;
+- exact endpoint repetition closes every sampled component.
+
+This is the standard closure expressed around a circular axis: each output lane reconnects to
+the correspondingly numbered input lane. Two-lane word `[1,1]` produces two permutation cycles
+and a Hopf link; `[1,1,1]` produces one cycle and a trefoil. Rectangular exterior closure remains
+deferred because it adds return-path routing without changing the braid topology contract.
+
+### Braid topology versus bundle geometry
+
+The word *lane* appears in both features but has a different role:
+
+- A braid lane is a logical position. Physical strand labels exchange lanes at signed crossings,
+  and the final lane permutation determines component topology.
+- A bundle lane is a geometric offset from one master strand. Untwisted bundle lanes preserve
+  their relative order and do not create crossing topology.
+
+`MakeCircularBraidKnot()` therefore runs before any future crossing-aware bundle expansion. It
+decides master routes, components, crossing parameters, and over/under branches.
+`MakeKnotBundle()` takes already-decided master geometry and produces adjacent manufacturing
+cords. The current bundle boundary accepts only records without crossings because a correct
+composition must lift every offset cord together and test clearance against the full envelope.
+
+The User Manual's **Braid versus bundle** section provides paired gallery images and a
+user-facing comparison.
 
 ## Generator 3: Celtic tile grids
 
@@ -824,8 +869,10 @@ links where supported by the selected generator.
      transported lane frames, symmetric bundle expansion, and width fitting are complete.
    - Recorded-crossing remapping, crossing lifts, explicit twist, Möbius closure, and automatic
      clearance analysis remain deferred.
-3. **Braid words**
-   - Establish crossing records, lane tracking, Z bumps, and closure.
+3. **Circular braid words** — implemented
+   - Signed crossings, lane tracking, Z bumps, crossing records, self-crossing branches,
+     permutation-cycle closure, tests, and a presentation gallery are complete.
+   - Rectangular exterior closure and crossing-aware bundle expansion remain deferred.
 4. **Celtic tile grids**
    - Add traditional interlace, port validation, tracing, and relief output.
 5. **2D ribbon and bas-relief compiler**
@@ -848,7 +895,8 @@ gallery, and a clean optional-companion boundary.
   master/lane metadata. A later twist milestone must trace closure permutations deliberately.
 - Implemented decision: the first bundle milestone uses stable untwisted 3D offsets. Explicit
   frame twist and Möbius closure remain later topology work.
-- Should braid closure initially be rectangular, circular, or both?
+- Implemented decision: braid closure is circular first. Rectangular exterior return routing
+  remains a later presentation/manufacturing option over the same signed-word topology.
 - What is the smallest useful Celtic tile vocabulary?
 - Should flat ribbons cut a visible underpass gap or retain continuous color-coded layers?
 - How should overlapping Z bumps combine when crossings are close?

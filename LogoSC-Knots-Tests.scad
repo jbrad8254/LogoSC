@@ -50,6 +50,7 @@ function KnotRecordTestResults() =
         && KnotCrossingStrandB(crossing) == 1
         && KnotCrossingParameterB(crossing) == 0.75
         && KnotCrossingOverStrand(crossing) == 0
+        && KnotCrossingOverBranch(crossing) == "A"
     ),
     LogoTestResult(
         "knot validation result accessors",
@@ -114,6 +115,10 @@ function KnotValidationTestResults() =
         badOverCrossing = MakeKnot(
             [validStrandA, validStrandB],
             [MakeKnotCrossing([0, 0], 0, 0.2, 1, 0.8, 2)]
+        ),
+        badBranchCrossing = MakeKnot(
+            [validStrandA],
+            [MakeKnotCrossing([0, 0], 0, 0.2, 0, 0.8, 0)]
         )
     )
 [
@@ -195,6 +200,16 @@ function KnotValidationTestResults() =
                     KnotValidationIssueCode(issue)
             ],
             KNOT_ISSUE_CROSSING_OVER
+        )
+    ),
+    LogoTestResult(
+        "knot self-crossing branch validation",
+        KnotListContains(
+            [
+                for (issue = KnotValidationIssues(ValidateKnot(badBranchCrossing)))
+                    KnotValidationIssueCode(issue)
+            ],
+            KNOT_ISSUE_CROSSING_BRANCH
         )
     )
 ];
@@ -453,13 +468,134 @@ function KnotBundleTestResults() =
     )
 ];
 
+function KnotBraidTestResults() =
+    let(
+        positiveStates = KnotBraidStates([1], 2),
+        trefoil = MakeCircularBraidKnot(2, [1, 1, 1], 20, 4, 4, 4),
+        negativeTrefoil = MakeCircularBraidKnot(2, [-1, -1, -1], 20, 4, 4, 4),
+        hopf = MakeCircularBraidKnot(2, [1, 1], 20, 4, 4, 4),
+        threeLane = MakeCircularBraidKnot(3, [1, 2], 22, 3, 4, 4),
+        trefoilStrand = KnotStrands(trefoil)[0],
+        trefoilSamples = KnotStrandSamples(trefoilStrand),
+        trefoilCrossings = KnotCrossings(trefoil),
+        firstTrefoilCrossing = trefoilCrossings[0],
+        firstNegativeCrossing = KnotCrossings(negativeTrefoil)[0],
+        positiveOverPoint = KnotBraidPointForLabel(
+            [1],
+            positiveStates,
+            2,
+            0,
+            0,
+            0.5,
+            20,
+            4,
+            4
+        ),
+        positiveUnderPoint = KnotBraidPointForLabel(
+            [1],
+            positiveStates,
+            2,
+            1,
+            0,
+            0.5,
+            20,
+            4,
+            4
+        )
+    )
+[
+    LogoTestResult(
+        "braid signed word validation",
+        KnotBraidWordIsValid([1, -1, 1], 2)
+        && KnotBraidWordIsValid([1, -2, 2], 3)
+        && !KnotBraidWordIsValid([], 2)
+        && !KnotBraidWordIsValid([0], 2)
+        && !KnotBraidWordIsValid([2], 2)
+        && !KnotBraidWordIsValid([1.5], 3)
+    ),
+    LogoTestResult(
+        "braid lane state evolution",
+        positiveStates == [[0, 1], [1, 0]]
+        && KnotBraidStates([1, 1], 2) == [[0, 1], [1, 0], [0, 1]]
+        && KnotBraidSwapLanes([0, 1, 2], 1) == [0, 2, 1]
+    ),
+    LogoTestResult(
+        "braid closure permutation",
+        KnotBraidClosurePermutation([1, 1], 2) == [0, 1]
+        && KnotBraidClosurePermutation([1, 1, 1], 2) == [1, 0]
+        && KnotBraidClosurePermutation([1, 2], 3) == [2, 0, 1]
+    ),
+    LogoTestResult(
+        "braid closure permutation cycles",
+        KnotPermutationCycles([0, 1]) == [[0], [1]]
+        && KnotPermutationCycles([1, 0]) == [[0, 1]]
+        && KnotPermutationCycles([2, 0, 1]) == [[0, 2, 1]]
+    ),
+    LogoTestResult(
+        "braid cosine exchange blend",
+        KnotBraidBlend(0) == 0
+        && KnotTestNearlyEqual(KnotBraidBlend(0.5), 0.5)
+        && KnotBraidBlend(1) == 1
+    ),
+    LogoTestResult(
+        "braid trefoil component samples and closure",
+        len(KnotStrands(trefoil)) == 1
+        && KnotStrandSampleCount(trefoilStrand) == 25
+        && KnotTestPointNearlyEqual(
+            trefoilSamples[0],
+            trefoilSamples[len(trefoilSamples) - 1]
+        )
+    ),
+    LogoTestResult(
+        "braid Hopf link components and samples",
+        len(KnotStrands(hopf)) == 2
+        && KnotStrandSampleCount(KnotStrands(hopf)[0]) == 9
+        && KnotStrandSampleCount(KnotStrands(hopf)[1]) == 9
+    ),
+    LogoTestResult(
+        "braid self-crossing branch records",
+        len(trefoilCrossings) == 3
+        && KnotCrossingStrandA(firstTrefoilCrossing) == 0
+        && KnotCrossingStrandB(firstTrefoilCrossing) == 0
+        && KnotCrossingParameterA(firstTrefoilCrossing)
+            != KnotCrossingParameterB(firstTrefoilCrossing)
+        && KnotCrossingOverBranch(firstTrefoilCrossing) == "A"
+        && KnotCrossingOverBranch(firstNegativeCrossing) == "B"
+    ),
+    LogoTestResult(
+        "braid signed crossing height",
+        KnotTestNearlyEqual(positiveOverPoint[2], 2)
+        && KnotTestNearlyEqual(positiveUnderPoint[2], -2)
+    ),
+    LogoTestResult(
+        "braid crossing encounter indexes",
+        KnotStrandCrossingEncounters(trefoilStrand) == [0, 0, 1, 1, 2, 2]
+        && KnotStrandCrossingEncounters(KnotStrands(hopf)[0]) == [0, 1]
+        && KnotStrandCrossingEncounters(KnotStrands(hopf)[1]) == [0, 1]
+    ),
+    LogoTestResult(
+        "braid generated results validate",
+        KnotValidationIsValid(ValidateKnot(trefoil))
+        && KnotValidationIsValid(ValidateKnot(negativeTrefoil))
+        && KnotValidationIsValid(ValidateKnot(hopf))
+        && KnotValidationIsValid(ValidateKnot(threeLane))
+    ),
+    LogoTestResult(
+        "braid three-lane closure component",
+        len(KnotStrands(threeLane)) == 1
+        && len(KnotCrossings(threeLane)) == 2
+        && KnotStrandSampleCount(KnotStrands(threeLane)[0]) == 25
+    )
+];
+
 function KnotAutomatedTestResults() =
     concat(
         KnotRecordTestResults(),
         KnotValidationTestResults(),
         KnotTorusTestResults(),
         KnotCordTestResults(),
-        KnotBundleTestResults()
+        KnotBundleTestResults(),
+        KnotBraidTestResults()
     );
 
 function KnotTestSuiteResult() =

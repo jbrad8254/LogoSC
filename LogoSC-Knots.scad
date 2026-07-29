@@ -3,10 +3,11 @@
 //
 // This file is independent of LogoSC Core. It does not call evalLogo() or emit
 // LogoSC command lists. Pure OpenSCAD functions define and validate sampled
-// knot records; native OpenSCAD sphere/hull geometry produces diagnostics,
-// manufacturable rounded cords, and untwisted adjacent cord bundles. Future
-// planar motif and ribbon stages may consume LogoSC Core without making this
-// 3D companion a Core dependency.
+// knot records; native OpenSCAD functions generate torus and circular-braid
+// routes, while sphere/hull geometry produces diagnostics, manufacturable
+// rounded cords, and untwisted adjacent cord bundles. Future planar motif and
+// ribbon stages may consume LogoSC Core without making this 3D companion a
+// Core dependency.
 // ============================================================================
 
 KNOT_STRANDS = 0;
@@ -25,6 +26,7 @@ KNOT_CROSSING_PARAMETER_A = 2;
 KNOT_CROSSING_STRAND_B = 3;
 KNOT_CROSSING_PARAMETER_B = 4;
 KNOT_CROSSING_OVER_STRAND = 5;
+KNOT_CROSSING_OVER_BRANCH = 6;
 
 KNOT_VALIDATION_KNOT = 0;
 KNOT_VALIDATION_ISSUES = 1;
@@ -48,6 +50,7 @@ KNOT_ISSUE_CROSSING_OVER = 9;
 KNOT_ISSUE_ENCOUNTER_INDEX = 10;
 KNOT_ISSUE_LANE_PERMUTATION = 11;
 KNOT_ISSUE_ENCOUNTER_STRAND = 12;
+KNOT_ISSUE_CROSSING_BRANCH = 13;
 
 // Construct a shared knot result. Metadata is generator-defined and optional.
 function MakeKnot(strands, crossings = [], metadata = []) =
@@ -101,21 +104,29 @@ function KnotCordSegmentCount(knot) =
     : KnotCordSegmentCountFromStrands(KnotStrands(knot));
 
 // Construct one projected crossing. Parameters are normalized to [0, 1].
-// overStrand must equal strandA or strandB.
+// overStrand must equal strandA or strandB. overBranch is "A" or "B";
+// distinct-strand records infer it from overStrand, while self-crossings must
+// supply it because both branches have the same strand index.
 function MakeKnotCrossing(
     point2D,
     strandA,
     parameterA,
     strandB,
     parameterB,
-    overStrand) =
+    overStrand,
+    overBranch = undef) =
 [
     point2D,
     strandA,
     parameterA,
     strandB,
     parameterB,
-    overStrand
+    overStrand,
+    !is_undef(overBranch)
+    ? overBranch
+    : strandA != strandB
+        ? overStrand == strandA ? "A" : "B"
+        : undef
 ];
 
 function KnotCrossingPoint(crossing) = crossing[KNOT_CROSSING_POINT];
@@ -124,6 +135,14 @@ function KnotCrossingParameterA(crossing) = crossing[KNOT_CROSSING_PARAMETER_A];
 function KnotCrossingStrandB(crossing) = crossing[KNOT_CROSSING_STRAND_B];
 function KnotCrossingParameterB(crossing) = crossing[KNOT_CROSSING_PARAMETER_B];
 function KnotCrossingOverStrand(crossing) = crossing[KNOT_CROSSING_OVER_STRAND];
+function KnotCrossingOverBranch(crossing) =
+    len(crossing) > KNOT_CROSSING_OVER_BRANCH
+    ? crossing[KNOT_CROSSING_OVER_BRANCH]
+    : KnotCrossingStrandA(crossing) != KnotCrossingStrandB(crossing)
+        ? KnotCrossingOverStrand(crossing) == KnotCrossingStrandA(crossing)
+            ? "A"
+            : "B"
+        : undef;
 
 // Construct a validation result. The original knot is retained for diagnostics.
 function MakeKnotValidationResult(knot, issues, tolerance = 0.001) =
@@ -376,7 +395,8 @@ function KnotCrossingValidationIssues(crossing, crossingIndex, strandCount) =
         strandB = KnotCrossingStrandB(crossing),
         parameterA = KnotCrossingParameterA(crossing),
         parameterB = KnotCrossingParameterB(crossing),
-        overStrand = KnotCrossingOverStrand(crossing)
+        overStrand = KnotCrossingOverStrand(crossing),
+        overBranch = KnotCrossingOverBranch(crossing)
     )
     concat(
         strandA < 0
@@ -385,7 +405,6 @@ function KnotCrossingValidationIssues(crossing, crossingIndex, strandCount) =
         || strandB < 0
         || floor(strandB) != strandB
         || strandB >= strandCount
-        || strandA == strandB
         ? [
             MakeKnotValidationIssue(
                 KNOT_ISSUE_CROSSING_STRAND,
@@ -399,6 +418,7 @@ function KnotCrossingValidationIssues(crossing, crossingIndex, strandCount) =
         || parameterA > 1
         || parameterB < 0
         || parameterB > 1
+        || (strandA == strandB && parameterA == parameterB)
         ? [
             MakeKnotValidationIssue(
                 KNOT_ISSUE_CROSSING_PARAMETER,
@@ -415,6 +435,16 @@ function KnotCrossingValidationIssues(crossing, crossingIndex, strandCount) =
                 "over strand is not a crossing participant",
                 crossingIndex = crossingIndex,
                 detail = overStrand
+            )
+        ]
+        : [],
+        overBranch != "A" && overBranch != "B"
+        ? [
+            MakeKnotValidationIssue(
+                KNOT_ISSUE_CROSSING_BRANCH,
+                "crossing over branch must be A or B",
+                crossingIndex = crossingIndex,
+                detail = overBranch
             )
         ]
         : []
@@ -602,6 +632,327 @@ function MakeTorusKnot(
             "majorRadius", majorRadius,
             "minorRadius", minorRadius,
             "samplesPerComponent", samplesPerComponent
+        ]
+    );
+
+function KnotBraidWordIsValid(word, laneCount, index = 0) =
+    !is_list(word)
+    || !is_num(laneCount)
+    || floor(laneCount) != laneCount
+    || laneCount < 2
+    ? false
+    : index >= len(word)
+        ? len(word) > 0
+        : is_num(word[index])
+            && floor(word[index]) == word[index]
+            && word[index] != 0
+            && abs(word[index]) < laneCount
+            && KnotBraidWordIsValid(word, laneCount, index + 1);
+
+function KnotBraidSwapLanes(laneLabels, lowerLane) =
+[
+    for (lane = [0 : len(laneLabels) - 1])
+        lane == lowerLane
+        ? laneLabels[lowerLane + 1]
+        : lane == lowerLane + 1
+            ? laneLabels[lowerLane]
+            : laneLabels[lane]
+];
+
+function KnotBraidStates(
+    word,
+    laneCount,
+    stepIndex = 0,
+    laneLabels = undef) =
+    let(
+        currentLabels = is_undef(laneLabels)
+        ? [for (lane = [0 : laneCount - 1]) lane]
+        : laneLabels
+    )
+    stepIndex >= len(word)
+    ? [currentLabels]
+    : concat(
+        [currentLabels],
+        KnotBraidStates(
+            word,
+            laneCount,
+            stepIndex + 1,
+            KnotBraidSwapLanes(
+                currentLabels,
+                abs(word[stepIndex]) - 1
+            )
+        )
+    );
+
+function KnotBraidLabelLane(laneLabels, label) =
+    [
+        for (lane = [0 : len(laneLabels) - 1])
+            if (laneLabels[lane] == label)
+                lane
+    ][0];
+
+function KnotBraidClosurePermutation(word, laneCount) =
+    let(finalState = KnotBraidStates(word, laneCount)[len(word)])
+[
+    for (label = [0 : laneCount - 1])
+        KnotBraidLabelLane(finalState, label)
+];
+
+function KnotPermutationCycle(
+    permutation,
+    start,
+    current = undef,
+    accumulated = []) =
+    let(
+        value = is_undef(current) ? start : current,
+        next = permutation[value],
+        nextAccumulated = concat(accumulated, [value])
+    )
+    next == start
+    ? nextAccumulated
+    : KnotPermutationCycle(permutation, start, next, nextAccumulated);
+
+function KnotPermutationCycles(permutation) =
+[
+    for (start = [0 : len(permutation) - 1])
+        let(cycle = KnotPermutationCycle(permutation, start))
+        if (min(cycle) == start)
+            cycle
+];
+
+function KnotBraidComponentForLabel(cycles, label) =
+    [
+        for (componentIndex = [0 : len(cycles) - 1])
+            if (KnotListContains(cycles[componentIndex], label))
+                componentIndex
+    ][0];
+
+function KnotBraidCyclePosition(cycle, label) =
+    [
+        for (position = [0 : len(cycle) - 1])
+            if (cycle[position] == label)
+                position
+    ][0];
+
+function KnotBraidBlend(u) =
+    (1 - cos(180 * u)) / 2;
+
+function KnotBraidPointForLabel(
+    word,
+    states,
+    laneCount,
+    label,
+    stepIndex,
+    u,
+    majorRadius,
+    laneSpacing,
+    crossingHeight) =
+    let(
+        generator = word[stepIndex],
+        lowerLane = abs(generator) - 1,
+        lane = KnotBraidLabelLane(states[stepIndex], label),
+        blend = KnotBraidBlend(u),
+        lanePosition = lane == lowerLane
+        ? lane + blend
+        : lane == lowerLane + 1
+            ? lane - blend
+            : lane,
+        radius = majorRadius
+            + (lanePosition - (laneCount - 1) / 2) * laneSpacing,
+        angle = 360 * (stepIndex + u) / len(word),
+        involved = lane == lowerLane || lane == lowerLane + 1,
+        overLabel = generator > 0
+        ? states[stepIndex][lowerLane]
+        : states[stepIndex][lowerLane + 1],
+        height = !involved
+        ? 0
+        : (label == overLabel ? 1 : -1)
+            * crossingHeight / 2
+            * sin(180 * u)
+    )
+    [radius * cos(angle), radius * sin(angle), height];
+
+function KnotBraidComponentSamples(
+    word,
+    states,
+    laneCount,
+    cycle,
+    majorRadius,
+    laneSpacing,
+    crossingHeight,
+    samplesPerGenerator) =
+    let(
+        uniqueSamples = [
+            for (label = cycle)
+                for (stepIndex = [0 : len(word) - 1])
+                    for (sampleIndex = [0 : samplesPerGenerator - 1])
+                        KnotBraidPointForLabel(
+                            word,
+                            states,
+                            laneCount,
+                            label,
+                            stepIndex,
+                            sampleIndex / samplesPerGenerator,
+                            majorRadius,
+                            laneSpacing,
+                            crossingHeight
+                        )
+        ]
+    )
+    concat(uniqueSamples, [uniqueSamples[0]]);
+
+function KnotBraidCrossingParameter(
+    word,
+    cycles,
+    label,
+    stepIndex) =
+    let(
+        component = KnotBraidComponentForLabel(cycles, label),
+        cycle = cycles[component],
+        cyclePosition = KnotBraidCyclePosition(cycle, label)
+    )
+    (cyclePosition * len(word) + stepIndex + 0.5)
+        / (len(cycle) * len(word));
+
+function KnotBraidCrossings(
+    word,
+    states,
+    laneCount,
+    cycles,
+    majorRadius,
+    laneSpacing) =
+[
+    for (stepIndex = [0 : len(word) - 1])
+        let(
+            generator = word[stepIndex],
+            lowerLane = abs(generator) - 1,
+            labelA = states[stepIndex][lowerLane],
+            labelB = states[stepIndex][lowerLane + 1],
+            strandA = KnotBraidComponentForLabel(cycles, labelA),
+            strandB = KnotBraidComponentForLabel(cycles, labelB),
+            parameterA = KnotBraidCrossingParameter(
+                word,
+                cycles,
+                labelA,
+                stepIndex
+            ),
+            parameterB = KnotBraidCrossingParameter(
+                word,
+                cycles,
+                labelB,
+                stepIndex
+            ),
+            crossingRadius = majorRadius
+                + (lowerLane + 0.5 - (laneCount - 1) / 2) * laneSpacing,
+            crossingAngle = 360 * (stepIndex + 0.5) / len(word),
+            overBranch = generator > 0 ? "A" : "B"
+        )
+        MakeKnotCrossing(
+            [
+                crossingRadius * cos(crossingAngle),
+                crossingRadius * sin(crossingAngle)
+            ],
+            strandA,
+            parameterA,
+            strandB,
+            parameterB,
+            overBranch == "A" ? strandA : strandB,
+            overBranch
+        )
+];
+
+function KnotBraidComponentEncounters(crossings, componentIndex) =
+[
+    for (crossingIndex = [0 : len(crossings) - 1])
+        each concat(
+            KnotCrossingStrandA(crossings[crossingIndex]) == componentIndex
+            ? [crossingIndex]
+            : [],
+            KnotCrossingStrandB(crossings[crossingIndex]) == componentIndex
+            ? [crossingIndex]
+            : []
+        )
+];
+
+// Generate the standard closure of a signed braid word around a circular axis.
+// Positive generator i makes the strand entering lower lane i cross over lane
+// i+1; negative i reverses the height relationship. Permutation cycles become
+// independently closed knot or link components.
+function MakeCircularBraidKnot(
+    laneCount,
+    word,
+    majorRadius = 24,
+    laneSpacing = 4,
+    crossingHeight = 4,
+    samplesPerGenerator = 8) =
+    assert(
+        KnotBraidWordIsValid(word, laneCount),
+        "Braid word must contain valid signed adjacent-lane generators."
+    )
+    assert(is_num(majorRadius) && majorRadius > 0, "Braid radius must be positive.")
+    assert(is_num(laneSpacing) && laneSpacing > 0, "Braid lane spacing must be positive.")
+    assert(
+        majorRadius - (laneCount - 1) * laneSpacing / 2 > 0,
+        "Braid radius must keep the innermost lane positive."
+    )
+    assert(
+        is_num(crossingHeight) && crossingHeight > 0,
+        "Braid crossing height must be positive."
+    )
+    assert(
+        is_num(samplesPerGenerator)
+        && floor(samplesPerGenerator) == samplesPerGenerator
+        && samplesPerGenerator >= 2,
+        "Braid samples per generator must be an integer of at least 2."
+    )
+    let(
+        states = KnotBraidStates(word, laneCount),
+        permutation = KnotBraidClosurePermutation(word, laneCount),
+        cycles = KnotPermutationCycles(permutation),
+        crossings = KnotBraidCrossings(
+            word,
+            states,
+            laneCount,
+            cycles,
+            majorRadius,
+            laneSpacing
+        ),
+        strands = [
+            for (componentIndex = [0 : len(cycles) - 1])
+                MakeKnotStrand(
+                    true,
+                    KnotBraidComponentSamples(
+                        word,
+                        states,
+                        laneCount,
+                        cycles[componentIndex],
+                        majorRadius,
+                        laneSpacing,
+                        crossingHeight,
+                        samplesPerGenerator
+                    ),
+                    KnotBraidComponentEncounters(crossings, componentIndex),
+                    metadata = [
+                        "generator", "circularBraid",
+                        "component", componentIndex,
+                        "closureCycle", cycles[componentIndex]
+                    ]
+                )
+        ]
+    )
+    MakeKnot(
+        strands,
+        crossings,
+        [
+            "generator", "circularBraid",
+            "laneCount", laneCount,
+            "word", word,
+            "closurePermutation", permutation,
+            "closureCycles", cycles,
+            "majorRadius", majorRadius,
+            "laneSpacing", laneSpacing,
+            "crossingHeight", crossingHeight,
+            "samplesPerGenerator", samplesPerGenerator
         ]
     );
 

@@ -225,6 +225,40 @@ components without changing their geometry.
 Choose `BundleGallery` to compare two-, three-, and four-cord trefoil bundles. Colors identify
 lanes for presentation only; the manufacturing renderer emits ordinary geometry.
 
+### Generate a circular braid closure
+
+Signed braid words explicitly control adjacent crossings:
+
+```scad
+braidTrefoil = MakeCircularBraidKnot(
+    2,
+    [1, 1, 1],
+    majorRadius = 20,
+    laneSpacing = 4,
+    crossingHeight = 5
+);
+
+ReportKnotValidation(braidTrefoil, strict = true);
+RenderKnotCords(braidTrefoil, cordRadius = 0.9);
+```
+
+Generator `+i` makes the strand entering lane `i` cross over lane `i+1`; `-i` reverses the
+height relationship. The standard circular closure traces the final lane permutation into one
+or more independently closed components. A two-lane word `[1,1]` produces a Hopf link, while
+`[1,1,1]` produces a trefoil. Self-crossings use an additive branch field without changing the
+established leading crossing-record fields.
+
+![LogoSC circular braid closures](images/knot-braid-gallery.png)
+
+Choose `BraidGallery` for the Hopf, trefoil, and three-lane presentation scene. Braid records
+already contain crossings, so bundle expansion remains deferred until crossing ownership and
+height can be remapped to complete bundle envelopes.
+
+A braid and a bundle are different layers: braids exchange physical strands through logical
+lanes and determine topology, while bundles place parallel manufacturing cords around an
+already-defined master route. See the User Manual's **Braid versus bundle** comparison for
+side-by-side images and the planned composition pipeline.
+
 ## Current public API
 
 The main user-facing renderer is:
@@ -304,9 +338,9 @@ See `LogoSC-CheatSheet.md` and `LogoSC-User-Manual.md` for the complete command 
 - `LogoSC-Nuts-And-Bolts.scad` — customizable printable fastener and thread-profile model.
 - `LogoSC-Nuts-And-Bolts-Tests.scad` — passive non-rendering fastener calculation tests.
 - `LogoSC-Nuts-And-Bolts-Test-Runner.scad` — direct entry point for the fastener test suite.
-- `LogoSC-Knots.scad` — optional knot records, validation, torus generator, cords, and bundles.
-- `LogoSC-Knots-Examples.scad` — knot diagnostics plus cord and bundle presentation galleries.
-- `LogoSC-Knots-Tests.scad` — passive knot record, validation, generator, cord, and bundle tests.
+- `LogoSC-Knots.scad` — optional knot records, torus/braid generators, cords, and bundles.
+- `LogoSC-Knots-Examples.scad` — knot diagnostics plus cord, bundle, and braid galleries.
+- `LogoSC-Knots-Tests.scad` — passive knot record, generator, cord, bundle, and braid tests.
 - `LogoSC-Knots-Test-Runner.scad` — direct entry point for the knot companion suite.
 - `LogoSC-Nuts-And-Bolts-Customizer.md` — detailed fastener parameter and calibration guide.
 - `LogoSC-User-Manual.md` — practical user documentation.
@@ -359,7 +393,7 @@ LogoSC Core's filled-region contract.
 ## Near-term roadmap
 
 - Expand optional validation only when additional topology policies provide clear value.
-- Continue the optional knot companion with braid-word generation and crossing-aware bundles.
+- Continue the optional knot companion with crossing-aware bundles and clearance validation.
 - Keep manufacturable stroke rendering as a separate API with explicit width, cap, and join semantics.
 
 ## Requirements

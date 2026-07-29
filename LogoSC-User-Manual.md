@@ -74,8 +74,8 @@ LogoSC-Nuts-And-Bolts.scad         Customizable printable fastener model.
 LogoSC-Nuts-And-Bolts-Tests.scad   Passive non-rendering fastener calculation tests.
 LogoSC-Nuts-And-Bolts-Test-Runner.scad Direct entry point for fastener tests.
 LogoSC-Nuts-And-Bolts-Customizer.md Detailed fastener Customizer guide.
-LogoSC-Knots.scad                  Optional knot records, validation, cords, and bundles.
-LogoSC-Knots-Examples.scad         Knot diagnostics plus cord and bundle galleries.
+LogoSC-Knots.scad                  Optional knot records, torus/braid generators, and cords.
+LogoSC-Knots-Examples.scad         Knot diagnostics plus cord, bundle, and braid galleries.
 LogoSC-Knots-Tests.scad            Passive knot companion tests.
 LogoSC-Knots-Test-Runner.scad      Direct entry point for knot tests.
 LogoSC-Experiments.scad            Experimental rendering and geometry workbench.
@@ -1335,6 +1335,103 @@ OpenSCAD lighting and surface shading, not additional strand or crossing states.
 
 Choose `KnotExample = "CordGallery"` for this labeled presentation scene. It is generated from
 the same knot records and capsule renderer used for normal cord output.
+
+#### Circular braid closures
+
+`MakeCircularBraidKnot()` generates explicit crossing topology from a signed braid word:
+
+```scad
+braidTrefoil = MakeCircularBraidKnot(
+    laneCount = 2,
+    word = [1, 1, 1],
+    majorRadius = 20,
+    laneSpacing = 4,
+    crossingHeight = 5,
+    samplesPerGenerator = 8
+);
+
+ReportKnotValidation(braidTrefoil, strict = true);
+RenderKnotCords(braidTrefoil, cordRadius = 0.9);
+```
+
+Lane numbers in the word are one-based. Generator `+i` makes the strand entering lane `i` cross
+over the strand entering adjacent lane `i+1`; `-i` makes that branch pass under instead. Each
+generator smoothly exchanges the two lane positions with a cosine blend and applies equal
+opposite Z bumps whose total separation is `crossingHeight`.
+
+The circular closure connects every output lane to the corresponding input lane. The resulting
+lane permutation is decomposed into cycles, and each cycle becomes one closed strand record.
+Consequently:
+
+- `[1,1]` on two lanes has the identity permutation and closes as two linked components;
+- `[1,1,1]` has one two-label cycle and closes as a one-component trefoil;
+- words on three or more lanes can close as one knot or several link components depending on
+  their final permutation.
+
+Every generator instruction creates a crossing record with normalized parameters for both
+branches. A crossing can now reference the same strand twice at different parameters. The
+optional seventh crossing field, exposed by `KnotCrossingOverBranch()`, identifies branch `"A"`
+or `"B"` as over when `overStrand` alone is ambiguous. Existing distinct-strand records retain
+their original first six fields and infer the branch from `overStrand`.
+
+![LogoSC circular braid closures](images/knot-braid-gallery.png)
+
+The gallery shows a two-component Hopf closure in cyan/green, a one-component trefoil closure in
+gold, and a three-lane signed braid in purple. Colors distinguish components or examples only.
+Choose `KnotExample = "BraidGallery"` and use `KnotView` to compare Planar and Spatial output.
+
+Recorded braid crossings are not yet accepted by `MakeKnotBundle()`. Crossing-aware bundle
+expansion must synchronize each Z bump across every lane and test the full bundle envelope;
+silently dropping the records would produce incorrect topology.
+
+#### Braid versus bundle
+
+A braid and a bundle can both display several nearby cords, but they describe different layers
+of the model:
+
+**Circular braid**
+
+![LogoSC circular braid closures](images/knot-braid-gallery.png)
+
+- Generates topology from a signed word.
+- Physical strands exchange logical lanes at crossings.
+- Signs determine which crossing branch passes over.
+- The closure permutation decides how many knot or link components result.
+
+**Adjacent cord bundle**
+
+![LogoSC adjacent knot-cord bundles](images/knot-bundle-gallery.png)
+
+- Expands geometry around an existing master route.
+- Lanes remain parallel offsets in a stable untwisted frame.
+- Radius and gap determine spacing; no new crossing policy is invented.
+- Every master component is copied into the requested number of cord lanes.
+
+In a braid, a *lane* is a temporary position in the braid diagram. A physical strand enters one
+lane, crosses an adjacent strand, and leaves in the other lane. Following those exchanges through
+the final closure determines whether the result is one knotted component or several linked
+components.
+
+In a bundle, the master route and its topology already exist. Bundle lanes are manufacturing
+offsets placed beside that route. The current untwisted implementation preserves their order and
+does not make them cross one another. For example, a three-cord bundle of one trefoil master
+creates three neighboring trefoil-shaped cords; it does not reinterpret the trefoil as a
+three-lane braid.
+
+The two concepts are intended to compose eventually:
+
+```text
+signed braid word
+  -> closed master strands and explicit crossings
+  -> crossing-aware bundle expansion
+  -> multiple cords per braided master strand
+  -> capsule rendering
+```
+
+That composition is not implemented yet. Applying a bundle to a recorded braid requires every
+cord in the bundle to share the master crossing lift while maintaining clearance for the entire
+bundle envelope. Until that mapping is defined and validated, `MakeKnotBundle()` rejects braid
+results instead of silently producing misleading geometry.
 
 #### Adjacent cord bundles
 

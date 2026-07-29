@@ -39,9 +39,9 @@
 - `LogoSC-Validation-Implementation.md` — validation algorithms, policies, complexity, and test matrix.
 - `LogoSC-Transforms-Design.md` — preliminary local-transform design direction and open questions.
 - `LogoSC-LSystems-Notes.md` — design notes for L-system examples.
-- `LogoSC-Knots.scad` — optional knot records, validation, torus generator, cords, and bundles.
-- `LogoSC-Knots-Examples.scad` — selectable knot diagnostics plus cord and bundle galleries.
-- `LogoSC-Knots-Tests.scad` — passive knot record, validation, generator, cord, and bundle tests.
+- `LogoSC-Knots.scad` — optional knot records, torus/braid generators, cords, and bundles.
+- `LogoSC-Knots-Examples.scad` — selectable diagnostics plus cord, bundle, and braid galleries.
+- `LogoSC-Knots-Tests.scad` — passive knot record, generator, cord, bundle, and braid tests.
 - `LogoSC-Knots-Test-Runner.scad` — direct entry point for the independent knot suite.
 - `LogoSC-Knots-Design.md` — design and roadmap for parametric, braid, Celtic, ribbon, and
   rounded-cord knot generation.
@@ -447,6 +447,13 @@ width. Recorded-crossing remapping, crossing lifts, and explicit bundle twist re
 The examples' `KnotView` selector applies to diagnostics, cords, bundles, and both presentation
 galleries. Planar projects a copy of the route before rendering or lane expansion and removes
 the fixed 3D gallery tilt; Spatial preserves the generated height.
+
+Signed braid words now generate explicit circular closures. The final lane permutation is traced
+into independently closed knot or link components, with localized signed Z bumps and crossing
+records for every generator. Self-crossings use an additive branch field while preserving the
+established leading record fields.
+
+![LogoSC circular braid closures](images/knot-braid-gallery.png)
 
 ## Future rendering work
 

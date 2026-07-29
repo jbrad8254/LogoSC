@@ -2,7 +2,7 @@
 
 include <LogoSC-Knots.scad>
 
-KnotExample = "BundleGallery"; // [BundleGallery, CordGallery, Gallery, Unknot, Trefoil, HopfLink, CrossingRecord]
+KnotExample = "BraidGallery"; // [BraidGallery,BundleGallery,CordGallery,Unknot,Trefoil,HopfLink,CrossingRecord]
 KnotView = "Planar"; // [Planar, Spatial]
 KnotOutput = "Debug"; // [Debug, Cord, Bundle]
 KnotShowSamples = false;
@@ -18,6 +18,12 @@ KnotGalleryLabels = true;
 function KnotExampleResult(name) =
     name == "Unknot"
     ? MakeTorusKnot(1, 1, 18, 5, 72)
+    : name == "BraidHopf"
+        ? MakeCircularBraidKnot(2, [1, 1], 18, 5, 5, 8)
+        : name == "BraidTrefoil"
+            ? MakeCircularBraidKnot(2, [1, 1, 1], 18, 5, 5, 8)
+            : name == "BraidThree"
+                ? MakeCircularBraidKnot(3, [1, -2, 1, -2], 18, 4, 5, 8)
     : name == "HopfLink"
         ? MakeTorusKnot(2, 2, 18, 5, 96)
         : name == "CrossingRecord"
@@ -86,9 +92,16 @@ module RenderKnotGalleryCords(
 
     for (strandIndex = [0 : len(strands) - 1])
     {
+        strand = strands[strandIndex];
+        renderStrand = MakeKnotStrand(
+            KnotStrandClosed(strand),
+            KnotStrandSamples(strand),
+            metadata = KnotStrandMetadata(strand)
+        );
+
         color(strandColors[strandIndex % len(strandColors)])
             RenderKnotCords(
-                MakeKnot([strands[strandIndex]]),
+                MakeKnot([renderStrand]),
                 cordRadius = cordRadius,
                 fragments = KnotCordFragments
             );
@@ -212,7 +225,58 @@ module RenderKnotBundleGallery()
     RenderKnotGalleryLabel("4 CORDS", [145, -30, -8]);
 }
 
-if (KnotExample == "BundleGallery")
+module RenderKnotBraidGalleryExample(name, position, rotation, strandColors)
+{
+    translate(position)
+    rotate(KnotView == "Planar" ? [0, 0, rotation[2]] : rotation)
+        RenderKnotGalleryCords(
+            KnotExampleResult(name),
+            strandColors,
+            0.82
+        );
+}
+
+module RenderKnotBraidGallery()
+{
+    RenderKnotGalleryLabel(
+        str("LogoSC  CIRCULAR BRAIDS  -  ", KnotView),
+        [85, 39, -8],
+        5.8
+    );
+
+    RenderKnotBraidGalleryExample(
+        "BraidHopf",
+        [25, 4, 0],
+        [56, 0, -12],
+        [
+            [0.02, 0.62, 0.76],
+            [0.12, 0.82, 0.62]
+        ]
+    );
+    RenderKnotGalleryLabel("HOPF CLOSURE", [25, -30, -8]);
+
+    RenderKnotBraidGalleryExample(
+        "BraidTrefoil",
+        [85, 4, 0],
+        [56, 0, 18],
+        [[0.94, 0.48, 0.08]]
+    );
+    RenderKnotGalleryLabel("TREFOIL CLOSURE", [85, -30, -8]);
+
+    RenderKnotBraidGalleryExample(
+        "BraidThree",
+        [145, 4, 0],
+        [56, 0, -12],
+        [[0.56, 0.24, 0.82]]
+    );
+    RenderKnotGalleryLabel("3-LANE BRAID", [145, -30, -8]);
+}
+
+if (KnotExample == "BraidGallery")
+{
+    RenderKnotBraidGallery();
+}
+else if (KnotExample == "BundleGallery")
 {
     RenderKnotBundleGallery();
 }

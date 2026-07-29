@@ -2973,3 +2973,42 @@ View-mode correction:
 - Remove the fixed X presentation tilt in Planar galleries and retain it only for Spatial.
 - Document that Planar capsules can merge at projected crossings and are not a substitute for
   later crossing-aware ribbon or lift geometry.
+
+### 2026-07-28 — Signed circular braid closures
+
+Context:
+
+- Torus routes proved implicit 3D knot geometry, but the next generator needed explicit,
+  deterministic crossing topology.
+- Standard braid closure can turn one signed word into either a knot or a multi-component link,
+  depending on the final lane permutation.
+- Existing crossing records identified only the over strand. That is insufficient when both
+  branches of a self-crossing belong to the same closed strand.
+
+Decision:
+
+- Preserve the established first six crossing fields and add optional `overBranch` at index 6.
+  Infer it for distinct strands and require `"A"` or `"B"` for self-crossings.
+- Implement `MakeCircularBraidKnot()` with signed one-based adjacent generators. Positive
+  generators lift the branch entering the lower-numbered lane; negative generators reverse the
+  relationship.
+- Exchange radial lane positions with a cosine blend and use equal opposite Z bumps with total
+  separation `crossingHeight`.
+- Compute the final label-to-lane permutation and trace each disjoint cycle into one exact closed
+  strand. This produces a two-component Hopf link from `[1,1]` and a one-component trefoil from
+  `[1,1,1]`.
+- Record one crossing per word instruction, normalized parameters for both branches, explicit
+  branch ownership, and both encounter appearances for self-crossings.
+- Choose circular closure for the first braid boundary. Defer rectangular exterior return paths
+  because they add geometric routing rather than new braid topology.
+- Continue rejecting braid results in `MakeKnotBundle()` until crossing events and collective
+  height can be remapped to complete bundle envelopes.
+
+Verification boundary:
+
+- Add 13 crossing and braid results, bringing the independent knot suite from 38 to 51.
+- Cover signed-word validity, lane swaps and states, closure permutations and cycles, blend
+  endpoints, exact trefoil and Hopf closure, self-crossing branches, signed height, encounter
+  indexes, three-lane closure, and complete validation.
+- Add a spatial/planar `BraidGallery` generated from the real braid records and normal cord
+  renderer, plus a reproducible documentation PNG.
