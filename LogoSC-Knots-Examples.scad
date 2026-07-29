@@ -2,23 +2,43 @@
 
 include <LogoSC-Knots.scad>
 
+/* [Example Selection] */
+
 KnotExample = "ReliefGallery"; // [ReliefGallery,RibbonGallery,CelticGallery,BraidBundleGallery,BraidGallery,BundleGallery,CordGallery,CelticGrid,Unknot,Trefoil,HopfLink,CrossingRecord]
 KnotView = "Planar"; // [Planar, Spatial]
 KnotOutput = "Relief"; // [Debug, Cord, Bundle, Ribbon, Relief]
+
+/* [Debug Display] */
+
 KnotShowSamples = false;
 KnotCenterlineRadius = 2; // [0.01:0.01:5]
+
+/* [Cord Geometry] */
+
 KnotCordRadius = 1.2; // [0.1:0.1:5]
 KnotCordFragments = 24; // [6:1:64]
+
+/* [Bundle Geometry] */
+
 KnotBundleCordCount = 3; // [1:1:7]
 KnotBundleCordGap = 0.4; // [0:0.1:3]
 KnotBundleFitWidth = false;
 KnotBundleWidth = 8; // [1:0.5:30]
 KnotBundleMinimumClearance = 0; // [0:0.1:5]
+
+/* [Ribbon Geometry] */
+
 KnotRibbonWidth = 2.4; // [0.2:0.1:8]
 KnotRibbonCrossingClearance = 0.7; // [0:0.1:4]
 KnotRibbonArcFragments = 10; // [2:1:32]
+
+/* [Bas-Relief Geometry] */
+
 KnotReliefBaseHeight = 1.2; // [0.2:0.1:8]
 KnotReliefOverpassHeight = 1; // [0.2:0.1:8]
+
+/* [Gallery Presentation] */
+
 KnotGalleryLabels = true;
 
 function KnotCelticExampleGrid(variant = 0) =
