@@ -940,14 +940,46 @@ module RenderKnotCordBundle(
     );
 }
 
-function KnotDebugViewPoint(point, viewMode) =
+function KnotViewPoint(point, viewMode) =
     assert(
         viewMode == "Planar" || viewMode == "Spatial",
-        "Knot debug view mode must be Planar or Spatial."
+        "Knot view mode must be Planar or Spatial."
     )
     viewMode == "Planar"
     ? [point[0], point[1], 0]
     : point;
+
+// Return a view-specific copy without modifying the source record. Planar
+// projection flattens strand samples only; crossing records are already 2D.
+function KnotStrandForView(strand, viewMode) =
+    MakeKnotStrand(
+        KnotStrandClosed(strand),
+        [
+            for (sample = KnotStrandSamples(strand))
+                KnotViewPoint(sample, viewMode)
+        ],
+        KnotStrandCrossingEncounters(strand),
+        KnotStrandLaneClosurePermutation(strand),
+        KnotStrandMetadata(strand)
+    );
+
+function KnotForView(knot, viewMode) =
+    assert(
+        KnotValidationIsValid(ValidateKnot(knot)),
+        "KnotForView requires a structurally valid knot."
+    )
+    MakeKnot(
+        [
+            for (strand = KnotStrands(knot))
+                KnotStrandForView(strand, viewMode)
+        ],
+        KnotCrossings(knot),
+        KnotMetadata(knot)
+    );
+
+// Compatibility alias retained for existing diagnostic callers.
+function KnotDebugViewPoint(point, viewMode) =
+    KnotViewPoint(point, viewMode);
 
 // Preview sampled centerlines, individual samples, and recorded crossings.
 // This diagnostic module does not create a manufacturable cord contract.
@@ -983,8 +1015,8 @@ module RenderKnotDebug(
             for (sampleIndex = [0 : len(samples) - 2])
             {
                 RenderKnotDebugSegment(
-                    KnotDebugViewPoint(samples[sampleIndex], viewMode),
-                    KnotDebugViewPoint(samples[sampleIndex + 1], viewMode),
+                    KnotViewPoint(samples[sampleIndex], viewMode),
+                    KnotViewPoint(samples[sampleIndex + 1], viewMode),
                     centerlineRadius,
                     strandColor,
                     fragments
@@ -1003,7 +1035,7 @@ module RenderKnotDebug(
                         ? [0.95, 0.10, 0.10]
                         : strandColor
                 )
-                translate(KnotDebugViewPoint(samples[sampleIndex], viewMode))
+                translate(KnotViewPoint(samples[sampleIndex], viewMode))
                     sphere(r = sampleRadius, $fn = fragments);
             }
         }

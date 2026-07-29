@@ -27,7 +27,8 @@ remains responsible for extrusion, hulls, Minkowski operations, booleans, and 3D
   explicit radius and fragment controls;
 - `MakeKnotBundle()` and `RenderKnotCordBundle()`, expanding each master route into stable,
   symmetric, untwisted adjacent lanes with explicit or width-fitted cord radius;
-- selectable planar-projection and spatial debug views;
+- selectable planar-projection and spatial views across diagnostics, cords, bundles, and
+  presentation galleries;
 - a dedicated 38-result automated suite, a single-cord topology gallery, and a two-, three-, and
   four-cord bundle gallery.
 
@@ -75,6 +76,12 @@ LogoSC Core is planned to participate where its actual strengths apply:
 Those integration points are roadmap intent, not claims about the current torus implementation.
 They should be documented again with concrete call flow when the first LogoSC-backed planar
 generator or ribbon compiler is implemented.
+
+`KnotForView()` supplies the current display boundary. It returns a copy whose samples are either
+unchanged for Spatial or projected to `z = 0` for Planar. Cord rendering consumes that copy
+directly, while bundle rendering expands the projected master route before constructing lanes.
+The source knot remains unchanged. Planar capsule output may merge at projected crossings and
+does not substitute for the later ribbon, mask, or crossing-lift compiler.
 
 ## Further reading and example collections
 

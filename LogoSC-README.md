@@ -444,6 +444,10 @@ width. Recorded-crossing remapping, crossing lifts, and explicit bundle twist re
 
 ![LogoSC adjacent knot-cord bundle gallery](images/knot-bundle-gallery.png)
 
+The examples' `KnotView` selector applies to diagnostics, cords, bundles, and both presentation
+galleries. Planar projects a copy of the route before rendering or lane expansion and removes
+the fixed 3D gallery tilt; Spatial preserves the generated height.
+
 ## Future rendering work
 
 LogoSC currently targets closed polygons because that maps cleanly to OpenSCAD and

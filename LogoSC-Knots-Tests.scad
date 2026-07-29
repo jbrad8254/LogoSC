@@ -21,7 +21,9 @@ function KnotRecordTestResults() =
             ["name", "fixture"]
         ),
         knot = MakeKnot([strand, strand], [crossing], ["fixture", true]),
-        validation = MakeKnotValidationResult(knot, [], 0.01)
+        validation = MakeKnotValidationResult(knot, [], 0.01),
+        planarKnot = KnotForView(knot, "Planar"),
+        spatialKnot = KnotForView(knot, "Spatial")
     )
 [
     LogoTestResult(
@@ -60,6 +62,10 @@ function KnotRecordTestResults() =
         "knot debug view projection",
         KnotDebugViewPoint([1, 2, 3], "Planar") == [1, 2, 0]
         && KnotDebugViewPoint([1, 2, 3], "Spatial") == [1, 2, 3]
+        && KnotStrandSamples(KnotStrands(planarKnot)[0])[1] == [1, 0, 0]
+        && KnotCrossings(planarKnot) == KnotCrossings(knot)
+        && KnotMetadata(planarKnot) == KnotMetadata(knot)
+        && spatialKnot == knot
     )
 ];
 
@@ -313,6 +319,12 @@ function KnotBundleTestResults() =
             cordGap = 0.75,
             bundleWidth = 9
         ),
+        planarTrefoilBundle = MakeKnotBundle(
+            KnotForView(trefoil, "Planar"),
+            3,
+            1,
+            0.5
+        ),
         hopfBundle = MakeKnotBundle(
             MakeTorusKnot(2, 2, 20, 6, 24),
             3,
@@ -426,6 +438,12 @@ function KnotBundleTestResults() =
         )
         && KnotValidationIsValid(ValidateKnot(threeCordTrefoil))
         && KnotValidationIsValid(ValidateKnot(fittedBundle))
+        && len([
+            for (strand = KnotStrands(planarTrefoilBundle))
+                for (sample = KnotStrandSamples(strand))
+                    if (sample[2] != 0)
+                        sample
+        ]) == 0
     ),
     LogoTestResult(
         "knot bundle expands every link component",

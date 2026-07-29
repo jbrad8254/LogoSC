@@ -32,6 +32,9 @@
   validation, and multi-component links, bringing the independent knot suite to 38 results.
 - Added a labeled two-, three-, and four-cord `BundleGallery` generated from real expanded
   trefoil routes, plus a reproducible documentation image.
+- Fixed `KnotView` so Planar and Spatial now apply to cord output, bundle output, and both
+  presentation galleries rather than only diagnostic rendering. Planar projection now occurs
+  before bundle expansion, and Planar galleries no longer retain the fixed spatial tilt.
 - Documented the knot companion's actual dependency flow: current torus sampling, validation,
   diagnostics, and cords do not invoke LogoSC Core; the test runner uses Core only for reporting;
   and planned Core integration begins with planar motifs, transforms, ribbons, and masks.

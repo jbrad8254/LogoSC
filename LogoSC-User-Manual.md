@@ -1305,6 +1305,13 @@ documented in `LogoSC-Knots-Design.md#how-logosc-is-used`.
 original height. Projection does not alter the knot record. Torus projections do not yet cut
 underpass gaps because automatic crossing discovery remains a later milestone.
 
+In `LogoSC-Knots-Examples.scad`, the `KnotView` Customizer control applies to diagnostic,
+single-cord, bundle, `CordGallery`, and `BundleGallery` output. Planar creates a projected copy
+before rendering or bundle expansion and removes the galleries' presentation tilt. Spatial
+preserves the original samples and uses the tilted 3D presentation. Planar cords can touch or
+fuse at projected crossings; use the flattened result for comparison and planar design work, not
+as an automatic printable-knot guarantee.
+
 Run `LogoSC-Knots-Test-Runner.scad` for its independent automated suite, and open
 `LogoSC-Knots-Examples.scad` to select either diagnostic or cord output.
 

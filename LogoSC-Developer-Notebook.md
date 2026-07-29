@@ -2963,3 +2963,13 @@ Verification boundary:
   lanes on the same trefoil master route.
 - Require CSG/PNG gallery exports, a representative bundle STL mesh export, the complete knot
   suite, and the repository's Foundation/Validation and fastener acceptance suites.
+
+View-mode correction:
+
+- The initial presentation galleries and manufacturing branches exposed `KnotView` in the
+  Customizer but ignored it; only `RenderKnotDebug()` consumed the selector.
+- Add `KnotForView()` as a non-mutating record projection. Apply it before cord rendering and,
+  critically, before bundle expansion so Planar lanes are derived from the planar master.
+- Remove the fixed X presentation tilt in Planar galleries and retain it only for Spatial.
+- Document that Planar capsules can merge at projected crossings and are not a substitute for
+  later crossing-aware ribbon or lift geometry.

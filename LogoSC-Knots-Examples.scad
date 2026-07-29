@@ -41,11 +41,12 @@ function KnotExampleResult(name) =
 module RenderKnotExample(name)
 {
     knot = KnotExampleResult(name);
+    viewKnot = KnotForView(knot, KnotView);
 
     if (KnotOutput == "Bundle" && name != "CrossingRecord")
     {
         RenderKnotCordBundle(
-            knot,
+            viewKnot,
             cordCount = KnotBundleCordCount,
             cordRadius = KnotCordRadius,
             cordGap = KnotBundleCordGap,
@@ -56,7 +57,7 @@ module RenderKnotExample(name)
     else if (KnotOutput == "Cord" && name != "CrossingRecord")
     {
         RenderKnotCords(
-            knot,
+            viewKnot,
             cordRadius = KnotCordRadius,
             fragments = KnotCordFragments
         );
@@ -80,7 +81,8 @@ module RenderKnotGalleryCords(
     strandColors,
     cordRadius = KnotCordRadius)
 {
-    strands = KnotStrands(knot);
+    viewKnot = KnotForView(knot, KnotView);
+    strands = KnotStrands(viewKnot);
 
     for (strandIndex = [0 : len(strands) - 1])
     {
@@ -112,10 +114,14 @@ module RenderKnotGalleryLabel(label, position, size = 4.2)
 
 module RenderKnotCordGallery()
 {
-    RenderKnotGalleryLabel("LogoSC  KNOT CORDS", [85, 39, -8], 7);
+    RenderKnotGalleryLabel(
+        str("LogoSC  KNOT CORDS  -  ", KnotView),
+        [85, 39, -8],
+        7
+    );
 
     translate([25, 4, 0])
-    rotate([56, 0, -12])
+    rotate(KnotView == "Planar" ? [0, 0, -12] : [56, 0, -12])
         RenderKnotGalleryCords(
             MakeTorusKnot(1, 1, 18, 5, 36),
             [[0.08, 0.66, 0.78]]
@@ -123,7 +129,7 @@ module RenderKnotCordGallery()
     RenderKnotGalleryLabel("UNKNOT", [25, -30, -8]);
 
     translate([85, 4, 0])
-    rotate([56, 0, 18])
+    rotate(KnotView == "Planar" ? [0, 0, 18] : [56, 0, 18])
         RenderKnotGalleryCords(
             MakeTorusKnot(2, 3, 18, 5, 60),
             [[0.94, 0.58, 0.10]]
@@ -131,7 +137,7 @@ module RenderKnotCordGallery()
     RenderKnotGalleryLabel("TREFOIL", [85, -30, -8]);
 
     translate([145, 4, 0])
-    rotate([56, 0, -12])
+    rotate(KnotView == "Planar" ? [0, 0, -12] : [56, 0, -12])
         RenderKnotGalleryCords(
             MakeTorusKnot(2, 2, 18, 5, 48),
             [
@@ -148,7 +154,7 @@ module RenderKnotBundleGalleryExample(
     rotation,
     strandColors)
 {
-    master = MakeTorusKnot(2, 3, 18, 5, 48);
+    master = KnotForView(MakeTorusKnot(2, 3, 18, 5, 48), KnotView);
     bundle = MakeKnotBundle(
         master,
         cordCount,
@@ -157,13 +163,17 @@ module RenderKnotBundleGalleryExample(
     );
 
     translate(position)
-    rotate(rotation)
+    rotate(KnotView == "Planar" ? [0, 0, rotation[2]] : rotation)
         RenderKnotGalleryCords(bundle, strandColors, 0.72);
 }
 
 module RenderKnotBundleGallery()
 {
-    RenderKnotGalleryLabel("LogoSC  CORD BUNDLES", [85, 39, -8], 7);
+    RenderKnotGalleryLabel(
+        str("LogoSC  CORD BUNDLES  -  ", KnotView),
+        [85, 39, -8],
+        7
+    );
 
     RenderKnotBundleGalleryExample(
         2,

@@ -203,6 +203,12 @@ lanes. Supply either `cordRadius` or `bundleWidth`; a supplied width fits the la
 radius that preserves `cordGap`. Planar debug mode projects the original 3D samples onto `z = 0`;
 Spatial mode preserves their torus height.
 
+`KnotView` applies consistently to Debug, Cord, Bundle, `CordGallery`, and `BundleGallery`
+output. Planar projects a copy of the master samples before cord rendering or bundle expansion;
+Spatial retains the original 3D route. A flattened cord view can fuse where the projection
+crosses itself, so Planar manufacturing geometry is a comparison/design view rather than an
+automatic printable-knot guarantee.
+
 The current torus and cord path does not invoke LogoSC Core: sampling and validation are pure
 OpenSCAD functions, and native OpenSCAD constructs the 3D capsules. Core is reserved for planned
 2D Celtic motifs, transforms, ribbon regions, and crossing masks. See

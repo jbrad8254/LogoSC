@@ -247,6 +247,7 @@ $knotGalleryPath = Join-Path (Get-Location) 'images\knot-cord-gallery.png'
 
 & $openScadCli `
     -D 'KnotExample=\"CordGallery\"' `
+    -D 'KnotView=\"Spatial\"' `
     -D 'KnotCordFragments=18' `
     --imgsize '1400,700' `
     --camera '85,4,0,0,0,0,220' `
@@ -270,6 +271,7 @@ $bundleGalleryPath = Join-Path (Get-Location) 'images\knot-bundle-gallery.png'
 
 & $openScadCli `
     -D 'KnotExample=\"BundleGallery\"' `
+    -D 'KnotView=\"Spatial\"' `
     -D 'KnotCordFragments=18' `
     --imgsize '1400,700' `
     --camera '85,4,0,0,0,0,220' `
