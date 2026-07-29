@@ -22,21 +22,21 @@ KnotGalleryLabels = true;
 function KnotCelticExampleGrid(variant = 0) =
     variant == 1
     ? [
-        ["X", "X", "X"],
-        ["X", "X", "X"],
-        ["X", "X", "X"]
+        "XXX",
+        "XXX",
+        "XXX"
     ]
     : variant == 2
         ? [
-            ["NE_SW", "X", "NW_ES", "X"],
-            ["X", "NW_ES", "X", "NE_SW"],
-            ["NW_ES", "X", "NE_SW", "X"],
-            ["X", "NE_SW", "X", "NW_ES"]
+            ">X<X",
+            "X<X>",
+            "<X>X",
+            "X>X<"
         ]
         : [
-            ["NE_SW", "X", "NW_ES"],
-            ["X", "NE_SW", "X"],
-            ["NW_ES", "X", "NE_SW"]
+            ">X<",
+            "X>X",
+            "<X>"
         ];
 
 function KnotExampleResult(name) =

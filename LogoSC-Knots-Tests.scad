@@ -665,9 +665,9 @@ function KnotBraidTestResults() =
 function KnotCelticTestResults() =
     let(
         grid = [
-            ["NE_SW", "X", "NW_ES"],
-            ["X", "NE_SW", "X"],
-            ["NW_ES", "X", "NE_SW"]
+            ">X<",
+            "X>X",
+            "<X>"
         ],
         cycles = KnotCelticTraceCycles(grid),
         celtic = MakeCelticTileGridKnot(grid, 12, 6, 4, 4),
@@ -682,25 +682,39 @@ function KnotCelticTestResults() =
     LogoTestResult(
         "Celtic tile vocabulary and pairings",
         KnotCelticTileIsValid("X")
+        && KnotCelticTileIsValid(">")
+        && KnotCelticTileIsValid("<")
+        && KnotCelticTileIsValid("/")
+        && KnotCelticTileIsValid("//")
         && KnotCelticTileIsValid("NE_SW")
         && KnotCelticTileIsValid("NW_ES")
+        && KnotCelticTileIsValid("\\")
         && !KnotCelticTileIsValid("UNKNOWN")
         && KnotCelticTilePairedPort("X", KNOT_CELTIC_NORTH)
             == KNOT_CELTIC_SOUTH
-        && KnotCelticTilePairedPort("NE_SW", KNOT_CELTIC_NORTH)
+        && KnotCelticTilePairedPort(">", KNOT_CELTIC_NORTH)
             == KNOT_CELTIC_EAST
-        && KnotCelticTilePairedPort("NW_ES", KNOT_CELTIC_NORTH)
+        && KnotCelticTilePairedPort("<", KNOT_CELTIC_NORTH)
             == KNOT_CELTIC_WEST
+        && KnotCelticCanonicalTile("NE_SW") == ">"
+        && KnotCelticCanonicalTile("/") == ">"
+        && KnotCelticCanonicalTile("NW_ES") == "<"
+        && KnotCelticCanonicalTile("\\") == "<"
+        && KnotCelticCanonicalTile("//") == "<"
     ),
     LogoTestResult(
         "Celtic grid structure validation",
         KnotCelticGridIsRectangular(grid)
         && KnotCelticGridTilesAreValid(grid)
+        && KnotCelticCanonicalGrid([
+            ["NE_SW", "X", "NW_ES"],
+            ["/", "X", "//"]
+        ]) == [">X<", ">X<"]
         && !KnotCelticGridIsRectangular([
-            ["X"],
-            ["X", "X"]
+            "X",
+            "XX"
         ])
-        && !KnotCelticGridTilesAreValid([["BAD"]])
+        && !KnotCelticGridTilesAreValid(["BAD"])
     ),
     LogoTestResult(
         "Celtic boundary enumeration and pairing",
@@ -799,9 +813,9 @@ function KnotRibbonTestResults() =
     let(
         spatialCeltic = MakeCelticTileGridKnot(
             [
-                ["NE_SW", "X", "NW_ES"],
-                ["X", "NE_SW", "X"],
-                ["NW_ES", "X", "NE_SW"]
+                ">X<",
+                "X>X",
+                "<X>"
             ],
             12,
             6,

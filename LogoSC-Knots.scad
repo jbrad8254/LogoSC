@@ -963,11 +963,37 @@ KNOT_CELTIC_EAST = 1;
 KNOT_CELTIC_SOUTH = 2;
 KNOT_CELTIC_WEST = 3;
 
+function KnotCelticCanonicalTile(tile) =
+    tile == "NE_SW" || tile == "/"
+    ? ">"
+    : tile == "NW_ES" || tile == "\\" || tile == "//"
+        ? "<"
+        : tile;
+
 function KnotCelticTileIsValid(tile) =
-    tile == "X" || tile == "NE_SW" || tile == "NW_ES";
+    let(canonicalTile = KnotCelticCanonicalTile(tile))
+    canonicalTile == "X" || canonicalTile == ">" || canonicalTile == "<";
+
+function KnotCelticGridRowIsValid(row) =
+    is_string(row) || is_list(row);
+
+function KnotCelticCanonicalRow(row, index = 0, result = "") =
+    index >= len(row)
+    ? result
+    : KnotCelticCanonicalRow(
+        row,
+        index + 1,
+        str(result, KnotCelticCanonicalTile(row[index]))
+    );
+
+function KnotCelticCanonicalGrid(grid) =
+[
+    for (row = grid)
+        KnotCelticCanonicalRow(row)
+];
 
 function KnotCelticGridColumnCount(grid) =
-    is_list(grid) && len(grid) > 0 && is_list(grid[0])
+    is_list(grid) && len(grid) > 0 && KnotCelticGridRowIsValid(grid[0])
     ? len(grid[0])
     : 0;
 
@@ -977,7 +1003,10 @@ function KnotCelticGridIsRectangular(grid) =
     && KnotCelticGridColumnCount(grid) > 0
     && len([
         for (row = grid)
-            if (!is_list(row) || len(row) != KnotCelticGridColumnCount(grid))
+            if (
+                !KnotCelticGridRowIsValid(row)
+                || len(row) != KnotCelticGridColumnCount(grid)
+            )
                 row
     ]) == 0;
 
@@ -985,18 +1014,19 @@ function KnotCelticGridTilesAreValid(grid) =
     KnotCelticGridIsRectangular(grid)
     && len([
         for (row = grid)
-            for (tile = row)
-                if (!KnotCelticTileIsValid(tile))
-                    tile
+            for (column = [0 : len(row) - 1])
+                if (!KnotCelticTileIsValid(row[column]))
+                    row[column]
     ]) == 0;
 
 function KnotCelticOppositePort(port) = (port + 2) % 4;
 
 function KnotCelticTilePairedPort(tile, port) =
     assert(KnotCelticTileIsValid(tile), "Unknown Celtic grid tile.")
-    tile == "X"
+    let(canonicalTile = KnotCelticCanonicalTile(tile))
+    canonicalTile == "X"
     ? KnotCelticOppositePort(port)
-    : tile == "NE_SW"
+    : canonicalTile == ">"
         ? port == KNOT_CELTIC_NORTH
             ? KNOT_CELTIC_EAST
             : port == KNOT_CELTIC_EAST
@@ -1599,9 +1629,10 @@ function MakeCelticTileGridKnot(
         "Celtic crossing height must be positive."
     )
     let(
-        cycles = KnotCelticTraceCycles(grid),
+        canonicalGrid = KnotCelticCanonicalGrid(grid),
+        cycles = KnotCelticTraceCycles(canonicalGrid),
         crossings = KnotCelticGridCrossings(
-            grid,
+            canonicalGrid,
             cycles,
             cellSize,
             samplesPerTile,
@@ -1611,8 +1642,8 @@ function MakeCelticTileGridKnot(
             for (strandIndex = [0 : len(cycles) - 1])
                 MakeKnotStrand(
                     true,
-                    KnotCelticCycleSamples(
-                        grid,
+                        KnotCelticCycleSamples(
+                        canonicalGrid,
                         cycles[strandIndex],
                         cellSize,
                         samplesPerTile,
@@ -1637,7 +1668,7 @@ function MakeCelticTileGridKnot(
                 "generator", "celticTileGrid",
                 "rows", len(grid),
                 "columns", KnotCelticGridColumnCount(grid),
-                "grid", grid,
+                "grid", canonicalGrid,
                 "cellSize", cellSize,
                 "samplesPerTile", samplesPerTile,
                 "samplesPerBoundary", samplesPerBoundary,

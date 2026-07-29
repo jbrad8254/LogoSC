@@ -1342,9 +1342,9 @@ records:
 ```scad
 celtic = MakeCelticTileGridKnot(
     [
-        ["NE_SW", "X", "NW_ES"],
-        ["X", "NE_SW", "X"],
-        ["NW_ES", "X", "NE_SW"]
+        ">X<",
+        "X>X",
+        "<X>"
     ],
     cellSize = 12,
     samplesPerTile = 6,
@@ -1359,8 +1359,13 @@ RenderKnotCords(celtic, cordRadius = 0.7);
 Every MVP tile has north, east, south, and west ports:
 
 - `"X"` pairs north with south and east with west, creating one crossing;
-- `"NE_SW"` pairs north with east and south with west;
-- `"NW_ES"` pairs north with west and east with south.
+- `">"` pairs north with east and south with west;
+- `"<"` pairs north with west and east with south.
+
+Each token is one ordinary ASCII character, so rows can be authored as aligned strings instead
+of lists of individual tile strings. The older `"NE_SW"` and `"NW_ES"` spellings, plus the
+intermediate slash forms, remain accepted in list-form compatibility input. Generated metadata
+always stores canonical string rows.
 
 Interior exits connect only to the opposite port of the neighboring cell. Because all three
 tiles have four ports, a finite rectangle also needs an explicit edge policy: boundary ports

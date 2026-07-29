@@ -52,8 +52,8 @@
   and passing/failing clearance configurations, bringing the independent knot suite to 55.
 - Added `BraidBundleGallery` with two-cord Hopf, trefoil, and three-lane braid compositions plus
   a reproducible documentation image.
-- Added `MakeCelticTileGridKnot()` with the three explicit four-port tiles `"X"`, `"NE_SW"`,
-  and `"NW_ES"`; rectangular validation; matching interior ports; deterministic clockwise
+- Added `MakeCelticTileGridKnot()` with the three explicit four-port tiles `"X"`, `">"`, and
+  `"<"`; rectangular validation; matching interior ports; deterministic clockwise
   perimeter pairing; cycle tracing; reverse-route elimination; exact closure; quadratic corner
   sampling; checkerboard crossing lifts; normalized crossing records; and cyclic alternation
   enforcement.
@@ -71,6 +71,10 @@
 - Added seven ribbon results covering planar enforcement, capsule contours, Core region records,
   segment accounting, crossing masks, branch accessors, normalized tangents, and no-crossing
   behavior, bringing the knot suite to 72.
+- Changed the canonical Celtic corner-tile vocabulary from `"NE_SW"` and `"NW_ES"` to the
+  one-character ASCII symbols `">"` and `"<"`. Grids can now use compact string rows such as
+  `">X<"`. Original and intermediate spellings remain compatibility aliases, while generated
+  metadata is canonicalized.
 - Added `Ribbon` Customizer output and a `RibbonGallery` comparing continuous regions,
   underpass-mask interlace, and a 4-by-4 Celtic ribbon grid.
 - Added a side-by-side User Manual comparison clarifying that braids generate crossing topology

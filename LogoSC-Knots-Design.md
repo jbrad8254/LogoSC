@@ -531,9 +531,11 @@ reflected variants. This is the principal traditional Celtic generator.
 
 ### Implemented explicit-grid boundary
 
-`MakeCelticTileGridKnot()` implements the deterministic topology slice above with the literal
-tile names `"X"`, `"NE_SW"`, and `"NW_ES"`. All are four-port tiles. Interior exits connect to
-the opposite port of the neighboring cell.
+`MakeCelticTileGridKnot()` implements the deterministic topology slice above with the canonical
+tile symbols `"X"`, `">"`, and `"<"`. All are one-character ASCII tokens and four-port tiles,
+so grids can use compact aligned string rows. Interior exits connect to the opposite port of the
+neighboring cell. The original `"NE_SW"` and `"NW_ES"` names and intermediate slash forms remain
+compatibility aliases, but metadata is canonicalized to angle-bracket string rows.
 
 A finite rectangle cannot close four-port cells without an edge policy. The MVP enumerates
 perimeter ports clockwise and pairs consecutive ports with sampled exterior curves. The policy

@@ -460,9 +460,10 @@ established leading record fields.
 
 ![LogoSC crossing-aware braided cord bundles](images/knot-braided-bundle-gallery.png)
 
-Explicit Celtic tile grids use `"X"`, `"NE_SW"`, and `"NW_ES"` four-port cells. Interior ports
-join matching neighbors, perimeter ports close in deterministic clockwise pairs, reverse traces
-are removed, and checkerboard crossing height is accepted only when every component alternates.
+Explicit Celtic tile grids use `"X"`, `">"`, and `"<"` four-port cells. Compact string rows
+such as `">X<"` keep authored grids aligned and readable. Interior ports join
+matching neighbors, perimeter ports close in deterministic clockwise pairs, reverse traces are
+removed, and checkerboard crossing height is accepted only when every component alternates.
 
 ![LogoSC Celtic tile-grid knots](images/knot-celtic-grid-gallery.png)
 

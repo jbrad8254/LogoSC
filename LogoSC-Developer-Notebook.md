@@ -3126,3 +3126,30 @@ Verification boundary:
   masking plus a 4-by-4 interlace.
 - Require the complete knot, Foundation/Validation, and fastener suites, CSG and PNG gallery
   exports, and documentation link/fence verification.
+
+### 2026-07-29 — Readable Celtic tile symbols and string rows
+
+Context:
+
+- The initial directional names `"NE_SW"` and `"NW_ES"` were precise but visually noisy beside
+  `"X"` in literal grid arrays.
+- Slash and backslash-like alternatives were considered, but a backslash requires escaping in
+  OpenSCAD source and a doubled slash is no longer a one-character token.
+
+Decision:
+
+- Make `"X"`, `">"`, and `"<"` the canonical one-character ASCII vocabulary used by examples,
+  documentation, tests, and generated metadata.
+- Accept compact string rows such as `">X<"` as the normal grid form while retaining list rows
+  for compatibility.
+- Continue accepting `"NE_SW"` and `"NW_ES"` as compatibility aliases. Also accept the
+  short-lived slash and backslash values so no intermediate local experiment is stranded.
+- Canonicalize the complete input grid to string rows before tracing and metadata construction
+  so equivalent aliases produce identical knot records.
+
+Verification boundary:
+
+- Extend the tile-vocabulary result to cover canonical symbols, string-row normalization, and
+  every compatibility alias.
+- Regenerate the ribbon gallery from the canonical grid literals and rerun the complete knot
+  suite.

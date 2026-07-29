@@ -276,17 +276,17 @@ four-port tiles:
 
 ```scad
 celtic = MakeCelticTileGridKnot([
-    ["NE_SW", "X", "NW_ES"],
-    ["X", "NE_SW", "X"],
-    ["NW_ES", "X", "NE_SW"]
+    ">X<",
+    "X>X",
+    "<X>"
 ]);
 
 ReportKnotValidation(celtic, strict = true);
 RenderKnotCords(celtic, cordRadius = 0.7);
 ```
 
-`"X"` connects north-to-south and east-to-west with a crossing. `"NE_SW"` and `"NW_ES"`
-provide the two complementary corner pairings. Interior ports connect to the matching neighbor;
+`"X"` connects north-to-south and east-to-west with a crossing. `">"` and `"<"` provide the
+two complementary corner pairings. Interior ports connect to the matching neighbor;
 the finite grid closes its perimeter ports in deterministic clockwise pairs. Routes are traced
 into independently closed components, duplicate reverse traces are removed, crossing height is
 assigned by checkerboard parity, and non-alternating results are rejected.
