@@ -5,7 +5,8 @@
 This is the authoritative design plan for generative knot work in LogoSC. It covers organic or
 Gordian-style parametric knots and traditional Celtic interlace. The torus, circular-braid, and
 explicit Celtic tile-grid generators, single-cord manufacturing, and untwisted adjacent bundle
-slices are implemented; later milestones remain proposals until their APIs are reviewed.
+slices are implemented. Planar ribbon footprints and underpass masks are also implemented;
+later milestones remain proposals until their APIs are reviewed.
 
 LogoSC remains a 2D filled-region evaluator. A future optional companion may use LogoSC for
 planar routes, ribbon footprints, masks, local transforms, and repeated motifs. Native OpenSCAD
@@ -32,12 +33,14 @@ remains responsible for extrusion, hulls, Minkowski operations, booleans, and 3D
   closures with permutation-cycle components and explicit crossing topology;
 - `MakeCelticTileGridKnot()`, validating three four-port tiles, closing finite boundaries,
   tracing components, removing reverse duplicates, and enforcing alternating crossings;
+- `KnotRibbonRegions()` and `RenderKnotRibbons2D()`, compiling planar samples into Core region
+  capsules with crossing-local masks and restored overpass footprints;
 - selectable planar-projection and spatial views across diagnostics, cords, bundles, and
   presentation galleries;
-- a dedicated 65-result automated suite plus topology, bundle, braid, braided-bundle, and Celtic
-  tile-grid presentation galleries.
+- a dedicated 72-result automated suite plus topology, bundle, braid, braided-bundle, Celtic
+  tile-grid, and planar-ribbon presentation galleries.
 
-This slice deliberately does not implement ribbons, explicit twist, Möbius closure, general
+This slice deliberately does not implement bas-relief, explicit twist, Möbius closure, general
 collision discovery, tight-curve rejection, or AI image import. Callers must select dimensions
 and sampling appropriate for the route. Reserved strand fields and metadata allow later
 milestones to extend the representation without changing its established leading fields.
@@ -45,8 +48,8 @@ milestones to extend the representation without changing its established leading
 ## How LogoSC is used
 
 The knot companion belongs to the LogoSC project, follows its record-oriented and deterministic
-design style, and is intended to interoperate with Core. The current implementation does not,
-however, call the LogoSC evaluator behind the scenes.
+design style, and interoperates with Core for planar ribbon regions. Generators and 3D cord
+rendering do not call the LogoSC evaluator behind the scenes.
 
 The present execution path is:
 
@@ -56,30 +59,34 @@ MakeTorusKnot(), MakeCircularBraidKnot(), or MakeCelticTileGridKnot()
   -> ValidateKnot() checks those records without producing geometry
   -> RenderKnotDebug() uses native color(), translate(), sphere(), and hull()
   -> RenderKnotCords() uses native sphere(), hull(), and union() to make 3D solids
+
+KnotForView(knot, "Planar")
+  -> KnotRibbonRegions() constructs closed MakeRegion() capsules
+  -> crossing helpers construct expanded mask and normal overpass regions
+  -> RenderRegion2D() renders every footprint through LogoSC Core
+  -> native difference() and union() compose the final flat interlace
 ```
 
-`LogoSC-Knots.scad` therefore does not include `LogoSC-Foundation-Core.scad`, call `evalLogo()`,
-or emit LogoSC command lists. A model that only includes the knot companion has no Core
-dependency. This is deliberate: LogoSC Core evaluates command lists into 2D polygonal regions,
-whereas the implemented knot routes and capsule cords are sampled 3D geometry.
+`LogoSC-Knots.scad` imports Core's public region constructor and renderer with `use`. It does not
+call `evalLogo()` or emit LogoSC command lists. Generator, validation, diagnostic, bundle, and
+cord paths remain pure-function or native-geometry paths; only ribbon footprints and masks use
+Core regions.
 
 `LogoSC-Knots-Test-Runner.scad` does include Core and `LogoSC-Foundation-Tests.scad`, but only to
 reuse the established `LogoTestResult()`, suite aggregation, and automated PASS/FAIL reporting.
-The production knot companion does not acquire a Core dependency through its test harness.
+The ribbon compiler's Core use is a production dependency, not an accidental test-harness
+dependency.
 
-LogoSC Core is planned to participate where its actual strengths apply:
+LogoSC Core now participates where its actual strengths apply:
 
-- reusable 2D ribbon footprints and masks can be authored as LogoSC command lists;
+- sampled ribbon segments and crossing masks are closed `MakeRegion()` contours;
+- `RenderRegion2D()` renders each region through the stable Core polygon contract;
 - Core transforms, `RUN`, `REPEAT`, and `PUSH`/`POP` can place, rotate, reflect, and repeat those
-  motifs;
-- planar knot centerlines can be expanded into closed ribbon and crossing-mask regions;
-- `RenderContours2D()` or `RenderRegion2D()` can render those compiled 2D regions before native
-  OpenSCAD extrusion, relief, and boolean operations;
+  regions in future motif stages;
 - native OpenSCAD remains responsible for sampled 3D cords, hulls, extrusion, and mesh output.
 
-Those integration points are roadmap intent, not claims about the current generators. They
-should be documented again with concrete call flow when the first LogoSC-backed ribbon compiler
-is implemented.
+Native OpenSCAD also performs the ribbon union/difference composition because Core deliberately
+renders regions independently and does not implement a polygon Boolean engine.
 
 `KnotForView()` supplies the current display boundary. It returns a copy whose samples are either
 unchanged for Spatial or projected to `z = 0` for Planar. Cord rendering consumes that copy
@@ -635,6 +642,23 @@ construct:
 This is a specialized knot ribbon compiler, not a general Core stroke API. Flat output can
 subtract an overpass clearance mask from the under ribbon and then add the overpass footprint.
 
+### Implemented planar ribbon boundary
+
+`KnotRibbonRegions()` converts each planar sampled segment into one rounded capsule contour and
+wraps it with Core's `MakeRegion()`. The union of segment regions gives continuous width and
+rounded sampled joins without forcing a self-crossing route into one invalid polygon contour.
+
+For each crossing, the compiler interpolates the recorded over branch and its planar tangent.
+`KnotRibbonCrossingMaskRegions()` creates an expanded capsule along that tangent;
+`KnotRibbonOverpassRegions()` creates the corresponding normal-width capsule.
+`RenderKnotRibbons2D()` subtracts the expanded masks from the union of continuous ribbon regions
+and then restores every overpass. All footprints and masks are rendered by
+`RenderRegion2D()` before native OpenSCAD performs the Boolean composition.
+
+The boundary requires structurally valid planar samples, positive width, nonnegative clearance,
+and a nondegenerate tangent at every crossing. It deliberately does not expose this as a general
+Core stroke renderer, calculate a unified polygon result, or implement printable relief.
+
 ## Bas-relief
 
 The first 3D crossing style should be a printable relief:
@@ -905,9 +929,11 @@ links where supported by the selected generator.
 4. **Celtic tile grids** — topology implemented
    - Explicit tiles, rectangular validation, deterministic boundary closure, component tracing,
      alternating crossings, tests, and a gallery are complete.
-   - Random filling, explicit boundary maps, ribbons, and relief remain deferred.
-5. **2D ribbon and bas-relief compiler**
-   - Add offsets, rounded joins, underpass masks, and overpass footprints.
+   - Random filling, explicit boundary maps, and relief remain deferred.
+5. **2D ribbon compiler** — implemented
+   - Rounded capsule regions, Core rendering, underpass masks, restored overpasses, tests, and a
+     comparison gallery are complete.
+   - Unified polygon export, decorative borders, bundled ribbons, and bas-relief remain deferred.
 6. **Harmonic/Lissajous and polar generators**
    - Add automatic crossing discovery and parity solving.
 7. **Medial planar graphs**

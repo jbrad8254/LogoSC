@@ -2,9 +2,9 @@
 
 include <LogoSC-Knots.scad>
 
-KnotExample = "CelticGallery"; // [CelticGallery,BraidBundleGallery,BraidGallery,BundleGallery,CordGallery,CelticGrid,Unknot,Trefoil,HopfLink,CrossingRecord]
-KnotView = "Spatial"; // [Planar, Spatial]
-KnotOutput = "Debug"; // [Debug, Cord, Bundle]
+KnotExample = "RibbonGallery"; // [RibbonGallery,CelticGallery,BraidBundleGallery,BraidGallery,BundleGallery,CordGallery,CelticGrid,Unknot,Trefoil,HopfLink,CrossingRecord]
+KnotView = "Planar"; // [Planar, Spatial]
+KnotOutput = "Ribbon"; // [Debug, Cord, Bundle, Ribbon]
 KnotShowSamples = false;
 KnotCenterlineRadius = 2; // [0.01:0.01:5]
 KnotCordRadius = 1.2; // [0.1:0.1:5]
@@ -14,6 +14,9 @@ KnotBundleCordGap = 0.4; // [0:0.1:3]
 KnotBundleFitWidth = false;
 KnotBundleWidth = 8; // [1:0.5:30]
 KnotBundleMinimumClearance = 0; // [0:0.1:5]
+KnotRibbonWidth = 2.4; // [0.2:0.1:8]
+KnotRibbonCrossingClearance = 0.7; // [0:0.1:4]
+KnotRibbonArcFragments = 10; // [2:1:32]
 KnotGalleryLabels = true;
 
 function KnotCelticExampleGrid(variant = 0) =
@@ -78,7 +81,16 @@ module RenderKnotExample(name)
     knot = KnotExampleResult(name);
     viewKnot = KnotForView(knot, KnotView);
 
-    if (KnotOutput == "Bundle" && name != "CrossingRecord")
+    if (KnotOutput == "Ribbon")
+    {
+        RenderKnotRibbons2D(
+            viewKnot,
+            ribbonWidth = KnotRibbonWidth,
+            crossingClearance = KnotRibbonCrossingClearance,
+            arcFragments = KnotRibbonArcFragments
+        );
+    }
+    else if (KnotOutput == "Bundle" && name != "CrossingRecord")
     {
         RenderKnotCordBundle(
             viewKnot,
@@ -427,7 +439,85 @@ module RenderKnotCelticGallery()
     RenderKnotGalleryLabel("4 x 4 GRID", [145, -30, -8], 3.5);
 }
 
-if (KnotExample == "CelticGallery")
+module RenderKnotRibbonGalleryExample(
+    variant,
+    position,
+    rotation,
+    masked = true,
+    colorValue = [0.10, 0.50, 0.82])
+{
+    grid = KnotCelticExampleGrid(variant);
+    cellSize = variant == 2 ? 8 : 9;
+    spatialKnot = MakeCelticTileGridKnot(grid, cellSize, 8, 6, 4);
+    planarKnot = KnotForView(spatialKnot, "Planar");
+    width = KnotCelticGridColumnCount(grid) * cellSize;
+    height = len(grid) * cellSize;
+
+    color(colorValue)
+    translate(position)
+    rotate([0, 0, rotation])
+    translate([-width / 2, height / 2, 0])
+    linear_extrude(height = 0.8)
+    {
+        if (masked)
+        {
+            RenderKnotRibbons2D(
+                planarKnot,
+                ribbonWidth = 2.1,
+                crossingClearance = 0.65,
+                arcFragments = 8
+            );
+        }
+        else
+        {
+            RenderKnotRegionList(
+                KnotRibbonRegions(planarKnot, 2.1, 8)
+            );
+        }
+    }
+}
+
+module RenderKnotRibbonGallery()
+{
+    RenderKnotGalleryLabel(
+        "LogoSC  PLANAR KNOT RIBBONS",
+        [85, 39, -1],
+        6.2
+    );
+
+    RenderKnotRibbonGalleryExample(
+        0,
+        [25, 4, 0],
+        -8,
+        false,
+        [0.10, 0.58, 0.78]
+    );
+    RenderKnotGalleryLabel("CONTINUOUS", [25, -30, -1], 3.6);
+
+    RenderKnotRibbonGalleryExample(
+        0,
+        [85, 4, 0],
+        7,
+        true,
+        [0.94, 0.48, 0.08]
+    );
+    RenderKnotGalleryLabel("UNDERPASS MASKS", [85, -30, -1], 3.2);
+
+    RenderKnotRibbonGalleryExample(
+        2,
+        [145, 4, 0],
+        -7,
+        true,
+        [0.50, 0.24, 0.78]
+    );
+    RenderKnotGalleryLabel("4 x 4 INTERLACE", [145, -30, -1], 3.2);
+}
+
+if (KnotExample == "RibbonGallery")
+{
+    RenderKnotRibbonGallery();
+}
+else if (KnotExample == "CelticGallery")
 {
     RenderKnotCelticGallery();
 }

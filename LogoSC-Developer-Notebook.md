@@ -3089,3 +3089,40 @@ Verification boundary:
   the normal knot records and capsule renderer.
 - Require the complete knot, Foundation/Validation, and fastener suites, Planar and Spatial
   gallery exports, a documentation PNG, and a representative Celtic-grid STL.
+
+### 2026-07-29 — LogoSC-backed planar ribbons and underpass masks
+
+Context:
+
+- Celtic tile grids now provide closed sampled routes, explicit crossing parameters, and
+  deterministic over/under branches, but Planar cord projection still fuses both branches.
+- One polygon contour cannot safely represent a self-crossing ribbon. Core already provides a
+  stable closed-region record and renderer but intentionally does not provide polygon Booleans.
+
+Decision:
+
+- Import Core's public region API with `use` while keeping generators, validation, bundles,
+  diagnostics, and 3D cords independent of LogoSC evaluation.
+- Compile every planar sampled segment into one rounded capsule contour wrapped by
+  `MakeRegion()`. Overlapping capsules provide continuous width and rounded sampled joins without
+  creating one self-intersecting contour.
+- Require an explicit planar knot. Reject Spatial samples rather than silently discarding their
+  Z topology.
+- At each crossing, interpolate the recorded over branch and its planar tangent. Create an
+  expanded capsule mask using `ribbonWidth/2 + crossingClearance`, subtract all masks from the
+  continuous ribbon union, and restore a normal-width overpass capsule.
+- Render every ribbon, mask, and overpass footprint through `RenderRegion2D()`. Use native
+  OpenSCAD only for the final union/difference because Core renders independent regions and is
+  not a Boolean polygon engine.
+- Keep this a specialized knot API. Do not reinterpret it as a general stroke renderer or add
+  bas-relief, borders, bundled ribbons, or unified polygon export in the same milestone.
+
+Verification boundary:
+
+- Add seven deterministic results for planar enforcement, capsule contours, Core region shape,
+  segment accounting, crossing-mask accounting, branch accessors, normalized tangents, and
+  no-crossing behavior, bringing the knot suite from 65 to 72.
+- Add `Ribbon` Customizer output and a `RibbonGallery` comparing the same grid before and after
+  masking plus a 4-by-4 interlace.
+- Require the complete knot, Foundation/Validation, and fastener suites, CSG and PNG gallery
+  exports, and documentation link/fence verification.

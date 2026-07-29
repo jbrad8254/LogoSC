@@ -1,14 +1,14 @@
 // ============================================================================
 // LogoSC Knots - optional sampled-knot companion
 //
-// This file is independent of LogoSC Core. It does not call evalLogo() or emit
-// LogoSC command lists. Pure OpenSCAD functions define and validate sampled
-// knot records; native OpenSCAD functions generate torus, circular-braid, and
-// Celtic tile-grid routes, while sphere/hull geometry produces diagnostics,
-// manufacturable rounded cords, and untwisted adjacent cord bundles. Future
-// ribbon stages may consume LogoSC Core without making this companion a Core
-// dependency.
+// Pure OpenSCAD functions define and validate sampled knot records and generate
+// torus, circular-braid, and Celtic tile-grid routes. Native sphere/hull
+// geometry produces diagnostics, manufacturable rounded cords, and untwisted
+// adjacent cord bundles. The optional planar ribbon compiler uses LogoSC Core
+// region records and RenderRegion2D(); it does not call evalLogo().
 // ============================================================================
+
+use <LogoSC-Foundation-Core.scad>
 
 KNOT_STRANDS = 0;
 KNOT_CROSSINGS = 1;
@@ -2047,6 +2047,284 @@ function MakeKnotBundle(
         "Knot bundle cords do not preserve the requested crossing clearance."
     )
     bundle;
+
+function KnotSamplesArePlanar(samples, tolerance = 0.001, index = 0) =
+    index >= len(samples)
+    || (
+        abs(samples[index][2]) <= tolerance
+        && KnotSamplesArePlanar(samples, tolerance, index + 1)
+    );
+
+function KnotIsPlanar(knot, tolerance = 0.001) =
+    KnotValidationIsValid(ValidateKnot(knot, tolerance))
+    && len([
+        for (strand = KnotStrands(knot))
+            if (!KnotSamplesArePlanar(KnotStrandSamples(strand), tolerance))
+                strand
+    ]) == 0;
+
+function KnotRibbonPoint2D(point) = [point[0], point[1]];
+
+function KnotRibbonCapsuleContour(
+    start,
+    end,
+    radius,
+    arcFragments = 8) =
+    let(
+        start2D = KnotRibbonPoint2D(start),
+        end2D = KnotRibbonPoint2D(end),
+        delta = [
+            end2D[0] - start2D[0],
+            end2D[1] - start2D[1]
+        ],
+        length = sqrt(delta[0] * delta[0] + delta[1] * delta[1]),
+        angle = length > 0 ? atan2(delta[1], delta[0]) : 0
+    )
+    assert(is_num(radius) && radius > 0, "Knot ribbon radius must be positive.")
+    assert(
+        is_num(arcFragments)
+        && floor(arcFragments) == arcFragments
+        && arcFragments >= 2,
+        "Knot ribbon arc fragments must be an integer of at least 2."
+    )
+    length == 0
+    ? [
+        for (index = [0 : 2 * arcFragments - 1])
+            [
+                start2D[0] + radius * cos(360 * index / (2 * arcFragments)),
+                start2D[1] + radius * sin(360 * index / (2 * arcFragments))
+            ]
+    ]
+    : concat(
+        [
+            for (index = [0 : arcFragments])
+                let(angleAtPoint = angle + 90 - 180 * index / arcFragments)
+                [
+                    end2D[0] + radius * cos(angleAtPoint),
+                    end2D[1] + radius * sin(angleAtPoint)
+                ]
+        ],
+        [
+            for (index = [0 : arcFragments])
+                let(angleAtPoint = angle - 90 - 180 * index / arcFragments)
+                [
+                    start2D[0] + radius * cos(angleAtPoint),
+                    start2D[1] + radius * sin(angleAtPoint)
+                ]
+        ]
+    );
+
+function KnotRibbonCapsuleRegion(
+    start,
+    end,
+    radius,
+    arcFragments = 8) =
+    MakeRegion(
+        KnotRibbonCapsuleContour(start, end, radius, arcFragments)
+    );
+
+function KnotRibbonRegions(
+    knot,
+    ribbonWidth = 2,
+    arcFragments = 8,
+    planarTolerance = 0.001) =
+    assert(
+        KnotIsPlanar(knot, planarTolerance),
+        "KnotRibbonRegions requires a structurally valid planar knot."
+    )
+    assert(
+        is_num(ribbonWidth) && ribbonWidth > 0,
+        "Knot ribbon width must be positive."
+    )
+[
+    for (strand = KnotStrands(knot))
+        let(samples = KnotStrandSamples(strand))
+        for (sampleIndex = [0 : len(samples) - 2])
+            KnotRibbonCapsuleRegion(
+                samples[sampleIndex],
+                samples[sampleIndex + 1],
+                ribbonWidth / 2,
+                arcFragments
+            )
+];
+
+function KnotStrandTangentAtParameter(strand, parameter) =
+    let(
+        samples = KnotStrandSamples(strand),
+        segmentCount = KnotStrandSegmentCount(strand),
+        segmentIndex = min(
+            segmentCount - 1,
+            floor(parameter * segmentCount)
+        ),
+        delta = KnotVectorSubtract(
+            samples[segmentIndex + 1],
+            samples[segmentIndex]
+        ),
+        planarDelta = [delta[0], delta[1], 0]
+    )
+    assert(
+        is_num(parameter) && parameter >= 0 && parameter <= 1,
+        "Knot ribbon tangent parameter must be normalized to [0, 1]."
+    )
+    assert(
+        KnotVectorLength(planarDelta) > 0.000001,
+        "Knot ribbon crossing tangent is degenerate."
+    )
+    KnotVectorNormalize(planarDelta);
+
+function KnotCrossingBranchStrand(crossing, branch) =
+    assert(branch == "A" || branch == "B", "Knot crossing branch must be A or B.")
+    branch == "A"
+    ? KnotCrossingStrandA(crossing)
+    : KnotCrossingStrandB(crossing);
+
+function KnotCrossingBranchParameter(crossing, branch) =
+    assert(branch == "A" || branch == "B", "Knot crossing branch must be A or B.")
+    branch == "A"
+    ? KnotCrossingParameterA(crossing)
+    : KnotCrossingParameterB(crossing);
+
+function KnotRibbonCrossingRegion(
+    knot,
+    crossing,
+    branch,
+    ribbonWidth,
+    crossingClearance,
+    arcFragments,
+    expanded) =
+    assert(
+        is_num(ribbonWidth) && ribbonWidth > 0,
+        "Knot ribbon width must be positive."
+    )
+    assert(
+        is_num(crossingClearance) && crossingClearance >= 0,
+        "Knot ribbon crossing clearance must be nonnegative."
+    )
+    let(
+        strandIndex = KnotCrossingBranchStrand(crossing, branch),
+        parameter = KnotCrossingBranchParameter(crossing, branch),
+        strand = KnotStrands(knot)[strandIndex],
+        center3D = KnotStrandPointAtParameter(strand, parameter),
+        tangent = KnotStrandTangentAtParameter(strand, parameter),
+        span = 2 * ribbonWidth + 2 * crossingClearance,
+        halfSpan = span / 2,
+        start = KnotVectorSubtract(
+            center3D,
+            KnotVectorScale(tangent, halfSpan)
+        ),
+        end = KnotVectorAdd(
+            center3D,
+            KnotVectorScale(tangent, halfSpan)
+        ),
+        radius = ribbonWidth / 2
+            + (expanded ? crossingClearance : 0)
+    )
+    KnotRibbonCapsuleRegion(start, end, radius, arcFragments);
+
+function KnotRibbonCrossingMaskRegions(
+    knot,
+    ribbonWidth = 2,
+    crossingClearance = 0.6,
+    arcFragments = 8,
+    planarTolerance = 0.001) =
+    assert(
+        KnotIsPlanar(knot, planarTolerance),
+        "Knot ribbon masks require a structurally valid planar knot."
+    )
+    assert(
+        is_num(crossingClearance) && crossingClearance >= 0,
+        "Knot ribbon crossing clearance must be nonnegative."
+    )
+[
+    for (crossing = KnotCrossings(knot))
+        KnotRibbonCrossingRegion(
+            knot,
+            crossing,
+            KnotCrossingOverBranch(crossing),
+            ribbonWidth,
+            crossingClearance,
+            arcFragments,
+            true
+        )
+];
+
+function KnotRibbonOverpassRegions(
+    knot,
+    ribbonWidth = 2,
+    crossingClearance = 0.6,
+    arcFragments = 8,
+    planarTolerance = 0.001) =
+    assert(
+        KnotIsPlanar(knot, planarTolerance),
+        "Knot ribbon overpasses require a structurally valid planar knot."
+    )
+[
+    for (crossing = KnotCrossings(knot))
+        KnotRibbonCrossingRegion(
+            knot,
+            crossing,
+            KnotCrossingOverBranch(crossing),
+            ribbonWidth,
+            crossingClearance,
+            arcFragments,
+            false
+        )
+];
+
+module RenderKnotRegionList(regions, convexity = 10)
+{
+    for (region = regions)
+        RenderRegion2D(region, convexity);
+}
+
+// Render a planar interlace through LogoSC Core regions. The base ribbon is
+// cut by an expanded mask around each over branch, then the normal-width
+// overpass footprint is restored. Native difference/union performs only the
+// final region composition.
+module RenderKnotRibbons2D(
+    knot,
+    ribbonWidth = 2,
+    crossingClearance = 0.6,
+    arcFragments = 8,
+    convexity = 10,
+    planarTolerance = 0.001)
+{
+    ribbonRegions = KnotRibbonRegions(
+        knot,
+        ribbonWidth,
+        arcFragments,
+        planarTolerance
+    );
+    maskRegions = KnotRibbonCrossingMaskRegions(
+        knot,
+        ribbonWidth,
+        crossingClearance,
+        arcFragments,
+        planarTolerance
+    );
+    overpassRegions = KnotRibbonOverpassRegions(
+        knot,
+        ribbonWidth,
+        crossingClearance,
+        arcFragments,
+        planarTolerance
+    );
+
+    union()
+    {
+        difference()
+        {
+            union()
+                RenderKnotRegionList(ribbonRegions, convexity);
+
+            union()
+                RenderKnotRegionList(maskRegions, convexity);
+        }
+
+        union()
+            RenderKnotRegionList(overpassRegions, convexity);
+    }
+}
 
 module RenderKnotDebugSegment(a, b, radius, colorValue, fragments)
 {

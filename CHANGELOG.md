@@ -10,7 +10,7 @@
   with `gcd(p,q)` independently closed components.
 - Added selectable Planar and Spatial knot debug views. Planar mode projects centerline and
   sample diagnostics to `z = 0` without changing the stored 3D knot route.
-- Added a separate 65-result knot test suite and runner covering record accessors, valid and
+- Added a separate 72-result knot test suite and runner covering record accessors, valid and
   invalid structures, closure, crossings, encounter indexes, lane permutations, torus sample
   counts, exact closure, distinct link components, generated-result validation, and cord-segment
   and bundle accounting, plus signed braid topology and closure.
@@ -62,12 +62,23 @@
   and metadata, bringing the knot suite to 65.
 - Added a Spatial/Planar `CelticGallery` generated from real one-, two-, and larger-grid knot
   records, plus a reproducible documentation image.
+- Added the first LogoSC-backed knot renderer: `KnotRibbonRegions()` compiles every planar
+  sampled segment into a rounded Core `MakeRegion()` capsule, while crossing helpers create
+  expanded underpass masks and normal-width overpass footprints.
+- Added `RenderKnotRibbons2D()`, which renders every footprint through Core's
+  `RenderRegion2D()`, subtracts crossing masks from the continuous ribbon union, and restores
+  the recorded over branches with native OpenSCAD Boolean composition.
+- Added seven ribbon results covering planar enforcement, capsule contours, Core region records,
+  segment accounting, crossing masks, branch accessors, normalized tangents, and no-crossing
+  behavior, bringing the knot suite to 72.
+- Added `Ribbon` Customizer output and a `RibbonGallery` comparing continuous regions,
+  underpass-mask interlace, and a 4-by-4 Celtic ribbon grid.
 - Added a side-by-side User Manual comparison clarifying that braids generate crossing topology
   by exchanging strand ownership across logical lanes, while bundles generate parallel
   manufacturing geometry around an existing master route.
-- Documented the knot companion's actual dependency flow: current torus sampling, validation,
-  diagnostics, and cords do not invoke LogoSC Core; the test runner uses Core only for reporting;
-  and planned Core integration begins with planar motifs, transforms, ribbons, and masks.
+- Documented the knot companion's dependency flow: generators, validation, diagnostics, and
+  cords do not invoke LogoSC evaluation; planar ribbons use Core region records and
+  `RenderRegion2D()`; and native OpenSCAD performs final Booleans and 3D geometry.
 - Added `LogoSC-Knots-Design.md`, an implementation roadmap covering a shared strand/crossing
   representation; torus, braid-word, Celtic-grid, harmonic/Lissajous, polar, and medial-graph
   generators; alternating crossing constraints; 2D ribbons; bas-relief; rounded capsule cords;

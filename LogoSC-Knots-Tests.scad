@@ -795,6 +795,110 @@ function KnotCelticTestResults() =
     )
 ];
 
+function KnotRibbonTestResults() =
+    let(
+        spatialCeltic = MakeCelticTileGridKnot(
+            [
+                ["NE_SW", "X", "NW_ES"],
+                ["X", "NE_SW", "X"],
+                ["NW_ES", "X", "NE_SW"]
+            ],
+            12,
+            6,
+            4,
+            4
+        ),
+        planarCeltic = KnotForView(spatialCeltic, "Planar"),
+        ribbonRegions = KnotRibbonRegions(planarCeltic, 2.4, 6),
+        maskRegions = KnotRibbonCrossingMaskRegions(
+            planarCeltic,
+            2.4,
+            0.7,
+            6
+        ),
+        overpassRegions = KnotRibbonOverpassRegions(
+            planarCeltic,
+            2.4,
+            0.7,
+            6
+        ),
+        firstCrossing = KnotCrossings(planarCeltic)[0],
+        firstOverBranch = KnotCrossingOverBranch(firstCrossing),
+        firstOverStrand = KnotStrands(planarCeltic)[
+            KnotCrossingBranchStrand(firstCrossing, firstOverBranch)
+        ],
+        firstOverParameter = KnotCrossingBranchParameter(
+            firstCrossing,
+            firstOverBranch
+        ),
+        firstTangent = KnotStrandTangentAtParameter(
+            firstOverStrand,
+            firstOverParameter
+        ),
+        unknot = KnotForView(
+            MakeTorusKnot(1, 1, 18, 5, 24),
+            "Planar"
+        )
+    )
+[
+    LogoTestResult(
+        "knot ribbon requires planar samples",
+        KnotIsPlanar(planarCeltic)
+        && !KnotIsPlanar(spatialCeltic)
+        && KnotValidationIsValid(ValidateKnot(planarCeltic))
+    ),
+    LogoTestResult(
+        "knot ribbon capsule contour",
+        len(KnotRibbonCapsuleContour([0, 0, 0], [10, 0, 0], 1, 4))
+            == 10
+        && len(KnotRibbonCapsuleContour([0, 0, 0], [0, 0, 0], 1, 4))
+            == 8
+        && KnotRibbonCapsuleContour(
+            [0, 0, 0],
+            [10, 0, 0],
+            1,
+            4
+        )[0] == [10, 1]
+    ),
+    LogoTestResult(
+        "knot ribbon regions use LogoSC region records",
+        len(ribbonRegions) == KnotCordSegmentCount(planarCeltic)
+        && len(ribbonRegions) == 132
+        && len(RegionOuter(ribbonRegions[0])) == 14
+        && RegionHoles(ribbonRegions[0]) == []
+    ),
+    LogoTestResult(
+        "knot ribbon crossing mask accounting",
+        len(maskRegions) == len(KnotCrossings(planarCeltic))
+        && len(overpassRegions) == len(KnotCrossings(planarCeltic))
+        && len(maskRegions) == 4
+        && RegionOuter(maskRegions[0]) != RegionOuter(overpassRegions[0])
+    ),
+    LogoTestResult(
+        "knot ribbon crossing branch accessors",
+        KnotCrossingBranchStrand(firstCrossing, "A")
+            == KnotCrossingStrandA(firstCrossing)
+        && KnotCrossingBranchStrand(firstCrossing, "B")
+            == KnotCrossingStrandB(firstCrossing)
+        && KnotCrossingBranchParameter(firstCrossing, "A")
+            == KnotCrossingParameterA(firstCrossing)
+        && KnotCrossingBranchParameter(firstCrossing, "B")
+            == KnotCrossingParameterB(firstCrossing)
+    ),
+    LogoTestResult(
+        "knot ribbon crossing tangent is planar and normalized",
+        KnotTestNearlyEqual(KnotVectorLength(firstTangent), 1)
+        && firstTangent[2] == 0
+    ),
+    LogoTestResult(
+        "knot ribbon no-crossing mask identity",
+        len(KnotRibbonCrossingMaskRegions(unknot, 2, 0.5, 4)) == 0
+        && len(KnotRibbonOverpassRegions(unknot, 2, 0.5, 4)) == 0
+        && len(KnotRibbonRegions(unknot, 2, 4))
+            == KnotCordSegmentCount(unknot)
+    )
+];
+
 function KnotAutomatedTestResults() =
     concat(
         KnotRecordTestResults(),
@@ -803,7 +907,8 @@ function KnotAutomatedTestResults() =
         KnotCordTestResults(),
         KnotBundleTestResults(),
         KnotBraidTestResults(),
-        KnotCelticTestResults()
+        KnotCelticTestResults(),
+        KnotRibbonTestResults()
     );
 
 function KnotTestSuiteResult() =

@@ -1292,13 +1292,12 @@ the last capsule closes the route exactly. The caller remains responsible for se
 radius, sampling density, and fragment count that preserve clearance and surface quality.
 Ribbons, explicit bundle twist, and AI image import remain deferred.
 
-There is no hidden LogoSC Core evaluation in this implementation. The torus, braid, and Celtic
-tile-grid generators and `ValidateKnot()` are pure OpenSCAD functions, while
-`RenderKnotDebug()` and `RenderKnotCords()` use native OpenSCAD geometry. The knot test runner
-includes Core only to reuse the standard LogoSC automated-test reporting helpers. Planned
-ribbon regions, repeated motifs, and crossing masks are the stages expected to use LogoSC
-commands, transforms, and region rendering. The exact current and planned dependency flow is
-documented in `LogoSC-Knots-Design.md#how-logosc-is-used`.
+There is no hidden LogoSC evaluation in the generators. The torus, braid, and Celtic tile-grid
+generators and `ValidateKnot()` are pure OpenSCAD functions, while `RenderKnotDebug()` and
+`RenderKnotCords()` use native OpenSCAD geometry. The planar ribbon compiler is the first knot
+stage that uses Core behind the scenes: it constructs `MakeRegion()` capsule footprints and
+passes them to `RenderRegion2D()`. Native OpenSCAD performs the final union and difference. The
+exact dependency flow is documented in `LogoSC-Knots-Design.md#how-logosc-is-used`.
 
 `viewMode = "Planar"` projects the stored 3D samples onto `z = 0`; `"Spatial"` displays their
 original height. Projection does not alter the knot record. Torus projections do not yet cut
@@ -1381,8 +1380,54 @@ all-crossing grid closes as one, and the right example shows the same rules on a
 Choose `KnotExample = "CelticGallery"` for the presentation scene or `"CelticGrid"` for the
 focused example.
 
-This MVP deliberately excludes random tile filling, user-selectable boundary pairing, flat
-ribbon regions, and underpass masks. The last two are the next rendering milestone.
+This MVP deliberately excludes random tile filling and user-selectable boundary pairing.
+
+#### Planar knot ribbons
+
+Ribbon compilation begins with an explicit planar copy:
+
+```scad
+planarCeltic = KnotForView(celtic, "Planar");
+
+RenderKnotRibbons2D(
+    planarCeltic,
+    ribbonWidth = 2.4,
+    crossingClearance = 0.7,
+    arcFragments = 10
+);
+```
+
+`KnotRibbonRegions()` converts every sampled segment into a rounded capsule contour and wraps
+that contour in Core's `MakeRegion()`. Overlapping segment regions create a continuous ribbon
+with rounded sampled joins. This segment-region representation avoids asking one self-crossing
+polygon contour to describe the entire ribbon.
+
+For every recorded crossing:
+
+1. the compiler finds the recorded over branch and its normalized parameter;
+2. it interpolates the branch center and planar tangent;
+3. `KnotRibbonCrossingMaskRegions()` constructs an expanded capsule aligned with that branch;
+4. the renderer subtracts all expanded masks from the continuous ribbon union;
+5. `KnotRibbonOverpassRegions()` restores normal-width overpass capsules.
+
+The white space beside a restored overpass is therefore a real geometric cut through the
+underpassing footprint. `crossingClearance` expands the mask radially beyond the normal ribbon
+half-width. Larger values create a more obvious gap but can remove too much material from tight
+patterns.
+
+![LogoSC planar knot ribbons and underpass masks](images/knot-ribbon-gallery.png)
+
+The left example shows continuous regions without crossing masks. The middle applies the masks
+to the same grid, and the right applies them to a 4-by-4 interlace. Colors distinguish examples,
+not components or crossing states. Choose `KnotExample = "RibbonGallery"` for this scene, or
+choose `KnotOutput = "Ribbon"` and `KnotView = "Planar"` for an individual example.
+
+Ribbon functions reject nonplanar samples. This prevents an accidental Spatial route from
+silently losing its Z topology. Use `KnotForView(knot, "Planar")` deliberately before calling
+them. This is a specialized knot renderer, not a general-purpose LogoSC stroke API.
+
+The current result is flat 2D geometry. Printable bas-relief, borders, bundled ribbons, and
+general polygon-union export remain later milestones.
 
 #### Circular braid closures
 

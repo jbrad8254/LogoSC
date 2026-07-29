@@ -201,8 +201,8 @@ stable transported lateral frames to create symmetric untwisted lanes. Supply ei
 `cordRadius` or `bundleWidth`; a supplied width fits the largest equal radius that preserves
 `cordGap`. Recorded braid crossings expand to every bundle lane pair, inherit the master
 over/under lift, and are checked against `2*cordRadius + minimumClearance`. Explicit bundle
-twist, ribbons, and image import remain deferred. Planar debug mode projects the original 3D
-samples onto `z = 0`; Spatial mode preserves their torus height.
+twist and image import remain deferred. Planar debug mode projects the original 3D samples onto
+`z = 0`; Spatial mode preserves their torus height.
 
 `KnotView` applies consistently to Debug, Cord, Bundle, `CordGallery`, and `BundleGallery`
 output. Planar projects a copy of the master samples before cord rendering or bundle expansion;
@@ -210,9 +210,10 @@ Spatial retains the original 3D route. A flattened cord view can fuse where the 
 crosses itself, so Planar manufacturing geometry is a comparison/design view rather than an
 automatic printable-knot guarantee.
 
-The current torus, braid, Celtic-grid, and cord paths do not invoke LogoSC Core: sampling and
-validation are pure OpenSCAD functions, and native OpenSCAD constructs the 3D capsules. Core is
-reserved for planned ribbon regions, transforms, and crossing masks. See
+The torus, braid, Celtic-grid, and cord paths do not invoke LogoSC evaluation: sampling and
+validation are pure OpenSCAD functions, and native OpenSCAD constructs the 3D capsules. The
+planar ribbon compiler now uses Core region records and `RenderRegion2D()` for footprints and
+crossing masks. See
 `LogoSC-Knots-Design.md#how-logosc-is-used` for the complete dependency and call-flow boundary.
 
 ![LogoSC manufacturable knot-cord gallery](images/knot-cord-gallery.png)
@@ -293,8 +294,34 @@ assigned by checkerboard parity, and non-alternating results are rejected.
 ![LogoSC Celtic tile-grid knots](images/knot-celtic-grid-gallery.png)
 
 Choose `CelticGallery` for one-, two-, and larger-grid examples. This stage emits sampled knot
-records and rounded cords; flat ribbon regions and visible underpass cutouts are the next
-milestone.
+records and rounded cords.
+
+### Render planar knot ribbons
+
+Project a knot before compiling its sampled segments into LogoSC regions:
+
+```scad
+planarCeltic = KnotForView(celtic, "Planar");
+
+RenderKnotRibbons2D(
+    planarCeltic,
+    ribbonWidth = 2.4,
+    crossingClearance = 0.7,
+    arcFragments = 10
+);
+```
+
+`KnotRibbonRegions()` converts every sampled segment into a closed rounded capsule
+`MakeRegion()`. Crossing masks are expanded capsules aligned with the recorded over branch.
+The renderer subtracts those masks from the continuous ribbon union, then restores normal-width
+overpass regions. Every region reaches OpenSCAD through LogoSC Core's `RenderRegion2D()`; native
+OpenSCAD performs only the final union and difference.
+
+![LogoSC planar knot ribbons and underpass masks](images/knot-ribbon-gallery.png)
+
+Choose `RibbonGallery` to compare an unmasked continuous ribbon, the same grid with visible
+underpass gaps, and a larger 4-by-4 interlace. Ribbon compilation deliberately requires a planar
+knot copy and remains a specialized knot API rather than a general Core stroke renderer.
 
 ## Current public API
 
@@ -430,7 +457,7 @@ LogoSC Core's filled-region contract.
 ## Near-term roadmap
 
 - Expand optional validation only when additional topology policies provide clear value.
-- Continue the optional knot companion with 2D ribbon regions and underpass masks.
+- Continue the optional knot companion with printable bas-relief from the ribbon regions.
 - Keep manufacturable stroke rendering as a separate API with explicit width, cap, and join semantics.
 
 ## Requirements
@@ -439,7 +466,8 @@ LogoSC Core's filled-region contract.
 - No external OpenSCAD library dependency; basic LogoSC use requires only
   `LogoSC-Foundation-Core.scad`.
 - Optional validation additionally requires `LogoSC-Foundation-Validation.scad`.
-- Optional knot generation additionally requires `LogoSC-Knots.scad`; it does not change Core.
+- Optional knot generation additionally requires `LogoSC-Knots.scad`; its ribbon renderer uses
+  the stable Core region API without changing Core.
 
 Maintainers can use [LogoSC-OpenSCAD-Command-Line.md](LogoSC-OpenSCAD-Command-Line.md)
 to run tests, capture diagnostics, and export geometry or PNG previews without opening the GUI.

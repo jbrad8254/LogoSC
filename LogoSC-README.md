@@ -407,9 +407,9 @@ Basic models therefore still require only `LogoSC-Foundation-Core.scad`.
 
 ## Optional knot companion
 
-`LogoSC-Knots.scad` remains independent of Core. It provides sampled strand and crossing records,
-structural validation, torus, braid, and Celtic tile-grid generators, preview diagnostics, and
-manufacturable rounded cords:
+`LogoSC-Knots.scad` uses Core only for its optional planar ribbon regions. It provides sampled
+strand and crossing records, structural validation, torus, braid, and Celtic tile-grid
+generators, preview diagnostics, planar ribbons, and manufacturable rounded cords:
 
 ```scad
 include <LogoSC-Knots.scad>
@@ -427,14 +427,15 @@ RenderKnotCordBundle(
 ```
 
 `RenderKnotCords()` hulls equal-radius spheres at each adjacent sample pair. The caller controls
-radius, route sampling, and sphere resolution. Adjacent cord bundles, signed braid words, and
-explicit Celtic tile grids are implemented; ribbons and bas-relief remain staged work described
-in `LogoSC-Knots-Design.md`.
+radius, route sampling, and sphere resolution. Adjacent cord bundles, signed braid words,
+explicit Celtic tile grids, and planar ribbons are implemented; bas-relief remains staged work
+described in `LogoSC-Knots-Design.md`.
 
-The current generators do not call LogoSC Core behind the scenes. Pure OpenSCAD functions create
-and validate their sampled records, and native OpenSCAD creates the 3D solids. Planned Core use
-begins with ribbon regions, transforms, and crossing masks; the complete boundary is documented
-in `LogoSC-Knots-Design.md#how-logosc-is-used`.
+The current generators do not call `evalLogo()`: pure OpenSCAD functions create and validate
+their sampled records, and native OpenSCAD creates the 3D solids. The ribbon compiler constructs
+closed `MakeRegion()` capsules and renders them through `RenderRegion2D()` before native
+union/difference composition. The complete boundary is documented in
+`LogoSC-Knots-Design.md#how-logosc-is-used`.
 
 ![LogoSC manufacturable knot-cord gallery](images/knot-cord-gallery.png)
 
@@ -464,6 +465,12 @@ join matching neighbors, perimeter ports close in deterministic clockwise pairs,
 are removed, and checkerboard crossing height is accepted only when every component alternates.
 
 ![LogoSC Celtic tile-grid knots](images/knot-celtic-grid-gallery.png)
+
+Planar knots can compile into rounded ribbon footprints with crossing-local underpass masks.
+Every footprint and mask is a LogoSC Core region; the overpass is restored after subtracting an
+expanded mask from the continuous ribbon union.
+
+![LogoSC planar knot ribbons and underpass masks](images/knot-ribbon-gallery.png)
 
 ## Future rendering work
 

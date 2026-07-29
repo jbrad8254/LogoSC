@@ -359,6 +359,29 @@ $celticGalleryPath = Join-Path `
 The examples use the real tile validator, boundary closure, route tracer, crossing assignment,
 alternation check, and capsule renderer. Colors distinguish complete components only.
 
+### Render the planar ribbon gallery
+
+The ribbon gallery compares continuous segment regions with crossing-masked interlace:
+
+![LogoSC planar knot ribbons and underpass masks](images/knot-ribbon-gallery.png)
+
+```powershell
+$ribbonGalleryPath = Join-Path `
+    (Get-Location) `
+    'images\knot-ribbon-gallery.png'
+
+& $openScadCli `
+    -D 'KnotExample=\"RibbonGallery\"' `
+    --imgsize '1400,700' `
+    --camera '85,4,0,0,0,0,220' `
+    --projection o `
+    -o $ribbonGalleryPath `
+    'LogoSC-Knots-Examples.scad'
+```
+
+Every segment, mask, and restored overpass is rendered through LogoSC Core's
+`RenderRegion2D()`. The final union and difference are native OpenSCAD operations.
+
 ## Example 2: export and inspect a debug PNG
 
 The command line can render the same debug demo that is available through the OpenSCAD
