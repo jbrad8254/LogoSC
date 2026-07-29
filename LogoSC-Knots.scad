@@ -2215,6 +2215,26 @@ function KnotCrossingBranchParameter(crossing, branch) =
     ? KnotCrossingParameterA(crossing)
     : KnotCrossingParameterB(crossing);
 
+function KnotRibbonCrossingSpan(
+    ribbonWidth,
+    crossingClearance,
+    expanded) =
+    assert(
+        is_num(ribbonWidth) && ribbonWidth > 0,
+        "Knot ribbon width must be positive."
+    )
+    assert(
+        is_num(crossingClearance) && crossingClearance >= 0,
+        "Knot ribbon crossing clearance must be nonnegative."
+    )
+    2 * ribbonWidth
+    + 2 * crossingClearance
+    + (
+        expanded
+        ? 0
+        : 2 * (crossingClearance + ribbonWidth / 2)
+    );
+
 function KnotRibbonCrossingRegion(
     knot,
     crossing,
@@ -2237,7 +2257,11 @@ function KnotRibbonCrossingRegion(
         strand = KnotStrands(knot)[strandIndex],
         center3D = KnotStrandPointAtParameter(strand, parameter),
         tangent = KnotStrandTangentAtParameter(strand, parameter),
-        span = 2 * ribbonWidth + 2 * crossingClearance,
+        span = KnotRibbonCrossingSpan(
+            ribbonWidth,
+            crossingClearance,
+            expanded
+        ),
         halfSpan = span / 2,
         start = KnotVectorSubtract(
             center3D,
@@ -2353,6 +2377,61 @@ module RenderKnotRibbons2D(
         }
 
         union()
+            RenderKnotRegionList(overpassRegions, convexity);
+    }
+}
+
+function KnotBasReliefTotalHeight(baseHeight, overpassHeight) =
+    assert(
+        is_num(baseHeight) && baseHeight > 0,
+        "Knot bas-relief base height must be positive."
+    )
+    assert(
+        is_num(overpassHeight) && overpassHeight > 0,
+        "Knot bas-relief overpass height must be positive."
+    )
+    baseHeight + overpassHeight;
+
+module RenderKnotBasRelief(
+    knot,
+    ribbonWidth = 2,
+    crossingClearance = 0.6,
+    baseHeight = 1.2,
+    overpassHeight = 1,
+    arcFragments = 8,
+    convexity = 10,
+    planarTolerance = 0.001)
+{
+    totalHeight = KnotBasReliefTotalHeight(baseHeight, overpassHeight);
+    layerOverlap = min(0.01, baseHeight / 10);
+
+    overpassRegions = KnotRibbonOverpassRegions(
+        knot,
+        ribbonWidth,
+        crossingClearance,
+        arcFragments,
+        planarTolerance
+    );
+
+    union()
+    {
+        assert(totalHeight > baseHeight);
+
+        linear_extrude(height = baseHeight, convexity = convexity)
+            RenderKnotRibbons2D(
+                knot,
+                ribbonWidth,
+                crossingClearance,
+                arcFragments,
+                convexity,
+                planarTolerance
+            );
+
+        translate([0, 0, baseHeight - layerOverlap])
+        linear_extrude(
+            height = overpassHeight + layerOverlap,
+            convexity = convexity
+        )
             RenderKnotRegionList(overpassRegions, convexity);
     }
 }

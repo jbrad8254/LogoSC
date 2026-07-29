@@ -323,6 +323,30 @@ Choose `RibbonGallery` to compare an unmasked continuous ribbon, the same grid w
 underpass gaps, and a larger 4-by-4 interlace. Ribbon compilation deliberately requires a planar
 knot copy and remains a specialized knot API rather than a general Core stroke renderer.
 
+### Render printable knot bas-relief
+
+The corrected ribbon footprint can be extruded directly:
+
+```scad
+RenderKnotBasRelief(
+    planarCeltic,
+    ribbonWidth = 2.4,
+    crossingClearance = 0.7,
+    baseHeight = 1.2,
+    overpassHeight = 1,
+    arcFragments = 10
+);
+```
+
+The masked ribbon forms the continuous base layer. Every recorded overpass is then extruded from
+`baseHeight` to `baseHeight + overpassHeight`. Restored overpass footprints extend beyond their
+subtraction masks and overlap the source ribbon, eliminating the isolated oval-tab appearance
+while retaining side clearance above the underpassing ribbon.
+
+![LogoSC printable knot bas-relief](images/knot-bas-relief-gallery.png)
+
+Choose `ReliefGallery` to compare low relief, normally raised crossings, and a 4-by-4 example.
+
 ## Current public API
 
 The main user-facing renderer is:
@@ -457,7 +481,7 @@ LogoSC Core's filled-region contract.
 ## Near-term roadmap
 
 - Expand optional validation only when additional topology policies provide clear value.
-- Continue the optional knot companion with printable bas-relief from the ribbon regions.
+- Continue the optional knot companion with relief backing plates and export-oriented presets.
 - Keep manufacturable stroke rendering as a separate API with explicit width, cap, and join semantics.
 
 ## Requirements

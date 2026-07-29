@@ -428,8 +428,8 @@ RenderKnotCordBundle(
 
 `RenderKnotCords()` hulls equal-radius spheres at each adjacent sample pair. The caller controls
 radius, route sampling, and sphere resolution. Adjacent cord bundles, signed braid words,
-explicit Celtic tile grids, and planar ribbons are implemented; bas-relief remains staged work
-described in `LogoSC-Knots-Design.md`.
+explicit Celtic tile grids, planar ribbons, and printable bas-relief are implemented as staged
+companion features described in `LogoSC-Knots-Design.md`.
 
 The current generators do not call `evalLogo()`: pure OpenSCAD functions create and validate
 their sampled records, and native OpenSCAD creates the 3D solids. The ribbon compiler constructs
@@ -472,6 +472,12 @@ Every footprint and mask is a LogoSC Core region; the overpass is restored after
 expanded mask from the continuous ribbon union.
 
 ![LogoSC planar knot ribbons and underpass masks](images/knot-ribbon-gallery.png)
+
+`RenderKnotBasRelief()` extrudes the masked ribbon as a continuous base and raises restored
+overpasses by an additional configurable height. Overpasses now extend beyond their masks and
+reconnect seamlessly to the source ribbon.
+
+![LogoSC printable knot bas-relief](images/knot-bas-relief-gallery.png)
 
 ## Future rendering work
 

@@ -10,7 +10,7 @@
   with `gcd(p,q)` independently closed components.
 - Added selectable Planar and Spatial knot debug views. Planar mode projects centerline and
   sample diagnostics to `z = 0` without changing the stored 3D knot route.
-- Added a separate 72-result knot test suite and runner covering record accessors, valid and
+- Added a separate 74-result knot test suite and runner covering record accessors, valid and
   invalid structures, closure, crossings, encounter indexes, lane permutations, torus sample
   counts, exact closure, distinct link components, generated-result validation, and cord-segment
   and bundle accounting, plus signed braid topology and closure.
@@ -75,6 +75,15 @@
   one-character ASCII symbols `">"` and `"<"`. Grids can now use compact string rows such as
   `">X<"`. Original and intermediate spellings remain compatibility aliases, while generated
   metadata is canonicalized.
+- Extended restored ribbon overpasses beyond their expanded crossing masks so they overlap the
+  source ribbon seamlessly, removing isolated capsule-shaped end halos while preserving side
+  clearance.
+- Added `RenderKnotBasRelief()` with independently controlled base and overpass heights, plus
+  `KnotBasReliefTotalHeight()`, `Relief` Customizer output, and a low/raised/4-by-4
+  `ReliefGallery`. Raised layers include a tiny internal base overlap while preserving external
+  height, avoiding reliance on exactly coplanar shell contact.
+- Added two focused results for overpass-to-mask span overlap and bas-relief height accounting,
+  bringing the knot suite to 74.
 - Added `Ribbon` Customizer output and a `RibbonGallery` comparing continuous regions,
   underpass-mask interlace, and a 4-by-4 Celtic ribbon grid.
 - Added a side-by-side User Manual comparison clarifying that braids generate crossing topology

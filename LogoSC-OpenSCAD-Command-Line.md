@@ -382,6 +382,30 @@ $ribbonGalleryPath = Join-Path `
 Every segment, mask, and restored overpass is rendered through LogoSC Core's
 `RenderRegion2D()`. The final union and difference are native OpenSCAD operations.
 
+### Render the knot bas-relief gallery
+
+The bas-relief gallery compares three base and overpass-height combinations:
+
+![LogoSC printable knot bas-relief](images/knot-bas-relief-gallery.png)
+
+```powershell
+$reliefGalleryPath = Join-Path `
+    (Get-Location) `
+    'images\knot-bas-relief-gallery.png'
+
+& $openScadCli `
+    -D 'KnotExample=\"ReliefGallery\"' `
+    --imgsize '1400,700' `
+    --camera '85,4,0,0,0,0,220' `
+    --projection o `
+    -o $reliefGalleryPath `
+    'LogoSC-Knots-Examples.scad'
+```
+
+Use `KnotOutput = "Relief"` with a Planar individual example for direct STL export. The
+Customizer exposes ribbon width, crossing clearance, base height, overpass height, and arc
+resolution.
+
 ## Example 2: export and inspect a debug PNG
 
 The command line can render the same debug demo that is available through the OpenSCAD

@@ -1431,8 +1431,42 @@ Ribbon functions reject nonplanar samples. This prevents an accidental Spatial r
 silently losing its Z topology. Use `KnotForView(knot, "Planar")` deliberately before calling
 them. This is a specialized knot renderer, not a general-purpose LogoSC stroke API.
 
-The current result is flat 2D geometry. Printable bas-relief, borders, bundled ribbons, and
-general polygon-union export remain later milestones.
+#### Printable knot bas-relief
+
+`RenderKnotBasRelief()` uses the same planar regions and crossing ownership:
+
+```scad
+RenderKnotBasRelief(
+    planarCeltic,
+    ribbonWidth = 2.4,
+    crossingClearance = 0.7,
+    baseHeight = 1.2,
+    overpassHeight = 1,
+    arcFragments = 10
+);
+```
+
+The renderer first extrudes the complete masked-and-restored ribbon footprint from `z = 0` to
+`baseHeight`. It then extrudes every restored overpass from `baseHeight` through
+`baseHeight + overpassHeight`. `KnotBasReliefTotalHeight()` exposes that final dimension for
+model layout and tests. A hidden overlap of at most `0.01` joins raised overpasses slightly into
+the base instead of leaving exactly coplanar touching shells; it does not change the external
+height.
+
+The restored overpass is deliberately longer than its expanded subtraction mask. Its ends
+overlap the uninterrupted source ribbon, so clearance remains visible along the sides of the
+crossing without leaving an isolated oval or capsule-shaped tab.
+
+![LogoSC printable knot bas-relief](images/knot-bas-relief-gallery.png)
+
+The gallery compares a low 0.8 + 0.6 relief, the same topology with a 1.2 + 1.0 profile, and a
+4-by-4 pattern with higher crossings. Choose `KnotExample = "ReliefGallery"`, or select
+`KnotOutput = "Relief"` with a Planar individual example.
+
+The output is printable positive geometry, but it has no backing plate. Separate knot or link
+components therefore remain separate objects unless the caller adds a plate or another native
+OpenSCAD support. Backing plates, edge bevels, bundled ribbons, and unified polygon export remain
+later milestones.
 
 #### Circular braid closures
 

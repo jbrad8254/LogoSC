@@ -6,7 +6,8 @@ This is the authoritative design plan for generative knot work in LogoSC. It cov
 Gordian-style parametric knots and traditional Celtic interlace. The torus, circular-braid, and
 explicit Celtic tile-grid generators, single-cord manufacturing, and untwisted adjacent bundle
 slices are implemented. Planar ribbon footprints and underpass masks are also implemented;
-later milestones remain proposals until their APIs are reviewed.
+printable bas-relief is implemented from those regions; later milestones remain proposals until
+their APIs are reviewed.
 
 LogoSC remains a 2D filled-region evaluator. A future optional companion may use LogoSC for
 planar routes, ribbon footprints, masks, local transforms, and repeated motifs. Native OpenSCAD
@@ -35,15 +36,18 @@ remains responsible for extrusion, hulls, Minkowski operations, booleans, and 3D
   tracing components, removing reverse duplicates, and enforcing alternating crossings;
 - `KnotRibbonRegions()` and `RenderKnotRibbons2D()`, compiling planar samples into Core region
   capsules with crossing-local masks and restored overpass footprints;
+- `RenderKnotBasRelief()`, extruding the corrected ribbon footprint as a base and raising
+  crossing overpasses by a separately controlled height;
 - selectable planar-projection and spatial views across diagnostics, cords, bundles, and
   presentation galleries;
-- a dedicated 72-result automated suite plus topology, bundle, braid, braided-bundle, Celtic
+- a dedicated 74-result automated suite plus topology, bundle, braid, braided-bundle, Celtic
   tile-grid, and planar-ribbon presentation galleries.
 
-This slice deliberately does not implement bas-relief, explicit twist, Möbius closure, general
-collision discovery, tight-curve rejection, or AI image import. Callers must select dimensions
-and sampling appropriate for the route. Reserved strand fields and metadata allow later
-milestones to extend the representation without changing its established leading fields.
+This slice deliberately does not implement relief backing plates, explicit twist, Möbius
+closure, general collision discovery, tight-curve rejection, or AI image import. Callers must
+select dimensions and sampling appropriate for the route. Reserved strand fields and metadata
+allow later milestones to extend the representation without changing its established leading
+fields.
 
 ## How LogoSC is used
 
@@ -672,6 +676,20 @@ The first 3D crossing style should be a printable relief:
 
 This is robust and visually explicit, though it does not create a truly separated cord.
 
+### Implemented bas-relief boundary
+
+`RenderKnotBasRelief()` extrudes the complete masked-and-restored ribbon footprint to
+`baseHeight`, then raises every overpass region by `overpassHeight`.
+`KnotBasReliefTotalHeight()` reports their sum. Raised regions overlap the base internally by at
+most `0.01` to avoid relying on exactly coplanar shell contact without changing external height.
+
+Before extrusion, the restored overpass span is extended beyond the expanded subtraction mask.
+The restored ends overlap the source ribbon, eliminating isolated capsule halos while preserving
+clearance along the underpass sides.
+
+The result is positive printable geometry with no automatic backing plate. Separate link
+components remain separate solids unless a caller supplies a plate or another support.
+
 ## Rounded cords
 
 For sampled 3D centerline points, construct every segment as a capsule:
@@ -931,11 +949,13 @@ links where supported by the selected generator.
 4. **Celtic tile grids** — topology implemented
    - Explicit tiles, rectangular validation, deterministic boundary closure, component tracing,
      alternating crossings, tests, and a gallery are complete.
-   - Random filling, explicit boundary maps, and relief remain deferred.
+   - Random filling and explicit boundary maps remain deferred.
 5. **2D ribbon compiler** — implemented
    - Rounded capsule regions, Core rendering, underpass masks, restored overpasses, tests, and a
      comparison gallery are complete.
-   - Unified polygon export, decorative borders, bundled ribbons, and bas-relief remain deferred.
+   - Bas-relief extrusion and corrected overpass overlap are complete.
+   - Unified polygon export, decorative borders, bundled ribbons, and backing plates remain
+     deferred.
 6. **Harmonic/Lissajous and polar generators**
    - Add automatic crossing discovery and parity solving.
 7. **Medial planar graphs**

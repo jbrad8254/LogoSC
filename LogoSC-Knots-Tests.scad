@@ -889,6 +889,16 @@ function KnotRibbonTestResults() =
         && RegionOuter(maskRegions[0]) != RegionOuter(overpassRegions[0])
     ),
     LogoTestResult(
+        "knot ribbon overpass reconnects beyond mask",
+        KnotTestNearlyEqual(KnotRibbonCrossingSpan(2.4, 0.7, true), 6.2)
+        && KnotTestNearlyEqual(
+            KnotRibbonCrossingSpan(2.4, 0.7, false),
+            10
+        )
+        && KnotRibbonCrossingSpan(2.4, 0.7, false)
+            > KnotRibbonCrossingSpan(2.4, 0.7, true)
+    ),
+    LogoTestResult(
         "knot ribbon crossing branch accessors",
         KnotCrossingBranchStrand(firstCrossing, "A")
             == KnotCrossingStrandA(firstCrossing)
@@ -910,6 +920,14 @@ function KnotRibbonTestResults() =
         && len(KnotRibbonOverpassRegions(unknot, 2, 0.5, 4)) == 0
         && len(KnotRibbonRegions(unknot, 2, 4))
             == KnotCordSegmentCount(unknot)
+    ),
+    LogoTestResult(
+        "knot bas-relief height accounting",
+        KnotTestNearlyEqual(KnotBasReliefTotalHeight(1.2, 1), 2.2)
+        && KnotTestNearlyEqual(
+            KnotBasReliefTotalHeight(0.8, 0.6),
+            1.4
+        )
     )
 ];
 

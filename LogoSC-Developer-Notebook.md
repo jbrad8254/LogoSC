@@ -3153,3 +3153,35 @@ Verification boundary:
   every compatibility alias.
 - Regenerate the ribbon gallery from the canonical grid literals and rerun the complete knot
   suite.
+
+### 2026-07-29 — Natural overpasses and printable bas-relief
+
+Context:
+
+- The first ribbon masks and restored overpasses used equal longitudinal spans. Because the mask
+  radius was larger, this left visible clearance around the restored capsule ends and made each
+  overpass resemble an isolated oval tab.
+- Bas-relief should preserve the intended weave, not bake that known 2D artifact into a raised
+  surface.
+
+Decision:
+
+- Keep the expanded subtraction mask localized around the crossing.
+- Extend each normal-width restored overpass beyond both mask ends by the clearance plus half the
+  ribbon width. The extension overlaps the uninterrupted source ribbon while side clearance
+  remains visible.
+- Implement `RenderKnotBasRelief()` by extruding the complete corrected ribbon footprint to
+  `baseHeight`, then extruding every overpass from that level by `overpassHeight`.
+- Sink raised regions into the base by at most `0.01` internally so mesh union does not rely on
+  exactly coplanar touching faces. Preserve the requested external total height.
+- Add `KnotBasReliefTotalHeight()` for deterministic dimension accounting.
+- Keep the output as positive ribbon geometry without an automatic backing plate. Multi-component
+  links therefore remain separate printable solids unless the caller adds support.
+
+Verification boundary:
+
+- Add one result for the required overpass-span inequality and one for total relief height,
+  bringing the knot suite from 72 to 74.
+- Regenerate the ribbon gallery to verify the oval-tab artifact is gone.
+- Add a relief gallery showing low, normal, and 4-by-4 raised examples.
+- Require CSG and PNG gallery exports, a representative STL, and the complete repository suites.
