@@ -1307,6 +1307,27 @@ underpass gaps because automatic crossing discovery remains a later milestone.
 Run `LogoSC-Knots-Test-Runner.scad` for its independent automated suite, and open
 `LogoSC-Knots-Examples.scad` to select either diagnostic or cord output.
 
+![LogoSC manufacturable knot-cord gallery](images/knot-cord-gallery.png)
+
+The gallery shows three increasingly topological examples:
+
+- **Unknot (cyan):** one closed strand with no true knotting. Although the route bends through
+  3D space, it can be continuously deformed into an ordinary circle without cutting the cord.
+- **Trefoil (gold):** one closed strand forming the simplest nontrivial knot. Its apparent
+  crossings belong to the same continuous component, and its 3D height keeps the cord separated
+  where the projection overlaps.
+- **Hopf link (purple and red):** two individually unknotted closed strands linked once with each
+  other. Purple identifies one component and red identifies the other so their separate routes
+  remain easy to follow.
+
+Colors are presentation aids only; they do not change knot records, topology, dimensions, or
+manufacturable geometry. Cyan and gold each identify a complete single-strand result. Purple and
+red distinguish the Hopf link's two components. Darker and lighter areas within a color are
+OpenSCAD lighting and surface shading, not additional strand or crossing states.
+
+Choose `KnotExample = "CordGallery"` for this labeled presentation scene. It is generated from
+the same knot records and capsule renderer used for normal cord output.
+
 ### 7.13 OpenSCAD wrapper pattern
 
 LogoSC intentionally remains a 2D geometry generator. Wrap its output with native

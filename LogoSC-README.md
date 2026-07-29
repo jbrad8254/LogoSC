@@ -429,6 +429,8 @@ functions create and validate its sampled records, and native OpenSCAD creates t
 Planned Core use begins with planar motifs, transforms, ribbons, and crossing masks; the complete
 boundary is documented in `LogoSC-Knots-Design.md#how-logosc-is-used`.
 
+![LogoSC manufacturable knot-cord gallery](images/knot-cord-gallery.png)
+
 ## Future rendering work
 
 LogoSC currently targets closed polygons because that maps cleanly to OpenSCAD and

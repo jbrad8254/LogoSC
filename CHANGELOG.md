@@ -20,6 +20,9 @@
 - Added validated `RenderKnotCords()` manufacturing geometry, converting every adjacent sampled
   pair into a sphere-hulled capsule with explicit radius and fragment controls. Added segment
   accounting helpers and four focused tests.
+- Added a labeled `CordGallery` presentation scene generated from actual unknot, trefoil, and
+  Hopf-link cord geometry, including per-component link colors and a reproducible documentation
+  PNG command.
 - Documented the knot companion's actual dependency flow: current torus sampling, validation,
   diagnostics, and cords do not invoke LogoSC Core; the test runner uses Core only for reporting;
   and planned Core integration begins with planar motifs, transforms, ribbons, and masks.

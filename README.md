@@ -198,6 +198,12 @@ OpenSCAD functions, and native OpenSCAD constructs the 3D capsules. Core is rese
 2D Celtic motifs, transforms, ribbon regions, and crossing masks. See
 `LogoSC-Knots-Design.md#how-logosc-is-used` for the complete dependency and call-flow boundary.
 
+![LogoSC manufacturable knot-cord gallery](images/knot-cord-gallery.png)
+
+Choose `CordGallery` in `LogoSC-Knots-Examples.scad` for the presentation scene. It uses the
+actual torus generator and cord renderer; per-strand colors distinguish the two Hopf-link
+components without changing their geometry.
+
 ## Current public API
 
 The main user-facing renderer is:

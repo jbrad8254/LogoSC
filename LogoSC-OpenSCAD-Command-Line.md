@@ -234,6 +234,32 @@ if ($LASTEXITCODE -ne 0 -or !(Test-Path -LiteralPath $knotCsgPath))
 This confirms that OpenSCAD can construct the capsule tree. It does not replace an STL/mesh
 export and slicer inspection for a chosen radius, sampling density, and print process.
 
+### Render the knot-cord presentation gallery
+
+`LogoSC-Knots-Examples.scad` defaults to a labeled presentation scene generated from the real
+unknot, trefoil, and Hopf-link cord geometry:
+
+![LogoSC manufacturable knot-cord gallery](images/knot-cord-gallery.png)
+
+Regenerate the repository image with the tested top-down camera:
+
+```powershell
+$knotGalleryPath = Join-Path (Get-Location) 'images\knot-cord-gallery.png'
+
+& $openScadCli `
+    -D 'KnotExample=\"CordGallery\"' `
+    -D 'KnotCordFragments=18' `
+    --imgsize '1400,700' `
+    --camera '85,4,0,0,0,0,220' `
+    --projection o `
+    -o $knotGalleryPath `
+    'LogoSC-Knots-Examples.scad'
+```
+
+The gallery uses a lower route-sampling density than the standalone examples to keep interactive
+preview and PNG generation practical. It retains the same `MakeTorusKnot()` and
+`RenderKnotCords()` execution path.
+
 ## Example 2: export and inspect a debug PNG
 
 The command line can render the same debug demo that is available through the OpenSCAD

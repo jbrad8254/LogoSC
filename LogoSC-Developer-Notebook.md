@@ -2917,3 +2917,12 @@ Documentation follow-up:
   reporting framework.
 - Reserve actual LogoSC evaluator integration for planar Celtic motifs, transform-driven
   repetition, ribbon regions, and crossing masks, with native OpenSCAD retaining 3D operations.
+
+Presentation follow-up:
+
+- Add a `CordGallery` scene that uses the real generator and renderer rather than illustrative
+  substitute geometry.
+- Use a top-down orthographic camera, three distinct cord palettes, separate Hopf-component
+  colors, and extruded labels to make the manufacturing output immediately legible.
+- Use presentation-specific route sampling so command-line PNG generation remains practical;
+  retain the standalone examples' higher sampling for closer inspection and mesh export.
