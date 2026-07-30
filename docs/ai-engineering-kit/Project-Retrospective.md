@@ -202,6 +202,11 @@ Useful times to add an entry include:
 - before pausing a project for a long period
 - when a recurring problem reveals a missing convention
 
+After every published release, the retrospective is required rather than optional. Verify the
+published tag against the intended release commit, update the project checkpoint, and check in
+the retrospective and checkpoint documentation as a separate post-release housekeeping commit.
+An agent must still wait for explicit authorization before creating that commit.
+
 Each entry should cover:
 
 1. What happened
@@ -292,6 +297,55 @@ that were already visible through normal Git status and diff tools.
 - Preserve the one-combined-ZIP procedure as the fallback in every bootstrap and handoff guide.
 - Continue to verify changed files, links, images, tests, `git diff`, and `git status` regardless
   of delivery mode.
+
+## Retrospective: LogoSC 2026.5 Release
+
+### What Happened
+
+LogoSC 2026.5 combined two substantial but compatible themes: full affine turtle transforms in
+Core and the first complete optional knot companion. The milestone was tested, documented,
+committed, and published on GitHub as `v2026.5`.
+
+### What Worked
+
+- Incremental implementation kept Core affine changes backward compatible.
+- Keeping knots in an optional companion protected the small Core boundary.
+- Executable examples and separate Foundation, fastener, and knot suites provided clear release
+  evidence.
+- Visual review exposed junction gaps, rounded crossing caps, and low-contrast plaques that
+  deterministic structural tests alone would not have found.
+- A prepared Markdown release note made GitHub publication straightforward.
+
+### What Caused Friction
+
+- Intermediate knot documentation became stale as later phases completed the planned features.
+- The newly published GitHub tag was not automatically present in the local clone.
+- Tag spelling has varied historically between `2026.4` and the otherwise prevalent `v` prefix.
+
+### Lessons
+
+- A feature gallery is part of geometry verification when presentation defects reveal actual
+  construction problems.
+- Release preparation should normalize cumulative documentation, not merely move changelog text
+  out of `Unreleased`.
+- Remote publication should be verified against the exact release commit before the tag is
+  recorded as a project baseline.
+- Future releases should consistently use the `vYYYY.N` tag form unless the versioning policy is
+  deliberately changed.
+
+### Process Changes
+
+- Add an explicit remote-tag-to-release-commit check to post-release housekeeping.
+- Record the published tag and the next development checkpoint in the Developer Notebook.
+- Require the retrospective and checkpoint documentation to be reviewed and checked in after
+  every future release.
+- Continue providing a suggested commit summary after substantial changes.
+
+### Follow-Up
+
+- Prototype LogoSC Starter as a curated, upward-compatible teaching package.
+- Define Starter examples and conformance checks before deciding whether a generated reduced
+  library file is justified.
 
 # Template for Future Entries
 

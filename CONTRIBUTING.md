@@ -174,6 +174,15 @@ Before a release, review and update as appropriate:
 `LogoSCVersion` is derived from the major and minor symbols; verify the resulting
 value rather than editing it independently.
 
+After each published release, perform a separate post-release housekeeping check-in:
+
+- Verify the published tag resolves to the intended release commit.
+- Add a release retrospective to `docs/ai-engineering-kit/Project-Retrospective.md`.
+- Record the published tag and next development checkpoint in
+  `LogoSC-Developer-Notebook.md`.
+- Review and commit those post-release documentation changes. An agent should prepare the
+  changes and suggested commit summary, but should commit them only when explicitly requested.
+
 ## Packaging
 
 When an agent or tool edits the user's active Git working tree directly, no transfer ZIP is

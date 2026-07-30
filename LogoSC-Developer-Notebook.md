@@ -85,6 +85,7 @@
 - [2026.3 release preparation](#2026-07-22--20263-feature-release-preparation)
 - [2026.4 release preparation](#2026-07-27--20264-feature-release-preparation)
 - [2026.5 release preparation](#2026-07-29--20265-affine-and-knot-release-preparation)
+- [2026.5 publication and next checkpoint](#2026-07-29--20265-publication-and-next-development-checkpoint)
 - [Journal-entry template](#yyyy-mm-dd--topic)
 
 ## Quick Links
@@ -96,7 +97,7 @@
 - [Testing and regression risks](#11-testing-and-regression-risks)
 - [Documentation conventions](#7-documentation-architecture-and-conventions)
 - [Packaging workflow](#8-repository-and-packaging-workflow)
-- [Latest release preparation](#2026-07-29--20265-affine-and-knot-release-preparation)
+- [Latest release checkpoint](#2026-07-29--20265-publication-and-next-development-checkpoint)
 
 ## ChatGPT bootstrap — read this first
 
@@ -288,7 +289,8 @@ Verified working state:
 - README Quick Start now shows the actual filled-triangle result immediately after
   the first code block and the debug-overlay result immediately after the
   `RenderLogoDebug()` code block.
-- Git tags `v2026.2`, `v2026.2.1`, `v2026.3`, and `2026.4` preserve earlier release baselines.
+- Git tags `v2026.2`, `v2026.2.1`, `v2026.3`, `2026.4`, and `v2026.5` preserve release
+  baselines.
 - Release `2026.3` consolidates the later fastener application, expanded validation, tests,
   documentation, and reproducible images without rewriting those earlier tags.
 - Release `2026.4` consolidates general topology relationships, strict hole validation,
@@ -304,7 +306,9 @@ Known open design issues:
   or spatial index.
 - README already includes a verified debug-overlay screenshot. Add another manual screenshot
   only if it teaches something the existing image does not.
-- Begin later work only after the `2026.5` release diff is reviewed and committed.
+- Prototype the upward-compatible LogoSC Starter package as the next focused milestone. Treat it
+  as a curated teaching and distribution subset of the canonical implementation, not a new
+  dialect or independently evolving interpreter.
 
 ---
 
@@ -3342,3 +3346,33 @@ Verification boundary:
 - Visually inspect the Core examples, debug triangle, and beveled plaque galleries.
 - Verify local documentation links, referenced assets, code fences, LF endings, version
   consistency, `git diff --check`, and a clean release-preparation diff.
+
+### 2026-07-29 — 2026.5 publication and next development checkpoint
+
+Context:
+
+- The maintainer committed and pushed the prepared release as commit
+  `aa56e1057acbaf92f768b2363116d368693d7e3c`.
+- GitHub release `v2026.5` is live.
+- The local clone did not initially contain the newly created remote tag because the release was
+  published outside the local Git process.
+
+Decision:
+
+- Record `v2026.5` as the canonical published tag for release `2026.5`.
+- Verify the remote tag directly rather than inferring publication from the release name. The
+  remote tag resolves exactly to the release commit above.
+- Keep the Core public API version at `2026.5` until a later release is deliberately prepared.
+- Keep the changelog's `Unreleased` section empty until the next user-visible change.
+- Use the upward-compatible LogoSC Starter package as the next focused development checkpoint.
+  Begin with package boundaries, teaching examples, and conformance criteria before considering
+  any physically reduced library file.
+
+Verification boundary:
+
+- Confirm `main` and `origin/main` are synchronized and the working tree is clean before
+  post-release documentation edits.
+- Confirm `refs/tags/v2026.5` on `origin` resolves to
+  `aa56e1057acbaf92f768b2363116d368693d7e3c`.
+- Preserve the complete Core as the implementation authority and require every Starter example
+  to run unchanged against it.

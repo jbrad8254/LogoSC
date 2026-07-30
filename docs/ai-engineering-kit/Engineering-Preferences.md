@@ -185,6 +185,14 @@ Before a release:
 
 Use release notes to explain user-visible value, not merely list internal edits.
 
+After a release is published:
+
+- Verify the published tag points to the intended release commit.
+- Add a concise retrospective covering what worked, friction, lessons, and follow-up.
+- Record the published tag and next development checkpoint in the project's engineering notes.
+- Review and check in those documentation updates as a distinct post-release housekeeping
+  change. An AI assistant should create the commit only when explicitly authorized.
+
 # Packaging and File Delivery
 
 Choose the delivery mode from the environment rather than generating a ZIP automatically.
