@@ -93,6 +93,11 @@
   printable relief plaques.
 - Added optional independent plaque and raised-knot preview colors, with contrasting Customizer
   defaults. Color remains presentation metadata and does not affect printable STL geometry.
+- Replaced crossing-local capsule masks and restored capsule overpasses with flat-ended oriented
+  bands. The shorter mask remains inside the crossing segment, while the longer restored band
+  overlaps the source ribbon, removing curved-junction gaps and visible rounded top caps.
+- Added a focused flat-end contour result, bringing the knot suite to 77, and regenerated the
+  ribbon, bas-relief, and relief-plaque galleries.
 - Added `Ribbon` Customizer output and a `RibbonGallery` comparing continuous regions,
   underpass-mask interlace, and a 4-by-4 Celtic ribbon grid.
 - Added a side-by-side User Manual comparison clarifying that braids generate crossing topology

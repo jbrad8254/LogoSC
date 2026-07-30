@@ -3212,3 +3212,29 @@ Verification boundary:
   the knot suite from 74 to 76.
 - Add a compact/rounded/4-by-4 gallery, a reproducible PNG command, a representative manifold
   STL, and the complete repository acceptance suites.
+
+### 2026-07-29 — Flat-ended crossing bands
+
+Context:
+
+- The crossing mask and restored overpass were straight capsules aligned to the tangent at the
+  crossing center.
+- On an 8-unit Celtic tile, their rounded longitudinal caps extended into the neighboring curved
+  tile. The expanded mask could remove part of that curve that the narrower restored capsule did
+  not cover, leaving triangular gaps. The raised capsule caps also remained visibly bulbous.
+
+Decision:
+
+- Keep ordinary sampled ribbon segments as rounded capsules so route joins stay smooth.
+- Use oriented rectangles for crossing-local subtraction masks and restored overpass footprints.
+- Size the restored band one clearance distance beyond each mask end. This provides explicit
+  overlap while keeping both ends inside the straight crossing segment for the documented Celtic
+  examples.
+- Preserve the established region APIs and native final Boolean composition.
+
+Verification boundary:
+
+- Add a deterministic result for the four-point flat-ended contour and update span accounting,
+  bringing the knot suite from 76 to 77.
+- Regenerate the ribbon, bare-relief, and plaque galleries and require complete repository suites
+  plus a simple CGAL plaque STL.

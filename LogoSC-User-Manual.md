@@ -1411,9 +1411,10 @@ For every recorded crossing:
 
 1. the compiler finds the recorded over branch and its normalized parameter;
 2. it interpolates the branch center and planar tangent;
-3. `KnotRibbonCrossingMaskRegions()` constructs an expanded capsule aligned with that branch;
+3. `KnotRibbonCrossingMaskRegions()` constructs an expanded flat-ended band aligned with that
+   branch;
 4. the renderer subtracts all expanded masks from the continuous ribbon union;
-5. `KnotRibbonOverpassRegions()` restores normal-width overpass capsules.
+5. `KnotRibbonOverpassRegions()` restores slightly longer, normal-width, flat-ended bands.
 
 The white space beside a restored overpass is therefore a real geometric cut through the
 underpassing footprint. `crossingClearance` expands the mask radially beyond the normal ribbon
@@ -1453,9 +1454,10 @@ model layout and tests. A hidden overlap of at most `0.01` joins raised overpass
 the base instead of leaving exactly coplanar touching shells; it does not change the external
 height.
 
-The restored overpass is deliberately longer than its expanded subtraction mask. Its ends
+The restored overpass is deliberately longer than its expanded subtraction mask. Its flat ends
 overlap the uninterrupted source ribbon, so clearance remains visible along the sides of the
-crossing without leaving an isolated oval or capsule-shaped tab.
+crossing without leaving an isolated oval, a capsule-shaped tab, or a triangular gap where the
+next route section begins to curve.
 
 ![LogoSC printable knot bas-relief](images/knot-bas-relief-gallery.png)
 

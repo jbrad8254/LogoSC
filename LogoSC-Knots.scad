@@ -2154,6 +2154,33 @@ function KnotRibbonCapsuleRegion(
         KnotRibbonCapsuleContour(start, end, radius, arcFragments)
     );
 
+function KnotRibbonRectangleContour(start, end, halfWidth) =
+    let(
+        start2D = KnotRibbonPoint2D(start),
+        end2D = KnotRibbonPoint2D(end),
+        delta = [
+            end2D[0] - start2D[0],
+            end2D[1] - start2D[1]
+        ],
+        length = sqrt(delta[0] * delta[0] + delta[1] * delta[1]),
+        normal = [-delta[1] / length, delta[0] / length],
+        offset = [normal[0] * halfWidth, normal[1] * halfWidth]
+    )
+    assert(length > 0, "Knot ribbon rectangle requires a nonzero segment.")
+    assert(
+        is_num(halfWidth) && halfWidth > 0,
+        "Knot ribbon rectangle half-width must be positive."
+    )
+    [
+        [start2D[0] + offset[0], start2D[1] + offset[1]],
+        [end2D[0] + offset[0], end2D[1] + offset[1]],
+        [end2D[0] - offset[0], end2D[1] - offset[1]],
+        [start2D[0] - offset[0], start2D[1] - offset[1]]
+    ];
+
+function KnotRibbonRectangleRegion(start, end, halfWidth) =
+    MakeRegion(KnotRibbonRectangleContour(start, end, halfWidth));
+
 function KnotRibbonRegions(
     knot,
     ribbonWidth = 2,
@@ -2232,7 +2259,7 @@ function KnotRibbonCrossingSpan(
     + (
         expanded
         ? 0
-        : 2 * (crossingClearance + ribbonWidth / 2)
+        : 2 * crossingClearance
     );
 
 function KnotRibbonCrossingRegion(
@@ -2274,7 +2301,7 @@ function KnotRibbonCrossingRegion(
         radius = ribbonWidth / 2
             + (expanded ? crossingClearance : 0)
     )
-    KnotRibbonCapsuleRegion(start, end, radius, arcFragments);
+    KnotRibbonRectangleRegion(start, end, radius);
 
 function KnotRibbonCrossingMaskRegions(
     knot,
@@ -2333,9 +2360,9 @@ module RenderKnotRegionList(regions, convexity = 10)
 }
 
 // Render a planar interlace through LogoSC Core regions. The base ribbon is
-// cut by an expanded mask around each over branch, then the normal-width
-// overpass footprint is restored. Native difference/union performs only the
-// final region composition.
+// cut by an expanded flat-ended mask around each over branch, then a longer
+// normal-width flat-ended overpass footprint is restored. Native
+// difference/union performs only the final region composition.
 module RenderKnotRibbons2D(
     knot,
     ribbonWidth = 2,

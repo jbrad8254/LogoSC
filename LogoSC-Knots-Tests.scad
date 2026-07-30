@@ -875,6 +875,11 @@ function KnotRibbonTestResults() =
         )[0] == [10, 1]
     ),
     LogoTestResult(
+        "knot ribbon crossing rectangle has flat ends",
+        KnotRibbonRectangleContour([0, 0, 0], [10, 0, 0], 1)
+            == [[0, 1], [10, 1], [10, -1], [0, -1]]
+    ),
+    LogoTestResult(
         "knot ribbon regions use LogoSC region records",
         len(ribbonRegions) == KnotCordSegmentCount(planarCeltic)
         && len(ribbonRegions) == 132
@@ -893,7 +898,7 @@ function KnotRibbonTestResults() =
         KnotTestNearlyEqual(KnotRibbonCrossingSpan(2.4, 0.7, true), 6.2)
         && KnotTestNearlyEqual(
             KnotRibbonCrossingSpan(2.4, 0.7, false),
-            10
+            7.6
         )
         && KnotRibbonCrossingSpan(2.4, 0.7, false)
             > KnotRibbonCrossingSpan(2.4, 0.7, true)

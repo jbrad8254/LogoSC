@@ -312,10 +312,11 @@ RenderKnotRibbons2D(
 ```
 
 `KnotRibbonRegions()` converts every sampled segment into a closed rounded capsule
-`MakeRegion()`. Crossing masks are expanded capsules aligned with the recorded over branch.
-The renderer subtracts those masks from the continuous ribbon union, then restores normal-width
-overpass regions. Every region reaches OpenSCAD through LogoSC Core's `RenderRegion2D()`; native
-OpenSCAD performs only the final union and difference.
+`MakeRegion()`. Crossing masks are expanded flat-ended bands aligned with the recorded over
+branch. The renderer subtracts those masks from the continuous ribbon union, then restores
+slightly longer normal-width bands. Their controlled overlap reconnects to the source route
+without exposing rounded capsule caps. Every region reaches OpenSCAD through LogoSC Core's
+`RenderRegion2D()`; native OpenSCAD performs only the final union and difference.
 
 ![LogoSC planar knot ribbons and underpass masks](images/knot-ribbon-gallery.png)
 
@@ -339,9 +340,10 @@ RenderKnotBasRelief(
 ```
 
 The masked ribbon forms the continuous base layer. Every recorded overpass is then extruded from
-`baseHeight` to `baseHeight + overpassHeight`. Restored overpass footprints extend beyond their
-subtraction masks and overlap the source ribbon, eliminating the isolated oval-tab appearance
-while retaining side clearance above the underpassing ribbon.
+`baseHeight` to `baseHeight + overpassHeight`. Restored flat-ended overpass footprints extend
+beyond their subtraction masks and overlap the source ribbon, eliminating both isolated
+oval-tab ends and curve-to-overpass gaps while retaining side clearance above the underpassing
+ribbon.
 
 ![LogoSC printable knot bas-relief](images/knot-bas-relief-gallery.png)
 

@@ -655,8 +655,8 @@ wraps it with Core's `MakeRegion()`. The union of segment regions gives continuo
 rounded sampled joins without forcing a self-crossing route into one invalid polygon contour.
 
 For each crossing, the compiler interpolates the recorded over branch and its planar tangent.
-`KnotRibbonCrossingMaskRegions()` creates an expanded capsule along that tangent;
-`KnotRibbonOverpassRegions()` creates the corresponding normal-width capsule.
+`KnotRibbonCrossingMaskRegions()` creates an expanded flat-ended band along that tangent;
+`KnotRibbonOverpassRegions()` creates a slightly longer normal-width flat-ended band.
 `RenderKnotRibbons2D()` subtracts the expanded masks from the union of continuous ribbon regions
 and then restores every overpass. All footprints and masks are rendered by
 `RenderRegion2D()` before native OpenSCAD performs the Boolean composition.
@@ -684,8 +684,9 @@ This is robust and visually explicit, though it does not create a truly separate
 most `0.01` to avoid relying on exactly coplanar shell contact without changing external height.
 
 Before extrusion, the restored overpass span is extended beyond the expanded subtraction mask.
-The restored ends overlap the source ribbon, eliminating isolated capsule halos while preserving
-clearance along the underpass sides.
+Its flat ends overlap the source ribbon inside the straight crossing segment. This eliminates
+isolated capsule halos and curve-to-overpass gaps while preserving clearance along the underpass
+sides.
 
 The bare result is positive printable geometry with no backing plate. Separate link components
 remain separate solids unless a caller supplies support or uses the plaque renderer.
