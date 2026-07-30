@@ -4,9 +4,9 @@ include <LogoSC-Knots.scad>
 
 /* [Example Selection] */
 
-KnotExample = "ReliefGallery"; // [ReliefGallery,RibbonGallery,CelticGallery,BraidBundleGallery,BraidGallery,BundleGallery,CordGallery,CelticGrid,Unknot,Trefoil,HopfLink,CrossingRecord]
+KnotExample = "PlaqueGallery"; // [PlaqueGallery,ReliefGallery,RibbonGallery,CelticGallery,BraidBundleGallery,BraidGallery,BundleGallery,CordGallery,CelticGrid,Unknot,Trefoil,HopfLink,CrossingRecord]
 KnotView = "Planar"; // [Planar, Spatial]
-KnotOutput = "Relief"; // [Debug, Cord, Bundle, Ribbon, Relief]
+KnotOutput = "Plaque"; // [Debug, Cord, Bundle, Ribbon, Relief, Plaque]
 
 /* [Debug Display] */
 
@@ -36,6 +36,12 @@ KnotRibbonArcFragments = 10; // [2:1:32]
 
 KnotReliefBaseHeight = 1.2; // [0.2:0.1:8]
 KnotReliefOverpassHeight = 1; // [0.2:0.1:8]
+
+/* [Backing Plate] */
+
+KnotReliefPlateThickness = 1.2; // [0.2:0.1:8]
+KnotReliefPlateMargin = 3; // [0:0.1:12]
+KnotReliefPlateCornerRadius = 3; // [0:0.1:12]
 
 /* [Gallery Presentation] */
 
@@ -103,7 +109,21 @@ module RenderKnotExample(name)
     knot = KnotExampleResult(name);
     viewKnot = KnotForView(knot, KnotView);
 
-    if (KnotOutput == "Relief")
+    if (KnotOutput == "Plaque")
+    {
+        RenderKnotBasReliefPlaque(
+            viewKnot,
+            ribbonWidth = KnotRibbonWidth,
+            crossingClearance = KnotRibbonCrossingClearance,
+            plateThickness = KnotReliefPlateThickness,
+            plateMargin = KnotReliefPlateMargin,
+            plateCornerRadius = KnotReliefPlateCornerRadius,
+            baseHeight = KnotReliefBaseHeight,
+            overpassHeight = KnotReliefOverpassHeight,
+            arcFragments = KnotRibbonArcFragments
+        );
+    }
+    else if (KnotOutput == "Relief")
     {
         RenderKnotBasRelief(
             viewKnot,
@@ -616,7 +636,84 @@ module RenderKnotReliefGallery()
     RenderKnotGalleryLabel("4 x 4 RELIEF", [145, -30, -1], 3.2);
 }
 
-if (KnotExample == "ReliefGallery")
+module RenderKnotPlaqueGalleryExample(
+    variant,
+    position,
+    rotation,
+    plateMargin,
+    plateCornerRadius,
+    colorValue)
+{
+    grid = KnotCelticExampleGrid(variant);
+    cellSize = variant == 2 ? 8 : 9;
+    planarKnot = KnotForView(
+        MakeCelticTileGridKnot(grid, cellSize, 8, 6, 4),
+        "Planar"
+    );
+    width = KnotCelticGridColumnCount(grid) * cellSize;
+    height = len(grid) * cellSize;
+
+    color(colorValue)
+    translate(position)
+    rotate(rotation)
+    translate([-width / 2, height / 2, 0])
+        RenderKnotBasReliefPlaque(
+            planarKnot,
+            ribbonWidth = 2.1,
+            crossingClearance = 0.65,
+            plateThickness = 1.2,
+            plateMargin = plateMargin,
+            plateCornerRadius = plateCornerRadius,
+            baseHeight = 1.1,
+            overpassHeight = 1,
+            arcFragments = 8
+        );
+}
+
+module RenderKnotPlaqueGallery()
+{
+    RenderKnotGalleryLabel(
+        "LogoSC  KNOT RELIEF PLAQUES",
+        [85, 39, -1],
+        5.8
+    );
+
+    RenderKnotPlaqueGalleryExample(
+        0,
+        [25, 4, 0],
+        [55, 0, -8],
+        2,
+        1.5,
+        [0.08, 0.58, 0.72]
+    );
+    RenderKnotGalleryLabel("COMPACT", [25, -30, -1], 3.5);
+
+    RenderKnotPlaqueGalleryExample(
+        0,
+        [85, 4, 0],
+        [55, 0, 7],
+        4,
+        4,
+        [0.92, 0.46, 0.08]
+    );
+    RenderKnotGalleryLabel("ROUNDED PLAQUE", [85, -30, -1], 3.2);
+
+    RenderKnotPlaqueGalleryExample(
+        2,
+        [145, 4, 0],
+        [55, 0, -7],
+        3,
+        3,
+        [0.48, 0.22, 0.76]
+    );
+    RenderKnotGalleryLabel("4 x 4 PLAQUE", [145, -30, -1], 3.2);
+}
+
+if (KnotExample == "PlaqueGallery")
+{
+    RenderKnotPlaqueGallery();
+}
+else if (KnotExample == "ReliefGallery")
 {
     RenderKnotReliefGallery();
 }

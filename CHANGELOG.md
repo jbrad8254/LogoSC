@@ -84,6 +84,13 @@
   height, avoiding reliance on exactly coplanar shell contact.
 - Added two focused results for overpass-to-mask span overlap and bas-relief height accounting,
   bringing the knot suite to 74.
+- Added `RenderKnotBasReliefPlaque()` with automatic sample-derived bounds, ribbon-edge margin,
+  rounded corners, exact height accounting, and a hidden plate-to-relief overlap that joins
+  multi-component knots into one printable object.
+- Added `KnotPlanarBounds()`, `KnotReliefPlaqueBounds()`, and
+  `KnotReliefPlaqueTotalHeight()`, plus two focused plaque results bringing the knot suite to 76.
+- Added `Plaque` Customizer output and a `PlaqueGallery` showing compact, rounded, and 4-by-4
+  printable relief plaques.
 - Added `Ribbon` Customizer output and a `RibbonGallery` comparing continuous regions,
   underpass-mask interlace, and a 4-by-4 Celtic ribbon grid.
 - Added a side-by-side User Manual comparison clarifying that braids generate crossing topology

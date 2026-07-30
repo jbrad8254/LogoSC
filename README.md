@@ -347,6 +347,33 @@ while retaining side clearance above the underpassing ribbon.
 
 Choose `ReliefGallery` to compare low relief, normally raised crossings, and a 4-by-4 example.
 
+### Add an automatic relief backing plate
+
+Wrap the same relief in a rounded rectangular plaque sized from its planar samples:
+
+```scad
+RenderKnotBasReliefPlaque(
+    planarCeltic,
+    ribbonWidth = 2.4,
+    crossingClearance = 0.7,
+    plateThickness = 1.2,
+    plateMargin = 3,
+    plateCornerRadius = 3,
+    baseHeight = 1.2,
+    overpassHeight = 1,
+    arcFragments = 10
+);
+```
+
+The margin is measured beyond the outer ribbon edge. The ribbon base overlaps the plate
+internally, joining separate link components into one printable object while preserving the
+requested total height.
+
+![LogoSC knot relief plaques](images/knot-relief-plaque-gallery.png)
+
+Choose `PlaqueGallery` for compact, rounded, and 4-by-4 examples, or choose `Plaque` output for
+an individual knot.
+
 ## Current public API
 
 The main user-facing renderer is:
@@ -481,7 +508,7 @@ LogoSC Core's filled-region contract.
 ## Near-term roadmap
 
 - Expand optional validation only when additional topology policies provide clear value.
-- Continue the optional knot companion with relief backing plates and export-oriented presets.
+- Continue the optional knot companion with relief edge treatments and export-oriented presets.
 - Keep manufacturable stroke rendering as a separate API with explicit width, cap, and join semantics.
 
 ## Requirements

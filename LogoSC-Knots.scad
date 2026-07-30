@@ -2392,6 +2392,104 @@ function KnotBasReliefTotalHeight(baseHeight, overpassHeight) =
     )
     baseHeight + overpassHeight;
 
+function KnotPlanarBounds(
+    knot,
+    padding = 0,
+    planarTolerance = 0.001) =
+    assert(
+        KnotIsPlanar(knot, planarTolerance),
+        "Knot planar bounds require a structurally valid planar knot."
+    )
+    assert(
+        is_num(padding) && padding >= 0,
+        "Knot planar bounds padding must be nonnegative."
+    )
+    let(
+        points = [
+            for (strand = KnotStrands(knot))
+                for (sample = KnotStrandSamples(strand))
+                    KnotRibbonPoint2D(sample)
+        ],
+        xValues = [for (point = points) point[0]],
+        yValues = [for (point = points) point[1]]
+    )
+    [
+        [min(xValues) - padding, min(yValues) - padding],
+        [max(xValues) + padding, max(yValues) + padding]
+    ];
+
+function KnotReliefPlaqueBounds(
+    knot,
+    ribbonWidth = 2,
+    plateMargin = 3,
+    planarTolerance = 0.001) =
+    assert(
+        is_num(ribbonWidth) && ribbonWidth > 0,
+        "Knot relief plaque ribbon width must be positive."
+    )
+    assert(
+        is_num(plateMargin) && plateMargin >= 0,
+        "Knot relief plaque margin must be nonnegative."
+    )
+    KnotPlanarBounds(
+        knot,
+        ribbonWidth / 2 + plateMargin,
+        planarTolerance
+    );
+
+function KnotReliefPlaqueTotalHeight(
+    plateThickness,
+    baseHeight,
+    overpassHeight) =
+    assert(
+        is_num(plateThickness) && plateThickness > 0,
+        "Knot relief plaque thickness must be positive."
+    )
+    plateThickness + KnotBasReliefTotalHeight(baseHeight, overpassHeight);
+
+module RenderKnotRoundedRectangle2D(
+    bounds,
+    cornerRadius,
+    arcFragments = 8)
+{
+    lower = bounds[0];
+    upper = bounds[1];
+    width = upper[0] - lower[0];
+    height = upper[1] - lower[1];
+
+    assert(width > 0 && height > 0);
+    assert(
+        is_num(cornerRadius)
+        && cornerRadius >= 0
+        && 2 * cornerRadius < min(width, height),
+        "Knot relief plaque corner radius must fit inside its bounds."
+    );
+    assert(
+        is_num(arcFragments)
+        && floor(arcFragments) == arcFragments
+        && arcFragments >= 2,
+        "Knot relief plaque arc fragments must be an integer of at least 2."
+    );
+
+    if (cornerRadius == 0)
+    {
+        translate(lower)
+            square([width, height]);
+    }
+    else
+    {
+        translate([
+            lower[0] + cornerRadius,
+            lower[1] + cornerRadius
+        ])
+        offset(r = cornerRadius, $fn = 4 * arcFragments)
+            square([
+                width - 2 * cornerRadius,
+                height - 2 * cornerRadius
+            ]);
+    }
+}
+
 module RenderKnotBasRelief(
     knot,
     ribbonWidth = 2,
@@ -2433,6 +2531,60 @@ module RenderKnotBasRelief(
             convexity = convexity
         )
             RenderKnotRegionList(overpassRegions, convexity);
+    }
+}
+
+// Add a rounded rectangular backing plate beneath a bas-relief knot. The
+// ribbon layer sinks slightly into the plate, while the externally requested
+// plate, base, overpass, and total heights remain exact.
+module RenderKnotBasReliefPlaque(
+    knot,
+    ribbonWidth = 2,
+    crossingClearance = 0.6,
+    plateThickness = 1.2,
+    plateMargin = 3,
+    plateCornerRadius = 3,
+    baseHeight = 1.2,
+    overpassHeight = 1,
+    arcFragments = 8,
+    convexity = 10,
+    planarTolerance = 0.001)
+{
+    plateBounds = KnotReliefPlaqueBounds(
+        knot,
+        ribbonWidth,
+        plateMargin,
+        planarTolerance
+    );
+    totalHeight = KnotReliefPlaqueTotalHeight(
+        plateThickness,
+        baseHeight,
+        overpassHeight
+    );
+    plateOverlap = min(0.01, plateThickness / 10);
+
+    union()
+    {
+        assert(totalHeight > plateThickness);
+
+        linear_extrude(height = plateThickness, convexity = convexity)
+            RenderKnotRoundedRectangle2D(
+                plateBounds,
+                plateCornerRadius,
+                arcFragments
+            );
+
+        translate([0, 0, plateThickness - plateOverlap])
+            RenderKnotBasRelief(
+                knot,
+                ribbonWidth,
+                crossingClearance,
+                baseHeight + plateOverlap,
+                overpassHeight,
+                arcFragments,
+                convexity,
+                planarTolerance
+            );
     }
 }
 

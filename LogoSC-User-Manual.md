@@ -1463,10 +1463,41 @@ The gallery compares a low 0.8 + 0.6 relief, the same topology with a 1.2 + 1.0 
 4-by-4 pattern with higher crossings. Choose `KnotExample = "ReliefGallery"`, or select
 `KnotOutput = "Relief"` with a Planar individual example.
 
-The output is printable positive geometry, but it has no backing plate. Separate knot or link
-components therefore remain separate objects unless the caller adds a plate or another native
-OpenSCAD support. Backing plates, edge bevels, bundled ribbons, and unified polygon export remain
-later milestones.
+The output is printable positive geometry, but the bare relief has no backing plate. Separate
+knot or link components therefore remain separate objects unless the caller adds support or uses
+the plaque renderer below.
+
+#### Automatic relief backing plates
+
+`RenderKnotBasReliefPlaque()` places the relief on a rounded rectangular backing plate whose
+bounds are calculated from all planar knot samples:
+
+```scad
+RenderKnotBasReliefPlaque(
+    planarCeltic,
+    ribbonWidth = 2.4,
+    crossingClearance = 0.7,
+    plateThickness = 1.2,
+    plateMargin = 3,
+    plateCornerRadius = 3,
+    baseHeight = 1.2,
+    overpassHeight = 1,
+    arcFragments = 10
+);
+```
+
+`plateMargin` starts at the outside edge of the ribbon rather than at its centerline.
+`KnotReliefPlaqueBounds()` exposes the resulting two-dimensional bounds, and
+`KnotReliefPlaqueTotalHeight()` reports
+`plateThickness + baseHeight + overpassHeight`. A hidden overlap joins the ribbon base to the
+plate without changing that external height. This turns separate knot or link components into
+one printable plaque.
+
+![LogoSC knot relief plaques](images/knot-relief-plaque-gallery.png)
+
+Choose `KnotExample = "PlaqueGallery"` for compact, rounded, and larger-grid plaques, or select
+`KnotOutput = "Plaque"` for an individual Planar example. Edge bevels, bundled ribbons, and
+unified polygon export remain later milestones.
 
 #### Circular braid closures
 

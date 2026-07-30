@@ -406,6 +406,29 @@ Use `KnotOutput = "Relief"` with a Planar individual example for direct STL expo
 Customizer exposes ribbon width, crossing clearance, base height, overpass height, and arc
 resolution.
 
+### Render the knot relief-plaque gallery
+
+The plaque gallery demonstrates automatic margins and rounded plate corners:
+
+![LogoSC knot relief plaques](images/knot-relief-plaque-gallery.png)
+
+```powershell
+$plaqueGalleryPath = Join-Path `
+    (Get-Location) `
+    'images\knot-relief-plaque-gallery.png'
+
+& $openScadCli `
+    -D 'KnotExample=\"PlaqueGallery\"' `
+    --imgsize '1400,700' `
+    --camera '85,4,0,0,0,0,220' `
+    --projection o `
+    -o $plaqueGalleryPath `
+    'LogoSC-Knots-Examples.scad'
+```
+
+Use `KnotOutput = "Plaque"` with a Planar individual example for direct STL export. Plate
+thickness, ribbon-edge margin, and corner radius are independently configurable.
+
 ## Example 2: export and inspect a debug PNG
 
 The command line can render the same debug demo that is available through the OpenSCAD

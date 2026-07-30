@@ -3185,3 +3185,30 @@ Verification boundary:
 - Regenerate the ribbon gallery to verify the oval-tab artifact is gone.
 - Add a relief gallery showing low, normal, and 4-by-4 raised examples.
 - Require CSG and PNG gallery exports, a representative STL, and the complete repository suites.
+
+### 2026-07-29 — Automatic backing plates for knot relief
+
+Context:
+
+- Bare bas-relief preserves the weave but leaves separate link components as separate printable
+  solids.
+- A general tight-outline or decorative-border generator would add polygon-union and styling
+  policy beyond the current knot milestone.
+
+Decision:
+
+- Calculate axis-aligned planar bounds from every strand sample and expand them by half the
+  ribbon width plus an explicit margin.
+- Add a rounded rectangular plate as a wrapper around the unchanged bare-relief renderer.
+- Sink the ribbon base into the plate by at most `0.01` and increase that base extrusion by the
+  same amount, so the plate joins every component without changing requested external height.
+- Expose plate thickness, margin, and corner radius in the Customizer and make `Plaque` a
+  distinct output rather than changing `Relief` semantics.
+- Defer tight contours, bevels, hanging holes, and export presets.
+
+Verification boundary:
+
+- Add deterministic results for automatic ribbon-edge padding and exact plaque height, bringing
+  the knot suite from 74 to 76.
+- Add a compact/rounded/4-by-4 gallery, a reproducible PNG command, a representative manifold
+  STL, and the complete repository acceptance suites.

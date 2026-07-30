@@ -928,6 +928,24 @@ function KnotRibbonTestResults() =
             KnotBasReliefTotalHeight(0.8, 0.6),
             1.4
         )
+    ),
+    LogoTestResult(
+        "knot relief plaque bounds include ribbon and margin",
+        let(
+            routeBounds = KnotPlanarBounds(unknot),
+            plaqueBounds = KnotReliefPlaqueBounds(unknot, 2, 3)
+        )
+        KnotTestNearlyEqual(plaqueBounds[0][0], routeBounds[0][0] - 4)
+        && KnotTestNearlyEqual(plaqueBounds[0][1], routeBounds[0][1] - 4)
+        && KnotTestNearlyEqual(plaqueBounds[1][0], routeBounds[1][0] + 4)
+        && KnotTestNearlyEqual(plaqueBounds[1][1], routeBounds[1][1] + 4)
+    ),
+    LogoTestResult(
+        "knot relief plaque height accounting",
+        KnotTestNearlyEqual(
+            KnotReliefPlaqueTotalHeight(1.4, 1.2, 1),
+            3.6
+        )
     )
 ];
 

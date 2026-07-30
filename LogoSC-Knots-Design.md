@@ -687,8 +687,23 @@ Before extrusion, the restored overpass span is extended beyond the expanded sub
 The restored ends overlap the source ribbon, eliminating isolated capsule halos while preserving
 clearance along the underpass sides.
 
-The result is positive printable geometry with no automatic backing plate. Separate link
-components remain separate solids unless a caller supplies a plate or another support.
+The bare result is positive printable geometry with no backing plate. Separate link components
+remain separate solids unless a caller supplies support or uses the plaque renderer.
+
+### Implemented backing-plate boundary
+
+`KnotPlanarBounds()` scans every planar strand sample. `KnotReliefPlaqueBounds()` expands those
+bounds by half the ribbon width plus a caller-controlled margin, so the margin is measured from
+the visible ribbon edge.
+
+`RenderKnotBasReliefPlaque()` extrudes a rounded rectangle from those bounds and places the
+existing bas-relief above it. The ribbon base sinks into the plate by at most `0.01`; its base
+extrusion grows by the same amount, preserving the exact external dimension reported by
+`KnotReliefPlaqueTotalHeight()`. The backing joins otherwise separate link components into one
+printable object.
+
+This milestone deliberately provides only an axis-aligned rounded rectangle. It does not derive
+a tight contour, add bevels, add hanging holes, or calculate a unified output polygon.
 
 ## Rounded cords
 
