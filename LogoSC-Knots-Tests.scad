@@ -856,6 +856,27 @@ function KnotRibbonTestResults() =
     )
 [
     LogoTestResult(
+        "knot print quality preset resolution",
+        KnotPrintPresetCordFragments("Draft", 30) == 12
+        && KnotPrintPresetCordFragments("Standard", 30) == 24
+        && KnotPrintPresetCordFragments("Fine", 30) == 48
+        && KnotPrintPresetCordFragments("Custom", 30) == 30
+        && KnotPrintPresetRibbonArcFragments("Draft", 14) == 4
+        && KnotPrintPresetRibbonArcFragments("Standard", 14) == 10
+        && KnotPrintPresetRibbonArcFragments("Fine", 14) == 20
+        && KnotPrintPresetRibbonArcFragments("Custom", 14) == 14
+    ),
+    LogoTestResult(
+        "knot print quality preset route sampling",
+        KnotPrintPresetSampleCount(120, "Draft") == 60
+        && KnotPrintPresetSampleCount(120, "Standard") == 120
+        && KnotPrintPresetSampleCount(120, "Fine") == 240
+        && KnotPrintPresetSampleCount(8, "Custom", 1.5, 4, true)
+            == 12
+        && KnotPrintPresetSampleCount(5, "Draft", 1, 4, true)
+            == 4
+    ),
+    LogoTestResult(
         "knot ribbon requires planar samples",
         KnotIsPlanar(planarCeltic)
         && !KnotIsPlanar(spatialCeltic)

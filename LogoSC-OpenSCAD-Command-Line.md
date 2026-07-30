@@ -430,6 +430,32 @@ Use `KnotOutput = "Plaque"` with a Planar individual example for direct STL expo
 thickness, ribbon-edge margin, corner radius, edge style, bevel width, and bevel height are
 independently configurable.
 
+### Export knot print-quality presets
+
+`KnotPrintPreset` applies to individual examples and galleries. For a fast draft CSG:
+
+```powershell
+& $openScadCli `
+    -D 'KnotPrintPreset=\"Draft\"' `
+    -o (Join-Path $env:TEMP 'LogoSC-knot-draft.csg') `
+    'LogoSC-Knots-Examples.scad'
+```
+
+For a smooth final STL, select an individual example rather than the multi-object gallery:
+
+```powershell
+& $openScadCli `
+    -D 'KnotExample=\"CelticGrid\"' `
+    -D 'KnotOutput=\"Plaque\"' `
+    -D 'KnotPrintPreset=\"Fine\"' `
+    -o (Join-Path $env:TEMP 'LogoSC-knot-fine-plaque.stl') `
+    'LogoSC-Knots-Examples.scad'
+```
+
+Use `Custom` with `KnotRouteSampleScale`, `KnotCordFragments`, and
+`KnotRibbonArcFragments` when those costs need independent values. Fine exports can take
+substantially longer than Standard because both route density and rounded-profile density rise.
+
 ## Example 2: export and inspect a debug PNG
 
 The command line can render the same debug demo that is available through the OpenSCAD

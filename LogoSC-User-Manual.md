@@ -1512,6 +1512,27 @@ example. `KnotReliefUsePreviewColors` displays the plate and raised knot in inde
 configurable contrasting colors. This is a preview aid only; ordinary STL export remains
 uncolored geometry. Bundled ribbons and unified polygon export remain later milestones.
 
+#### Print-quality presets
+
+The example Customizer coordinates the three main tessellation costs with `KnotPrintPreset`:
+
+| Preset | Route sample scale | Cord fragments | Ribbon arc fragments |
+|---|---:|---:|---:|
+| `Draft` | 0.5 | 12 | 4 |
+| `Standard` | 1 | 24 | 10 |
+| `Fine` | 2 | 48 | 20 |
+| `Custom` | `KnotRouteSampleScale` | `KnotCordFragments` | `KnotRibbonArcFragments` |
+
+Route sampling controls how closely torus, braid, and Celtic centerlines follow their
+mathematical curves. Cord fragments control round 3D cross-sections. Ribbon arc fragments
+control rounded sampled-segment ends, plaque corners, and bevel profiles. Increasing all three
+can substantially increase preview, CGAL, and STL costs.
+
+`Standard` preserves the established example resolution. Use `Draft` while adjusting topology
+or dimensions, `Fine` for a final export whose visible facets need further reduction, and
+`Custom` when a particular printer or model needs independent values. These presets resolve to
+ordinary explicit arguments; they do not change the public geometry APIs.
+
 #### Circular braid closures
 
 `MakeCircularBraidKnot()` generates explicit crossing topology from a signed braid word:

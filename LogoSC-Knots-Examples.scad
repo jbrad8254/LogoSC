@@ -8,6 +8,13 @@ KnotExample = "PlaqueGallery"; // [PlaqueGallery,ReliefGallery,RibbonGallery,Cel
 KnotView = "Planar"; // [Planar, Spatial]
 KnotOutput = "Plaque"; // [Debug, Cord, Bundle, Ribbon, Relief, Plaque]
 
+/* [Print Quality] */
+
+KnotPrintPreset = "Standard"; // [Draft, Standard, Fine, Custom]
+KnotCordFragments = 24; // [6:1:96]
+KnotRibbonArcFragments = 10; // [2:1:48]
+KnotRouteSampleScale = 1; // [0.25:0.25:4]
+
 /* [Debug Display] */
 
 KnotShowSamples = false;
@@ -16,7 +23,6 @@ KnotCenterlineRadius = 2; // [0.01:0.01:5]
 /* [Cord Geometry] */
 
 KnotCordRadius = 1.2; // [0.1:0.1:5]
-KnotCordFragments = 24; // [6:1:64]
 
 /* [Bundle Geometry] */
 
@@ -30,7 +36,6 @@ KnotBundleMinimumClearance = 0; // [0:0.1:5]
 
 KnotRibbonWidth = 2.4; // [0.2:0.1:8]
 KnotRibbonCrossingClearance = 0.7; // [0:0.1:4]
-KnotRibbonArcFragments = 10; // [2:1:32]
 
 /* [Bas-Relief Geometry] */
 
@@ -56,6 +61,30 @@ KnotReliefKnotColor = [0.92, 0.52, 0.10]; // [0:0.01:1]
 
 KnotGalleryLabels = true;
 
+function KnotExampleCordFragments() =
+    KnotPrintPresetCordFragments(
+        KnotPrintPreset,
+        KnotCordFragments
+    );
+
+function KnotExampleRibbonArcFragments() =
+    KnotPrintPresetRibbonArcFragments(
+        KnotPrintPreset,
+        KnotRibbonArcFragments
+    );
+
+function KnotExampleSampleCount(
+    baseCount,
+    minimum = 2,
+    even = false) =
+    KnotPrintPresetSampleCount(
+        baseCount,
+        KnotPrintPreset,
+        KnotRouteSampleScale,
+        minimum,
+        even
+    );
+
 function KnotCelticExampleGrid(variant = 0) =
     variant == 1
     ? [
@@ -78,23 +107,50 @@ function KnotCelticExampleGrid(variant = 0) =
 
 function KnotExampleResult(name) =
     name == "Unknot"
-    ? MakeTorusKnot(1, 1, 18, 5, 72)
+    ? MakeTorusKnot(1, 1, 18, 5, KnotExampleSampleCount(72, 12))
     : name == "BraidHopf"
-        ? MakeCircularBraidKnot(2, [1, 1], 18, 5, 5, 8)
+        ? MakeCircularBraidKnot(
+            2,
+            [1, 1],
+            18,
+            5,
+            5,
+            KnotExampleSampleCount(8, 4, true)
+        )
         : name == "BraidTrefoil"
-            ? MakeCircularBraidKnot(2, [1, 1, 1], 18, 5, 5, 8)
+            ? MakeCircularBraidKnot(
+                2,
+                [1, 1, 1],
+                18,
+                5,
+                5,
+                KnotExampleSampleCount(8, 4, true)
+            )
             : name == "BraidThree"
-            ? MakeCircularBraidKnot(3, [1, -2, 1, -2], 18, 4, 5, 8)
+            ? MakeCircularBraidKnot(
+                3,
+                [1, -2, 1, -2],
+                18,
+                4,
+                5,
+                KnotExampleSampleCount(8, 4, true)
+            )
             : name == "CelticGrid"
                 ? MakeCelticTileGridKnot(
                     KnotCelticExampleGrid(),
                     10,
-                    8,
-                    6,
+                    KnotExampleSampleCount(8, 4, true),
+                    KnotExampleSampleCount(6, 2),
                     4
                 )
     : name == "HopfLink"
-        ? MakeTorusKnot(2, 2, 18, 5, 96)
+        ? MakeTorusKnot(
+            2,
+            2,
+            18,
+            5,
+            KnotExampleSampleCount(96, 12)
+        )
         : name == "CrossingRecord"
             ? MakeKnot(
                 [
@@ -111,7 +167,13 @@ function KnotExampleResult(name) =
                 ],
                 [MakeKnotCrossing([0, 0], 0, 0.5, 1, 0.5, 0)]
             )
-        : MakeTorusKnot(2, 3, 18, 5, 120);
+        : MakeTorusKnot(
+            2,
+            3,
+            18,
+            5,
+            KnotExampleSampleCount(120, 12)
+        );
 
 module RenderKnotExample(name)
 {
@@ -129,7 +191,7 @@ module RenderKnotExample(name)
             plateCornerRadius = KnotReliefPlateCornerRadius,
             baseHeight = KnotReliefBaseHeight,
             overpassHeight = KnotReliefOverpassHeight,
-            arcFragments = KnotRibbonArcFragments,
+            arcFragments = KnotExampleRibbonArcFragments(),
             plateColor = KnotReliefUsePreviewColors
                 ? KnotReliefPlateColor
                 : undef,
@@ -149,7 +211,7 @@ module RenderKnotExample(name)
             crossingClearance = KnotRibbonCrossingClearance,
             baseHeight = KnotReliefBaseHeight,
             overpassHeight = KnotReliefOverpassHeight,
-            arcFragments = KnotRibbonArcFragments
+            arcFragments = KnotExampleRibbonArcFragments()
         );
     }
     else if (KnotOutput == "Ribbon")
@@ -158,7 +220,7 @@ module RenderKnotExample(name)
             viewKnot,
             ribbonWidth = KnotRibbonWidth,
             crossingClearance = KnotRibbonCrossingClearance,
-            arcFragments = KnotRibbonArcFragments
+            arcFragments = KnotExampleRibbonArcFragments()
         );
     }
     else if (KnotOutput == "Bundle" && name != "CrossingRecord")
@@ -169,7 +231,7 @@ module RenderKnotExample(name)
             cordRadius = KnotCordRadius,
             cordGap = KnotBundleCordGap,
             bundleWidth = KnotBundleFitWidth ? KnotBundleWidth : undef,
-            fragments = KnotCordFragments,
+            fragments = KnotExampleCordFragments(),
             minimumClearance = KnotBundleMinimumClearance,
             checkCrossingClearance = KnotView == "Spatial"
         );
@@ -179,7 +241,7 @@ module RenderKnotExample(name)
         RenderKnotCords(
             viewKnot,
             cordRadius = KnotCordRadius,
-            fragments = KnotCordFragments
+            fragments = KnotExampleCordFragments()
         );
     }
     else
@@ -217,7 +279,7 @@ module RenderKnotGalleryCords(
             RenderKnotCords(
                 MakeKnot([renderStrand]),
                 cordRadius = cordRadius,
-                fragments = KnotCordFragments
+                fragments = KnotExampleCordFragments()
             );
     }
 }
@@ -250,7 +312,13 @@ module RenderKnotCordGallery()
     translate([25, 4, 0])
     rotate(KnotView == "Planar" ? [0, 0, -12] : [56, 0, -12])
         RenderKnotGalleryCords(
-            MakeTorusKnot(1, 1, 18, 5, 36),
+            MakeTorusKnot(
+                1,
+                1,
+                18,
+                5,
+                KnotExampleSampleCount(36, 12)
+            ),
             [[0.08, 0.66, 0.78]]
         );
     RenderKnotGalleryLabel("UNKNOT", [25, -30, -8]);
@@ -258,7 +326,13 @@ module RenderKnotCordGallery()
     translate([85, 4, 0])
     rotate(KnotView == "Planar" ? [0, 0, 18] : [56, 0, 18])
         RenderKnotGalleryCords(
-            MakeTorusKnot(2, 3, 18, 5, 60),
+            MakeTorusKnot(
+                2,
+                3,
+                18,
+                5,
+                KnotExampleSampleCount(60, 12)
+            ),
             [[0.94, 0.58, 0.10]]
         );
     RenderKnotGalleryLabel("TREFOIL", [85, -30, -8]);
@@ -266,7 +340,13 @@ module RenderKnotCordGallery()
     translate([145, 4, 0])
     rotate(KnotView == "Planar" ? [0, 0, -12] : [56, 0, -12])
         RenderKnotGalleryCords(
-            MakeTorusKnot(2, 2, 18, 5, 48),
+            MakeTorusKnot(
+                2,
+                2,
+                18,
+                5,
+                KnotExampleSampleCount(48, 12)
+            ),
             [
                 [0.90, 0.24, 0.22],
                 [0.48, 0.28, 0.82]
@@ -281,7 +361,16 @@ module RenderKnotBundleGalleryExample(
     rotation,
     strandColors)
 {
-    master = KnotForView(MakeTorusKnot(2, 3, 18, 5, 48), KnotView);
+    master = KnotForView(
+        MakeTorusKnot(
+            2,
+            3,
+            18,
+            5,
+            KnotExampleSampleCount(48, 12)
+        ),
+        KnotView
+    );
     bundle = MakeKnotBundle(
         master,
         cordCount,
@@ -461,7 +550,13 @@ module RenderKnotCelticGalleryExample(
 {
     grid = KnotCelticExampleGrid(variant);
     cellSize = variant == 2 ? 8 : 9;
-    knot = MakeCelticTileGridKnot(grid, cellSize, 8, 6, 4);
+    knot = MakeCelticTileGridKnot(
+        grid,
+        cellSize,
+        KnotExampleSampleCount(8, 4, true),
+        KnotExampleSampleCount(6, 2),
+        4
+    );
     width = KnotCelticGridColumnCount(grid) * cellSize;
     height = len(grid) * cellSize;
 
@@ -519,7 +614,13 @@ module RenderKnotRibbonGalleryExample(
 {
     grid = KnotCelticExampleGrid(variant);
     cellSize = variant == 2 ? 8 : 9;
-    spatialKnot = MakeCelticTileGridKnot(grid, cellSize, 8, 6, 4);
+    spatialKnot = MakeCelticTileGridKnot(
+        grid,
+        cellSize,
+        KnotExampleSampleCount(8, 4, true),
+        KnotExampleSampleCount(6, 2),
+        4
+    );
     planarKnot = KnotForView(spatialKnot, "Planar");
     width = KnotCelticGridColumnCount(grid) * cellSize;
     height = len(grid) * cellSize;
@@ -536,7 +637,7 @@ module RenderKnotRibbonGalleryExample(
                 planarKnot,
                 ribbonWidth = 2.1,
                 crossingClearance = 0.65,
-                arcFragments = 8
+                arcFragments = KnotExampleRibbonArcFragments()
             );
         }
         else
@@ -595,7 +696,13 @@ module RenderKnotReliefGalleryExample(
     grid = KnotCelticExampleGrid(variant);
     cellSize = variant == 2 ? 8 : 9;
     planarKnot = KnotForView(
-        MakeCelticTileGridKnot(grid, cellSize, 8, 6, 4),
+        MakeCelticTileGridKnot(
+            grid,
+            cellSize,
+            KnotExampleSampleCount(8, 4, true),
+            KnotExampleSampleCount(6, 2),
+            4
+        ),
         "Planar"
     );
     width = KnotCelticGridColumnCount(grid) * cellSize;
@@ -611,7 +718,7 @@ module RenderKnotReliefGalleryExample(
             crossingClearance = 0.65,
             baseHeight = baseHeight,
             overpassHeight = overpassHeight,
-            arcFragments = 8
+            arcFragments = KnotExampleRibbonArcFragments()
         );
 }
 
@@ -668,7 +775,13 @@ module RenderKnotPlaqueGalleryExample(
     grid = KnotCelticExampleGrid(variant);
     cellSize = variant == 2 ? 8 : 9;
     planarKnot = KnotForView(
-        MakeCelticTileGridKnot(grid, cellSize, 8, 6, 4),
+        MakeCelticTileGridKnot(
+            grid,
+            cellSize,
+            KnotExampleSampleCount(8, 4, true),
+            KnotExampleSampleCount(6, 2),
+            4
+        ),
         "Planar"
     );
     width = KnotCelticGridColumnCount(grid) * cellSize;
@@ -689,7 +802,7 @@ module RenderKnotPlaqueGalleryExample(
             plateCornerRadius = plateCornerRadius,
             baseHeight = 1.1,
             overpassHeight = 1,
-            arcFragments = 8,
+            arcFragments = KnotExampleRibbonArcFragments(),
             plateColor = KnotReliefUsePreviewColors
                 ? KnotReliefPlateColor
                 : undef,

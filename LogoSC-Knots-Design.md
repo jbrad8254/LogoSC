@@ -714,6 +714,18 @@ This milestone deliberately provides only an axis-aligned rounded rectangle with
 linear top bevel. It does not derive a tight contour, round the bottom edge, add hanging holes,
 or calculate a unified output polygon.
 
+## Export-quality presets
+
+The example layer provides `Draft`, `Standard`, `Fine`, and `Custom` print presets. Resolver
+functions map those names to route-sample scale, cord fragments, and ribbon arc fragments before
+calling the existing generators and renderers. `Standard` retains the established example
+values; `Draft` halves route sampling and lowers radial facets; `Fine` doubles route sampling and
+raises radial facets; `Custom` uses the three explicit Customizer values.
+
+The resolver functions live in the knot companion so their mappings can be tested, but they do
+not alter generator or renderer defaults. Direct API callers remain free to choose every sample
+and fragment count independently.
+
 ## Rounded cords
 
 For sampled 3D centerline points, construct every segment as a capsule:

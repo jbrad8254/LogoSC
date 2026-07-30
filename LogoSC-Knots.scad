@@ -2094,6 +2094,98 @@ function KnotIsPlanar(knot, tolerance = 0.001) =
                 strand
     ]) == 0;
 
+function KnotPrintPresetIsValid(preset) =
+    preset == "Draft"
+    || preset == "Standard"
+    || preset == "Fine"
+    || preset == "Custom";
+
+function KnotPrintPresetCordFragments(preset, customFragments = 24) =
+    assert(
+        KnotPrintPresetIsValid(preset),
+        "Knot print preset must be Draft, Standard, Fine, or Custom."
+    )
+    assert(
+        is_num(customFragments)
+        && floor(customFragments) == customFragments
+        && customFragments >= 6,
+        "Custom knot cord fragments must be an integer of at least 6."
+    )
+    preset == "Draft"
+    ? 12
+    : preset == "Standard"
+        ? 24
+        : preset == "Fine"
+            ? 48
+            : customFragments;
+
+function KnotPrintPresetRibbonArcFragments(preset, customFragments = 10) =
+    assert(
+        KnotPrintPresetIsValid(preset),
+        "Knot print preset must be Draft, Standard, Fine, or Custom."
+    )
+    assert(
+        is_num(customFragments)
+        && floor(customFragments) == customFragments
+        && customFragments >= 2,
+        "Custom knot ribbon arc fragments must be an integer of at least 2."
+    )
+    preset == "Draft"
+    ? 4
+    : preset == "Standard"
+        ? 10
+        : preset == "Fine"
+            ? 20
+            : customFragments;
+
+function KnotPrintPresetRouteScale(preset, customScale = 1) =
+    assert(
+        KnotPrintPresetIsValid(preset),
+        "Knot print preset must be Draft, Standard, Fine, or Custom."
+    )
+    assert(
+        is_num(customScale) && customScale > 0,
+        "Custom knot route sample scale must be positive."
+    )
+    preset == "Draft"
+    ? 0.5
+    : preset == "Standard"
+        ? 1
+        : preset == "Fine"
+            ? 2
+            : customScale;
+
+function KnotPrintPresetSampleCount(
+    baseCount,
+    preset,
+    customScale = 1,
+    minimum = 2,
+    even = false) =
+    assert(
+        is_num(baseCount)
+        && floor(baseCount) == baseCount
+        && baseCount > 0,
+        "Knot print preset base sample count must be a positive integer."
+    )
+    assert(
+        is_num(minimum)
+        && floor(minimum) == minimum
+        && minimum > 0,
+        "Knot print preset minimum sample count must be a positive integer."
+    )
+    let(
+        scaled = max(
+            minimum,
+            round(
+                baseCount
+                * KnotPrintPresetRouteScale(preset, customScale)
+            )
+        )
+    )
+    even
+    ? 2 * ceil(scaled / 2)
+    : scaled;
+
 function KnotRibbonPoint2D(point) = [point[0], point[1]];
 
 function KnotRibbonCapsuleContour(

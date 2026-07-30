@@ -382,6 +382,21 @@ Choose `PlaqueGallery` to compare straight and beveled edges on compact and 4-by
 choose `Plaque` output for an individual knot. The Customizer can give the plate and raised knot
 contrasting preview colors; these colors do not alter exported STL geometry.
 
+### Select print quality
+
+`KnotPrintPreset` coordinates route sampling and surface facets throughout the knot examples:
+
+| Preset | Route samples | Cord fragments | Ribbon arc fragments | Use |
+|---|---:|---:|---:|---|
+| `Draft` | 0.5× | 12 | 4 | Fast previews and test exports |
+| `Standard` | 1× | 24 | 10 | Normal design and printing |
+| `Fine` | 2× | 48 | 20 | Smooth final exports |
+| `Custom` | Configurable | Configurable | Configurable | Explicit control |
+
+`Custom` reads `KnotRouteSampleScale`, `KnotCordFragments`, and
+`KnotRibbonArcFragments`. The named presets override those three controls without changing the
+underlying knot renderer APIs.
+
 ## Current public API
 
 The main user-facing renderer is:

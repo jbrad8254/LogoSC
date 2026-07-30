@@ -113,6 +113,60 @@ LogoToSVG(region);
 
 ---
 
+### Tiered Release Packaging
+
+Publish curated LogoSC editions for different audiences without creating independently evolving
+language forks. A command list written against a smaller edition must run unchanged in every
+larger edition.
+
+Proposed editions:
+
+| Edition | Audience | Included surface |
+|---|---|---|
+| LogoSC Starter | First-time and Thingiverse users | Drawing, motifs, primitives, holes, and rendering |
+| LogoSC Maker | Regular model authors | Complete Core, regions, transforms, accessors, and debugging |
+| LogoSC Engineering | Library and production users | Maker plus validation, tests, and CLI verification |
+| Extension packs | Specialized users | Knots, fasteners, L-systems, and domain companions |
+
+#### LogoSC Starter
+
+The Starter package should let a new user make something useful within a few minutes. Its
+documented language subset should emphasize:
+
+- `MOVE`, `TURN`, and `ARC`;
+- `REPEAT` and `RUN`;
+- `CIRCLE`, `REGPOLY`, `RECT`, and `ROUNDEDRECT`;
+- basic `HOLE` use;
+- `RenderLogo2D()`; and
+- one native `linear_extrude()` example.
+
+Initially omit advanced positioning, affine transforms, stack and pen control, evaluator result
+records, debug internals, validation, and companion libraries from the teaching surface. The
+package should be small: one library entry point, one Customizer-friendly demonstration, several
+short examples, a one-page command card, and a link to the complete project.
+
+#### Compatibility and maintenance rules
+
+- Preserve identical opcode values, command syntax, coordinate conventions, scaling behavior,
+  and `RenderLogo2D()` results across every edition.
+- Treat Starter as a tested subset of LogoSC, not a simplified dialect.
+- Prefer curated packages around the canonical implementation before maintaining a second
+  interpreter.
+- If a physically smaller `LogoSC-Mini.scad` is later justified, generate it from shared source
+  or run differential conformance tests against Core for every supported command.
+- Keep domain libraries as optional extension packs rather than growing the core editions.
+
+The central compatibility relationship is:
+
+```text
+Starter programs ⊂ Maker programs ⊂ Engineering programs
+```
+
+The practical dividing line is that Starter teaches the language, Maker creates complete
+geometry, Engineering analyzes and verifies it, and extensions solve specialized problems.
+
+---
+
 ## Medium Priority
 
 ### Additional Drawing Primitives

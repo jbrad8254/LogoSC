@@ -103,6 +103,11 @@
   plate thickness, rounded-corner progression, and sufficient top margin around the ribbon.
 - Added two deterministic bevel-bound and corner-radius results, bringing the knot suite to 79,
   plus Customizer controls and a straight-versus-beveled plaque-gallery comparison.
+- Added `Draft`, `Standard`, `Fine`, and `Custom` knot print-quality presets coordinating route
+  sampling, cord fragments, and ribbon arc fragments across individual examples and galleries.
+  Standard preserves established values, while Custom retains explicit control.
+- Added two deterministic preset-resolution results, bringing the knot suite to 81, and
+  documented expected preview-speed, curve-smoothness, and export-size tradeoffs.
 - Added `Ribbon` Customizer output and a `RibbonGallery` comparing continuous regions,
   underpass-mask interlace, and a 4-by-4 Celtic ribbon grid.
 - Added a side-by-side User Manual comparison clarifying that braids generate crossing topology

@@ -3267,3 +3267,33 @@ Verification boundary:
   adjusted top corner radius, bringing the knot suite from 77 to 79.
 - Update the plaque gallery to compare straight and beveled edges, regenerate its image, and
   require complete repository suites plus a simple CGAL STL.
+
+### 2026-07-29 — Coordinated knot print-quality presets
+
+Context:
+
+- Route sample counts, round-cord fragments, and ribbon arc fragments were independently
+  configurable or embedded in example generators.
+- A user preparing an export should not need to find and coordinate all three costs merely to
+  switch between fast iteration and a smooth final mesh.
+- A preset that changed only radial fragments would not improve visibly faceted centerline
+  curves.
+
+Decision:
+
+- Add `Draft`, `Standard`, `Fine`, and `Custom` preset names.
+- Map Draft to 0.5× route samples, 12 cord fragments, and 4 ribbon arc fragments; retain 1×,
+  24, and 10 for Standard; map Fine to 2×, 48, and 20.
+- Keep `KnotRouteSampleScale`, `KnotCordFragments`, and `KnotRibbonArcFragments` visible as the
+  values used by Custom.
+- Apply resolved values consistently to individual examples and galleries.
+- Keep all established generator and renderer arguments unchanged. Presets remain an additive
+  example/export workflow whose resolver functions are independently testable.
+
+Verification boundary:
+
+- Add deterministic resolution and route-sampling results, bringing the knot suite from 79 to
+  81.
+- Compile Draft, Standard, Fine, and a nondefault Custom combination.
+- Require the complete repository suites, representative Standard and Fine STL exports, and
+  documentation integrity checks.
