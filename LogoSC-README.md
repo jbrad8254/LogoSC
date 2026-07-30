@@ -37,11 +37,11 @@
 - `LogoSC-ARC-Implementation.md` — design notes for ARC tessellation.
 - `LogoSC-Holes-Implementation.md` — design notes for regions and holes.
 - `LogoSC-Validation-Implementation.md` — validation algorithms, policies, complexity, and test matrix.
-- `LogoSC-Transforms-Design.md` — preliminary local-transform design direction and open questions.
+- `LogoSC-Transforms-Design.md` — implemented affine-transform semantics and design rationale.
 - `LogoSC-LSystems-Notes.md` — design notes for L-system examples.
-- `LogoSC-Knots.scad` — optional knot records, torus/braid generators, cords, and bundles.
-- `LogoSC-Knots-Examples.scad` — selectable diagnostics plus cord, bundle, and braid galleries.
-- `LogoSC-Knots-Tests.scad` — passive knot record, generator, cord, bundle, and braid tests.
+- `LogoSC-Knots.scad` — optional topology, cords, bundles, ribbons, and printable relief plaques.
+- `LogoSC-Knots-Examples.scad` — selectable knot diagnostics, outputs, and presentation galleries.
+- `LogoSC-Knots-Tests.scad` — passive knot topology, geometry, plaque, and preset tests.
 - `LogoSC-Knots-Test-Runner.scad` — direct entry point for the independent knot suite.
 - `LogoSC-Knots-Design.md` — design and roadmap for parametric, braid, Celtic, ribbon, and
   rounded-cord knot generation.
@@ -130,7 +130,7 @@ official OpenSCAD command-line documentation.
 
 ## Versioning
 
-Current public API version: `2026.4`.
+Current public API version: `2026.5`.
 
 `LogoSC-Foundation-Core.scad` exposes:
 
@@ -148,7 +148,7 @@ user-model compatibility checks.
 Example:
 
 ```scad
-assert(LogoSCVersionAtLeast(2026, 4), "This model requires LogoSC 2026.4+");
+assert(LogoSCVersionAtLeast(2026, 5), "This model requires LogoSC 2026.5+");
 ```
 
 ## Public API quick reference
@@ -474,10 +474,17 @@ expanded mask from the continuous ribbon union.
 ![LogoSC planar knot ribbons and underpass masks](images/knot-ribbon-gallery.png)
 
 `RenderKnotBasRelief()` extrudes the masked ribbon as a continuous base and raises restored
-overpasses by an additional configurable height. Overpasses now extend beyond their masks and
-reconnect seamlessly to the source ribbon.
+overpasses by an additional configurable height. Flat-ended overpasses extend beyond their masks
+and reconnect seamlessly to the source ribbon.
 
 ![LogoSC printable knot bas-relief](images/knot-bas-relief-gallery.png)
+
+`RenderKnotBasReliefPlaque()` adds an automatically sized rounded backing plate, optional
+top-edge bevel, contrasting preview colors, and exact height accounting. `Draft`, `Standard`,
+`Fine`, and `Custom` presets coordinate route sampling and rounded-profile resolution for preview
+and final export.
+
+![LogoSC knot relief plaques](images/knot-relief-plaque-gallery.png)
 
 ## Future rendering work
 

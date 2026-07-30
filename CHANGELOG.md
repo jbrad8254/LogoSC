@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+## [2026.5] - 2026-07-29
+
+This feature release adds complete backward-compatible affine turtle transforms and the first
+full optional knot companion. LogoSC Core now carries readable six-field affine state through
+movement, curves, primitives, repetition, holes, stacks, validation, and debug rendering. The
+knot companion adds torus knots, circular braids, Celtic tile grids, round cords, multi-cord
+bundles, LogoSC-backed planar ribbons, printable bas-relief plaques, beveled backing plates, and
+coordinated export-quality presets. The Core public API version advances to `2026.5`; specialized
+knot topology and native 3D manufacturing geometry remain outside Core.
+
 ### Added
 
 - Added the first optional knot-companion vertical slice in `LogoSC-Knots.scad`: extensible knot,
@@ -10,13 +20,14 @@
   with `gcd(p,q)` independently closed components.
 - Added selectable Planar and Spatial knot debug views. Planar mode projects centerline and
   sample diagnostics to `z = 0` without changing the stored 3D knot route.
-- Added a separate 74-result knot test suite and runner covering record accessors, valid and
+- Added a separate 81-result knot test suite and runner covering record accessors, valid and
   invalid structures, closure, crossings, encounter indexes, lane permutations, torus sample
   counts, exact closure, distinct link components, generated-result validation, and cord-segment
-  and bundle accounting, plus signed braid topology and closure.
+  and bundle accounting, plus signed braid topology, ribbons, relief plaques, bevels, and
+  print-quality presets.
 - Added `LogoSC-Knots-Examples.scad`, documented topology, cord, bundle, braid, and braided-bundle
-  presentation galleries, plus focused individual examples. Ribbons, explicit twist, and AI
-  image import remain deferred.
+  presentation galleries, plus focused individual examples. Explicit twist and AI image import
+  remain deferred.
 - Added validated `RenderKnotCords()` manufacturing geometry, converting every adjacent sampled
   pair into a sphere-hulled capsule with explicit radius and fragment controls. Added segment
   accounting helpers and four focused tests.
@@ -25,8 +36,8 @@
   PNG command.
 - Added adjacent multi-cord bundle expansion and `RenderKnotCordBundle()`, with explicit or
   width-fitted cord radius, symmetric lane offsets, stable transported 3D frames, exact closed
-  seams, per-master link expansion, and an explicit initial restriction to routes without
-  recorded crossings.
+  seams, and per-master link expansion. Later crossing-aware expansion preserves recorded
+  crossing ownership and clearance.
 - Added ten focused bundle results covering vector math, width fitting, lane symmetry, straight
   and curved frames, strand/sample expansion, preserved center routes, lane separation, closure,
   validation, and multi-component links, bringing the independent knot suite to 38 results.
@@ -120,9 +131,9 @@
   representation; torus, braid-word, Celtic-grid, harmonic/Lissajous, polar, and medial-graph
   generators; alternating crossing constraints; 2D ribbons; bas-relief; rounded capsule cords;
   verification; and staged companion-library delivery.
-- Added adjacent multi-cord bundles as a required knot feature, including width/gap fitting,
-  symmetric lane expansion, synchronized crossing lifts, bundle-envelope clearance, stable 3D
-  frames, and explicit Möbius-like lane-closure permutations.
+- Documented adjacent multi-cord bundles as a required knot feature, including width/gap fitting,
+  symmetric lane expansion, synchronized crossing lifts, bundle-envelope clearance, and stable
+  3D frames. Explicit twist and Möbius-like lane-closure permutations remain deferred.
 
 - Added an AI-assisted figurative-knot import concept to the knot roadmap, using semantic
   regions and vector guide data as a validated interchange rather than unchecked generated

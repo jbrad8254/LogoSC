@@ -84,6 +84,7 @@
 - [2026.2 release identifier cleanup](#2026-07-18--20262-release-identifier-cleanup)
 - [2026.3 release preparation](#2026-07-22--20263-feature-release-preparation)
 - [2026.4 release preparation](#2026-07-27--20264-feature-release-preparation)
+- [2026.5 release preparation](#2026-07-29--20265-affine-and-knot-release-preparation)
 - [Journal-entry template](#yyyy-mm-dd--topic)
 
 ## Quick Links
@@ -95,7 +96,7 @@
 - [Testing and regression risks](#11-testing-and-regression-risks)
 - [Documentation conventions](#7-documentation-architecture-and-conventions)
 - [Packaging workflow](#8-repository-and-packaging-workflow)
-- [Latest release preparation](#2026-07-13--consolidated-20262-release-preparation)
+- [Latest release preparation](#2026-07-29--20265-affine-and-knot-release-preparation)
 
 ## ChatGPT bootstrap — read this first
 
@@ -184,7 +185,7 @@ for OpenSCAD.
 
 Current stable milestone:
 
-- LogoSC release `2026.4`.
+- LogoSC release `2026.5`.
 
 License milestone:
 
@@ -193,7 +194,7 @@ License milestone:
   may copy, modify, redistribute, and use it in commercial or closed-source
   projects as long as the copyright/license notice is preserved. README files
   should link to `LICENSE` rather than embedding the full license text.
-- Current source snapshot public API version `2026.4`.
+- Current source snapshot public API version `2026.5`.
 
 Major implemented features include:
 
@@ -218,14 +219,18 @@ Major implemented features include:
   maintainer-facing companion material, separate from LogoSC public API and user documentation.
 - Optional path and topology validation for basic path defects, proper self-intersections,
   general segment/contour/region relationships, hole containment, and hole overlap.
+- Backward-compatible affine state with nonuniform scaling, reflection, shear preservation,
+  transformed curves and primitives, matrix interoperability, and focused examples.
 - Customizable printable fasteners with metric, Unified, and custom sizes; multiple thread,
   head, drive, handedness, and start options; gallery and algorithm outputs; and safety guidance.
+- Optional knot topology, cords, bundles, Celtic grids, LogoSC-backed ribbons, bas-relief,
+  beveled plaques, and coordinated print-quality presets.
 
 Append new milestones here. Do not rewrite this section as only the latest state.
 
 ---
 
-## Restart Checkpoint — 2026.4 Topology and Convexity Stable
+## Restart Checkpoint — 2026.5 Affine Transforms and Knot Companion Stable
 
 Current project state is suitable for a fresh chat/restart from the local Git repository or
 a repository ZIP.
@@ -251,8 +256,12 @@ Verified working state:
 - Optional `LogoSC-Foundation-Validation.scad` supplies explicit path records, integrity and
   topology checks, general geometry relationships, and convexity queries without changing Core
   evaluation or rendering.
+- Core carries backward-compatible six-field affine state through movement, curves, primitives,
+  repetition, holes, stacks, validation, and debug rendering.
 - `LogoSC-Nuts-And-Bolts.scad` supplies the standalone customizable fastener application while
   keeping native OpenSCAD responsible for twisted extrusion and 3D booleans.
+- `LogoSC-Knots.scad` supplies optional torus, braid, Celtic-grid, cord, bundle, planar-ribbon,
+  bas-relief, and beveled-plaque workflows without adding knot topology to Core.
 - `RenderLogoDebug()` is implemented and visually verified.
 - Debug visualization is preview/debug-only, not intended to create manufacturable stroke geometry.
 - Debug rendering uses z-centered 3D capsules and point markers.
@@ -279,11 +288,13 @@ Verified working state:
 - README Quick Start now shows the actual filled-triangle result immediately after
   the first code block and the debug-overlay result immediately after the
   `RenderLogoDebug()` code block.
-- Git tags `v2026.2`, `v2026.2.1`, and `v2026.3` preserve the earlier release baselines.
+- Git tags `v2026.2`, `v2026.2.1`, `v2026.3`, and `2026.4` preserve earlier release baselines.
 - Release `2026.3` consolidates the later fastener application, expanded validation, tests,
   documentation, and reproducible images without rewriting those earlier tags.
 - Release `2026.4` consolidates general topology relationships, strict hole validation,
   convexity queries, expanded deterministic suites, and preliminary transform design notes.
+- Release `2026.5` consolidates implemented affine transforms and the full first knot-companion
+  milestone, including printable relief plaques and export-quality presets.
 
 Known open design issues:
 
@@ -293,7 +304,7 @@ Known open design issues:
   or spatial index.
 - README already includes a verified debug-overlay screenshot. Add another manual screenshot
   only if it teaches something the existing image does not.
-- Prepare another release only after later work forms a coherent, verified milestone.
+- Begin later work only after the `2026.5` release diff is reviewed and committed.
 
 ---
 
@@ -1054,8 +1065,8 @@ Current docs are split by purpose:
 - `LogoSC-Holes-Implementation.md`: region/hole rendering design details.
 - `LogoSC-Validation-Implementation.md`: validation architecture, algorithms, topology policy,
   complexity boundaries, and the complete automated test matrix.
-- `LogoSC-Transforms-Design.md`: preliminary local-transform direction, compatibility constraints,
-  and questions that must be resolved before implementation.
+- `LogoSC-Transforms-Design.md`: implemented affine-transform semantics, compatibility
+  constraints, and design rationale.
 - `LogoSC-LSystems-Notes.md`: design notes for L-system example helpers and future fractal examples.
 - `LogoSC-Knots-Design.md`: active plan for generative topology, knot algorithms, adjacent-cord
   bundles, ribbons, bas-relief, rounded cords, verification, and optional-companion sequencing.
@@ -1071,9 +1082,9 @@ should not become another manual.
 The current public baseline is:
 
 ```text
-Release: 2026.4
-Status: 201 Foundation/Validation results and 48 fastener results verified
-Purpose: general topology, strict hole validation, convexity queries, and test hardening
+Release: 2026.5
+Status: 222 Foundation/Validation, 48 fastener, and 81 knot results verified
+Purpose: affine turtle transforms and the optional printable-knot companion
 ```
 
 `LogoSC-Experiments.scad` remains a separate lab bench. Keep experimental code there
@@ -3297,3 +3308,37 @@ Verification boundary:
 - Compile Draft, Standard, Fine, and a nondefault Custom combination.
 - Require the complete repository suites, representative Standard and Fine STL exports, and
   documentation integrity checks.
+
+### 2026-07-29 — 2026.5 affine and knot release preparation
+
+Context:
+
+- Work since `2026.4` formed two complete, verified themes: backward-compatible affine turtle
+  transforms in Core and the first full optional knot companion.
+- The knot milestone now spans topology records, validation, torus and braid generators, Celtic
+  tile grids, cords, bundles, LogoSC-backed ribbons, bas-relief plaques, bevels, and coordinated
+  print-quality presets.
+- Active source and documentation still identified `2026.4`, while the complete milestone
+  remained under `Unreleased`.
+
+Decision:
+
+- Advance `LogoSCVersionMinor` from `4` to `5`.
+- Consolidate accumulated work into release `2026.5`, dated 2026-07-29, and restore an empty
+  `Unreleased` section.
+- Describe both affine transforms and the optional knot companion as the release themes while
+  preserving the boundary that LogoSC Core produces 2D regions and native OpenSCAD performs 3D
+  manufacturing geometry.
+- Update active version references, release history, transform status, knot roadmap language,
+  current baseline, and restart checkpoint without rewriting historical release entries.
+- Leave commit, tag creation, push, and external publication to the maintainer after review.
+
+Verification boundary:
+
+- Require 222 Foundation/Validation, 48 fastener, and 81 knot results to pass.
+- Require warning-free CSG exports for every fastener mode plus Core and knot example outputs.
+- Require simple unified STL meshes for the default Bolt, default Nut, and Fine Celtic relief
+  plaque.
+- Visually inspect the Core examples, debug triangle, and beveled plaque galleries.
+- Verify local documentation links, referenced assets, code fences, LF endings, version
+  consistency, `git diff --check`, and a clean release-preparation diff.

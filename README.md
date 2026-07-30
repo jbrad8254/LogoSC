@@ -436,7 +436,7 @@ LogoRegionIsConvex(region, tolerance = 0.001, strict = false);
 LogoRegionsAreIndividuallyConvex(regions, tolerance = 0.001, strict = false);
 ```
 
-The current public API version is `2026.4`.
+The current public API version is `2026.5`.
 
 ## Command examples
 
@@ -490,7 +490,7 @@ See `LogoSC-CheatSheet.md` and `LogoSC-User-Manual.md` for the complete command 
 - `LogoSC-ARC-Implementation.md` — arc tessellation design notes.
 - `LogoSC-Holes-Implementation.md` — region and hole design notes.
 - `LogoSC-Validation-Implementation.md` — validation algorithms, policies, complexity, and test matrix.
-- `LogoSC-Transforms-Design.md` — preliminary local-transform design direction and open questions.
+- `LogoSC-Transforms-Design.md` — implemented affine-transform semantics and design rationale.
 - `LogoSC-LSystems-Notes.md` — L-system design/example notes.
 - `LogoSC-Knots-Design.md` — generative-knot algorithms, topology, rendering, verification,
   and implementation roadmap.
@@ -515,13 +515,15 @@ a preview-only debug renderer and an optional validator that detects basic path 
 self-intersections, invalid hole containment, and overlapping holes. The companion exposes
 reusable segment, contour, containment, and region-relation helpers without adding them to Core.
 Manufacturable stroke/open-path rendering remains future work. The optional knot companion
-separately provides manufacturable rounded 3D cords for sampled knot routes; it does not change
-LogoSC Core's filled-region contract.
+separately provides torus, braid, and Celtic-grid topology; rounded cords and multi-cord bundles;
+LogoSC-backed planar ribbons; and printable beveled relief plaques. It does not change LogoSC
+Core's filled-region contract.
 
 ## Version history
 
 | Version | Highlights |
 | --- | --- |
+| 2026.5 | Affine turtle transforms plus the optional knot, cord, bundle, ribbon, and relief-plaque companion |
 | 2026.4 | Topology/hole validation, convexity queries, expanded tests, and transform design notes |
 | 2026.3 | Printable fastener application plus duplicate-point, tiny-edge, and proper self-intersection validation |
 | 2026.2.1 | Optional path validation, automated suite aggregation, galleries, and command-line verification |
@@ -531,7 +533,8 @@ LogoSC Core's filled-region contract.
 ## Near-term roadmap
 
 - Expand optional validation only when additional topology policies provide clear value.
-- Continue the optional knot companion with relief edge treatments and export-oriented presets.
+- Keep knot topology and manufacturing features in the optional companion rather than Core.
+- Prototype the upward-compatible LogoSC Starter package described in `LogoSC-Future-Ideas.md`.
 - Keep manufacturable stroke rendering as a separate API with explicit width, cap, and join semantics.
 
 ## Requirements

@@ -990,8 +990,8 @@ links where supported by the selected generator.
    - Rounded capsule regions, Core rendering, underpass masks, restored overpasses, tests, and a
      comparison gallery are complete.
    - Bas-relief extrusion and corrected overpass overlap are complete.
-   - Unified polygon export, decorative borders, bundled ribbons, and backing plates remain
-     deferred.
+   - Bas-relief backing plates, top-edge bevels, and print-quality presets are complete.
+   - Unified polygon export, decorative borders, and bundled planar ribbons remain deferred.
 6. **Harmonic/Lissajous and polar generators**
    - Add automatic crossing discovery and parity solving.
 7. **Medial planar graphs**

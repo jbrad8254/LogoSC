@@ -194,7 +194,7 @@ and is a good starting point for user models.
 
 ### Library version
 
-Current public API version: `2026.4`.
+Current public API version: `2026.5`.
 
 The core file exposes version constants and a helper for user-model compatibility
 checks:
@@ -209,7 +209,7 @@ LogoSCVersionAtLeast(major, minor)
 Example:
 
 ```scad
-assert(LogoSCVersionAtLeast(2026, 4), "This model requires LogoSC 2026.4+");
+assert(LogoSCVersionAtLeast(2026, 5), "This model requires LogoSC 2026.5+");
 ```
 
 The version is bumped manually for public API or feature milestones. Git remains

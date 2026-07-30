@@ -2,14 +2,10 @@
 
 ## Status and purpose
 
-This document records preliminary design direction for a future LogoSC local-transform
-feature. It is not an implemented command reference or a commitment to exact syntax.
-
-The immediate development priority remains optional inter-contour and hole validation.
-Transform implementation should begin only after that work has a clean, verified checkpoint.
-
-The purpose of recording the transform direction now is to preserve the reasoning needed for
-the later design review.
+This document records the design rationale and compatibility boundary for LogoSC's implemented
+local affine-transform feature. The public command reference remains in the User Manual and
+Cheat Sheet; this document explains why the six-field state and composition rules take their
+current form.
 
 ## Motivation
 
@@ -292,7 +288,9 @@ current observable behavior within established numerical tolerances.
 3. Resolve transform semantics and canonical state. **Complete.**
 4. Implement canonical affine transforms and focused automated coverage. **Complete.**
 5. Exercise the feature in reusable examples before considering explicit `SHEAR` syntax.
+   **Complete.**
 6. Design specialized knot generation only after the underlying transform behavior is stable.
+   **Complete as an optional companion.**
 
 ## Non-goals for the first implementation
 
