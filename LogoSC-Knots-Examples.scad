@@ -665,7 +665,9 @@ module RenderKnotPlaqueGalleryExample(
     width = KnotCelticGridColumnCount(grid) * cellSize;
     height = len(grid) * cellSize;
 
-    color(colorValue)
+    RenderKnotOptionalColor(
+        KnotReliefUsePreviewColors ? undef : colorValue
+    )
     translate(position)
     rotate(rotation)
     translate([-width / 2, height / 2, 0])
@@ -678,7 +680,13 @@ module RenderKnotPlaqueGalleryExample(
             plateCornerRadius = plateCornerRadius,
             baseHeight = 1.1,
             overpassHeight = 1,
-            arcFragments = 8
+            arcFragments = 8,
+            plateColor = KnotReliefUsePreviewColors
+                ? KnotReliefPlateColor
+                : undef,
+            reliefColor = KnotReliefUsePreviewColors
+                ? colorValue
+                : undef
         );
 }
 
