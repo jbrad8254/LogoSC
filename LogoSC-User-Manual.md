@@ -1496,7 +1496,9 @@ one printable plaque.
 ![LogoSC knot relief plaques](images/knot-relief-plaque-gallery.png)
 
 Choose `KnotExample = "PlaqueGallery"` for compact, rounded, and larger-grid plaques, or select
-`KnotOutput = "Plaque"` for an individual Planar example. Edge bevels, bundled ribbons, and
+`KnotOutput = "Plaque"` for an individual Planar example. `KnotReliefUsePreviewColors` displays
+the plate and raised knot in independently configurable contrasting colors. This is a preview
+aid only; ordinary STL export remains uncolored geometry. Edge bevels, bundled ribbons, and
 unified polygon export remain later milestones.
 
 #### Circular braid closures

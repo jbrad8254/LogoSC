@@ -2490,6 +2490,15 @@ module RenderKnotRoundedRectangle2D(
     }
 }
 
+module RenderKnotOptionalColor(colorValue = undef)
+{
+    if (is_undef(colorValue))
+        children();
+    else
+        color(colorValue)
+            children();
+}
+
 module RenderKnotBasRelief(
     knot,
     ribbonWidth = 2,
@@ -2548,7 +2557,9 @@ module RenderKnotBasReliefPlaque(
     overpassHeight = 1,
     arcFragments = 8,
     convexity = 10,
-    planarTolerance = 0.001)
+    planarTolerance = 0.001,
+    plateColor = undef,
+    reliefColor = undef)
 {
     plateBounds = KnotReliefPlaqueBounds(
         knot,
@@ -2567,24 +2578,26 @@ module RenderKnotBasReliefPlaque(
     {
         assert(totalHeight > plateThickness);
 
-        linear_extrude(height = plateThickness, convexity = convexity)
-            RenderKnotRoundedRectangle2D(
-                plateBounds,
-                plateCornerRadius,
-                arcFragments
-            );
+        RenderKnotOptionalColor(plateColor)
+            linear_extrude(height = plateThickness, convexity = convexity)
+                RenderKnotRoundedRectangle2D(
+                    plateBounds,
+                    plateCornerRadius,
+                    arcFragments
+                );
 
-        translate([0, 0, plateThickness - plateOverlap])
-            RenderKnotBasRelief(
-                knot,
-                ribbonWidth,
-                crossingClearance,
-                baseHeight + plateOverlap,
-                overpassHeight,
-                arcFragments,
-                convexity,
-                planarTolerance
-            );
+        RenderKnotOptionalColor(reliefColor)
+            translate([0, 0, plateThickness - plateOverlap])
+                RenderKnotBasRelief(
+                    knot,
+                    ribbonWidth,
+                    crossingClearance,
+                    baseHeight + plateOverlap,
+                    overpassHeight,
+                    arcFragments,
+                    convexity,
+                    planarTolerance
+                );
     }
 }
 

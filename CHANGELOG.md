@@ -91,6 +91,8 @@
   `KnotReliefPlaqueTotalHeight()`, plus two focused plaque results bringing the knot suite to 76.
 - Added `Plaque` Customizer output and a `PlaqueGallery` showing compact, rounded, and 4-by-4
   printable relief plaques.
+- Added optional independent plaque and raised-knot preview colors, with contrasting Customizer
+  defaults. Color remains presentation metadata and does not affect printable STL geometry.
 - Added `Ribbon` Customizer output and a `RibbonGallery` comparing continuous regions,
   underpass-mask interlace, and a 4-by-4 Celtic ribbon grid.
 - Added a side-by-side User Manual comparison clarifying that braids generate crossing topology

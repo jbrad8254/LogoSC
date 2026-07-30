@@ -372,7 +372,8 @@ requested total height.
 ![LogoSC knot relief plaques](images/knot-relief-plaque-gallery.png)
 
 Choose `PlaqueGallery` for compact, rounded, and 4-by-4 examples, or choose `Plaque` output for
-an individual knot.
+an individual knot. The Customizer can give the plate and raised knot contrasting preview
+colors; these colors do not alter exported STL geometry.
 
 ## Current public API
 

@@ -43,6 +43,12 @@ KnotReliefPlateThickness = 1.2; // [0.2:0.1:8]
 KnotReliefPlateMargin = 3; // [0:0.1:12]
 KnotReliefPlateCornerRadius = 3; // [0:0.1:12]
 
+/* [Plaque Preview Colors] */
+
+KnotReliefUsePreviewColors = true;
+KnotReliefPlateColor = [0.16, 0.22, 0.32];
+KnotReliefKnotColor = [0.92, 0.52, 0.10];
+
 /* [Gallery Presentation] */
 
 KnotGalleryLabels = true;
@@ -120,7 +126,13 @@ module RenderKnotExample(name)
             plateCornerRadius = KnotReliefPlateCornerRadius,
             baseHeight = KnotReliefBaseHeight,
             overpassHeight = KnotReliefOverpassHeight,
-            arcFragments = KnotRibbonArcFragments
+            arcFragments = KnotRibbonArcFragments,
+            plateColor = KnotReliefUsePreviewColors
+                ? KnotReliefPlateColor
+                : undef,
+            reliefColor = KnotReliefUsePreviewColors
+                ? KnotReliefKnotColor
+                : undef
         );
     }
     else if (KnotOutput == "Relief")
