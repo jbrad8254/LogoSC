@@ -4,7 +4,7 @@ include <LogoSC-Knots.scad>
 
 /* [Example Selection] */
 
-KnotExample = "PlaqueGallery"; // [PlaqueGallery,ReliefGallery,RibbonGallery,CelticGallery,BraidBundleGallery,BraidGallery,BundleGallery,CordGallery,CelticGrid,Unknot,Trefoil,HopfLink,CrossingRecord]
+KnotExample = "PlaqueGallery"; // [PlaqueGallery,ReliefGallery,RibbonGallery,CelticGallery,TwistGallery,BraidBundleGallery,BraidGallery,BundleGallery,CordGallery,CelticGrid,Unknot,Trefoil,HopfLink,CrossingRecord]
 KnotView = "Planar"; // [Planar, Spatial]
 KnotOutput = "Plaque"; // [Debug, Cord, Bundle, Ribbon, Relief, Plaque]
 
@@ -31,6 +31,7 @@ KnotBundleCordGap = 0.4; // [0:0.1:3]
 KnotBundleFitWidth = false;
 KnotBundleWidth = 8; // [1:0.5:30]
 KnotBundleMinimumClearance = 0; // [0:0.1:5]
+KnotBundleTwistHalfTurns = 0; // [-6:1:6]
 
 /* [Ribbon Geometry] */
 
@@ -233,7 +234,8 @@ module RenderKnotExample(name)
             bundleWidth = KnotBundleFitWidth ? KnotBundleWidth : undef,
             fragments = KnotExampleCordFragments(),
             minimumClearance = KnotBundleMinimumClearance,
-            checkCrossingClearance = KnotView == "Spatial"
+            checkCrossingClearance = KnotView == "Spatial",
+            twistHalfTurns = KnotBundleTwistHalfTurns
         );
     }
     else if (KnotOutput == "Cord" && name != "CrossingRecord")
@@ -379,7 +381,7 @@ module RenderKnotBundleGalleryExample(
     );
 
     translate(position)
-    rotate(KnotView == "Planar" ? [0, 0, rotation[2]] : rotation)
+    rotate(rotation)
         RenderKnotGalleryCords(bundle, strandColors, 0.72);
 }
 
@@ -426,6 +428,79 @@ module RenderKnotBundleGallery()
         ]
     );
     RenderKnotGalleryLabel("4 CORDS", [145, -30, -8]);
+}
+
+module RenderKnotTwistGalleryExample(
+    twistHalfTurns,
+    position,
+    rotation,
+    strandColors)
+{
+    master = KnotForView(
+        MakeTorusKnot(
+            1,
+            1,
+            18,
+            5,
+            KnotExampleSampleCount(72, 24)
+        ),
+        KnotView
+    );
+    bundle = MakeKnotBundle(
+        master,
+        3,
+        cordRadius = 0.72,
+        cordGap = 0.32,
+        twistHalfTurns = twistHalfTurns
+    );
+
+    translate(position)
+    rotate(KnotView == "Planar" ? [0, 0, rotation[2]] : rotation)
+        RenderKnotGalleryCords(bundle, strandColors, 0.72);
+}
+
+module RenderKnotTwistGallery()
+{
+    RenderKnotGalleryLabel(
+        "LogoSC  TWISTED CORD BUNDLES",
+        [85, 39, -8],
+        5.8
+    );
+
+    RenderKnotTwistGalleryExample(
+        0,
+        [25, 4, 0],
+        [56, 0, -12],
+        [
+            [0.02, 0.62, 0.76],
+            [0.12, 0.82, 0.62],
+            [0.16, 0.48, 0.84]
+        ]
+    );
+    RenderKnotGalleryLabel("UNTWISTED", [25, -30, -8], 3.5);
+
+    RenderKnotTwistGalleryExample(
+        1,
+        [85, 4, 0],
+        [56, 0, 18],
+        [
+            [0.98, 0.66, 0.08],
+            [0.84, 0.16, 0.12]
+        ]
+    );
+    RenderKnotGalleryLabel("HALF TWIST", [85, -30, -8], 3.5);
+
+    RenderKnotTwistGalleryExample(
+        2,
+        [145, 4, 0],
+        [56, 0, -12],
+        [
+            [0.35, 0.18, 0.75],
+            [0.58, 0.24, 0.84],
+            [0.82, 0.32, 0.72]
+        ]
+    );
+    RenderKnotGalleryLabel("FULL TWIST", [145, -30, -8], 3.5);
 }
 
 module RenderKnotBraidGalleryExample(name, position, rotation, strandColors)
@@ -878,6 +953,10 @@ else if (KnotExample == "RibbonGallery")
 else if (KnotExample == "CelticGallery")
 {
     RenderKnotCelticGallery();
+}
+else if (KnotExample == "TwistGallery")
+{
+    RenderKnotTwistGallery();
 }
 else if (KnotExample == "BraidBundleGallery")
 {

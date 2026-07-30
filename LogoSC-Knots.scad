@@ -3,8 +3,8 @@
 //
 // Pure OpenSCAD functions define and validate sampled knot records and generate
 // torus, circular-braid, and Celtic tile-grid routes. Native sphere/hull
-// geometry produces diagnostics, manufacturable rounded cords, and untwisted
-// adjacent cord bundles. The optional planar ribbon compiler uses LogoSC Core
+// geometry produces diagnostics, manufacturable rounded cords, and adjacent
+// cord bundles with optional traced half-turn twists. The planar ribbon compiler uses LogoSC Core
 // region records and RenderRegion2D(); it does not call evalLogo().
 // ============================================================================
 
@@ -1826,22 +1826,106 @@ function KnotStrandStableLaterals(strand) =
         )
 ];
 
-function KnotBundleLaneSamples(strand, laneOffset) =
+function KnotBundleTwistPermutation(cordCount, twistHalfTurns = 0) =
+    assert(
+        is_num(twistHalfTurns) && floor(twistHalfTurns) == twistHalfTurns,
+        "Knot bundle twist must be an integer number of half-turns."
+    )
+[
+    for (laneIndex = [0 : cordCount - 1])
+        abs(twistHalfTurns) % 2 == 0
+        ? laneIndex
+        : cordCount - 1 - laneIndex
+];
+
+function KnotBundleTwistCycles(cordCount, twistHalfTurns = 0) =
+    KnotPermutationCycles(
+        KnotBundleTwistPermutation(cordCount, twistHalfTurns)
+    );
+
+function KnotBundleLaneCycleIndex(cycles, laneIndex, cycleIndex = 0) =
+    cycleIndex >= len(cycles)
+    ? undef
+    : len([for (lane = cycles[cycleIndex]) if (lane == laneIndex) lane]) > 0
+        ? cycleIndex
+        : KnotBundleLaneCycleIndex(cycles, laneIndex, cycleIndex + 1);
+
+function KnotBundleLaneCyclePosition(cycle, laneIndex, index = 0) =
+    index >= len(cycle)
+    ? undef
+    : cycle[index] == laneIndex
+        ? index
+        : KnotBundleLaneCyclePosition(cycle, laneIndex, index + 1);
+
+function KnotBundleTwistedLaneUniqueSamples(
+    strand,
+    laneOffset,
+    twistHalfTurns = 0) =
     let(
         samples = KnotStrandSamples(strand),
         uniqueCount = KnotStrandUniqueSampleCount(strand),
         laterals = KnotStrandStableLaterals(strand),
-        uniqueLaneSamples = [
-            for (sampleIndex = [0 : uniqueCount - 1])
-                KnotVectorAdd(
-                    samples[sampleIndex],
-                    KnotVectorScale(laterals[sampleIndex], laneOffset)
+        twistDegrees = twistHalfTurns * 180
+    )
+[
+    for (sampleIndex = [0 : uniqueCount - 1])
+        let(
+            tangent = KnotStrandSampleTangent(strand, sampleIndex),
+            twistedLateral = KnotVectorRotateAroundAxis(
+                laterals[sampleIndex],
+                tangent,
+                twistDegrees * sampleIndex / uniqueCount
+            )
+        )
+        KnotVectorAdd(
+            samples[sampleIndex],
+            KnotVectorScale(twistedLateral, laneOffset)
+        )
+];
+
+function KnotBundleLaneSamples(
+    strand,
+    laneOffset,
+    twistHalfTurns = 0) =
+    let(
+        uniqueLaneSamples = KnotBundleTwistedLaneUniqueSamples(
+            strand,
+            laneOffset,
+            twistHalfTurns
+        )
+    )
+    KnotStrandClosed(strand) && abs(twistHalfTurns) % 2 == 0
+    ? concat(uniqueLaneSamples, [uniqueLaneSamples[0]])
+    : uniqueLaneSamples;
+
+function KnotBundleComponentSamples(
+    strand,
+    laneCycle,
+    cordCount,
+    cordRadius,
+    cordGap,
+    twistHalfTurns) =
+    let(
+        uniqueComponentSamples = [
+            for (laneIndex = laneCycle)
+                let(
+                    laneOffset = KnotBundleLaneOffset(
+                        laneIndex,
+                        cordCount,
+                        cordRadius,
+                        cordGap
+                    )
+                )
+                each KnotBundleTwistedLaneUniqueSamples(
+                    strand,
+                    laneOffset,
+                    twistHalfTurns
                 )
         ]
     )
     KnotStrandClosed(strand)
-    ? concat(uniqueLaneSamples, [uniqueLaneSamples[0]])
-    : uniqueLaneSamples;
+    ? concat(uniqueComponentSamples, [uniqueComponentSamples[0]])
+    : uniqueComponentSamples;
 
 // Interpolate a normalized route parameter through a sampled strand. Crossing
 // parameters refer to segments, so a parameter of 1 selects the final sample.
@@ -1866,30 +1950,59 @@ function KnotStrandPointAtParameter(strand, parameter) =
 function KnotBundleExpandedStrandIndex(masterIndex, laneIndex, cordCount) =
     masterIndex * cordCount + laneIndex;
 
+function KnotBundleTwistedStrandIndex(
+    masterIndex,
+    laneIndex,
+    cycles) =
+    masterIndex * len(cycles)
+    + KnotBundleLaneCycleIndex(cycles, laneIndex);
+
+function KnotBundleTwistedParameter(laneIndex, parameter, cycles) =
+    let(
+        cycleIndex = KnotBundleLaneCycleIndex(cycles, laneIndex),
+        cycle = cycles[cycleIndex],
+        cyclePosition = KnotBundleLaneCyclePosition(cycle, laneIndex)
+    )
+    (cyclePosition + parameter) / len(cycle);
+
 function KnotBundleCrossingForLanes(
     crossing,
     bundleStrands,
     cordCount,
     laneA,
-    laneB) =
+    laneB,
+    cycles = undef) =
     let(
-        strandA = KnotBundleExpandedStrandIndex(
+        closureCycles = is_undef(cycles)
+        ? KnotBundleTwistCycles(cordCount, 0)
+        : cycles,
+        strandA = KnotBundleTwistedStrandIndex(
             KnotCrossingStrandA(crossing),
             laneA,
-            cordCount
+            closureCycles
         ),
-        strandB = KnotBundleExpandedStrandIndex(
+        strandB = KnotBundleTwistedStrandIndex(
             KnotCrossingStrandB(crossing),
             laneB,
-            cordCount
+            closureCycles
+        ),
+        parameterA = KnotBundleTwistedParameter(
+            laneA,
+            KnotCrossingParameterA(crossing),
+            closureCycles
+        ),
+        parameterB = KnotBundleTwistedParameter(
+            laneB,
+            KnotCrossingParameterB(crossing),
+            closureCycles
         ),
         pointA = KnotStrandPointAtParameter(
             bundleStrands[strandA],
-            KnotCrossingParameterA(crossing)
+            parameterA
         ),
         pointB = KnotStrandPointAtParameter(
             bundleStrands[strandB],
-            KnotCrossingParameterB(crossing)
+            parameterB
         ),
         overBranch = KnotCrossingOverBranch(crossing)
     )
@@ -1899,16 +2012,20 @@ function KnotBundleCrossingForLanes(
             (pointA[1] + pointB[1]) / 2
         ],
         strandA,
-        KnotCrossingParameterA(crossing),
+        parameterA,
         strandB,
-        KnotCrossingParameterB(crossing),
+        parameterB,
         overBranch == "A" ? strandA : strandB,
         overBranch
     );
 
 // Expand every master crossing into all lane-pair crossings. This N squared
 // mapping lets validation and clearance analysis reason about actual cords.
-function KnotBundleCrossings(knot, bundleStrands, cordCount) =
+function KnotBundleCrossings(
+    knot,
+    bundleStrands,
+    cordCount,
+    cycles = undef) =
 [
     for (crossing = KnotCrossings(knot))
         for (laneA = [0 : cordCount - 1])
@@ -1918,7 +2035,8 @@ function KnotBundleCrossings(knot, bundleStrands, cordCount) =
                     bundleStrands,
                     cordCount,
                     laneA,
-                    laneB
+                    laneB,
+                    cycles
                 )
 ];
 
@@ -1986,7 +2104,8 @@ function MakeKnotBundle(
     cordGap = 0.4,
     bundleWidth = undef,
     minimumClearance = 0,
-    checkCrossingClearance = true) =
+    checkCrossingClearance = true,
+    twistHalfTurns = 0) =
     assert(
         KnotValidationIsValid(ValidateKnot(knot)),
         "MakeKnotBundle requires a structurally valid knot."
@@ -1996,6 +2115,19 @@ function MakeKnotBundle(
         "Knot bundle cord count must be a positive integer."
     )
     assert(is_num(cordGap) && cordGap >= 0, "Knot bundle gap must be nonnegative.")
+    assert(
+        is_num(twistHalfTurns) && floor(twistHalfTurns) == twistHalfTurns,
+        "Knot bundle twist must be an integer number of half-turns."
+    )
+    assert(
+        twistHalfTurns == 0
+        || len([
+            for (strand = KnotStrands(knot))
+                if (!KnotStrandClosed(strand))
+                    strand
+        ]) == 0,
+        "Twisted knot bundles require closed master strands."
+    )
     let(
         resolvedRadius = KnotBundleResolvedRadius(
             cordCount,
@@ -2004,28 +2136,36 @@ function MakeKnotBundle(
             bundleWidth
         ),
         masterStrands = KnotStrands(knot),
+        closurePermutation = KnotBundleTwistPermutation(
+            cordCount,
+            twistHalfTurns
+        ),
+        closureCycles = KnotPermutationCycles(closurePermutation),
         routeStrands = [
             for (masterIndex = [0 : len(masterStrands) - 1])
-                for (laneIndex = [0 : cordCount - 1])
+                for (cycleIndex = [0 : len(closureCycles) - 1])
                     let(
                         masterStrand = masterStrands[masterIndex],
-                        laneOffset = KnotBundleLaneOffset(
-                            laneIndex,
-                            cordCount,
-                            resolvedRadius,
-                            cordGap
-                        )
+                        laneCycle = closureCycles[cycleIndex]
                     )
                     MakeKnotStrand(
                         KnotStrandClosed(masterStrand),
-                        KnotBundleLaneSamples(masterStrand, laneOffset),
-                        laneClosurePermutation = [0],
+                        KnotBundleComponentSamples(
+                            masterStrand,
+                            laneCycle,
+                            cordCount,
+                            resolvedRadius,
+                            cordGap,
+                            twistHalfTurns
+                        ),
+                        laneClosurePermutation = closurePermutation,
                         metadata = concat(
                             KnotStrandMetadata(masterStrand),
                             [
                                 "bundleMasterStrand", masterIndex,
-                                "bundleLane", laneIndex,
-                                "bundleLaneOffset", laneOffset
+                                "bundleComponent", cycleIndex,
+                                "bundleLaneCycle", laneCycle,
+                                "bundleTwistHalfTurns", twistHalfTurns
                             ]
                         )
                     )
@@ -2033,7 +2173,8 @@ function MakeKnotBundle(
         bundleCrossings = KnotBundleCrossings(
             knot,
             routeStrands,
-            cordCount
+            cordCount,
+            closureCycles
         ),
         bundleStrands = [
             for (strandIndex = [0 : len(routeStrands) - 1])
@@ -2058,6 +2199,9 @@ function MakeKnotBundle(
                     "bundleCordCount", cordCount,
                     "bundleCordRadius", resolvedRadius,
                     "bundleCordGap", cordGap,
+                    "bundleTwistHalfTurns", twistHalfTurns,
+                    "bundleClosurePermutation", closurePermutation,
+                    "bundleClosureCycles", closureCycles,
                     "bundleWidth", KnotBundleOccupiedWidth(
                         cordCount,
                         resolvedRadius,
@@ -2927,9 +3071,9 @@ module RenderKnotCords(
     }
 }
 
-// Expand each master strand into symmetric, untwisted lanes and render every
-// lane through the existing capsule-cord path. Crossing-aware lanes inherit
-// the master lift and are checked pairwise; explicit twist remains deferred.
+// Expand each master strand into symmetric lanes and render every traced
+// closure component through the existing capsule-cord path. Integer half-turn
+// twists use explicit lane permutations; odd counts reverse the lane order.
 module RenderKnotCordBundle(
     knot,
     cordCount = 3,
@@ -2939,7 +3083,8 @@ module RenderKnotCordBundle(
     fragments = 24,
     validationTolerance = 0.001,
     minimumClearance = 0,
-    checkCrossingClearance = true)
+    checkCrossingClearance = true,
+    twistHalfTurns = 0)
 {
     resolvedRadius = KnotBundleResolvedRadius(
         cordCount,
@@ -2954,7 +3099,8 @@ module RenderKnotCordBundle(
         cordGap,
         bundleWidth,
         minimumClearance,
-        checkCrossingClearance
+        checkCrossingClearance,
+        twistHalfTurns
     );
 
     RenderKnotCords(

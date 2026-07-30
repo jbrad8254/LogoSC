@@ -372,7 +372,7 @@ branch-A and branch-B lanes. The required center distance is
 close. This checks the complete recorded crossing envelope, but it is not general collision
 discovery for unrecorded near approaches or tight offset curves.
 
-### Möbius-like bundle twists
+### Implemented Möbius-like bundle twists
 
 A half-twist is geometrically possible by rotating the bundle frame through 180 degrees over one
 closed circuit. Circular cord cross-sections avoid individual orientation problems, but labeled
@@ -387,9 +387,12 @@ Consequences:
 - requiring every lane to close independently would reject a single half-twist unless a closure
   transition or an even number of half-twists is used.
 
-The shared representation should therefore allow a closure permutation for bundle lanes. A
-Möbius-like bundle is not inherently a rendering problem, but it is a topological feature that
-must be traced and tested rather than silently welded at mismatched endpoints.
+The shared representation now carries and traces the closure permutation for bundle lanes.
+`twistHalfTurns` rotates the corrected transported frame by an integer multiple of 180 degrees
+per master circuit. Even counts produce the identity permutation; odd counts reverse lane order.
+Permutation cycles become actual closed output strands, so paired lanes take two circuits while
+an odd bundle's center lane closes in one. Recorded crossing parameters are remapped into those
+traced components rather than silently welded at mismatched endpoints.
 
 ## Generator 1: torus knots
 
@@ -973,11 +976,12 @@ links where supported by the selected generator.
 
 1. **Shared sampled-strand and knot-result records** — implemented
    - Define constructors, accessors, closure rules, lane permutations, and debug output.
-2. **Torus knots, capsule cords, and untwisted bundles** — implemented
+2. **Torus knots, capsule cords, and twisted bundles** — implemented
    - Closed 3D routes, correct link-component handling, validated capsule rendering, stable
      transported lane frames, symmetric bundle expansion, and width fitting are complete.
-   - Explicit twist, Möbius closure, tight-curve rejection, and general collision discovery
-     remain deferred.
+   - Integer half-turn twist, Möbius-like closure permutations, component tracing, and crossing
+     remapping are complete.
+   - Tight-curve rejection and general collision discovery remain deferred.
 3. **Circular braid words** — implemented
    - Signed crossings, lane tracking, Z bumps, crossing records, self-crossing branches,
      permutation-cycle closure, tests, and a presentation gallery are complete.
@@ -1007,9 +1011,9 @@ gallery, and a clean optional-companion boundary.
   metadata later without replacing the sampled rendering contract.
 - Multi-component links are first-class results from the beginning.
 - Implemented decision: untwisted bundle lanes are exposed as individual strand records with
-  master/lane metadata. A later twist milestone must trace closure permutations deliberately.
-- Implemented decision: the first bundle milestone uses stable untwisted 3D offsets. Explicit
-  frame twist and Möbius closure remain later topology work.
+  master/lane metadata.
+- Implemented decision: integer half-turn twists rotate stable 3D offsets and deliberately trace
+  the resulting identity or reversal closure permutation into output components.
 - Implemented decision: braid closure is circular first. Rectangular exterior return routing
   remains a later presentation/manufacturing option over the same signed-word topology.
 - What is the smallest useful Celtic tile vocabulary?

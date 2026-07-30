@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### Added
+
+- Added controlled integer half-turns to `MakeKnotBundle()` and
+  `RenderKnotCordBundle()`. Even half-turn counts return every lane to itself; odd counts reverse
+  lane order and trace the resulting closure-permutation cycles into genuinely closed cord
+  components, including the self-closing center lane of odd bundles.
+- Remapped recorded braid crossings and normalized parameters through twisted bundle components,
+  added four deterministic twist and Möbius-like closure results bringing the knot suite to 85,
+  and added a Customizer control plus an untwisted/half-twist/full-twist gallery.
+
 ## [2026.5] - 2026-07-29
 
 This feature release adds complete backward-compatible affine turtle transforms and the first

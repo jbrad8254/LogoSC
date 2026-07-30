@@ -369,6 +369,35 @@ function KnotBundleTestResults() =
             8,
             0,
             checkCrossingClearance = false
+        ),
+        twoCordHalfTwist = MakeKnotBundle(
+            MakeTorusKnot(1, 1, 20, 6, 24),
+            2,
+            0.8,
+            0.3,
+            twistHalfTurns = 1
+        ),
+        threeCordHalfTwist = MakeKnotBundle(
+            MakeTorusKnot(1, 1, 20, 6, 24),
+            3,
+            0.8,
+            0.3,
+            twistHalfTurns = 1
+        ),
+        twoCordFullTwist = MakeKnotBundle(
+            MakeTorusKnot(1, 1, 20, 6, 24),
+            2,
+            0.8,
+            0.3,
+            twistHalfTurns = 2
+        ),
+        braidedHalfTwist = MakeKnotBundle(
+            braidTrefoil,
+            2,
+            0.45,
+            0.2,
+            minimumClearance = 0.1,
+            twistHalfTurns = 1
         )
     )
 [
@@ -539,6 +568,53 @@ function KnotBundleTestResults() =
                 KnotStrandSampleCount(KnotStrands(braidedBundle)[0]) - 1
             ]
         )
+    ),
+    LogoTestResult(
+        "knot bundle twist closure permutations",
+        KnotBundleTwistPermutation(4, 0) == [0, 1, 2, 3]
+        && KnotBundleTwistPermutation(4, 1) == [3, 2, 1, 0]
+        && KnotBundleTwistPermutation(4, -1) == [3, 2, 1, 0]
+        && KnotBundleTwistPermutation(4, 2) == [0, 1, 2, 3]
+        && KnotBundleTwistCycles(3, 1) == [[0, 2], [1]]
+    ),
+    LogoTestResult(
+        "knot bundle half twist traces permutation cycles",
+        len(KnotStrands(twoCordHalfTwist)) == 1
+        && KnotStrandSampleCount(KnotStrands(twoCordHalfTwist)[0]) == 49
+        && KnotCordSegmentCount(twoCordHalfTwist) == 48
+        && len(KnotStrands(threeCordHalfTwist)) == 2
+        && KnotStrandSampleCount(KnotStrands(threeCordHalfTwist)[0]) == 49
+        && KnotStrandSampleCount(KnotStrands(threeCordHalfTwist)[1]) == 25
+        && KnotValidationIsValid(ValidateKnot(twoCordHalfTwist))
+        && KnotValidationIsValid(ValidateKnot(threeCordHalfTwist))
+    ),
+    LogoTestResult(
+        "knot bundle full twist preserves individual lanes",
+        len(KnotStrands(twoCordFullTwist)) == 2
+        && KnotCordSegmentCount(twoCordFullTwist) == 48
+        && KnotValidationIsValid(ValidateKnot(twoCordFullTwist))
+        && len([
+            for (strand = KnotStrands(twoCordFullTwist))
+                if (!KnotTestPointNearlyEqual(
+                    KnotStrandSamples(strand)[0],
+                    KnotStrandSamples(strand)[KnotStrandSampleCount(strand) - 1]
+                ))
+                    strand
+        ]) == 0
+    ),
+    LogoTestResult(
+        "knot bundle half twist remaps crossings into traced components",
+        len(KnotStrands(braidedHalfTwist)) == 1
+        && len(KnotCrossings(braidedHalfTwist)) == 12
+        && len([
+            for (crossing = KnotCrossings(braidedHalfTwist))
+                if (
+                    KnotCrossingStrandA(crossing) != 0
+                    || KnotCrossingStrandB(crossing) != 0
+                )
+                    crossing
+        ]) == 0
+        && KnotValidationIsValid(ValidateKnot(braidedHalfTwist))
     )
 ];
 

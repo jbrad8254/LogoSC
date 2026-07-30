@@ -422,7 +422,8 @@ RenderKnotCordBundle(
     trefoil,
     cordCount = 3,
     cordRadius = 0.8,
-    cordGap = 0.35
+    cordGap = 0.35,
+    twistHalfTurns = 1
 );
 ```
 
@@ -439,13 +440,17 @@ union/difference composition. The complete boundary is documented in
 
 ![LogoSC manufacturable knot-cord gallery](images/knot-cord-gallery.png)
 
-The companion also expands each master route into stable, symmetric, untwisted adjacent lanes.
+The companion also expands each master route into stable, symmetric adjacent lanes.
 It supports explicit cord radius or automatic equal-radius fitting within a requested bundle
 width. Recorded braid crossings expand to every lane pair, preserve branch ownership, inherit
-the master crossing lift, and support a minimum surface-clearance check. Explicit bundle twist
-remains deferred.
+the master crossing lift, and support a minimum surface-clearance check. Integer
+`twistHalfTurns` rotate the transported frame around a closed route. Odd counts reverse lane
+order and trace paired lanes into Möbius-like two-circuit components; even counts preserve
+individual lane closure.
 
 ![LogoSC adjacent knot-cord bundle gallery](images/knot-bundle-gallery.png)
+
+![LogoSC twisted knot-cord bundle gallery](images/knot-twisted-bundle-gallery.png)
 
 The examples' `KnotView` selector applies to diagnostics, cords, bundles, and both presentation
 galleries. Planar projects a copy of the route before rendering or lane expansion and removes

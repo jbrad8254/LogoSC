@@ -1290,7 +1290,7 @@ accessors, structural rules, deferred rendering stages, and implementation roadm
 spheres at every pair of adjacent samples. Closed strands already repeat their first point, so
 the last capsule closes the route exactly. The caller remains responsible for selecting a cord
 radius, sampling density, and fragment count that preserve clearance and surface quality.
-Ribbons, explicit bundle twist, and AI image import remain deferred.
+Planar ribbons and controlled bundle twists are implemented; AI image import remains deferred.
 
 There is no hidden LogoSC evaluation in the generators. The torus, braid, and Celtic tile-grid
 generators and `ValidateKnot()` are pure OpenSCAD functions, while `RenderKnotDebug()` and
@@ -1601,7 +1601,7 @@ of the model:
 ![LogoSC adjacent knot-cord bundles](images/knot-bundle-gallery.png)
 
 - Expands geometry around an existing master route.
-- Lanes remain parallel offsets in a stable untwisted frame.
+- Lanes are offsets in a stable transported frame, optionally rotated by controlled half-turns.
 - Radius and gap determine spacing; no new crossing policy is invented.
 - Every master component is copied into the requested number of cord lanes.
 
@@ -1611,8 +1611,9 @@ the final closure determines whether the result is one knotted component or seve
 components.
 
 In a bundle, the master route and its topology already exist. Bundle lanes are manufacturing
-offsets placed beside that route. The current untwisted implementation preserves their order and
-does not make them cross one another. For example, a three-cord bundle of one trefoil master
+offsets placed beside that route. With `twistHalfTurns = 0`, they preserve their order and do not
+cross one another. Controlled twist rotates the entire offset frame without changing the
+master's knot topology. For example, an untwisted three-cord bundle of one trefoil master
 creates three neighboring trefoil-shaped cords; it does not reinterpret the trefoil as a
 three-lane braid.
 
@@ -1649,9 +1650,20 @@ RenderKnotCordBundle(
     cordCount = 3,
     cordRadius = 0.8,
     cordGap = 0.35,
-    fragments = 24
+    fragments = 24,
+    twistHalfTurns = 1
 );
 ```
+
+`twistHalfTurns` must be an integer. Zero is untwisted; `1` is one half-turn; `2` is one full
+turn; and negative values twist in the opposite direction. Twisted bundles require closed
+master strands.
+
+An even number of half-turns returns each lane to itself. An odd number reverses lane order:
+lane `i` meets lane `N-1-i`. The constructor traces that permutation instead of welding
+mismatched endpoints. In a two-cord half-twist, the two apparent lanes form one closed component
+that takes two circuits around the master route. In a three-cord half-twist, the two outer lanes
+form one two-circuit component while the center lane closes after one circuit.
 
 Recorded braids use the same renderer. `minimumClearance` is the requested surface-to-surface
 distance at every remapped crossing:
@@ -1703,12 +1715,13 @@ route. An odd bundle retains one center lane exactly on the original route.
 The companion derives a unit tangent at every sample and parallel-transports a perpendicular
 lateral direction along the route. Closed routes receive a distributed frame correction and
 repeat their first expanded sample exactly, avoiding an open seam. This produces stable
-untwisted lanes through straight and curved 3D samples without relying on a fragile Frenet frame.
+lanes through straight and curved 3D samples without relying on a fragile Frenet frame. Twist
+rotates that corrected lateral around the local tangent before tracing the closure cycles.
 
 Torus knots and links remain usable because their separation is already encoded in their 3D
 samples. Recorded crossings add explicit lane-pair clearance analysis; implicit near approaches
-on routes without crossing records are not yet discovered automatically. Explicit twist,
-Möbius lane closure remain later milestones.
+on routes without crossing records are not yet discovered automatically. Tight-curve rejection
+and general collision discovery remain later milestones.
 
 ![LogoSC adjacent knot-cord bundle gallery](images/knot-bundle-gallery.png)
 
@@ -1717,6 +1730,11 @@ individual lanes and carry no manufacturing or topology semantics. Choose
 `KnotExample = "BundleGallery"` to open the scene in the Customizer.
 
 Choose `KnotExample = "BraidBundleGallery"` for the crossing-aware composition gallery.
+
+![LogoSC twisted knot-cord bundles](images/knot-twisted-bundle-gallery.png)
+
+Choose `KnotExample = "TwistGallery"` to compare untwisted, half-twist, and full-twist
+three-cord bundles. Component colors make the half-twist closure change visible.
 
 ### 7.13 OpenSCAD wrapper pattern
 

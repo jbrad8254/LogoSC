@@ -334,6 +334,32 @@ $braidedBundleGalleryPath = Join-Path `
 The scene uses the actual crossing remapper and capsule renderer. Each master crossing expands
 to all cord-lane pairs and must pass the configured clearance check before geometry is emitted.
 
+### Render the twisted cord-bundle gallery
+
+The twist gallery compares an untwisted bundle with one-half-turn and full-turn closures:
+
+![LogoSC twisted cord bundles](images/knot-twisted-bundle-gallery.png)
+
+```powershell
+$twistGalleryPath = Join-Path `
+    (Get-Location) `
+    'images\knot-twisted-bundle-gallery.png'
+
+& $openScadCli `
+    -D 'KnotExample=\"TwistGallery\"' `
+    -D 'KnotView=\"Planar\"' `
+    --imgsize '1400,760' `
+    --viewall `
+    --autocenter `
+    --projection o `
+    -o $twistGalleryPath `
+    'LogoSC-Knots-Examples.scad'
+```
+
+The half-twist example traces the lane-reversal permutation into closed output components.
+Colors identify those complete traced components rather than the apparent lane at one point on
+the master route.
+
 ### Render the Celtic tile-grid gallery
 
 The Celtic gallery traces three explicit tile grids into closed alternating knot records:

@@ -197,12 +197,14 @@ Otherwise it returns `gcd(p,q)` independently closed components. Open
 `RenderKnotCords()` converts every sampled strand into printable sphere-hulled capsules.
 The caller chooses cord radius, sphere resolution, and sampling density.
 `RenderKnotDebug()` remains the preview-only diagnostic view. The implemented bundle stage uses
-stable transported lateral frames to create symmetric untwisted lanes. Supply either
+stable transported lateral frames to create symmetric lanes. Supply either
 `cordRadius` or `bundleWidth`; a supplied width fits the largest equal radius that preserves
 `cordGap`. Recorded braid crossings expand to every bundle lane pair, inherit the master
-over/under lift, and are checked against `2*cordRadius + minimumClearance`. Explicit bundle
-twist and image import remain deferred. Planar debug mode projects the original 3D samples onto
-`z = 0`; Spatial mode preserves their torus height.
+over/under lift, and are checked against `2*cordRadius + minimumClearance`. Set
+`twistHalfTurns` to an integer for controlled bundle twist. Odd counts create a Möbius-like
+lane reversal whose permutation cycles are traced into closed cord components; even counts
+return every lane to itself. Image import remains deferred. Planar debug mode projects the
+original 3D samples onto `z = 0`; Spatial mode preserves their torus height.
 
 `KnotView` applies consistently to Debug, Cord, Bundle, `CordGallery`, and `BundleGallery`
 output. Planar projects a copy of the master samples before cord rendering or bundle expansion;
@@ -226,6 +228,12 @@ components without changing their geometry.
 
 Choose `BundleGallery` to compare two-, three-, and four-cord trefoil bundles. Colors identify
 lanes for presentation only; the manufacturing renderer emits ordinary geometry.
+
+![LogoSC twisted cord bundle gallery](images/knot-twisted-bundle-gallery.png)
+
+Choose `TwistGallery` to compare untwisted, half-twist, and full-twist three-cord bundles.
+Because twist rotates the bundle frame out of the master route's plane, the twist gallery keeps
+a spatial presentation even when the master route is projected with `KnotView = "Planar"`.
 
 ### Generate a circular braid closure
 

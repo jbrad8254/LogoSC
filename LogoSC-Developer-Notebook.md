@@ -86,6 +86,7 @@
 - [2026.4 release preparation](#2026-07-27--20264-feature-release-preparation)
 - [2026.5 release preparation](#2026-07-29--20265-affine-and-knot-release-preparation)
 - [2026.5 publication and next checkpoint](#2026-07-29--20265-publication-and-next-development-checkpoint)
+- [Twisted bundle closure](#2026-07-29--twisted-bundle-closure-and-component-tracing)
 - [Journal-entry template](#yyyy-mm-dd--topic)
 
 ## Quick Links
@@ -306,9 +307,9 @@ Known open design issues:
   or spatial index.
 - README already includes a verified debug-overlay screenshot. Add another manual screenshot
   only if it teaches something the existing image does not.
-- Prototype the upward-compatible LogoSC Starter package as the next focused milestone. Treat it
-  as a curated teaching and distribution subset of the canonical implementation, not a new
-  dialect or independently evolving interpreter.
+- Continue finishing the optional knot companion before beginning the deferred Starter package.
+  Controlled bundle twist and Möbius-like closure are complete; tight-curve rejection, general
+  collision discovery, and finished-plaque options remain candidates for the next focused step.
 
 ---
 
@@ -3376,3 +3377,33 @@ Verification boundary:
   `aa56e1057acbaf92f768b2363116d368693d7e3c`.
 - Preserve the complete Core as the implementation authority and require every Starter example
   to run unchanged against it.
+
+### 2026-07-29 — Twisted bundle closure and component tracing
+
+Context:
+
+- The first bundle milestone used stable parallel-transported offsets but kept every lane
+  untwisted and independently closed.
+- A half-turn around a closed master route reverses the lane order. Naively repeating the first
+  sample would therefore weld different lane endpoints and misrepresent the component topology.
+- The shared strand record already reserved a lane-closure permutation for this later work.
+
+Decision:
+
+- Add integer `twistHalfTurns` to `MakeKnotBundle()` and `RenderKnotCordBundle()`, preserving
+  zero as the backward-compatible default.
+- Rotate the closure-corrected transported lateral around the local tangent by the requested
+  twist over each master circuit.
+- Use the identity lane permutation for even half-turn counts and lane reversal for odd counts.
+- Trace permutation cycles into actual closed cord components. A paired reversal cycle travels
+  around the master twice; an odd bundle's center lane remains a one-circuit component.
+- Remap explicit crossing strand indexes and normalized parameters into the traced components.
+- Require twisted master strands to be closed. Tight-curve rejection and general collision
+  discovery remain separate later work.
+
+Verification:
+
+- Add four deterministic results for twist permutations, half-twist component cycles, full-twist
+  individual closure, and crossing remapping, bringing the independent knot suite to 85.
+- Add a Customizer half-turn control and a generated untwisted/half-twist/full-twist gallery.
+- Preserve the complete 2026.5 release baseline; this work remains under `Unreleased`.
