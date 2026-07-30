@@ -87,6 +87,7 @@
 - [2026.5 release preparation](#2026-07-29--20265-affine-and-knot-release-preparation)
 - [2026.5 publication and next checkpoint](#2026-07-29--20265-publication-and-next-development-checkpoint)
 - [Twisted bundle closure](#2026-07-29--twisted-bundle-closure-and-component-tracing)
+- [Knot Customizer scope cleanup](#2026-07-30--knot-customizer-control-scope-cleanup)
 - [Journal-entry template](#yyyy-mm-dd--topic)
 
 ## Quick Links
@@ -3407,3 +3408,27 @@ Verification:
   individual closure, and crossing remapping, bringing the independent knot suite to 85.
 - Add a Customizer half-turn control and a generated untwisted/half-twist/full-twist gallery.
 - Preserve the complete 2026.5 release baseline; this work remains under `Unreleased`.
+
+### 2026-07-30 — Knot Customizer control-scope cleanup
+
+Context:
+
+- `KnotExample`, `KnotView`, and `KnotOutput` appeared together under one Customizer heading even
+  though gallery scenes choose their own renderer and several planar galleries intentionally
+  ignore the view selector.
+- The controls therefore looked universally composable. Selecting `PlaqueGallery`, for example,
+  made the unchanged `KnotView` and `KnotOutput` controls appear broken.
+- Individual Ribbon, Relief, and Plaque output used `KnotView` even though their LogoSC-backed
+  region renderers require a planar route.
+
+Decision:
+
+- Keep the established selector names and values for command-line and saved-preset
+  compatibility.
+- Reorder individual examples before galleries in the `KnotExample` menu.
+- Split the opening Customizer controls into scope-labeled Scene Selection, Individual Output,
+  Route View, and Gallery Presentation sections.
+- Treat every gallery as a fixed-output presentation scene. Apply `KnotView` only to the
+  cord/topology galleries; keep Ribbon, Relief, and Plaque galleries fixed planar.
+- Automatically project individual Ribbon, Relief, and Plaque output to Planar regardless of
+  the retained `KnotView` value.

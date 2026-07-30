@@ -452,9 +452,11 @@ individual lane closure.
 
 ![LogoSC twisted knot-cord bundle gallery](images/knot-twisted-bundle-gallery.png)
 
-The examples' `KnotView` selector applies to diagnostics, cords, bundles, and both presentation
-galleries. Planar projects a copy of the route before rendering or lane expansion and removes
-the fixed 3D gallery tilt; Spatial preserves the generated height.
+For individual examples, `KnotOutput` selects the renderer. `KnotView` applies to Debug, Cord,
+and Bundle output and to the cord/topology galleries. Ribbon, Relief, and Plaque output is
+always planar. Every gallery has a fixed output type and ignores `KnotOutput`; RibbonGallery,
+ReliefGallery, and PlaqueGallery are also fixed planar scenes and ignore `KnotView`. The
+Customizer separates these controls into scope-labeled sections.
 
 Signed braid words now generate explicit circular closures. The final lane permutation is traced
 into independently closed knot or link components, with localized signed Z bumps and crossing

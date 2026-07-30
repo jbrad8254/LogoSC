@@ -1303,12 +1303,22 @@ exact dependency flow is documented in `LogoSC-Knots-Design.md#how-logosc-is-use
 original height. Projection does not alter the knot record. Torus projections do not yet cut
 underpass gaps because automatic crossing discovery remains a later milestone.
 
-In `LogoSC-Knots-Examples.scad`, the `KnotView` Customizer control applies to diagnostic,
-single-cord, bundle, and all presentation-gallery output, including `CelticGallery`. Planar
-creates a projected copy before rendering or bundle expansion and removes the galleries'
-presentation tilt. Spatial preserves the original samples and uses the tilted 3D presentation.
-Planar cords can touch or fuse at projected crossings; use the flattened result for comparison
-and planar design work, not as an automatic printable-knot guarantee.
+The opening Customizer sections separate scene selection from controls whose scope is narrower:
+
+| `KnotExample` selection | `KnotOutput` | `KnotView` |
+|---|---|---|
+| `Unknot`, `Trefoil`, `HopfLink`, `CelticGrid`, `CrossingRecord` | Selects the individual renderer | Applies to Debug, Cord, and Bundle |
+| `CordGallery`, `BundleGallery`, `TwistGallery`, `BraidGallery`, `BraidBundleGallery`, `CelticGallery` | Ignored; the gallery has fixed cord output | Selects Planar or Spatial presentation |
+| `RibbonGallery`, `ReliefGallery`, `PlaqueGallery` | Ignored; the gallery has a fixed output | Ignored; these are fixed planar scenes |
+
+Individual Ribbon, Relief, and Plaque output also ignores `KnotView` and automatically projects
+the source route to Planar because LogoSC regions are 2D. This lets a user switch from Spatial
+Cord output to Plaque output without first resetting a now-irrelevant view selector.
+
+For Debug, Cord, and Bundle, Planar creates a projected copy before rendering or bundle
+expansion, while Spatial preserves the original samples. Planar cords can touch or fuse at
+projected crossings; use the flattened result for comparison and planar design work, not as an
+automatic printable-knot guarantee.
 
 Run `LogoSC-Knots-Test-Runner.scad` for its independent automated suite, and open
 `LogoSC-Knots-Examples.scad` to select either diagnostic or cord output.

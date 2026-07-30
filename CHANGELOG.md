@@ -12,6 +12,16 @@
   added four deterministic twist and Möbius-like closure results bringing the knot suite to 85,
   and added a Customizer control plus an untwisted/half-twist/full-twist gallery.
 
+### Changed
+
+- Reorganized the knot Customizer's opening controls into Scene Selection, Individual Output,
+  Route View, and Gallery Presentation sections. Gallery scenes now visibly identify
+  `KnotOutput` as irrelevant, while the route-view heading names the outputs and galleries it
+  controls.
+- Individual Ribbon, Relief, and Plaque output now always projects its source route to Planar,
+  because those renderers require 2D regions. This prevents an irrelevant Spatial selection from
+  producing a planarity assertion.
+
 ## [2026.5] - 2026-07-29
 
 This feature release adds complete backward-compatible affine turtle transforms and the first

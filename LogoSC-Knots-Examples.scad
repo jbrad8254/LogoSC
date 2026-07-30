@@ -2,11 +2,21 @@
 
 include <LogoSC-Knots.scad>
 
-/* [Example Selection] */
+/* [Scene Selection] */
 
-KnotExample = "PlaqueGallery"; // [PlaqueGallery,ReliefGallery,RibbonGallery,CelticGallery,TwistGallery,BraidBundleGallery,BraidGallery,BundleGallery,CordGallery,CelticGrid,Unknot,Trefoil,HopfLink,CrossingRecord]
-KnotView = "Planar"; // [Planar, Spatial]
+KnotExample = "PlaqueGallery"; // [Unknot,Trefoil,HopfLink,CelticGrid,CrossingRecord,CordGallery,BundleGallery,TwistGallery,BraidGallery,BraidBundleGallery,CelticGallery,RibbonGallery,ReliefGallery,PlaqueGallery]
+
+/* [Individual Output - ignored by Gallery scenes] */
+
 KnotOutput = "Plaque"; // [Debug, Cord, Bundle, Ribbon, Relief, Plaque]
+
+/* [Route View - Debug Cord Bundle and 3D galleries] */
+
+KnotView = "Planar"; // [Planar, Spatial]
+
+/* [Gallery Presentation] */
+
+KnotGalleryLabels = true;
 
 /* [Print Quality] */
 
@@ -57,10 +67,6 @@ KnotReliefPlateBevelHeight = 0.6; // [0.1:0.1:4]
 KnotReliefUsePreviewColors = true;
 KnotReliefPlateColor = [0.16, 0.22, 0.32]; // [0:0.01:1]
 KnotReliefKnotColor = [0.92, 0.52, 0.10]; // [0:0.01:1]
-
-/* [Gallery Presentation] */
-
-KnotGalleryLabels = true;
 
 function KnotExampleCordFragments() =
     KnotPrintPresetCordFragments(
@@ -176,10 +182,20 @@ function KnotExampleResult(name) =
             KnotExampleSampleCount(120, 12)
         );
 
+function KnotOutputRequiresPlanarRoute(output) =
+    output == "Ribbon"
+    || output == "Relief"
+    || output == "Plaque";
+
 module RenderKnotExample(name)
 {
     knot = KnotExampleResult(name);
-    viewKnot = KnotForView(knot, KnotView);
+    viewKnot = KnotForView(
+        knot,
+        KnotOutputRequiresPlanarRoute(KnotOutput)
+        ? "Planar"
+        : KnotView
+    );
 
     if (KnotOutput == "Plaque")
     {

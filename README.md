@@ -206,11 +206,16 @@ lane reversal whose permutation cycles are traced into closed cord components; e
 return every lane to itself. Image import remains deferred. Planar debug mode projects the
 original 3D samples onto `z = 0`; Spatial mode preserves their torus height.
 
-`KnotView` applies consistently to Debug, Cord, Bundle, `CordGallery`, and `BundleGallery`
-output. Planar projects a copy of the master samples before cord rendering or bundle expansion;
-Spatial retains the original 3D route. A flattened cord view can fuse where the projection
-crosses itself, so Planar manufacturing geometry is a comparison/design view rather than an
-automatic printable-knot guarantee.
+For individual examples, `KnotOutput` selects Debug, Cord, Bundle, Ribbon, Relief, or Plaque.
+`KnotView` controls Debug, Cord, and Bundle plus the cord/topology galleries. Ribbon, Relief,
+and Plaque require planar regions and therefore project the route automatically. Every
+`*Gallery` is a fixed presentation scene and ignores `KnotOutput`; the planar Ribbon, Relief,
+and Plaque galleries also ignore `KnotView`. The opening Customizer section headings state
+these scopes directly.
+
+Planar cord output projects a copy of the master samples before rendering or bundle expansion.
+A flattened cord view can fuse where the projection crosses itself, so Planar manufacturing
+geometry is a comparison/design view rather than an automatic printable-knot guarantee.
 
 The torus, braid, Celtic-grid, and cord paths do not invoke LogoSC evaluation: sampling and
 validation are pure OpenSCAD functions, and native OpenSCAD constructs the 3D capsules. The
