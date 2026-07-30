@@ -2474,6 +2474,45 @@ function KnotReliefPlaqueTotalHeight(
     )
     plateThickness + KnotBasReliefTotalHeight(baseHeight, overpassHeight);
 
+function KnotReliefPlaqueEdgeStyleIsValid(edgeStyle) =
+    edgeStyle == "None" || edgeStyle == "Bevel";
+
+function KnotInsetBounds(bounds, inset) =
+    assert(
+        is_num(inset) && inset >= 0,
+        "Knot plaque bounds inset must be nonnegative."
+    )
+    assert(
+        bounds[1][0] - bounds[0][0] > 2 * inset
+        && bounds[1][1] - bounds[0][1] > 2 * inset,
+        "Knot plaque bounds inset must leave a positive area."
+    )
+    [
+        [bounds[0][0] + inset, bounds[0][1] + inset],
+        [bounds[1][0] - inset, bounds[1][1] - inset]
+    ];
+
+function KnotReliefPlaqueTopBounds(bounds, edgeStyle, bevelWidth) =
+    assert(
+        KnotReliefPlaqueEdgeStyleIsValid(edgeStyle),
+        "Knot relief plaque edge style must be None or Bevel."
+    )
+    edgeStyle == "Bevel"
+    ? KnotInsetBounds(bounds, bevelWidth)
+    : bounds;
+
+function KnotReliefPlaqueTopCornerRadius(
+    cornerRadius,
+    edgeStyle,
+    bevelWidth) =
+    assert(
+        KnotReliefPlaqueEdgeStyleIsValid(edgeStyle),
+        "Knot relief plaque edge style must be None or Bevel."
+    )
+    edgeStyle == "Bevel"
+    ? max(0, cornerRadius - bevelWidth)
+    : cornerRadius;
+
 module RenderKnotRoundedRectangle2D(
     bounds,
     cornerRadius,
@@ -2514,6 +2553,93 @@ module RenderKnotRoundedRectangle2D(
                 width - 2 * cornerRadius,
                 height - 2 * cornerRadius
             ]);
+    }
+}
+
+module RenderKnotReliefPlate(
+    bounds,
+    cornerRadius,
+    plateThickness,
+    edgeStyle = "None",
+    bevelWidth = 1,
+    bevelHeight = 0.6,
+    arcFragments = 8,
+    convexity = 10)
+{
+    assert(
+        is_num(plateThickness) && plateThickness > 0,
+        "Knot relief plaque thickness must be positive."
+    );
+    assert(
+        KnotReliefPlaqueEdgeStyleIsValid(edgeStyle),
+        "Knot relief plaque edge style must be None or Bevel."
+    );
+
+    if (edgeStyle == "None")
+    {
+        linear_extrude(height = plateThickness, convexity = convexity)
+            RenderKnotRoundedRectangle2D(
+                bounds,
+                cornerRadius,
+                arcFragments
+            );
+    }
+    else
+    {
+        assert(
+            is_num(bevelWidth) && bevelWidth > 0,
+            "Knot relief plaque bevel width must be positive."
+        );
+        assert(
+            is_num(bevelHeight)
+            && bevelHeight > 0
+            && bevelHeight <= plateThickness,
+            "Knot relief plaque bevel height must be positive and no greater than plate thickness."
+        );
+
+        topBounds = KnotReliefPlaqueTopBounds(
+            bounds,
+            edgeStyle,
+            bevelWidth
+        );
+        topCornerRadius = KnotReliefPlaqueTopCornerRadius(
+            cornerRadius,
+            edgeStyle,
+            bevelWidth
+        );
+        joinOverlap = min(0.01, bevelHeight / 10);
+
+        union()
+        {
+            hull()
+            {
+                linear_extrude(height = joinOverlap)
+                    RenderKnotRoundedRectangle2D(
+                        bounds,
+                        cornerRadius,
+                        arcFragments
+                    );
+
+                translate([0, 0, bevelHeight - joinOverlap])
+                linear_extrude(height = joinOverlap)
+                    RenderKnotRoundedRectangle2D(
+                        topBounds,
+                        topCornerRadius,
+                        arcFragments
+                    );
+            }
+
+            translate([0, 0, bevelHeight - joinOverlap])
+            linear_extrude(
+                height = plateThickness - bevelHeight + joinOverlap,
+                convexity = convexity
+            )
+                RenderKnotRoundedRectangle2D(
+                    topBounds,
+                    topCornerRadius,
+                    arcFragments
+                );
+        }
     }
 }
 
@@ -2586,7 +2712,10 @@ module RenderKnotBasReliefPlaque(
     convexity = 10,
     planarTolerance = 0.001,
     plateColor = undef,
-    reliefColor = undef)
+    reliefColor = undef,
+    plateEdgeStyle = "None",
+    plateBevelWidth = 1,
+    plateBevelHeight = 0.6)
 {
     plateBounds = KnotReliefPlaqueBounds(
         knot,
@@ -2601,17 +2730,26 @@ module RenderKnotBasReliefPlaque(
     );
     plateOverlap = min(0.01, plateThickness / 10);
 
+    assert(
+        plateEdgeStyle != "Bevel" || plateBevelWidth <= plateMargin,
+        "Knot relief plaque bevel width must not exceed the plate margin."
+    );
+
     union()
     {
         assert(totalHeight > plateThickness);
 
         RenderKnotOptionalColor(plateColor)
-            linear_extrude(height = plateThickness, convexity = convexity)
-                RenderKnotRoundedRectangle2D(
-                    plateBounds,
-                    plateCornerRadius,
-                    arcFragments
-                );
+            RenderKnotReliefPlate(
+                plateBounds,
+                plateCornerRadius,
+                plateThickness,
+                plateEdgeStyle,
+                plateBevelWidth,
+                plateBevelHeight,
+                arcFragments,
+                convexity
+            );
 
         RenderKnotOptionalColor(reliefColor)
             translate([0, 0, plateThickness - plateOverlap])

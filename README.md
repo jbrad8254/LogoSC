@@ -361,21 +361,26 @@ RenderKnotBasReliefPlaque(
     plateThickness = 1.2,
     plateMargin = 3,
     plateCornerRadius = 3,
+    plateEdgeStyle = "Bevel",
+    plateBevelWidth = 1,
+    plateBevelHeight = 0.6,
     baseHeight = 1.2,
     overpassHeight = 1,
     arcFragments = 10
 );
 ```
 
-The margin is measured beyond the outer ribbon edge. The ribbon base overlaps the plate
-internally, joining separate link components into one printable object while preserving the
-requested total height.
+The margin is measured beyond the outer ribbon edge. `plateEdgeStyle = "Bevel"` slopes the
+outside footprint inward across the requested width and height before continuing vertically to
+the top face; `"None"` retains the original straight wall. The bevel width cannot exceed the
+plate margin. The ribbon base overlaps the plate internally, joining separate link components
+into one printable object while preserving the requested footprint, thickness, and total height.
 
 ![LogoSC knot relief plaques](images/knot-relief-plaque-gallery.png)
 
-Choose `PlaqueGallery` for compact, rounded, and 4-by-4 examples, or choose `Plaque` output for
-an individual knot. The Customizer can give the plate and raised knot contrasting preview
-colors; these colors do not alter exported STL geometry.
+Choose `PlaqueGallery` to compare straight and beveled edges on compact and 4-by-4 examples, or
+choose `Plaque` output for an individual knot. The Customizer can give the plate and raised knot
+contrasting preview colors; these colors do not alter exported STL geometry.
 
 ## Current public API
 

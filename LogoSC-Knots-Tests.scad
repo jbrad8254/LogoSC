@@ -951,6 +951,32 @@ function KnotRibbonTestResults() =
             KnotReliefPlaqueTotalHeight(1.4, 1.2, 1),
             3.6
         )
+    ),
+    LogoTestResult(
+        "knot relief plaque bevel preserves outer bounds",
+        let(
+            outerBounds = [[-10, -8], [10, 8]],
+            topBounds = KnotReliefPlaqueTopBounds(
+                outerBounds,
+                "Bevel",
+                1.5
+            )
+        )
+        outerBounds == [[-10, -8], [10, 8]]
+        && topBounds == [[-8.5, -6.5], [8.5, 6.5]]
+        && KnotReliefPlaqueTopBounds(
+            outerBounds,
+            "None",
+            1.5
+        ) == outerBounds
+    ),
+    LogoTestResult(
+        "knot relief plaque bevel adjusts top corner radius",
+        KnotReliefPlaqueEdgeStyleIsValid("None")
+        && KnotReliefPlaqueEdgeStyleIsValid("Bevel")
+        && !KnotReliefPlaqueEdgeStyleIsValid("Round")
+        && KnotReliefPlaqueTopCornerRadius(4, "Bevel", 1.5) == 2.5
+        && KnotReliefPlaqueTopCornerRadius(1, "Bevel", 1.5) == 0
     )
 ];
 

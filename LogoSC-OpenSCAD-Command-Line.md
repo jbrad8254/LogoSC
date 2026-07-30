@@ -427,7 +427,8 @@ $plaqueGalleryPath = Join-Path `
 ```
 
 Use `KnotOutput = "Plaque"` with a Planar individual example for direct STL export. Plate
-thickness, ribbon-edge margin, and corner radius are independently configurable.
+thickness, ribbon-edge margin, corner radius, edge style, bevel width, and bevel height are
+independently configurable.
 
 ## Example 2: export and inspect a debug PNG
 

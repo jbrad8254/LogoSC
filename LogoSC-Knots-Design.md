@@ -703,8 +703,16 @@ extrusion grows by the same amount, preserving the exact external dimension repo
 `KnotReliefPlaqueTotalHeight()`. The backing joins otherwise separate link components into one
 printable object.
 
-This milestone deliberately provides only an axis-aligned rounded rectangle. It does not derive
-a tight contour, add bevels, add hanging holes, or calculate a unified output polygon.
+`RenderKnotReliefPlate()` optionally builds a top-edge bevel by hulling a thin copy of the outer
+rounded rectangle to a second rectangle inset at `plateBevelHeight`, then continuing the inset
+profile vertically to the requested plate thickness. `KnotReliefPlaqueTopBounds()` and
+`KnotReliefPlaqueTopCornerRadius()` expose the deterministic inset. The outer footprint and
+height remain exact, and requiring the bevel width not to exceed the plate margin keeps the
+ribbon on the top face.
+
+This milestone deliberately provides only an axis-aligned rounded rectangle with an optional
+linear top bevel. It does not derive a tight contour, round the bottom edge, add hanging holes,
+or calculate a unified output polygon.
 
 ## Rounded cords
 

@@ -42,12 +42,15 @@ KnotReliefOverpassHeight = 1; // [0.2:0.1:8]
 KnotReliefPlateThickness = 1.2; // [0.2:0.1:8]
 KnotReliefPlateMargin = 3; // [0:0.1:12]
 KnotReliefPlateCornerRadius = 3; // [0:0.1:12]
+KnotReliefPlateEdgeStyle = "Bevel"; // [None, Bevel]
+KnotReliefPlateBevelWidth = 1; // [0.1:0.1:6]
+KnotReliefPlateBevelHeight = 0.6; // [0.1:0.1:4]
 
 /* [Plaque Preview Colors] */
 
 KnotReliefUsePreviewColors = true;
-KnotReliefPlateColor = [0.16, 0.22, 0.32];
-KnotReliefKnotColor = [0.92, 0.52, 0.10];
+KnotReliefPlateColor = [0.16, 0.22, 0.32]; // [0:0.01:1]
+KnotReliefKnotColor = [0.92, 0.52, 0.10]; // [0:0.01:1]
 
 /* [Gallery Presentation] */
 
@@ -132,7 +135,10 @@ module RenderKnotExample(name)
                 : undef,
             reliefColor = KnotReliefUsePreviewColors
                 ? KnotReliefKnotColor
-                : undef
+                : undef,
+            plateEdgeStyle = KnotReliefPlateEdgeStyle,
+            plateBevelWidth = KnotReliefPlateBevelWidth,
+            plateBevelHeight = KnotReliefPlateBevelHeight
         );
     }
     else if (KnotOutput == "Relief")
@@ -654,6 +660,9 @@ module RenderKnotPlaqueGalleryExample(
     rotation,
     plateMargin,
     plateCornerRadius,
+    plateEdgeStyle,
+    plateBevelWidth,
+    plateBevelHeight,
     colorValue)
 {
     grid = KnotCelticExampleGrid(variant);
@@ -686,7 +695,10 @@ module RenderKnotPlaqueGalleryExample(
                 : undef,
             reliefColor = KnotReliefUsePreviewColors
                 ? colorValue
-                : undef
+                : undef,
+            plateEdgeStyle = plateEdgeStyle,
+            plateBevelWidth = plateBevelWidth,
+            plateBevelHeight = plateBevelHeight
         );
 }
 
@@ -704,6 +716,9 @@ module RenderKnotPlaqueGallery()
         [55, 0, -8],
         2,
         1.5,
+        "None",
+        1,
+        0.6,
         [0.08, 0.58, 0.72]
     );
     RenderKnotGalleryLabel("COMPACT", [25, -30, -1], 3.5);
@@ -714,9 +729,12 @@ module RenderKnotPlaqueGallery()
         [55, 0, 7],
         4,
         4,
+        "Bevel",
+        1.2,
+        0.8,
         [0.92, 0.46, 0.08]
     );
-    RenderKnotGalleryLabel("ROUNDED PLAQUE", [85, -30, -1], 3.2);
+    RenderKnotGalleryLabel("BEVELED PLAQUE", [85, -30, -1], 3.2);
 
     RenderKnotPlaqueGalleryExample(
         2,
@@ -724,6 +742,9 @@ module RenderKnotPlaqueGallery()
         [55, 0, -7],
         3,
         3,
+        "Bevel",
+        0.9,
+        0.6,
         [0.48, 0.22, 0.76]
     );
     RenderKnotGalleryLabel("4 x 4 PLAQUE", [145, -30, -1], 3.2);

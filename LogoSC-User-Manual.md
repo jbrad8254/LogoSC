@@ -1482,6 +1482,9 @@ RenderKnotBasReliefPlaque(
     plateThickness = 1.2,
     plateMargin = 3,
     plateCornerRadius = 3,
+    plateEdgeStyle = "Bevel",
+    plateBevelWidth = 1,
+    plateBevelHeight = 0.6,
     baseHeight = 1.2,
     overpassHeight = 1,
     arcFragments = 10
@@ -1495,13 +1498,19 @@ RenderKnotBasReliefPlaque(
 plate without changing that external height. This turns separate knot or link components into
 one printable plaque.
 
+`plateEdgeStyle` accepts `"None"` or `"Bevel"`. A bevel preserves the automatic outer bounds at
+the bottom, slopes inward by `plateBevelWidth` over `plateBevelHeight`, and then continues as a
+vertical wall to the top surface. The corner radius contracts with the inset, and the requested
+plate thickness remains exact. The bevel width must not exceed `plateMargin`, ensuring the top
+surface still extends beyond the visible ribbon.
+
 ![LogoSC knot relief plaques](images/knot-relief-plaque-gallery.png)
 
-Choose `KnotExample = "PlaqueGallery"` for compact, rounded, and larger-grid plaques, or select
-`KnotOutput = "Plaque"` for an individual Planar example. `KnotReliefUsePreviewColors` displays
-the plate and raised knot in independently configurable contrasting colors. This is a preview
-aid only; ordinary STL export remains uncolored geometry. Edge bevels, bundled ribbons, and
-unified polygon export remain later milestones.
+Choose `KnotExample = "PlaqueGallery"` to compare an unbeveled compact plaque with beveled
+standard and larger-grid plaques, or select `KnotOutput = "Plaque"` for an individual Planar
+example. `KnotReliefUsePreviewColors` displays the plate and raised knot in independently
+configurable contrasting colors. This is a preview aid only; ordinary STL export remains
+uncolored geometry. Bundled ribbons and unified polygon export remain later milestones.
 
 #### Circular braid closures
 

@@ -98,6 +98,11 @@
   overlaps the source ribbon, removing curved-junction gaps and visible rounded top caps.
 - Added a focused flat-end contour result, bringing the knot suite to 77, and regenerated the
   ribbon, bas-relief, and relief-plaque galleries.
+- Added optional `"None"` and `"Bevel"` backing-plate edge styles with independently controlled
+  bevel width and height. The top-edge bevel preserves the automatic outer footprint, exact
+  plate thickness, rounded-corner progression, and sufficient top margin around the ribbon.
+- Added two deterministic bevel-bound and corner-radius results, bringing the knot suite to 79,
+  plus Customizer controls and a straight-versus-beveled plaque-gallery comparison.
 - Added `Ribbon` Customizer output and a `RibbonGallery` comparing continuous regions,
   underpass-mask interlace, and a 4-by-4 Celtic ribbon grid.
 - Added a side-by-side User Manual comparison clarifying that braids generate crossing topology

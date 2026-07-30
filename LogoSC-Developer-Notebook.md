@@ -3238,3 +3238,32 @@ Verification boundary:
   bringing the knot suite from 76 to 77.
 - Regenerate the ribbon, bare-relief, and plaque galleries and require complete repository suites
   plus a simple CGAL plaque STL.
+
+### 2026-07-29 — Configurable backing-plate top bevel
+
+Context:
+
+- The automatic plaque had exact dimensions and rounded planar corners but only a vertical outer
+  wall.
+- A softer printable edge should not change the knot relief, silently shrink the advertised
+  footprint, or consume the safety margin beneath the ribbon.
+
+Decision:
+
+- Preserve `"None"` as the original vertical-wall style and add `"Bevel"` as an optional
+  top-edge treatment.
+- Hull the full outer profile at `z = 0` to an inset profile at the bevel height, then extrude
+  that inset profile through the remainder of the plate thickness.
+- Reduce the top corner radius by the bevel width, clamped at zero, so straight edges and rounded
+  corners inset consistently.
+- Require bevel width not to exceed plate margin. Preserve exact outer bounds, plate thickness,
+  and overall plaque height.
+- Append bevel parameters to `RenderKnotBasReliefPlaque()` so established positional calls remain
+  compatible.
+
+Verification boundary:
+
+- Add deterministic results for unchanged outer bounds, inset top bounds, valid edge styles, and
+  adjusted top corner radius, bringing the knot suite from 77 to 79.
+- Update the plaque gallery to compare straight and beveled edges, regenerate its image, and
+  require complete repository suites plus a simple CGAL STL.
