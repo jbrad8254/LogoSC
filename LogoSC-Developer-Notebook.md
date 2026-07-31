@@ -89,6 +89,7 @@
 - [Twisted bundle closure](#2026-07-29--twisted-bundle-closure-and-component-tracing)
 - [Knot Customizer scope cleanup](#2026-07-30--knot-customizer-control-scope-cleanup)
 - [2026.6 release preparation](#2026-07-31--20266-twisted-bundle-release-preparation)
+- [2026.6 publication and next checkpoint](#2026-07-31--20266-publication-and-next-development-checkpoint)
 - [Journal-entry template](#yyyy-mm-dd--topic)
 
 ## Quick Links
@@ -100,7 +101,7 @@
 - [Testing and regression risks](#11-testing-and-regression-risks)
 - [Documentation conventions](#7-documentation-architecture-and-conventions)
 - [Packaging workflow](#8-repository-and-packaging-workflow)
-- [Latest release checkpoint](#2026-07-29--20265-publication-and-next-development-checkpoint)
+- [Latest release checkpoint](#2026-07-31--20266-publication-and-next-development-checkpoint)
 
 ## ChatGPT bootstrap — read this first
 
@@ -187,9 +188,9 @@ for OpenSCAD.
 
 ## 3. Current baseline and milestones
 
-Current prepared milestone:
+Current stable milestone:
 
-- LogoSC release candidate `2026.6`.
+- LogoSC release `2026.6`.
 
 License milestone:
 
@@ -301,7 +302,7 @@ Verified working state:
   convexity queries, expanded deterministic suites, and preliminary transform design notes.
 - Release `2026.5` consolidates implemented affine transforms and the full first knot-companion
   milestone, including printable relief plaques and export-quality presets.
-- Release candidate `2026.6` adds controlled knot-bundle half-turns, closure-permutation cycle
+- Release `2026.6` adds controlled knot-bundle half-turns, closure-permutation cycle
   tracing, crossing remapping through traced components, and clearer knot Customizer scopes.
 
 Known open design issues:
@@ -1093,8 +1094,8 @@ should not become another manual.
 The current public baseline is:
 
 ```text
-Release: 2026.6 candidate
-Status: 2026.6 candidate; 222 Foundation/Validation, 48 fastener, and 85 knot results required
+Release: 2026.6
+Status: published as v2026.6; 222 Foundation/Validation, 48 fastener, and 85 knot results verified
 Purpose: controlled knot-bundle twists and clarified knot Customizer scopes
 ```
 
@@ -3468,3 +3469,31 @@ Verification boundary:
   line, confirming that the new Customizer routing does not emit planarity assertions.
 - Verify `LogoSCVersion == "2026.6"`, documentation consistency, local links, referenced assets,
   code fences, LF endings, `git diff --check`, and the complete release-preparation diff.
+
+### 2026-07-31 — 2026.6 publication and next development checkpoint
+
+Context:
+
+- The maintainer committed and pushed the prepared release as commit
+  `25f6df62d8fc2ba07d622ae8c025c387b76733d8`.
+- GitHub release `v2026.6` is live.
+- Fetching the repository brought the new release tag into the local clone.
+
+Decision:
+
+- Record `v2026.6` as the canonical published tag for release `2026.6`.
+- Keep the Core public API version at `2026.6` until a later feature milestone is deliberately
+  prepared.
+- Keep the changelog's `Unreleased` section empty until the next user-visible change.
+- Return to the upward-compatible LogoSC Starter package as the next focused development
+  checkpoint. Define its supported teaching subset, examples, and conformance criteria against
+  the complete Core before considering a physically reduced library.
+
+Verification:
+
+- Confirm local `main` and `origin/main` both resolve to the release commit and the working tree
+  is clean before post-release documentation edits.
+- Confirm local and remote `refs/tags/v2026.6` resolve exactly to
+  `25f6df62d8fc2ba07d622ae8c025c387b76733d8`.
+- Preserve the complete Core as the implementation authority and require every future Starter
+  example to run unchanged against it.

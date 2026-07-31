@@ -347,6 +347,64 @@ committed, and published on GitHub as `v2026.5`.
 - Define Starter examples and conformance checks before deciding whether a generated reduced
   library file is justified.
 
+## Retrospective: LogoSC 2026.6 Release
+
+### What Happened
+
+LogoSC 2026.6 was a deliberately narrow follow-up to the larger 2026.5 milestone. It completed
+controlled integer half-turns for knot bundles, traced closure-permutation cycles into genuine
+closed components, remapped crossings through those components, and clarified the Customizer
+scope of scene, output, and view controls. The release was tested, documented, committed, pushed,
+and published on GitHub as `v2026.6`.
+
+### What Worked
+
+- Keeping the release boundary focused made the topology change easier to explain and verify.
+- The existing reserved lane-closure permutation supported twisted bundles without changing the
+  established leading record fields.
+- Separate automated suites supplied exact acceptance totals: 222 Foundation/Validation,
+  48 fastener, and 85 knot results.
+- Release-specific CSG smoke exports exercised both the twist gallery and the rule that Ribbon,
+  Relief, and Plaque output is always planar.
+- Preparing the version bump, changelog, public documentation, design status, and notebook
+  checkpoint together prevented the release from preserving known documentation drift.
+
+### What Caused Friction
+
+- The active roadmap and opening knot-design summary still described early knot stages as future
+  work even though the implementation had passed them.
+- The first smoke-export command lost the required string quoting at the PowerShell-to-OpenSCAD
+  boundary. OpenSCAD emitted warnings and an assertion but still returned exit code `0` and
+  created output files.
+- GitHub release metadata could not be queried through the GitHub CLI because it was not
+  installed in the workspace; the tag was verified directly through Git instead.
+
+### Lessons
+
+- A narrow release still needs a complete documentation sweep; roadmap prose can age faster than
+  changelog entries.
+- OpenSCAD process success and artifact existence are insufficient acceptance signals. Console
+  warnings, errors, assertions, and structured test verdicts must also be checked.
+- Command-line smoke tests that pass string Customizer values should preserve literal escaped
+  quotes and reject warning-bearing output.
+- Local and remote tag resolution provides an authoritative publication check even when a
+  GitHub-specific client is unavailable.
+
+### Process Changes
+
+- Add warning- and error-free representative CSG exports to focused geometry-release checks.
+- Treat invalid command-line quoting as a failed smoke run even when OpenSCAD returns zero.
+- Continue updating live roadmap and design-status prose during release preparation.
+- Continue recording the exact release commit and verifying both local and remote tags during
+  post-release housekeeping.
+
+### Follow-Up
+
+- Begin LogoSC Starter with a documented upward-compatible subset, teaching examples, and
+  conformance criteria against the complete Core.
+- Defer a physically reduced Starter library until the subset has demonstrated clear value and
+  can be generated or maintained without creating an independently evolving language fork.
+
 # Template for Future Entries
 
 ## Retrospective: [Milestone or Date]
