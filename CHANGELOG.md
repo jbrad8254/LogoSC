@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+### Added
+
+- Added `"."` as the canonical blank Celtic grid cell. Rectangular string storage can now
+  describe irregular occupied regions, internal holes, diagonal contacts, and disconnected
+  islands. Exposed occupied edges are traced into independent deterministic boundary loops,
+  paired without creating open strands, and covered by three focused results bringing the knot
+  suite to 88.
+- Added `LogoSC-Celtic-Large-Grids.scad` and its guide with selectable 8-, 16-, 24-, and
+  32-cell diamond/ring masks, Topology/Cord/Ribbon output, measured scaling data, and a 37-by-9
+  blank-cell mask spelling CELTIC. Advanced cycle scanning now resumes after the prior visited
+  state, reducing the 24-by-24 diamond calculation from about 94 seconds to about 18 seconds on
+  the development machine.
+
 ## [2026.6] - 2026-07-31
 
 This focused feature release completes controlled knot-bundle twisting and clarifies the knot

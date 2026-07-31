@@ -47,6 +47,8 @@ LogoSC-Nuts-And-Bolts-Test-Runner.scad
 LogoSC-Nuts-And-Bolts-Customizer.md
 LogoSC-Knots.scad
 LogoSC-Knots-Examples.scad
+LogoSC-Celtic-Large-Grids.scad
+LogoSC-Celtic-Large-Grids.md
 LogoSC-Knots-Tests.scad
 LogoSC-Knots-Test-Runner.scad
 LogoSC-Experiments.scad

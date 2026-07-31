@@ -33,15 +33,16 @@ remains responsible for extrusion, hulls, Minkowski operations, booleans, and 3D
   closure tracing;
 - `MakeCircularBraidKnot()`, compiling signed adjacent-lane crossings into standard circular
   closures with permutation-cycle components and explicit crossing topology;
-- `MakeCelticTileGridKnot()`, validating three four-port tiles, closing finite boundaries,
-  tracing components, removing reverse duplicates, and enforcing alternating crossings;
+- `MakeCelticTileGridKnot()`, validating three four-port tiles plus canonical blank cells,
+  closing independent exterior and void boundaries, tracing components, removing reverse
+  duplicates, and enforcing alternating crossings;
 - `KnotRibbonRegions()` and `RenderKnotRibbons2D()`, compiling planar samples into Core region
   capsules with crossing-local masks and restored overpass footprints;
 - `RenderKnotBasRelief()` and `RenderKnotBasReliefPlaque()`, extruding corrected ribbon
   footprints, raising crossing overpasses, and adding optional beveled backing plates;
 - selectable planar-projection and spatial views across diagnostics, cords, bundles, and
   presentation galleries;
-- a dedicated 85-result automated suite plus topology, bundle, twisted-bundle, braid,
+- a dedicated 88-result automated suite plus topology, bundle, twisted-bundle, braid,
   braided-bundle, Celtic tile-grid, ribbon, relief, and plaque presentation galleries.
 
 This slice deliberately does not implement general collision discovery, tight-curve rejection,
@@ -539,15 +540,21 @@ reflected variants. This is the principal traditional Celtic generator.
 ### Implemented explicit-grid boundary
 
 `MakeCelticTileGridKnot()` implements the deterministic topology slice above with the canonical
-tile symbols `"X"`, `">"`, and `"<"`. All are one-character ASCII tokens and four-port tiles,
-so grids can use compact aligned string rows. Interior exits connect to the opposite port of the
-neighboring cell. The original `"NE_SW"` and `"NW_ES"` names and intermediate slash forms remain
-compatibility aliases, but metadata is canonicalized to angle-bracket string rows.
+tile symbols `"X"`, `">"`, and `"<"`, plus `"."` as a canonical blank cell. All are
+one-character ASCII tokens, so grids can use compact aligned string rows. The blank contributes
+no port states and allows the rectangular storage grid to describe irregular occupied regions,
+internal holes, diagonal contacts, and disconnected islands. Interior exits connect to the
+opposite port of an occupied neighboring cell. The original `"NE_SW"` and `"NW_ES"` names and
+intermediate slash forms remain compatibility aliases, but metadata is canonicalized to
+one-character string rows.
 
-A finite rectangle cannot close four-port cells without an edge policy. The MVP enumerates
-perimeter ports clockwise and pairs consecutive ports with sampled exterior curves. The policy
-is recorded in metadata as `"clockwisePairs"`. Future APIs may add explicit user-authored
-boundary pairings, but they must not silently change this established default.
+Any occupied edge facing the exterior or a blank cell becomes exposed. Directed exposed cell
+edges are traced into independent boundary loops with a right-turn rule at diagonal contacts,
+keeping point-touching islands topologically separate. Each loop has even length and pairs
+consecutive ports with sampled curves. Outer boundaries, internal voids, and disconnected
+islands therefore close independently without creating open strands. The policy remains
+recorded in metadata as `"clockwisePairs"`. Future APIs may add explicit user-authored boundary
+pairings, but they must not silently change this established default.
 
 Tracing treats the grid as a permutation of directed port states. Each cycle becomes one closed
 strand; the internally paired reverse states are marked visited so the same physical route is
@@ -556,8 +563,35 @@ Every `"X"` cell creates a crossing record with normalized parameters. Checkerbo
 assigns equal/opposite Z bumps, and the complete result is rejected unless sorted encounters
 alternate cyclically on every component.
 
-This boundary deliberately excludes random filling, substitution systems, LogoSC-backed ribbon
-regions, and underpass masks.
+`LogoSC-Celtic-Large-Grids.scad` provides deliberate 8-, 16-, 24-, and 32-cell scaling examples
+plus a sparse 37-by-9 CELTIC word mask. The tracer resumes its search after the previous
+lowest-numbered visited state rather than rescanning from zero for every component. This
+preserves deterministic results while materially reducing large-grid calculation time. Boundary
+length, separate loops, route components, crossings, sampling, and output geometry still make
+24-by-24 and 32-by-32 grids batch-oriented work. Measured timings and controls are documented in
+`LogoSC-Celtic-Large-Grids.md`.
+
+Development-machine measurements with OpenSCAD 2021.01 and the showcase's minimum route
+sampling were:
+
+| Grid and mask | Calculation only | Low-resolution cord CSG | Cord segments |
+|---|---:|---:|---:|
+| 8-by-8 diamond | about 0.7 s | about 0.6 s | 352 |
+| 16-by-16 diamond | about 3.4 s | about 5.9 s | 1,216 |
+| 24-by-24 diamond | about 17.8 s | about 24.5 s | 2,944 |
+| 32-by-32 diamond | about 49.7 s | about 63.6 s | 4,960 |
+| 16-by-16 ring | about 4.4 s | not separately measured | 1,464 |
+| 24-by-24 ring | about 29.5 s | not separately measured | 3,112 |
+| 32-by-32 ring | about 75.5 s | not separately measured | 5,368 |
+| CELTIC word, 37 by 9 | about 46 s | about 37–52 s for preview PNG | 838 |
+
+These timings are illustrative, not guarantees. Results will vary with processor speed,
+OpenSCAD version, occupied-cell and boundary topology, component and crossing counts, sampling,
+fragment settings, output mode, and whether the run benefits from operating-system file caches.
+Use `Topology` for the quickest iteration on a large mask and measure representative final
+outputs on the target machine.
+
+This boundary deliberately excludes random filling and substitution systems.
 
 ## Generator 4: harmonic and Lissajous curves
 
@@ -987,8 +1021,9 @@ links where supported by the selected generator.
      permutation-cycle closure, tests, and a presentation gallery are complete.
    - Rectangular exterior closure remains deferred.
 4. **Celtic tile grids** — topology implemented
-   - Explicit tiles, rectangular validation, deterministic boundary closure, component tracing,
-     alternating crossings, tests, and a gallery are complete.
+   - Explicit tiles, canonical blank cells, irregular occupied regions, deterministic
+     per-boundary closure, component tracing, alternating crossings, tests, and a gallery are
+     complete.
    - Random filling and explicit boundary maps remain deferred.
 5. **2D ribbon compiler** — implemented
    - Rounded capsule regions, Core rendering, underpass masks, restored overpasses, tests, and a

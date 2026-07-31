@@ -284,14 +284,14 @@ Manual's **Braid versus bundle** comparison for the details.
 
 ### Generate a Celtic tile grid
 
-The first traditional interlace generator compiles an explicit rectangular grid from three
-four-port tiles:
+The first traditional interlace generator compiles an explicit rectangular character grid from
+three four-port tiles and a blank marker:
 
 ```scad
 celtic = MakeCelticTileGridKnot([
-    ">X<",
+    ".X.",
     "X>X",
-    "<X>"
+    ".X."
 ]);
 
 ReportKnotValidation(celtic, strict = true);
@@ -299,15 +299,27 @@ RenderKnotCords(celtic, cordRadius = 0.7);
 ```
 
 `"X"` connects north-to-south and east-to-west with a crossing. `">"` and `"<"` provide the
-two complementary corner pairings. Interior ports connect to the matching neighbor;
-the finite grid closes its perimeter ports in deterministic clockwise pairs. Routes are traced
-into independently closed components, duplicate reverse traces are removed, crossing height is
-assigned by checkerboard parity, and non-alternating results are rejected.
+two complementary corner pairings. `"."` contributes no route and lets the rectangular string
+array describe irregular occupied regions, holes, or separate islands. Interior ports connect
+to matching occupied neighbors. Edges facing the exterior or a blank cell are traced around
+each independent boundary loop and paired deterministically, so blanks do not create open
+strands. Routes are traced into independently closed components, duplicate reverse traces are
+removed, crossing height is assigned by checkerboard parity, and non-alternating results are
+rejected.
 
 ![LogoSC Celtic tile-grid knots](images/knot-celtic-grid-gallery.png)
 
-Choose `CelticGallery` for one-, two-, and larger-grid examples. This stage emits sampled knot
-records and rounded cords.
+Choose `CelticGallery` for multi-component, irregular, and larger-grid examples. This stage
+emits sampled knot records and rounded cords.
+
+For deliberately larger masks, open `LogoSC-Celtic-Large-Grids.scad`. Its selectable 8-by-8,
+16-by-16, 24-by-24, and 32-by-32 scenes demonstrate diamonds and rings, while a 37-by-9 bitmap
+mask spells **CELTIC** with knot geometry:
+
+![CELTIC spelled with blank-cell knot grids](images/knot-celtic-word.png)
+
+The [large-grid guide](LogoSC-Celtic-Large-Grids.md) records measured OpenSCAD 2021.01 timings
+and recommends topology-only output while editing slow masks.
 
 ### Render planar knot ribbons
 
@@ -491,6 +503,8 @@ See `LogoSC-CheatSheet.md` and `LogoSC-User-Manual.md` for the complete command 
 - `LogoSC-Nuts-And-Bolts-Test-Runner.scad` — direct entry point for the fastener test suite.
 - `LogoSC-Knots.scad` — optional knot records, torus/braid generators, cords, and bundles.
 - `LogoSC-Knots-Examples.scad` — knot diagnostics plus cord, bundle, and braid galleries.
+- `LogoSC-Celtic-Large-Grids.scad` — selectable large irregular Celtic masks and CELTIC word.
+- `LogoSC-Celtic-Large-Grids.md` — large-grid usage and measured performance guide.
 - `LogoSC-Knots-Tests.scad` — passive knot record, generator, cord, bundle, and braid tests.
 - `LogoSC-Knots-Test-Runner.scad` — direct entry point for the knot companion suite.
 - `LogoSC-Nuts-And-Bolts-Customizer.md` — detailed fastener parameter and calibration guide.

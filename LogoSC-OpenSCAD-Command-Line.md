@@ -362,7 +362,8 @@ the master route.
 
 ### Render the Celtic tile-grid gallery
 
-The Celtic gallery traces three explicit tile grids into closed alternating knot records:
+The Celtic gallery traces three explicit tile grids, including an irregular occupied region
+marked out with `"."` blank cells, into closed alternating knot records:
 
 ![LogoSC Celtic tile-grid knots](images/knot-celtic-grid-gallery.png)
 

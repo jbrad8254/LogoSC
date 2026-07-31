@@ -41,6 +41,8 @@
 - `LogoSC-LSystems-Notes.md` — design notes for L-system examples.
 - `LogoSC-Knots.scad` — optional topology, cords, bundles, ribbons, and printable relief plaques.
 - `LogoSC-Knots-Examples.scad` — selectable knot diagnostics, outputs, and presentation galleries.
+- `LogoSC-Celtic-Large-Grids.scad` — large irregular Celtic grids and a CELTIC word mask.
+- `LogoSC-Celtic-Large-Grids.md` — large-grid controls, timings, and scaling guidance.
 - `LogoSC-Knots-Tests.scad` — passive knot topology, geometry, plaque, and preset tests.
 - `LogoSC-Knots-Test-Runner.scad` — direct entry point for the independent knot suite.
 - `LogoSC-Knots-Design.md` — design and roadmap for parametric, braid, Celtic, ribbon, and
@@ -467,12 +469,19 @@ established leading record fields.
 
 ![LogoSC crossing-aware braided cord bundles](images/knot-braided-bundle-gallery.png)
 
-Explicit Celtic tile grids use `"X"`, `">"`, and `"<"` four-port cells. Compact string rows
-such as `">X<"` keep authored grids aligned and readable. Interior ports join
-matching neighbors, perimeter ports close in deterministic clockwise pairs, reverse traces are
-removed, and checkerboard crossing height is accepted only when every component alternates.
+Explicit Celtic tile grids use `"X"`, `">"`, and `"<"` four-port cells plus `"."` for a blank
+cell. Compact string rows such as `".X."` keep irregular occupied regions aligned and readable.
+Interior ports join matching occupied neighbors. Exposed edges facing either the exterior or a
+blank cell close in deterministic pairs around each independent boundary loop. Reverse traces
+are removed, and checkerboard crossing height is accepted only when every component alternates.
 
 ![LogoSC Celtic tile-grid knots](images/knot-celtic-grid-gallery.png)
+
+`LogoSC-Celtic-Large-Grids.scad` extends the examples to selectable 8-, 16-, 24-, and 32-cell
+scales and a sparse 37-by-9 mask spelling **CELTIC**. See
+`LogoSC-Celtic-Large-Grids.md` for measured performance and batch-rendering guidance.
+
+![CELTIC spelled with blank-cell knot grids](images/knot-celtic-word.png)
 
 Planar knots can compile into rounded ribbon footprints with crossing-local underpass masks.
 Every footprint and mask is a LogoSC Core region; the overpass is restored after subtracting an

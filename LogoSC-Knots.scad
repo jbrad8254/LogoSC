@@ -970,9 +970,15 @@ function KnotCelticCanonicalTile(tile) =
         ? "<"
         : tile;
 
+function KnotCelticTileIsBlank(tile) =
+    KnotCelticCanonicalTile(tile) == ".";
+
 function KnotCelticTileIsValid(tile) =
     let(canonicalTile = KnotCelticCanonicalTile(tile))
-    canonicalTile == "X" || canonicalTile == ">" || canonicalTile == "<";
+    canonicalTile == "X"
+    || canonicalTile == ">"
+    || canonicalTile == "<"
+    || canonicalTile == ".";
 
 function KnotCelticGridRowIsValid(row) =
     is_string(row) || is_list(row);
@@ -1019,10 +1025,22 @@ function KnotCelticGridTilesAreValid(grid) =
                     row[column]
     ]) == 0;
 
+function KnotCelticGridHasOccupiedTile(grid) =
+    KnotCelticGridTilesAreValid(grid)
+    && len([
+        for (row = grid)
+            for (column = [0 : len(row) - 1])
+                if (!KnotCelticTileIsBlank(row[column]))
+                    row[column]
+    ]) > 0;
+
 function KnotCelticOppositePort(port) = (port + 2) % 4;
 
 function KnotCelticTilePairedPort(tile, port) =
-    assert(KnotCelticTileIsValid(tile), "Unknown Celtic grid tile.")
+    assert(
+        KnotCelticTileIsValid(tile) && !KnotCelticTileIsBlank(tile),
+        "Blank Celtic grid tiles do not pair ports."
+    )
     let(canonicalTile = KnotCelticCanonicalTile(tile))
     canonicalTile == "X"
     ? KnotCelticOppositePort(port)
@@ -1065,6 +1083,25 @@ function KnotCelticPortDelta(port) =
             ? [1, 0]
             : [0, -1];
 
+function KnotCelticGridCellIsOccupied(grid, row, column) =
+    row >= 0
+    && row < len(grid)
+    && column >= 0
+    && column < KnotCelticGridColumnCount(grid)
+    && !KnotCelticTileIsBlank(grid[row][column]);
+
+function KnotCelticStateIsOccupied(grid, state) =
+    KnotCelticGridCellIsOccupied(grid, state[0], state[1]);
+
+function KnotCelticStateIsExposed(grid, state) =
+    let(
+        delta = KnotCelticPortDelta(state[2]),
+        nextRow = state[0] + delta[0],
+        nextColumn = state[1] + delta[1]
+    )
+    KnotCelticStateIsOccupied(grid, state)
+    && !KnotCelticGridCellIsOccupied(grid, nextRow, nextColumn);
+
 function KnotCelticBoundaryStates(rowCount, columnCount) =
     concat(
         [
@@ -1106,18 +1143,236 @@ function KnotCelticBoundaryPartner(state, rowCount, columnCount) =
     assert(!is_undef(boundaryIndex), "Celtic boundary state was not found.")
     boundaryStates[partnerIndex];
 
-function KnotCelticExternalState(state, rowCount, columnCount) =
+function KnotCelticBoundaryEdgeStart(state) =
+    state[2] == KNOT_CELTIC_NORTH
+    ? [state[0], state[1]]
+    : state[2] == KNOT_CELTIC_EAST
+        ? [state[0], state[1] + 1]
+        : state[2] == KNOT_CELTIC_SOUTH
+            ? [state[0] + 1, state[1] + 1]
+            : [state[0] + 1, state[1]];
+
+function KnotCelticBoundaryEdgeEnd(state) =
+    state[2] == KNOT_CELTIC_NORTH
+    ? [state[0], state[1] + 1]
+    : state[2] == KNOT_CELTIC_EAST
+        ? [state[0] + 1, state[1] + 1]
+        : state[2] == KNOT_CELTIC_SOUTH
+            ? [state[0] + 1, state[1]]
+            : [state[0], state[1]];
+
+function KnotCelticVertexEquals(a, b) =
+    a[0] == b[0] && a[1] == b[1];
+
+function KnotCelticExposedStateIds(grid) =
+    let(columnCount = KnotCelticGridColumnCount(grid))
+[
+    for (row = [0 : len(grid) - 1])
+        for (column = [0 : columnCount - 1])
+            if (KnotCelticGridCellIsOccupied(grid, row, column))
+                for (port = [0 : 3])
+                    let(state = [row, column, port])
+                    if (KnotCelticStateIsExposed(grid, state))
+                        KnotCelticStateId(row, column, port, columnCount)
+];
+
+function KnotCelticBoundaryTurnRank(currentPort, candidatePort) =
+    let(turn = (candidatePort - currentPort + 4) % 4)
+    turn == 1
+    ? 0
+    : turn == 0
+        ? 1
+        : turn == 3
+            ? 2
+            : 3;
+
+function KnotCelticBestBoundaryCandidate(
+    grid,
+    currentState,
+    candidateStateIds,
+    index = 1,
+    bestIndex = 0) =
+    index >= len(candidateStateIds)
+    ? candidateStateIds[bestIndex]
+    : let(
+        columnCount = KnotCelticGridColumnCount(grid),
+        candidateState = KnotCelticStateFromId(
+            candidateStateIds[index],
+            columnCount
+        ),
+        bestState = KnotCelticStateFromId(
+            candidateStateIds[bestIndex],
+            columnCount
+        ),
+        candidateRank = KnotCelticBoundaryTurnRank(
+            currentState[2],
+            candidateState[2]
+        ),
+        bestRank = KnotCelticBoundaryTurnRank(
+            currentState[2],
+            bestState[2]
+        )
+    )
+    KnotCelticBestBoundaryCandidate(
+        grid,
+        currentState,
+        candidateStateIds,
+        index + 1,
+        candidateRank < bestRank ? index : bestIndex
+    );
+
+function KnotCelticBoundarySuccessorStateId(
+    grid,
+    stateId,
+    exposedStateIds = undef) =
+    let(
+        columnCount = KnotCelticGridColumnCount(grid),
+        state = KnotCelticStateFromId(stateId, columnCount),
+        edgeEnd = KnotCelticBoundaryEdgeEnd(state),
+        exposed = is_undef(exposedStateIds)
+        ? KnotCelticExposedStateIds(grid)
+        : exposedStateIds,
+        candidates = [
+            for (candidateStateId = exposed)
+                let(
+                    candidateState = KnotCelticStateFromId(
+                        candidateStateId,
+                        columnCount
+                    )
+                )
+                if (KnotCelticVertexEquals(
+                    KnotCelticBoundaryEdgeStart(candidateState),
+                    edgeEnd
+                ))
+                    candidateStateId
+        ]
+    )
+    assert(
+        len(candidates) > 0,
+        "Celtic exposed boundary edge has no successor."
+    )
+    KnotCelticBestBoundaryCandidate(grid, state, candidates);
+
+function KnotCelticTraceBoundaryLoop(
+    grid,
+    startStateId,
+    stateId = undef,
+    path = [],
+    exposedStateIds = undef) =
+    let(
+        currentStateId = is_undef(stateId) ? startStateId : stateId,
+        exposed = is_undef(exposedStateIds)
+        ? KnotCelticExposedStateIds(grid)
+        : exposedStateIds
+    )
+    len(path) > 0 && currentStateId == startStateId
+    ? path
+    : assert(
+        !KnotListContains(path, currentStateId),
+        "Celtic exposed boundary entered a non-closing loop."
+    )
+      KnotCelticTraceBoundaryLoop(
+          grid,
+          startStateId,
+          KnotCelticBoundarySuccessorStateId(
+              grid,
+              currentStateId,
+              exposed
+          ),
+          concat(path, [currentStateId]),
+          exposed
+      );
+
+function KnotCelticFirstUnvisitedValue(values, visited, index = 0) =
+    index >= len(values)
+    ? undef
+    : KnotListContains(visited, values[index])
+        ? KnotCelticFirstUnvisitedValue(values, visited, index + 1)
+        : values[index];
+
+function KnotCelticBoundaryLoops(
+    grid,
+    exposedStateIds = undef,
+    visited = [],
+    loops = []) =
+    let(
+        exposed = is_undef(exposedStateIds)
+        ? KnotCelticExposedStateIds(grid)
+        : exposedStateIds,
+        startStateId = KnotCelticFirstUnvisitedValue(exposed, visited)
+    )
+    is_undef(startStateId)
+    ? loops
+    : let(
+        loop = KnotCelticTraceBoundaryLoop(
+            grid,
+            startStateId,
+            exposedStateIds = exposed
+        )
+    )
+      KnotCelticBoundaryLoops(
+          grid,
+          exposed,
+          concat(visited, loop),
+          concat(loops, [loop])
+      );
+
+function KnotCelticBoundaryLoopContaining(
+    loops,
+    stateId,
+    index = 0) =
+    index >= len(loops)
+    ? undef
+    : KnotListContains(loops[index], stateId)
+        ? loops[index]
+        : KnotCelticBoundaryLoopContaining(loops, stateId, index + 1);
+
+function KnotCelticGridBoundaryPartner(
+    grid,
+    state,
+    boundaryLoops = undef) =
+    let(
+        columnCount = KnotCelticGridColumnCount(grid),
+        stateId = KnotCelticStateId(
+            state[0],
+            state[1],
+            state[2],
+            columnCount
+        ),
+        loops = is_undef(boundaryLoops)
+        ? KnotCelticBoundaryLoops(grid)
+        : boundaryLoops,
+        loop = KnotCelticBoundaryLoopContaining(
+            loops,
+            stateId
+        ),
+        boundaryIndex = KnotCelticStateIndex(
+            [
+                for (loopStateId = loop)
+                    KnotCelticStateFromId(loopStateId, columnCount)
+            ],
+            state
+        ),
+        partnerIndex = boundaryIndex % 2 == 0
+        ? boundaryIndex + 1
+        : boundaryIndex - 1
+    )
+    assert(!is_undef(loop), "Celtic boundary loop was not found.")
+    assert(len(loop) % 2 == 0, "Celtic boundary loop must have even length.")
+    KnotCelticStateFromId(loop[partnerIndex], columnCount);
+
+function KnotCelticExternalState(
+    grid,
+    state,
+    boundaryLoops = undef) =
     let(
         delta = KnotCelticPortDelta(state[2]),
         nextRow = state[0] + delta[0],
         nextColumn = state[1] + delta[1]
     )
-    nextRow >= 0
-    && nextRow < rowCount
-    && nextColumn >= 0
-    && nextColumn < columnCount
+    KnotCelticGridCellIsOccupied(grid, nextRow, nextColumn)
     ? [nextRow, nextColumn, KnotCelticOppositePort(state[2])]
-    : KnotCelticBoundaryPartner(state, rowCount, columnCount);
+    : KnotCelticGridBoundaryPartner(grid, state, boundaryLoops);
 
 function KnotCelticInternalState(grid, state) =
     [
@@ -1126,17 +1381,15 @@ function KnotCelticInternalState(grid, state) =
         KnotCelticTilePairedPort(grid[state[0]][state[1]], state[2])
     ];
 
-function KnotCelticSuccessorStateId(grid, stateId) =
+function KnotCelticSuccessorStateId(
+    grid,
+    stateId,
+    boundaryLoops = undef) =
     let(
-        rowCount = len(grid),
         columnCount = KnotCelticGridColumnCount(grid),
         entryState = KnotCelticStateFromId(stateId, columnCount),
         exitState = KnotCelticInternalState(grid, entryState),
-        nextState = KnotCelticExternalState(
-            exitState,
-            rowCount,
-            columnCount
-        )
+        nextState = KnotCelticExternalState(grid, exitState, boundaryLoops)
     )
     KnotCelticStateId(
         nextState[0],
@@ -1149,8 +1402,14 @@ function KnotCelticTraceCycle(
     grid,
     startStateId,
     stateId = undef,
-    path = []) =
-    let(currentStateId = is_undef(stateId) ? startStateId : stateId)
+    path = [],
+    boundaryLoops = undef) =
+    let(
+        currentStateId = is_undef(stateId) ? startStateId : stateId,
+        loops = is_undef(boundaryLoops)
+        ? KnotCelticBoundaryLoops(grid)
+        : boundaryLoops
+    )
     len(path) > 0 && currentStateId == startStateId
     ? path
     : assert(
@@ -1160,8 +1419,9 @@ function KnotCelticTraceCycle(
       KnotCelticTraceCycle(
           grid,
           startStateId,
-          KnotCelticSuccessorStateId(grid, currentStateId),
-          concat(path, [currentStateId])
+          KnotCelticSuccessorStateId(grid, currentStateId, loops),
+          concat(path, [currentStateId]),
+          loops
       );
 
 function KnotCelticReverseCycleStateIds(grid, cycle) =
@@ -1181,14 +1441,22 @@ function KnotCelticReverseCycleStateIds(grid, cycle) =
 ];
 
 function KnotCelticFirstUnvisitedState(
-    stateCount,
+    grid,
     visited,
     stateId = 0) =
+    let(
+        columnCount = KnotCelticGridColumnCount(grid),
+        stateCount = len(grid) * columnCount * 4
+    )
     stateId >= stateCount
     ? undef
-    : KnotListContains(visited, stateId)
+    : !KnotCelticStateIsOccupied(
+        grid,
+        KnotCelticStateFromId(stateId, columnCount)
+    )
+    || KnotListContains(visited, stateId)
         ? KnotCelticFirstUnvisitedState(
-            stateCount,
+            grid,
             visited,
             stateId + 1
         )
@@ -1197,24 +1465,35 @@ function KnotCelticFirstUnvisitedState(
 function KnotCelticTraceCycles(
     grid,
     visited = [],
-    cycles = []) =
+    cycles = [],
+    boundaryLoops = undef,
+    nextStateId = 0) =
     let(
-        stateCount = len(grid) * KnotCelticGridColumnCount(grid) * 4,
+        loops = is_undef(boundaryLoops)
+        ? KnotCelticBoundaryLoops(grid)
+        : boundaryLoops,
         startStateId = KnotCelticFirstUnvisitedState(
-            stateCount,
-            visited
+            grid,
+            visited,
+            nextStateId
         )
     )
     is_undef(startStateId)
     ? cycles
     : let(
-        cycle = KnotCelticTraceCycle(grid, startStateId),
+        cycle = KnotCelticTraceCycle(
+            grid,
+            startStateId,
+            boundaryLoops = loops
+        ),
         reverseCycle = KnotCelticReverseCycleStateIds(grid, cycle)
     )
     KnotCelticTraceCycles(
         grid,
         concat(visited, cycle, reverseCycle),
-        concat(cycles, [cycle])
+        concat(cycles, [cycle]),
+        loops,
+        startStateId + 1
     );
 
 function KnotCelticPortPoint(state, cellSize) =
@@ -1308,24 +1587,22 @@ function KnotCelticStateHasBoundaryConnector(
         nextRow = exitState[0] + delta[0],
         nextColumn = exitState[1] + delta[1]
     )
-    nextRow < 0
-    || nextRow >= len(grid)
-    || nextColumn < 0
-    || nextColumn >= columnCount;
+    !KnotCelticGridCellIsOccupied(grid, nextRow, nextColumn);
 
 function KnotCelticBoundaryConnectorPoint(
     grid,
     stateId,
     blend,
-    cellSize) =
+    cellSize,
+    boundaryLoops = undef) =
     let(
         columnCount = KnotCelticGridColumnCount(grid),
         entryState = KnotCelticStateFromId(stateId, columnCount),
         exitState = KnotCelticInternalState(grid, entryState),
         nextState = KnotCelticExternalState(
+            grid,
             exitState,
-            len(grid),
-            columnCount
+            boundaryLoops
         ),
         start = KnotCelticPortPoint(exitState, cellSize),
         end = KnotCelticPortPoint(nextState, cellSize),
@@ -1347,6 +1624,7 @@ function KnotCelticCycleSamples(
     crossingHeight) =
     let(
         columnCount = KnotCelticGridColumnCount(grid),
+        boundaryLoops = KnotCelticBoundaryLoops(grid),
         openSamples = [
             for (stateId = cycle)
                 let(state = KnotCelticStateFromId(stateId, columnCount))
@@ -1370,7 +1648,8 @@ function KnotCelticCycleSamples(
                                 grid,
                                 stateId,
                                 sampleIndex / samplesPerBoundary,
-                                cellSize
+                                cellSize,
+                                boundaryLoops
                             )
                     ]
                     : []
@@ -1609,6 +1888,10 @@ function MakeCelticTileGridKnot(
     assert(
         KnotCelticGridTilesAreValid(grid),
         "Celtic grid contains an unknown tile."
+    )
+    assert(
+        KnotCelticGridHasOccupiedTile(grid),
+        "Celtic grid must contain at least one nonblank tile."
     )
     assert(is_num(cellSize) && cellSize > 0, "Celtic cell size must be positive.")
     assert(

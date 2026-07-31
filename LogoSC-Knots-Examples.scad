@@ -95,9 +95,9 @@ function KnotExampleSampleCount(
 function KnotCelticExampleGrid(variant = 0) =
     variant == 1
     ? [
-        "XXX",
-        "XXX",
-        "XXX"
+        ".X.",
+        "X>X",
+        ".X."
     ]
     : variant == 2
         ? [
@@ -682,7 +682,7 @@ module RenderKnotCelticGallery()
         [55, 0, 7],
         [[0.98, 0.58, 0.06]]
     );
-    RenderKnotGalleryLabel("1 COMPONENT", [85, -30, -8], 3.5);
+    RenderKnotGalleryLabel("IRREGULAR GRID", [85, -30, -8], 3.5);
 
     RenderKnotCelticGalleryExample(
         2,

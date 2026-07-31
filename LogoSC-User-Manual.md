@@ -76,6 +76,8 @@ LogoSC-Nuts-And-Bolts-Test-Runner.scad Direct entry point for fastener tests.
 LogoSC-Nuts-And-Bolts-Customizer.md Detailed fastener Customizer guide.
 LogoSC-Knots.scad                  Optional knot records, torus/braid generators, and cords.
 LogoSC-Knots-Examples.scad         Knot diagnostics plus cord, bundle, and braid galleries.
+LogoSC-Celtic-Large-Grids.scad     Large irregular Celtic grids and CELTIC word showcase.
+LogoSC-Celtic-Large-Grids.md       Large-grid controls and measured timing guide.
 LogoSC-Knots-Tests.scad            Passive knot companion tests.
 LogoSC-Knots-Test-Runner.scad      Direct entry point for knot tests.
 LogoSC-Experiments.scad            Experimental rendering and geometry workbench.
@@ -1346,15 +1348,15 @@ the same knot records and capsule renderer used for normal cord output.
 
 #### Celtic tile grids
 
-`MakeCelticTileGridKnot()` compiles an explicit rectangular grid into ordinary sampled knot
-records:
+`MakeCelticTileGridKnot()` compiles an explicit rectangular character grid into ordinary
+sampled knot records. Blank cells allow the occupied region itself to be non-rectangular:
 
 ```scad
 celtic = MakeCelticTileGridKnot(
     [
-        ">X<",
+        ".X.",
         "X>X",
-        "<X>"
+        ".X."
     ],
     cellSize = 12,
     samplesPerTile = 6,
@@ -1366,21 +1368,26 @@ ReportKnotValidation(celtic, strict = true);
 RenderKnotCords(celtic, cordRadius = 0.7);
 ```
 
-Every MVP tile has north, east, south, and west ports:
+Every occupied tile has north, east, south, and west ports:
 
 - `"X"` pairs north with south and east with west, creating one crossing;
 - `">"` pairs north with east and south with west;
 - `"<"` pairs north with west and east with south.
+
+The canonical `"."` marker is a blank cell with no ports or route. It allows aligned rectangular
+string rows to describe irregular occupied regions, internal holes, diagonal contacts, and
+disconnected islands without relying on fragile leading or trailing spaces.
 
 Each token is one ordinary ASCII character, so rows can be authored as aligned strings instead
 of lists of individual tile strings. The older `"NE_SW"` and `"NW_ES"` spellings, plus the
 intermediate slash forms, remain accepted in list-form compatibility input. Generated metadata
 always stores canonical string rows.
 
-Interior exits connect only to the opposite port of the neighboring cell. Because all three
-tiles have four ports, a finite rectangle also needs an explicit edge policy: boundary ports
-are enumerated clockwise and paired consecutively around the outside. The policy is stored as
-`"boundaryClosure", "clockwisePairs"` in knot metadata rather than hidden in rendering.
+Interior exits connect only to the opposite port of an occupied neighboring cell. An edge facing
+the grid exterior or `"."` becomes exposed. The compiler traces exposed edges into independent
+boundary loops for the outside, holes, and disconnected occupied islands, then pairs consecutive
+ports within each loop. This prevents blanks from producing open strands. The policy is stored
+as `"boundaryClosure", "clockwisePairs"` in knot metadata rather than hidden in rendering.
 
 The tracer follows the resulting port permutation until it returns to its starting state. It
 removes the reverse-direction duplicate of every route, emits one exactly closed strand record
@@ -1391,9 +1398,19 @@ asserts unless every component alternates over and under around its complete clo
 ![LogoSC Celtic tile-grid knots](images/knot-celtic-grid-gallery.png)
 
 Colors distinguish complete components only. The left grid closes as two components, the middle
-all-crossing grid closes as one, and the right example shows the same rules on a 4-by-4 grid.
+example demonstrates a non-rectangular occupied region, and the right example shows the same
+rules on a 4-by-4 grid.
 Choose `KnotExample = "CelticGallery"` for the presentation scene or `"CelticGrid"` for the
 focused example.
+
+For larger studies, `LogoSC-Celtic-Large-Grids.scad` provides selectable 8-by-8, 16-by-16,
+24-by-24, and 32-by-32 masks plus a sparse 37-by-9 bitmap spelling **CELTIC**:
+
+![CELTIC spelled with blank-cell knot grids](images/knot-celtic-word.png)
+
+The companion [large-grid guide](LogoSC-Celtic-Large-Grids.md) explains its Topology, Cord, and
+Ribbon outputs and records measured OpenSCAD 2021.01 timings. Use Topology while editing the
+larger masks; 24-by-24 and 32-by-32 examples are intentionally slow.
 
 This MVP deliberately excludes random tile filling and user-selectable boundary pairing.
 

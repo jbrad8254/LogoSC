@@ -90,6 +90,8 @@
 - [Knot Customizer scope cleanup](#2026-07-30--knot-customizer-control-scope-cleanup)
 - [2026.6 release preparation](#2026-07-31--20266-twisted-bundle-release-preparation)
 - [2026.6 publication and next checkpoint](#2026-07-31--20266-publication-and-next-development-checkpoint)
+- [Blank Celtic grid cells](#2026-07-31--blank-celtic-grid-cells-and-irregular-regions)
+- [Large Celtic grids and CELTIC word](#2026-07-31--large-celtic-grid-scaling-and-celtic-word)
 - [Journal-entry template](#yyyy-mm-dd--topic)
 
 ## Quick Links
@@ -3497,3 +3499,73 @@ Verification:
   `25f6df62d8fc2ba07d622ae8c025c387b76733d8`.
 - Preserve the complete Core as the implementation authority and require every future Starter
   example to run unchanged against it.
+
+### 2026-07-31 — Blank Celtic grid cells and irregular regions
+
+Context:
+
+- The explicit Celtic generator accepted only `"X"`, `">"`, and `"<"`, so every position in
+  its rectangular string grid contributed four route ports.
+- Authors could not leave a cell empty to form a non-rectangular occupied region or internal
+  opening. Simply skipping a cell would have left neighboring ports open under the earlier
+  outer-rectangle-only boundary policy.
+- A literal space would align in OpenSCAD's editor but would be vulnerable to trimming and
+  invisible trailing-character changes.
+
+Decision:
+
+- Add `"."` as the canonical visible blank marker. It contributes no port states or route
+  geometry, while the containing rows remain rectangular for deterministic indexing and layout.
+- Treat every occupied edge facing either the grid exterior or a blank cell as exposed.
+- Trace directed exposed edges into independent boundary loops. At diagonal point contacts, use
+  a deterministic right-turn rule so separate occupied islands do not become accidentally
+  connected.
+- Pair consecutive ports within each loop under the established `"clockwisePairs"` policy.
+  Outer boundaries, internal holes, and disconnected islands therefore close independently.
+- Reject an all-blank grid and retain the established alternating-crossing assertion for every
+  generated component.
+
+Verification:
+
+- Preserve all 85 prior knot results and add three focused results for blank vocabulary and
+  structure, independent exterior/hole/island boundary loops, and closed alternating irregular
+  geometry, bringing the knot suite to 88.
+- Exercise a non-rectangular occupied region in the Celtic presentation gallery and regenerate
+  its documentation image from actual geometry.
+- Keep this work under `Unreleased`; published release `2026.6` and tag `v2026.6` remain
+  unchanged.
+
+### 2026-07-31 — Large Celtic grid scaling and CELTIC word
+
+Context:
+
+- The blank-cell feature made larger irregular masks possible, but the normal presentation
+  gallery needed to remain responsive.
+- Initial calculation-only measurements for a diamond mask were about 0.5 seconds at 8-by-8,
+  11 seconds at 16-by-16, and 94 seconds at 24-by-24; 32-by-32 exceeded the initial two-minute
+  command limit.
+- Repeated cycle discovery restarted its state scan at zero even though all earlier states were
+  already visited or blank.
+
+Decision:
+
+- Resume cycle discovery immediately after the prior lowest-numbered visited start state. This
+  preserves deterministic route order while avoiding repeated prefix scans.
+- Add `LogoSC-Celtic-Large-Grids.scad` as a separate selectable showcase rather than burdening
+  `LogoSC-Knots-Examples.scad` with slow default scenes.
+- Provide `Diamond8`, `Ring16`, `Diamond24`, `Ring32`, and `CELTIC` scenes with Topology, Cord,
+  and Ribbon output choices. Use minimum accepted route sampling by default.
+- Build CELTIC from visible 5-by-7 bitmap glyphs in a 37-by-9 dot mask, then let the ordinary
+  tile compiler derive its components and crossings.
+- Document measured timings in `LogoSC-Celtic-Large-Grids.md` and treat 24-by-24 and 32-by-32
+  scenes as deliberate batch-oriented stress examples.
+
+Verification:
+
+- After the scan optimization, measured diamond calculation times were about 0.7 seconds at
+  8-by-8, 3.4 seconds at 16-by-16, 17.8 seconds at 24-by-24, and 49.7 seconds at 32-by-32.
+- Ring masks through 32-by-32 and the CELTIC word all produced structurally valid, cyclically
+  alternating results without warnings.
+- The CELTIC word produced 48 closed components, 29 crossings, and 838 cord segments. Its
+  top-down documentation image was generated from the actual production showcase and visually
+  verified.

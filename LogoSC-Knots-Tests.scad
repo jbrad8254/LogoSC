@@ -747,6 +747,29 @@ function KnotCelticTestResults() =
         ],
         cycles = KnotCelticTraceCycles(grid),
         celtic = MakeCelticTileGridKnot(grid, 12, 6, 4, 4),
+        irregularGrid = [
+            ".X.",
+            "X>X",
+            ".X."
+        ],
+        irregular = MakeCelticTileGridKnot(
+            irregularGrid,
+            10,
+            6,
+            4,
+            4
+        ),
+        holeGrid = [
+            ">X<",
+            "X.X",
+            "<X>"
+        ],
+        hole = MakeCelticTileGridKnot(holeGrid, 10, 6, 4, 4),
+        holeBoundaryLoops = KnotCelticBoundaryLoops(holeGrid),
+        diagonalBoundaryLoops = KnotCelticBoundaryLoops([
+            ">.",
+            ".>"
+        ]),
         strands = KnotStrands(celtic),
         crossings = KnotCrossings(celtic),
         firstCrossing = crossings[0],
@@ -760,11 +783,14 @@ function KnotCelticTestResults() =
         KnotCelticTileIsValid("X")
         && KnotCelticTileIsValid(">")
         && KnotCelticTileIsValid("<")
+        && KnotCelticTileIsValid(".")
+        && KnotCelticTileIsBlank(".")
         && KnotCelticTileIsValid("/")
         && KnotCelticTileIsValid("//")
         && KnotCelticTileIsValid("NE_SW")
         && KnotCelticTileIsValid("NW_ES")
         && KnotCelticTileIsValid("\\")
+        && !KnotCelticTileIsValid(" ")
         && !KnotCelticTileIsValid("UNKNOWN")
         && KnotCelticTilePairedPort("X", KNOT_CELTIC_NORTH)
             == KNOT_CELTIC_SOUTH
@@ -777,6 +803,7 @@ function KnotCelticTestResults() =
         && KnotCelticCanonicalTile("NW_ES") == "<"
         && KnotCelticCanonicalTile("\\") == "<"
         && KnotCelticCanonicalTile("//") == "<"
+        && KnotCelticCanonicalTile(".") == "."
     ),
     LogoTestResult(
         "Celtic grid structure validation",
@@ -791,6 +818,9 @@ function KnotCelticTestResults() =
             "XX"
         ])
         && !KnotCelticGridTilesAreValid(["BAD"])
+        && KnotCelticGridTilesAreValid([".X.", "..."])
+        && KnotCelticGridHasOccupiedTile([".X.", "..."])
+        && !KnotCelticGridHasOccupiedTile(["...", "..."])
     ),
     LogoTestResult(
         "Celtic boundary enumeration and pairing",
@@ -805,6 +835,16 @@ function KnotCelticTestResults() =
             3,
             3
         ) == [0, 2, KNOT_CELTIC_EAST]
+    ),
+    LogoTestResult(
+        "Celtic blank tiles form independent boundary loops",
+        len(KnotCelticExposedStateIds(holeGrid)) == 16
+        && len(holeBoundaryLoops) == 2
+        && len(holeBoundaryLoops[0]) == 12
+        && len(holeBoundaryLoops[1]) == 4
+        && len(diagonalBoundaryLoops) == 2
+        && len(diagonalBoundaryLoops[0]) == 4
+        && len(diagonalBoundaryLoops[1]) == 4
     ),
     LogoTestResult(
         "Celtic route tracing removes reverse duplicates",
@@ -841,6 +881,23 @@ function KnotCelticTestResults() =
             ]
         )
         && KnotValidationIsValid(ValidateKnot(celtic))
+    ),
+    LogoTestResult(
+        "Celtic irregular occupied region closes and validates",
+        len(KnotStrands(irregular)) == 1
+        && len(KnotCrossings(irregular)) == 4
+        && KnotCordSegmentCount(irregular) == 84
+        && KnotValidationIsValid(ValidateKnot(irregular))
+        && KnotCelticKnotIsAlternating(irregular)
+        && KnotMetadata(irregular)[7] == irregularGrid
+    ),
+    LogoTestResult(
+        "Celtic internal blank region closes and validates",
+        len(KnotStrands(hole)) == 1
+        && len(KnotCrossings(hole)) == 4
+        && KnotCordSegmentCount(hole) == 128
+        && KnotValidationIsValid(ValidateKnot(hole))
+        && KnotCelticKnotIsAlternating(hole)
     ),
     LogoTestResult(
         "Celtic crossing records and height",
