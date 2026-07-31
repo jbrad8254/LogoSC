@@ -449,7 +449,7 @@ LogoRegionIsConvex(region, tolerance = 0.001, strict = false);
 LogoRegionsAreIndividuallyConvex(regions, tolerance = 0.001, strict = false);
 ```
 
-The current public API version is `2026.5`.
+The current public API version is `2026.6`.
 
 ## Command examples
 
@@ -536,6 +536,7 @@ Core's filled-region contract.
 
 | Version | Highlights |
 | --- | --- |
+| 2026.6 | Controlled knot-bundle twists, closure-component tracing, and clearer knot Customizer scopes |
 | 2026.5 | Affine turtle transforms plus the optional knot, cord, bundle, ribbon, and relief-plaque companion |
 | 2026.4 | Topology/hole validation, convexity queries, expanded tests, and transform design notes |
 | 2026.3 | Printable fastener application plus duplicate-point, tiny-edge, and proper self-intersection validation |

@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [2026.6] - 2026-07-31
+
+This focused feature release completes controlled knot-bundle twisting and clarifies the knot
+Customizer's control scopes. The Core public API version advances to `2026.6`; Core geometry
+and all established public APIs remain backward compatible.
+
 ### Added
 
 - Added controlled integer half-turns to `MakeKnotBundle()` and

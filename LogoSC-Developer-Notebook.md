@@ -88,6 +88,7 @@
 - [2026.5 publication and next checkpoint](#2026-07-29--20265-publication-and-next-development-checkpoint)
 - [Twisted bundle closure](#2026-07-29--twisted-bundle-closure-and-component-tracing)
 - [Knot Customizer scope cleanup](#2026-07-30--knot-customizer-control-scope-cleanup)
+- [2026.6 release preparation](#2026-07-31--20266-twisted-bundle-release-preparation)
 - [Journal-entry template](#yyyy-mm-dd--topic)
 
 ## Quick Links
@@ -186,9 +187,9 @@ for OpenSCAD.
 
 ## 3. Current baseline and milestones
 
-Current stable milestone:
+Current prepared milestone:
 
-- LogoSC release `2026.5`.
+- LogoSC release candidate `2026.6`.
 
 License milestone:
 
@@ -197,7 +198,7 @@ License milestone:
   may copy, modify, redistribute, and use it in commercial or closed-source
   projects as long as the copyright/license notice is preserved. README files
   should link to `LICENSE` rather than embedding the full license text.
-- Current source snapshot public API version `2026.5`.
+- Current source snapshot public API version `2026.6`.
 
 Major implemented features include:
 
@@ -227,13 +228,14 @@ Major implemented features include:
 - Customizable printable fasteners with metric, Unified, and custom sizes; multiple thread,
   head, drive, handedness, and start options; gallery and algorithm outputs; and safety guidance.
 - Optional knot topology, cords, bundles, Celtic grids, LogoSC-backed ribbons, bas-relief,
-  beveled plaques, and coordinated print-quality presets.
+  beveled plaques, coordinated print-quality presets, and controlled half-turn bundle twists
+  with closure-component tracing.
 
 Append new milestones here. Do not rewrite this section as only the latest state.
 
 ---
 
-## Restart Checkpoint — 2026.5 Affine Transforms and Knot Companion Stable
+## Restart Checkpoint — 2026.6 Twisted Knot Bundles Prepared
 
 Current project state is suitable for a fresh chat/restart from the local Git repository or
 a repository ZIP.
@@ -299,6 +301,8 @@ Verified working state:
   convexity queries, expanded deterministic suites, and preliminary transform design notes.
 - Release `2026.5` consolidates implemented affine transforms and the full first knot-companion
   milestone, including printable relief plaques and export-quality presets.
+- Release candidate `2026.6` adds controlled knot-bundle half-turns, closure-permutation cycle
+  tracing, crossing remapping through traced components, and clearer knot Customizer scopes.
 
 Known open design issues:
 
@@ -308,9 +312,10 @@ Known open design issues:
   or spatial index.
 - README already includes a verified debug-overlay screenshot. Add another manual screenshot
   only if it teaches something the existing image does not.
-- Continue finishing the optional knot companion before beginning the deferred Starter package.
-  Controlled bundle twist and Möbius-like closure are complete; tight-curve rejection, general
-  collision discovery, and finished-plaque options remain candidates for the next focused step.
+- Begin the upward-compatible LogoSC Starter package checkpoint with package boundaries,
+  teaching examples, and conformance criteria before considering a physically reduced library.
+- Keep tight-curve rejection, general collision discovery, and additional finished-plaque
+  options as later knot-companion candidates rather than expanding the 2026.6 release boundary.
 
 ---
 
@@ -653,10 +658,10 @@ changes, verify links, headings, code examples, and retained accepted content.
 
 Near-term candidates:
 
-- implement the optional knot companion in the staged order recorded in
-  `LogoSC-Knots-Design.md`, beginning with shared strand records and torus-knot cords;
-- make adjacent multi-cord expansion a generator-independent post-topology stage, with shared
-  over/under motion and explicit lane-closing permutations for half-twisted bundles;
+- prototype the upward-compatible LogoSC Starter package, beginning with package boundaries,
+  teaching examples, and conformance criteria against the complete Core;
+- continue optional knot work only as focused later milestones; controlled half-turn bundle
+  twist, shared over/under motion, and explicit lane-closing permutations are complete;
 - keep future AI-assisted figurative-knot import outside Core: AI supplies an inspectable vector
   blueprint, while deterministic companion code synthesizes and validates the actual routes;
 - expand optional validation only when additional topology policies provide clear value;
@@ -1088,9 +1093,9 @@ should not become another manual.
 The current public baseline is:
 
 ```text
-Release: 2026.5
-Status: 222 Foundation/Validation, 48 fastener, and 81 knot results verified
-Purpose: affine turtle transforms and the optional printable-knot companion
+Release: 2026.6 candidate
+Status: 2026.6 candidate; 222 Foundation/Validation, 48 fastener, and 85 knot results required
+Purpose: controlled knot-bundle twists and clarified knot Customizer scopes
 ```
 
 `LogoSC-Experiments.scad` remains a separate lab bench. Keep experimental code there
@@ -3432,3 +3437,34 @@ Decision:
   cord/topology galleries; keep Ribbon, Relief, and Plaque galleries fixed planar.
 - Automatically project individual Ribbon, Relief, and Plaque output to Planar regardless of
   the retained `KnotView` value.
+
+### 2026-07-31 — 2026.6 twisted-bundle release preparation
+
+Context:
+
+- Release `2026.5` established affine Core transforms and the first complete printable-knot
+  companion.
+- The following focused development added controlled integer half-turn bundle twists,
+  closure-permutation cycle tracing, crossing remapping through the traced components, and a
+  generated twist gallery.
+- A separate Customizer cleanup clarified which scene, output, and view selectors affect
+  individual outputs and fixed-output galleries.
+
+Decision:
+
+- Advance `LogoSCVersionMinor` from `5` to `6` without changing established Core APIs.
+- Consolidate the post-2026.5 knot work as release candidate `2026.6`, dated 2026-07-31, and
+  restore an empty `Unreleased` section.
+- Keep the release boundary narrow: do not add tight-curve rejection, general collision
+  discovery, additional plaque finishing, or Starter packaging to this milestone.
+- After 2026.6 is published, return to the upward-compatible LogoSC Starter checkpoint described
+  in `LogoSC-Future-Ideas.md`.
+
+Verification boundary:
+
+- Require 222 Foundation/Validation, 48 fastener, and 85 knot results to pass with exactly one
+  final `LOGOSC_AUTOMATED_TEST_RESULT`, `PASS` record from each independent runner.
+- Smoke-export representative twisted-bundle and planar-only knot output through the command
+  line, confirming that the new Customizer routing does not emit planarity assertions.
+- Verify `LogoSCVersion == "2026.6"`, documentation consistency, local links, referenced assets,
+  code fences, LF endings, `git diff --check`, and the complete release-preparation diff.

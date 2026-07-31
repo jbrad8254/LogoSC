@@ -4,10 +4,10 @@
 
 This is the authoritative design plan for generative knot work in LogoSC. It covers organic or
 Gordian-style parametric knots and traditional Celtic interlace. The torus, circular-braid, and
-explicit Celtic tile-grid generators, single-cord manufacturing, and untwisted adjacent bundle
-slices are implemented. Planar ribbon footprints and underpass masks are also implemented;
-printable bas-relief is implemented from those regions; later milestones remain proposals until
-their APIs are reviewed.
+explicit Celtic tile-grid generators, single-cord manufacturing, and controlled integer
+half-turn bundle twists are implemented. Planar ribbon footprints and underpass masks are also
+implemented; printable beveled bas-relief plaques are implemented from those regions; later
+milestones remain proposals until their APIs are reviewed.
 
 LogoSC remains a 2D filled-region evaluator. A future optional companion may use LogoSC for
 planar routes, ribbon footprints, masks, local transforms, and repeated motifs. Native OpenSCAD
@@ -19,8 +19,8 @@ remains responsible for extrusion, hulls, Minkowski operations, booleans, and 3D
 
 - documented knot, strand, crossing, validation-result, and validation-issue constructors and
   accessors;
-- structural validation for sampled strands, closure, crossings, encounter indexes, and future
-  bundle lane-closure permutations;
+- structural validation for sampled strands, closure, crossings, encounter indexes, and bundle
+  lane-closure permutations;
 - `ReportKnotValidation()` diagnostics and `RenderKnotDebug()` centerline, sample, and crossing
   markers;
 - `MakeTorusKnot()`, producing one component for coprime `p` and `q` or
@@ -28,26 +28,26 @@ remains responsible for extrusion, hulls, Minkowski operations, booleans, and 3D
 - `RenderKnotCords()`, producing manufacturable round cords from sphere-hulled capsules with
   explicit radius and fragment controls;
 - `MakeKnotBundle()` and `RenderKnotCordBundle()`, expanding each master route into stable,
-  symmetric, untwisted adjacent lanes with explicit or width-fitted cord radius, crossing
-  remapping, collective lift, and lane-pair clearance checks;
+  symmetric adjacent lanes with explicit or width-fitted cord radius, crossing remapping,
+  collective lift, lane-pair clearance checks, integer half-turn twist, and permutation-cycle
+  closure tracing;
 - `MakeCircularBraidKnot()`, compiling signed adjacent-lane crossings into standard circular
   closures with permutation-cycle components and explicit crossing topology;
 - `MakeCelticTileGridKnot()`, validating three four-port tiles, closing finite boundaries,
   tracing components, removing reverse duplicates, and enforcing alternating crossings;
 - `KnotRibbonRegions()` and `RenderKnotRibbons2D()`, compiling planar samples into Core region
   capsules with crossing-local masks and restored overpass footprints;
-- `RenderKnotBasRelief()`, extruding the corrected ribbon footprint as a base and raising
-  crossing overpasses by a separately controlled height;
+- `RenderKnotBasRelief()` and `RenderKnotBasReliefPlaque()`, extruding corrected ribbon
+  footprints, raising crossing overpasses, and adding optional beveled backing plates;
 - selectable planar-projection and spatial views across diagnostics, cords, bundles, and
   presentation galleries;
-- a dedicated 74-result automated suite plus topology, bundle, braid, braided-bundle, Celtic
-  tile-grid, and planar-ribbon presentation galleries.
+- a dedicated 85-result automated suite plus topology, bundle, twisted-bundle, braid,
+  braided-bundle, Celtic tile-grid, ribbon, relief, and plaque presentation galleries.
 
-This slice deliberately does not implement relief backing plates, explicit twist, Möbius
-closure, general collision discovery, tight-curve rejection, or AI image import. Callers must
-select dimensions and sampling appropriate for the route. Reserved strand fields and metadata
-allow later milestones to extend the representation without changing its established leading
-fields.
+This slice deliberately does not implement general collision discovery, tight-curve rejection,
+or AI image import. Callers must select dimensions and sampling appropriate for the route.
+Reserved strand fields and metadata allow later milestones to extend the representation without
+changing its established leading fields.
 
 ## How LogoSC is used
 
