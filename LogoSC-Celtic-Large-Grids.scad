@@ -6,7 +6,7 @@ CelticLargeExample = "CELTIC"; // [Diamond8,Ring16,Diamond24,Ring32,CELTIC]
 
 /* [Output] */
 
-CelticLargeOutput = "Cord"; // [Topology,Cord,Ribbon]
+CelticLargeOutput = "Cord"; // [Topology,Cord,Ribbon,Plaque]
 CelticLargeView = "Spatial"; // [Planar,Spatial]
 
 /* [Geometry] */
@@ -18,6 +18,23 @@ CelticLargeCordFragments = 8; // [4:1:32]
 CelticLargeRibbonWidth = 0.9; // [0.2:0.1:4]
 CelticLargeRibbonClearance = 0.3; // [0:0.05:2]
 CelticLargeRibbonFragments = 6; // [2:1:24]
+
+/* [Plaque] */
+
+CelticLargeReliefBaseHeight = 1.2; // [0.2:0.1:8]
+CelticLargeReliefOverpassHeight = 1; // [0.2:0.1:8]
+CelticLargePlateThickness = 1.2; // [0.2:0.1:8]
+CelticLargePlateMargin = 3; // [0:0.1:12]
+CelticLargePlateCornerRadius = 3; // [0:0.1:12]
+CelticLargePlateEdgeStyle = "Bevel"; // [None,Bevel]
+CelticLargePlateBevelWidth = 1; // [0.1:0.1:6]
+CelticLargePlateBevelHeight = 0.6; // [0.1:0.1:4]
+
+/* [Plaque Preview Colors] */
+
+CelticLargeUsePreviewColors = true;
+CelticLargePlateColor = [0.16, 0.22, 0.32]; // [0:0.01:1]
+CelticLargeKnotColor = [0.92, 0.52, 0.10]; // [0:0.01:1]
 
 function CelticLargeTile(row, column) =
     (row + column) % 3 == 0
@@ -138,6 +155,47 @@ function CelticLargeExampleGrid(example) =
         CelticLargeExamplePattern(example)
     );
 
+function CelticLargeTimeEstimate(example, output) =
+    output == "Topology"
+    ? example == "Diamond8"
+        ? "about 1 second"
+        : example == "Ring16"
+            ? "about 5 seconds"
+            : example == "Diamond24"
+                ? "about 20 seconds"
+                : example == "Ring32"
+                    ? "about 75 seconds"
+                    : "about 45 seconds"
+    : output == "Cord"
+        ? example == "Diamond8"
+            ? "about 1 second"
+            : example == "Ring16"
+                ? "roughly 10-20 seconds"
+                : example == "Diamond24"
+                    ? "roughly 25-45 seconds"
+                    : example == "Ring32"
+                        ? "roughly 1-2 minutes"
+                        : "roughly 40-60 seconds"
+        : output == "Ribbon"
+            ? example == "Diamond8"
+                ? "roughly 2-10 seconds"
+                : example == "Ring16"
+                    ? "roughly 15-60 seconds"
+                    : example == "Diamond24"
+                        ? "roughly 1-5 minutes"
+                        : example == "Ring32"
+                            ? "roughly 3-10 minutes"
+                            : "roughly 1-5 minutes"
+            : example == "Diamond8"
+                ? "roughly 1-5 seconds"
+                : example == "Ring16"
+                    ? "roughly 10-30 seconds"
+                    : example == "Diamond24"
+                        ? "roughly 30 seconds to 2 minutes"
+                        : example == "Ring32"
+                            ? "roughly 2-5 minutes"
+                            : "roughly 1-3 minutes";
+
 assert(
     CelticLargeExample == "Diamond8"
     || CelticLargeExample == "Ring16"
@@ -149,12 +207,24 @@ assert(
 assert(
     CelticLargeOutput == "Topology"
     || CelticLargeOutput == "Cord"
-    || CelticLargeOutput == "Ribbon",
-    "Large Celtic output must be Topology, Cord, or Ribbon."
+    || CelticLargeOutput == "Ribbon"
+    || CelticLargeOutput == "Plaque",
+    "Large Celtic output must be Topology, Cord, Ribbon, or Plaque."
 );
 assert(
     CelticLargeView == "Planar" || CelticLargeView == "Spatial",
     "Large Celtic view must be Planar or Spatial."
+);
+
+echo(
+    "LogoSC large Celtic grid: working; this may take time",
+    "scene",
+    CelticLargeExample,
+    "output",
+    CelticLargeOutput,
+    "estimated on the development machine",
+    CelticLargeTimeEstimate(CelticLargeExample, CelticLargeOutput),
+    "actual time may vary"
 );
 
 celticLargeGrid = CelticLargeExampleGrid(CelticLargeExample);
@@ -204,13 +274,36 @@ if (CelticLargeOutput != "Topology")
                 fragments = CelticLargeCordFragments
             );
         }
-        else
+        else if (CelticLargeOutput == "Ribbon")
         {
             RenderKnotRibbons2D(
                 KnotForView(celticLargeKnot, "Planar"),
                 ribbonWidth = CelticLargeRibbonWidth,
                 crossingClearance = CelticLargeRibbonClearance,
                 arcFragments = CelticLargeRibbonFragments
+            );
+        }
+        else
+        {
+            RenderKnotBasReliefPlaque(
+                KnotForView(celticLargeKnot, "Planar"),
+                ribbonWidth = CelticLargeRibbonWidth,
+                crossingClearance = CelticLargeRibbonClearance,
+                plateThickness = CelticLargePlateThickness,
+                plateMargin = CelticLargePlateMargin,
+                plateCornerRadius = CelticLargePlateCornerRadius,
+                baseHeight = CelticLargeReliefBaseHeight,
+                overpassHeight = CelticLargeReliefOverpassHeight,
+                arcFragments = CelticLargeRibbonFragments,
+                plateColor = CelticLargeUsePreviewColors
+                    ? CelticLargePlateColor
+                    : undef,
+                reliefColor = CelticLargeUsePreviewColors
+                    ? CelticLargeKnotColor
+                    : undef,
+                plateEdgeStyle = CelticLargePlateEdgeStyle,
+                plateBevelWidth = CelticLargePlateBevelWidth,
+                plateBevelHeight = CelticLargePlateBevelHeight
             );
         }
     }

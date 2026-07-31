@@ -29,6 +29,16 @@ crossings, and verifies cyclic alternation.
 - `Cord` constructs native sphere-hulled manufacturing cords.
 - `Ribbon` projects the result to a plane and constructs LogoSC-backed ribbon regions. It can be
   considerably slower than `Cord` on large grids because every sampled segment becomes a region.
+- `Plaque` puts the planar ribbon relief on an automatically sized rounded backing plate. Plate
+  thickness, margin, corner radius, optional bevel, relief heights, and preview colors are
+  available in the Customizer. This is normally the slowest output.
+
+The first console message reports `working`, the selected scene and output, and a rough duration
+estimate based on the development-machine measurements below. An 8-by-8 plaque CSG compile took
+about 0.75 seconds; the displayed lower bound is rounded up to one second, and the larger plaque
+ranges are cautious extrapolations rather than exhaustive benchmarks. Actual time can vary
+substantially with the computer, OpenSCAD version, settings, and whether preview, render, or export
+is requested. A full CGAL render or mesh export may substantially exceed the CSG compile estimate.
 
 The shipped examples use four samples per occupied tile and two per boundary connector, which
 are the minimum accepted values. Increase rendering resolution only after the topology is
@@ -61,7 +71,16 @@ Practical guidance:
 - 16-by-16 is workable, but expect a pause after changes.
 - 24-by-24 is a deliberate slow example.
 - 32-by-32 should normally be treated as batch work.
-- Use `Topology` while authoring large masks, then switch to `Cord` or `Ribbon` for final review.
+- Use `Topology` while authoring large masks, then switch to `Cord`, `Ribbon`, or `Plaque` for
+  final review.
+
+## Progress reporting
+
+OpenSCAD does not provide a model-level percentage-complete callback. A model can emit milestone
+messages with `echo()`, but evaluation is demand driven and the later CGAL render/export phase is
+owned by OpenSCAD, so those messages cannot provide a reliable overall percentage. OpenSCAD's
+status bar and console remain the best indicators during render or export. The showcase therefore
+prints an early time estimate rather than a misleading percentage.
 
 ## Command-line timing
 

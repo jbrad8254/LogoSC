@@ -3569,3 +3569,22 @@ Verification:
 - The CELTIC word produced 48 closed components, 29 crossings, and 838 cord segments. Its
   top-down documentation image was generated from the actual production showcase and visually
   verified.
+
+### 2026-07-31 — Large Celtic plaque output and runtime guidance
+
+Context:
+
+- The normal knot demo already supported individual and gallery plaques, but the separate large
+  Celtic showcase stopped at Topology, Cord, and Ribbon output.
+- Large scenes can appear unresponsive during OpenSCAD evaluation, and OpenSCAD exposes no
+  model-level callback for a trustworthy overall completion percentage.
+
+Decision:
+
+- Add `Plaque` output to the large showcase using the established automatically bounded bas-relief
+  renderer, with Customizer controls for plate geometry, bevel, relief heights, and preview colors.
+- Keep `Cord` as the default so opening the file does not immediately request its slowest output.
+- Emit an early scene/output-specific estimate based on measured topology and cord timings. Mark
+  plaque values as cautious extrapolations and state that actual timings may vary.
+- Do not simulate percentage completion with `echo()`: OpenSCAD evaluation is demand driven, and
+  the later CGAL render/export work is outside the model's control.

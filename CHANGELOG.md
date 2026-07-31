@@ -10,10 +10,11 @@
   paired without creating open strands, and covered by three focused results bringing the knot
   suite to 88.
 - Added `LogoSC-Celtic-Large-Grids.scad` and its guide with selectable 8-, 16-, 24-, and
-  32-cell diamond/ring masks, Topology/Cord/Ribbon output, measured scaling data, and a 37-by-9
+  32-cell diamond/ring masks, Topology/Cord/Ribbon/Plaque output, measured scaling data, and a 37-by-9
   blank-cell mask spelling CELTIC. Advanced cycle scanning now resumes after the prior visited
   state, reducing the 24-by-24 diamond calculation from about 94 seconds to about 18 seconds on
-  the development machine.
+  the development machine. The showcase prints an early scene/output-specific duration estimate;
+  plaque geometry and colors are configurable through the Customizer.
 
 ## [2026.6] - 2026-07-31
 
