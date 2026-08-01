@@ -1,0 +1,49 @@
+{
+  "key": "knots-celtic",
+  "name": "LogoSC Knots & Celtic Designs",
+  "archiveSlug": "LogoSC-Knots-Celtic",
+  "readmeSource": "publishing/docs/README-Knots-Celtic.md",
+  "thingiverseDescription": "publishing/descriptions/thingiverse-knots-celtic.md",
+  "thingiverseCover": "publishing/images/thingiverse-knots-celtic-cover.png",
+  "entryPoints": [
+    "LogoSC-Knots-Examples.scad",
+    "LogoSC-Celtic-Large-Grids.scad",
+    "LogoSC-Knots-Test-Runner.scad"
+  ],
+  "verification": [
+    {
+      "name": "knots",
+      "input": "LogoSC-Knots-Test-Runner.scad",
+      "defines": [],
+      "requiredMarker": "\"LOGOSC_AUTOMATED_TEST_RESULT\", \"PASS\""
+    },
+    {
+      "name": "diamond8-plaque",
+      "input": "LogoSC-Celtic-Large-Grids.scad",
+      "defines": [
+        "CelticLargeExample=\\\"Diamond8\\\"",
+        "CelticLargeOutput=\\\"Plaque\\\""
+      ],
+      "requiredMarker": ""
+    }
+  ],
+  "files": [
+    "LogoSC-Foundation-Core.scad",
+    "LogoSC-Foundation-Tests.scad",
+    "LogoSC-Knots.scad",
+    "LogoSC-Knots-Examples.scad",
+    "LogoSC-Knots-Tests.scad",
+    "LogoSC-Knots-Test-Runner.scad",
+    "LogoSC-Celtic-Large-Grids.scad",
+    "LogoSC-Celtic-Large-Grids.md",
+    "LogoSC-Knots-Design.md",
+    "LogoSC-User-Manual.md",
+    "LogoSC-CheatSheet.md",
+    "LogoSC-OpenSCAD-Command-Line.md",
+    "images/knot-references/celtic-animal-ornament.svg",
+    "images/knot-references/celtic-round-dogs.svg",
+    "images/knot-references/README.md",
+    "CHANGELOG.md"
+  ],
+  "renames": {}
+}

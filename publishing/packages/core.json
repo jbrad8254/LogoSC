@@ -1,0 +1,30 @@
+{
+  "key": "core",
+  "name": "LogoSC Core",
+  "archiveSlug": "LogoSC-Core",
+  "readmeSource": "publishing/docs/README-Core.md",
+  "thingiverseDescription": "publishing/descriptions/thingiverse-core.md",
+  "thingiverseCover": "publishing/images/thingiverse-core-cover.png",
+  "entryPoints": [
+    "LogoSC-Core-Examples.scad"
+  ],
+  "verification": [
+    {
+      "name": "core-smoke",
+      "input": "LogoSC-Core-Examples.scad",
+      "defines": [],
+      "requiredMarker": ""
+    }
+  ],
+  "files": [
+    "LogoSC-Foundation-Core.scad",
+    "LogoSC-Core-Examples.scad",
+    "LogoSC-User-Manual.md",
+    "LogoSC-CheatSheet.md",
+    "CHANGELOG.md",
+    "publishing/docs/LogoSC-Core-Guide.md"
+  ],
+  "renames": {
+    "publishing/docs/LogoSC-Core-Guide.md": "LogoSC-Core-Guide.md"
+  }
+}

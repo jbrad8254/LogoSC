@@ -1,0 +1,29 @@
+{
+  "key": "mini",
+  "name": "LogoSC Mini",
+  "archiveSlug": "LogoSC-Mini",
+  "readmeSource": "publishing/docs/README-Mini.md",
+  "thingiverseDescription": "publishing/descriptions/thingiverse-mini.md",
+  "thingiverseCover": "publishing/images/thingiverse-mini-cover.png",
+  "entryPoints": [
+    "LogoSC-Mini-Examples.scad"
+  ],
+  "verification": [
+    {
+      "name": "mini-smoke",
+      "input": "LogoSC-Mini-Examples.scad",
+      "defines": [],
+      "requiredMarker": ""
+    }
+  ],
+  "files": [
+    "LogoSC-Foundation-Core.scad",
+    "LogoSC-Mini-Examples.scad",
+    "publishing/docs/LogoSC-Mini-Guide.md",
+    "publishing/docs/LogoSC-Mini-CheatSheet.md"
+  ],
+  "renames": {
+    "publishing/docs/LogoSC-Mini-Guide.md": "LogoSC-Mini-Guide.md",
+    "publishing/docs/LogoSC-Mini-CheatSheet.md": "LogoSC-Mini-CheatSheet.md"
+  }
+}

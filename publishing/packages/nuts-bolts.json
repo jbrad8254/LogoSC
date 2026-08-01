@@ -1,0 +1,31 @@
+{
+  "key": "nuts-bolts",
+  "name": "LogoSC Nuts & Bolts",
+  "archiveSlug": "LogoSC-Nuts-Bolts",
+  "readmeSource": "publishing/docs/README-Nuts-Bolts.md",
+  "thingiverseDescription": "publishing/descriptions/thingiverse-nuts-bolts.md",
+  "thingiverseCover": "publishing/images/thingiverse-nuts-bolts-cover.png",
+  "entryPoints": [
+    "LogoSC-Nuts-And-Bolts.scad",
+    "LogoSC-Nuts-And-Bolts-Test-Runner.scad"
+  ],
+  "verification": [
+    {
+      "name": "fasteners",
+      "input": "LogoSC-Nuts-And-Bolts-Test-Runner.scad",
+      "defines": [],
+      "requiredMarker": "\"LOGOSC_AUTOMATED_TEST_RESULT\", \"PASS\""
+    }
+  ],
+  "files": [
+    "LogoSC-Foundation-Core.scad",
+    "LogoSC-Foundation-Tests.scad",
+    "LogoSC-Nuts-And-Bolts.scad",
+    "LogoSC-Nuts-And-Bolts-Tests.scad",
+    "LogoSC-Nuts-And-Bolts-Test-Runner.scad",
+    "LogoSC-Nuts-And-Bolts-Customizer.md",
+    "LogoSC-OpenSCAD-Command-Line.md",
+    "CHANGELOG.md"
+  ],
+  "renames": {}
+}

@@ -504,6 +504,8 @@ See `LogoSC-CheatSheet.md` and `LogoSC-User-Manual.md` for the complete command 
 - `LogoSC-Development-Provenance.md` — substantial AI contribution, human direction,
   verification evidence, limitations, and contributor expectations.
 - `LogoSC-Examples.scad` — runnable gallery and example models.
+- `LogoSC-Mini-Examples.scad` — five progressive, standalone Mini teaching examples.
+- `LogoSC-Core-Examples.scad` — standalone Core-only Customizer examples without test dependencies.
 - `LogoSC-Nuts-And-Bolts.scad` — customizable printable fastener and thread-profile model.
 - `LogoSC-Nuts-And-Bolts-Tests.scad` — passive non-rendering fastener calculation tests.
 - `LogoSC-Nuts-And-Bolts-Test-Runner.scad` — direct entry point for the fastener test suite.
@@ -530,6 +532,8 @@ See `LogoSC-CheatSheet.md` and `LogoSC-User-Manual.md` for the complete command 
 - `CHANGELOG.md` — release history.
 - `docs/ai-engineering-kit/` — maintainer-facing Codex/Git quick start plus AI handoff,
   bootstrap, collaboration, engineering-preference, and retrospective documents.
+- `publishing/` — package manifests, tailored documentation, Thingiverse descriptions and covers,
+  and the verified multi-suite ZIP builder.
 
 ## Design philosophy
 

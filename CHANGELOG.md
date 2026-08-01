@@ -4,6 +4,13 @@
 
 ### Added
 
+- Added the first complete multi-suite publishing system under `publishing/`: exact Mini, Core,
+  Developer, Knots & Celtic, and Nuts & Bolts manifests; tailored package documentation; five
+  Thingiverse descriptions and generated covers; portable ZIP creation; source/version records;
+  inventories; dependency and image checks; staged OpenSCAD verification; hashes; and JSON reports.
+- Added standalone `LogoSC-Mini-Examples.scad` and `LogoSC-Core-Examples.scad` so the smaller
+  publications have focused Customizer entry points without accidentally depending on validation
+  or passive test files.
 - Added a concise development-provenance disclosure to the shared Suite Guide and the detailed
   `LogoSC-Development-Provenance.md` for Developer and repository readers. The documents credit
   substantial AI contributions while recording human direction, evidence-based verification,

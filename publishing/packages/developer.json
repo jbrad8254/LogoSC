@@ -1,0 +1,42 @@
+{
+  "key": "developer",
+  "name": "LogoSC Developer",
+  "archiveSlug": "LogoSC-Developer",
+  "readmeSource": "publishing/docs/README-Developer.md",
+  "thingiverseDescription": "publishing/descriptions/thingiverse-developer.md",
+  "thingiverseCover": "publishing/images/thingiverse-developer-cover.png",
+  "entryPoints": [
+    "LogoSC-Examples.scad",
+    "LogoSC-Foundation-Test-Runner.scad"
+  ],
+  "verification": [
+    {
+      "name": "foundation-validation",
+      "input": "LogoSC-Foundation-Test-Runner.scad",
+      "defines": [],
+      "requiredMarker": "\"LOGOSC_AUTOMATED_TEST_RESULT\", \"PASS\""
+    }
+  ],
+  "files": [
+    "LogoSC-Foundation-Core.scad",
+    "LogoSC-Foundation-Validation.scad",
+    "LogoSC-Foundation-Tests.scad",
+    "LogoSC-Foundation-Validation-Tests.scad",
+    "LogoSC-Foundation-Test-Runner.scad",
+    "LogoSC-Examples.scad",
+    "LogoSC-Experiments.scad",
+    "LogoSC-User-Manual.md",
+    "LogoSC-CheatSheet.md",
+    "LogoSC-OpenSCAD-Command-Line.md",
+    "LogoSC-ARC-Implementation.md",
+    "LogoSC-Holes-Implementation.md",
+    "LogoSC-Validation-Implementation.md",
+    "LogoSC-Transforms-Design.md",
+    "LogoSC-LSystems-Notes.md",
+    "LogoSC-Future-Ideas.md",
+    "LogoSC-Development-Provenance.md",
+    "CONTRIBUTING.md",
+    "CHANGELOG.md"
+  ],
+  "renames": {}
+}

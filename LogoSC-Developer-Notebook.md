@@ -94,6 +94,7 @@
 - [Large Celtic grids and CELTIC word](#2026-07-31--large-celtic-grid-scaling-and-celtic-word)
 - [Suite release manual](#2026-07-31--suite-release-manual-and-single-repository-publishing)
 - [Development provenance](#2026-07-31--development-provenance-disclosure)
+- [Generated publication suites](#2026-07-31--generated-publication-suites-and-thingiverse-materials)
 - [Journal-entry template](#yyyy-mm-dd--topic)
 
 ## Quick Links
@@ -3652,3 +3653,38 @@ Decision:
   the complete repository.
 - Judge behavior through inspectable code, tests, exports, documentation, and release records;
   neither AI involvement nor its absence establishes correctness by itself.
+
+### 2026-07-31 — Generated publication suites and Thingiverse materials
+
+Context:
+
+- The accepted release policy still needed executable manifests, audience-specific documents,
+  independent entry points, storefront materials, and a build that could prove each ZIP worked
+  without undeclared repository files.
+- The current working tree contains Unreleased functionality after `v2026.6`, so labeling preview
+  packages as the already published tag would give them false source identity.
+
+Decision:
+
+- Add exact JSON manifests for Mini, Core, Developer, Knots & Celtic Designs, and Nuts & Bolts
+  under `publishing/packages/`.
+- Add focused package READMEs and guides, plus standalone Mini and Core example files that depend
+  only on the unchanged canonical Core runtime.
+- Add short Thingiverse descriptions and one landscape cover per project. Generate the covers from
+  actual LogoSC render references, treat them as promotional illustrations rather than test
+  evidence, and retain actual OpenSCAD renders for engineering claims.
+- Build every package through `publishing/build-packages.ps1`. Stage independently; check includes,
+  Markdown images, entry points, and forbidden workflow files; run package-specific OpenSCAD checks;
+  create forward-slash ZIP entries; and record source identity, inventories, hashes, and reports.
+- Mark dirty or untagged output explicitly as Unreleased. Require a clean tag equal to the Core
+  version for final release naming, and rebuild after committing so metadata identifies the source
+  that actually contains the publishing inputs.
+
+Verification:
+
+- Mini and Core standalone smoke CSG exports passed from their staged packages.
+- Foundation/Validation passed 222 of 222, Knots passed 88 of 88, and Fasteners passed 48 of 48
+  from their respective staged packages.
+- The correctly quoted Diamond8 Plaque CSG smoke passed from the staged knot package.
+- All five ZIPs passed full-stream integrity reads, portable-path checks, required-file and
+  prohibited-file policy checks, and byte-identical Core comparison.

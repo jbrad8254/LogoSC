@@ -70,6 +70,8 @@ LogoSC-Foundation-Tests.scad       Passive regression and visual-test definition
 LogoSC-Foundation-Validation-Tests.scad Passive focused validation tests.
 LogoSC-Foundation-Test-Runner.scad Direct entry point for the complete test suite.
 LogoSC-Examples.scad               Runnable example gallery.
+LogoSC-Mini-Examples.scad          Progressive standalone teaching examples.
+LogoSC-Core-Examples.scad          Core-only Customizer examples without test dependencies.
 LogoSC-Nuts-And-Bolts.scad         Customizable printable fastener model.
 LogoSC-Nuts-And-Bolts-Tests.scad   Passive non-rendering fastener calculation tests.
 LogoSC-Nuts-And-Bolts-Test-Runner.scad Direct entry point for fastener tests.
@@ -89,6 +91,9 @@ LogoSC-CheatSheet.md               Compact command and API reference.
 LogoSC-Developer-Notebook.md       Engineering history, design rationale, workflow,
                                   lessons learned, and ChatGPT restart guide.
 LogoSC-Future-Ideas.md             Longer-term feature concepts and future directions.
+LogoSC-Release-Manual.md           Multi-suite packaging and publication policy.
+LogoSC-Suite-Guide.md              Shared illustrated guide included with every suite.
+LogoSC-Development-Provenance.md   AI contribution, human direction, evidence, and limitations.
 
 LogoSC-ARC-Implementation.md        ARC tessellation design notes.
 LogoSC-Holes-Implementation.md     Region/hole design notes.
@@ -96,6 +101,8 @@ LogoSC-Knots-Design.md             Authoritative knot architecture and staged ro
 LogoSC-LSystems-Notes.md           L-system design and example notes.
 
 images/                            Documentation wordmark, icon, and screenshots.
+publishing/                        Package manifests, tailored docs, storefront assets,
+                                  and verified ZIP builder.
 ```
 
 Contributors should read [CONTRIBUTING.md](CONTRIBUTING.md) before preparing changes.

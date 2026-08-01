@@ -200,6 +200,11 @@ and synchronized GitHub/Thingiverse release process.
 Every suite includes the canonical illustrated `LogoSC-Suite-Guide.md` and its referenced
 LogoSC-produced PNGs. Verify that every image link resolves inside each staged package.
 
+Canonical package manifests, tailored documentation, Thingiverse materials, and build instructions
+live under `publishing/`. Run `publishing/build-packages.ps1` through the command documented in
+`publishing/README.md`. Dirty or untagged archives are explicit preview artifacts; final public
+ZIPs must be rebuilt from the clean release tag matching the Core version.
+
 When an agent or tool edits the user's active Git working tree directly, no transfer ZIP is
 required unless the user requests one. Verify the repository root, `git status`, and `git diff`,
 then leave the changes in that working tree for normal review and commit.

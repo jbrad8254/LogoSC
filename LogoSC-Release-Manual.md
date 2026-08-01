@@ -196,7 +196,7 @@ models, but their generating `.scad` source and parameters must be identifiable.
 
 ## 6. Publishing implementation
 
-Maintain publishing inputs in a dedicated repository area, for example:
+The implemented publishing inputs are:
 
 ```text
 publishing/
@@ -204,20 +204,25 @@ publishing/
     mini.json
     core.json
     developer.json
-    knots.json
-    fasteners.json
+    knots-celtic.json
+    nuts-bolts.json
+  docs/
+    package README, guide, and cheat-sheet sources
   descriptions/
     thingiverse-mini.md
     thingiverse-core.md
     thingiverse-developer.md
-    thingiverse-knots.md
-    thingiverse-fasteners.md
-  shared/
-    suite-guide sections and curated images
+    thingiverse-knots-celtic.md
+    thingiverse-nuts-bolts.md
+  images/
+    five Thingiverse cover images
+  README.md
   build-packages.ps1
 ```
 
-The exact layout may evolve, but retain these responsibilities:
+`publishing/README.md` documents the exact command, preview identity, clean-tag requirement,
+verification behavior, and generated output. The layout may evolve, but retain these
+responsibilities:
 
 - package manifests list exact files, document sections, images, entry points, and required tests;
 - shared metadata supplies version, repository URL, issue URL, license, and publication links;
