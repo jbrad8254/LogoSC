@@ -82,6 +82,12 @@ precedence rule: explicit user instructions and current LogoSC repository guidan
 generic preferences. Do not treat the kit as a substitute for this contributor guide or the
 Developer Notebook.
 
+LogoSC's public account of its human-directed, substantially AI-assisted development is recorded
+in `LogoSC-Development-Provenance.md`. Evaluate contributions by compatibility, evidence,
+documentation, and maintainability regardless of whether AI tools were used. Contributors remain
+responsible for understanding and reviewing submitted work and must not fabricate tests,
+measurements, citations, provenance, or review.
+
 ## Public API Stability
 
 The following APIs should remain stable whenever practical:

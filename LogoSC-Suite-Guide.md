@@ -23,6 +23,7 @@ was built.
 - [LogoSC Knots & Celtic Designs](#logosc-knots--celtic-designs)
 - [LogoSC Nuts & Bolts](#logosc-nuts--bolts)
 - [Installation and compatibility](#installation-and-compatibility)
+- [Development provenance](#development-provenance)
 - [Getting help and reporting bugs](#getting-help-and-reporting-bugs)
 
 ## Choose a suite
@@ -381,6 +382,19 @@ were built together, and every package records its source tag and commit.
 
 The complete user and command-line manuals in the Git repository provide detailed setup,
 Customizer, testing, export, and platform guidance.
+
+## Development provenance
+
+LogoSC was developed primarily through a long-running, human-directed collaboration between its
+maintainer and OpenAI AI coding assistants. AI assistance contributed substantially to design
+exploration, implementation, documentation, testing, and review.
+
+Project direction, design acceptance, release decisions, and ongoing stewardship remain under
+human control. Published behavior is supported by the repository's tests and verification records
+rather than by claims about who or what wrote a particular line.
+
+The Developer suite includes a fuller development-provenance statement. The authoritative Git
+repository preserves the complete engineering history and AI-assisted workflow.
 
 ## Getting help and reporting bugs
 

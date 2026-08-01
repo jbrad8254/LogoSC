@@ -501,6 +501,8 @@ See `LogoSC-CheatSheet.md` and `LogoSC-User-Manual.md` for the complete command 
   synchronized GitHub/Thingiverse publication policy.
 - `LogoSC-Suite-Guide.md` — illustrated public guide to Mini, Core, Developer, Knots & Celtic,
   Nuts & Bolts, installation, compatibility, and the shared source repository.
+- `LogoSC-Development-Provenance.md` — substantial AI contribution, human direction,
+  verification evidence, limitations, and contributor expectations.
 - `LogoSC-Examples.scad` — runnable gallery and example models.
 - `LogoSC-Nuts-And-Bolts.scad` — customizable printable fastener and thread-profile model.
 - `LogoSC-Nuts-And-Bolts-Tests.scad` — passive non-rendering fastener calculation tests.

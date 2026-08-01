@@ -102,6 +102,9 @@ Developer is public engineering material, not an AI-session archive. Exclude:
   repository its appropriate home.
 
 The package README links to the repository when a developer needs complete design history.
+Include `LogoSC-Development-Provenance.md` so Developer users receive a clear account of the
+substantial AI contribution, human direction, verification basis, limitations, and contribution
+expectations without packaging the internal AI workflow kit.
 
 ### 3.4 LogoSC Knots & Celtic Designs
 
@@ -151,13 +154,19 @@ describe:
 - installation and version compatibility;
 - illustrated Mini, Core, validation/developer, knot/Celtic, and fastener capabilities;
 - the relationship between the independent suites and the complete repository;
-- the canonical Git repository and issue-reporting location; and
+- the canonical Git repository and issue-reporting location;
+- a concise disclosure of the project's human-directed AI-assisted development; and
 - license and release identification.
 
 Every package includes the same generated guide and the same small, curated set of compressed
 suite images. It must not reference a local image that the package omits. Storefront descriptions
 may be shorter and more promotional, but should derive shared facts and links from the same
 publishing metadata.
+
+Use proportionate disclosure rather than hiding AI involvement or turning it into the main product
+description. Every suite and storefront receives the concise Suite Guide statement. Developer
+also receives `LogoSC-Development-Provenance.md`. The complete repository alone retains the AI
+Engineering Kit, agent instructions, handoffs, and complete workflow history.
 
 ### 4.2 Canonical and generated documents
 

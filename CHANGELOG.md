@@ -4,6 +4,10 @@
 
 ### Added
 
+- Added a concise development-provenance disclosure to the shared Suite Guide and the detailed
+  `LogoSC-Development-Provenance.md` for Developer and repository readers. The documents credit
+  substantial AI contributions while recording human direction, evidence-based verification,
+  limitations, contribution expectations, and the repository as the complete historical record.
 - Added `LogoSC-Release-Manual.md` to define one authoritative development and bug-fix
   repository, synchronized Mini/Core/Developer/Knots/Fasteners publications, a shared illustrated
   Suite Guide, package-specific documentation boundaries, independent staged verification, and

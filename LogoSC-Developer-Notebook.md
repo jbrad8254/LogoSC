@@ -93,6 +93,7 @@
 - [Blank Celtic grid cells](#2026-07-31--blank-celtic-grid-cells-and-irregular-regions)
 - [Large Celtic grids and CELTIC word](#2026-07-31--large-celtic-grid-scaling-and-celtic-word)
 - [Suite release manual](#2026-07-31--suite-release-manual-and-single-repository-publishing)
+- [Development provenance](#2026-07-31--development-provenance-disclosure)
 - [Journal-entry template](#yyyy-mm-dd--topic)
 
 ## Quick Links
@@ -1075,6 +1076,8 @@ Current docs are split by purpose:
   staged package verification, and synchronized GitHub/Thingiverse publication workflow.
 - `LogoSC-Suite-Guide.md`: shared illustrated public introduction to the five generated suites,
   their compatibility, installation boundary, complete repository, and bug-report flow.
+- `LogoSC-Development-Provenance.md`: public account of substantial AI contribution, human
+  direction and accountability, verification evidence, limitations, and contributor expectations.
 - `LogoSC-Future-Ideas.md`: longer-term feature concepts that are not active commitments.
 - `LogoSC-README.md`: overview, file list, public API quick reference, roadmap.
 - `LogoSC-User-Manual.md`: full user documentation, setup, command reference, workflows.
@@ -3624,3 +3627,28 @@ Decision:
   resolved documentation assets, package-appropriate tests, release metadata, and checksums.
 - Record the persistent scope and procedure in `LogoSC-Release-Manual.md`; retain release-specific
   results in the changelog, Git tag, and post-release records.
+
+### 2026-07-31 — Development provenance disclosure
+
+Context:
+
+- AI coding assistants contributed substantially throughout LogoSC's design, implementation,
+  documentation, testing, review, and engineering-history work.
+- Omitting that fact from beginner and maker publications could be misleading, while placing the
+  complete internal AI workflow into every package would distract from each package's purpose.
+- Describing the project only as "mostly developed by AI" would also omit the maintainer's repeated
+  direction, review, acceptance, release authority, and continuing stewardship.
+
+Decision:
+
+- Describe LogoSC as developed primarily through a long-running, human-directed collaboration
+  between its maintainer and OpenAI AI coding assistants.
+- Put a concise, neutral disclosure in the shared `LogoSC-Suite-Guide.md`, which reaches every
+  package, without making AI provenance the package's leading product description.
+- Add `LogoSC-Development-Provenance.md` to explain contributions, human responsibility,
+  evidence-based quality, limitations, and contributor expectations. Include it in Developer and
+  retain it in the complete repository.
+- Keep the AI Engineering Kit, agent guidance, handoffs, and full workflow history exclusive to
+  the complete repository.
+- Judge behavior through inspectable code, tests, exports, documentation, and release records;
+  neither AI involvement nor its absence establishes correctness by itself.
