@@ -92,6 +92,7 @@
 - [2026.6 publication and next checkpoint](#2026-07-31--20266-publication-and-next-development-checkpoint)
 - [Blank Celtic grid cells](#2026-07-31--blank-celtic-grid-cells-and-irregular-regions)
 - [Large Celtic grids and CELTIC word](#2026-07-31--large-celtic-grid-scaling-and-celtic-word)
+- [Suite release manual](#2026-07-31--suite-release-manual-and-single-repository-publishing)
 - [Journal-entry template](#yyyy-mm-dd--topic)
 
 ## Quick Links
@@ -1070,6 +1071,10 @@ Current docs are split by purpose:
   ChatGPT restart guidance.
 - `LogoSC-OpenSCAD-Command-Line.md`: tested command-line evaluation, export, diagnostic,
   and PNG-preview workflow with links to the official OpenSCAD manual.
+- `LogoSC-Release-Manual.md`: authoritative suite boundaries, shared generated documentation,
+  staged package verification, and synchronized GitHub/Thingiverse publication workflow.
+- `LogoSC-Suite-Guide.md`: shared illustrated public introduction to the five generated suites,
+  their compatibility, installation boundary, complete repository, and bug-report flow.
 - `LogoSC-Future-Ideas.md`: longer-term feature concepts that are not active commitments.
 - `LogoSC-README.md`: overview, file list, public API quick reference, roadmap.
 - `LogoSC-User-Manual.md`: full user documentation, setup, command reference, workflows.
@@ -3588,3 +3593,34 @@ Decision:
   plaque values as cautious extrapolations and state that actual timings may vary.
 - Do not simulate percentage completion with `echo()`: OpenSCAD evaluation is demand driven, and
   the later CGAL render/export work is outside the model's control.
+
+### 2026-07-31 — Suite release manual and single-repository publishing
+
+Context:
+
+- LogoSC now supports audiences ranging from first-time turtle-language users to library
+  developers and specialized knot or fastener makers.
+- Maintaining independent package branches or several complete hand-edited README families would
+  multiply bug-fix locations and allow documentation, examples, and implementations to drift.
+- Thingiverse works best when visually distinct maker projects are published separately, while
+  GitHub remains better suited to complete source, issue tracking, and engineering history.
+
+Decision:
+
+- Keep one authoritative Git repository and one durable bug-report location. Treat every public
+  package as a generated publication from a tagged commit rather than a source fork.
+- Publish Mini, Core, Developer, Knots & Celtic Designs, and Nuts & Bolts in synchronized versions.
+  Do not create a separate Thingiverse Full product; point users to the complete Git repository.
+- Include one shared illustrated Suite Guide in every package, backed by canonical shared metadata
+  and a small curated image set. Generate short audience-specific package READMEs instead of
+  manually trimming and maintaining several complete manuals.
+- Implement that common document as `LogoSC-Suite-Guide.md` and include every current
+  LogoSC-produced PNG. The complete set is only about 1.5 MB, so comprehensive visual coverage is
+  practical; third-party SVG knot references remain research inputs rather than package artwork.
+- Keep AI Engineering Kit files, `AGENTS.md`, and Codex handoff material exclusive to the complete
+  repository. Also keep the mixed historical/AI-bootstrap Developer Notebook out of the generated
+  Developer package and link to it in GitHub when deeper rationale is needed.
+- Require each package to be staged and verified independently, with byte-identical Core files,
+  resolved documentation assets, package-appropriate tests, release metadata, and checksums.
+- Record the persistent scope and procedure in `LogoSC-Release-Manual.md`; retain release-specific
+  results in the changelog, Git tag, and post-release records.

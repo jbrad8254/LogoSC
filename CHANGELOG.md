@@ -4,6 +4,15 @@
 
 ### Added
 
+- Added `LogoSC-Release-Manual.md` to define one authoritative development and bug-fix
+  repository, synchronized Mini/Core/Developer/Knots/Fasteners publications, a shared illustrated
+  Suite Guide, package-specific documentation boundaries, independent staged verification, and
+  GitHub/Thingiverse release workflow. AI workflow material remains exclusive to the complete
+  repository rather than the Developer package.
+- Added `LogoSC-Suite-Guide.md` as the shared public introduction packaged with every suite. It
+  compares all five publications, explains their compatibility and common repository, and uses
+  every current LogoSC-produced PNG to illustrate Mini, Core, Developer, knot/Celtic, and fastener
+  capabilities.
 - Added `"."` as the canonical blank Celtic grid cell. Rectangular string storage can now
   describe irregular occupied regions, internal holes, diagonal contacts, and disconnected
   islands. Exposed occupied edges are traced into independent deterministic boundary loops,

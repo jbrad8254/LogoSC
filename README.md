@@ -497,6 +497,10 @@ See `LogoSC-CheatSheet.md` and `LogoSC-User-Manual.md` for the complete command 
 - `LogoSC-Foundation-Validation-Tests.scad` — passive focused validation tests.
 - `LogoSC-Foundation-Test-Runner.scad` — direct entry point for the complete test suite.
 - `LogoSC-OpenSCAD-Command-Line.md` — command-line testing, export, and PNG-preview guide.
+- `LogoSC-Release-Manual.md` — suite boundaries, generated packaging, verification, and
+  synchronized GitHub/Thingiverse publication policy.
+- `LogoSC-Suite-Guide.md` — illustrated public guide to Mini, Core, Developer, Knots & Celtic,
+  Nuts & Bolts, installation, compatibility, and the shared source repository.
 - `LogoSC-Examples.scad` — runnable gallery and example models.
 - `LogoSC-Nuts-And-Bolts.scad` — customizable printable fastener and thread-profile model.
 - `LogoSC-Nuts-And-Bolts-Tests.scad` — passive non-rendering fastener calculation tests.

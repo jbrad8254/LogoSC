@@ -115,6 +115,10 @@ LogoToSVG(region);
 
 ### Tiered Release Packaging
 
+Status: accepted publication policy is now recorded in `LogoSC-Release-Manual.md`. The earlier
+design below remains as the proposal that led to the Mini, Core, Developer, Knots & Celtic, and
+Nuts & Bolts suite model.
+
 Publish curated LogoSC editions for different audiences without creating independently evolving
 language forks. A command list written against a smaller edition must run unchanged in every
 larger edition.

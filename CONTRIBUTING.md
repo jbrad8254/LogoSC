@@ -187,6 +187,13 @@ After each published release, perform a separate post-release housekeeping check
 
 ## Packaging
 
+`LogoSC-Release-Manual.md` is authoritative for the Mini, Core, Developer, Knots & Celtic,
+and Nuts & Bolts publication suites, their shared documentation, staged verification, ZIPs,
+and synchronized GitHub/Thingiverse release process.
+
+Every suite includes the canonical illustrated `LogoSC-Suite-Guide.md` and its referenced
+LogoSC-produced PNGs. Verify that every image link resolves inside each staged package.
+
 When an agent or tool edits the user's active Git working tree directly, no transfer ZIP is
 required unless the user requests one. Verify the repository root, `git status`, and `git diff`,
 then leave the changes in that working tree for normal review and commit.
