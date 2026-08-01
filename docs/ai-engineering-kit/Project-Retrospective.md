@@ -405,6 +405,81 @@ and published on GitHub as `v2026.6`.
 - Defer a physically reduced Starter library until the subset has demonstrated clear value and
   can be generated or maintained without creating an independently evolving language fork.
 
+## Retrospective: LogoSC 2026.7 Release
+
+### What Happened
+
+LogoSC 2026.7 combined two related milestones. The knot companion gained blank Celtic-grid cells,
+irregular regions and holes, faster cycle discovery, scalable large-grid showcases, the CELTIC
+word, and configurable plaque output. The repository also became a publishing source for five
+synchronized Mini, Core, Developer, Knots & Celtic, and Nuts & Bolts distributions with tailored
+documentation, Thingiverse materials, verification, and portable ZIP generation.
+
+The release also added a shared illustrated Suite Guide, a persistent Release Manual, and a public
+development-provenance statement describing substantial AI contributions and human direction.
+
+### What Worked
+
+- Keeping one authoritative repository and expressing editions through manifests avoided language
+  forks and multiple bug-fix locations.
+- Separate Mini and Core entry points proved the small packages did not accidentally depend on
+  validation or passive test files.
+- Retained staging exposed missing knot-reference SVG assets and broken package-local links before
+  publication.
+- Integrating OpenSCAD checks into the builder made 222 Foundation/Validation, 88 knot, 48
+  fastener, Mini/Core smoke, and Diamond8 Plaque results repeatable for every package build.
+- Explicit Unreleased/dirty filenames prevented preview ZIPs from being mistaken for tagged
+  artifacts.
+- Reference-guided cover generation produced distinct storefront images while actual OpenSCAD
+  renders remained the evidence for geometry and behavior.
+
+### What Caused Friction
+
+- The first PowerShell builder draft used newer ternary syntax and automatic variable names that
+  conflicted with Windows PowerShell 5.1.
+- Windows' convenience ZIP API emitted backslash entry paths, requiring an explicit portable ZIP
+  writer.
+- A deep link audit found relative documentation links to intentionally omitted package files;
+  staged documents needed commit-pinned GitHub targets for those references.
+- The local release tag initially pointed to the preparation commit while the published remote tag
+  pointed to the later release-notes commit. Initial final ZIP metadata and checksums therefore did
+  not identify the public tag target and had to be rebuilt.
+- The automation environment's GitHub credential belonged to a different account, so the user had
+  to push the release commit and tag from an authenticated session.
+
+### Lessons
+
+- Test packaging tools against the oldest supported host shell and avoid PowerShell automatic
+  variable names in helper functions.
+- ZIP integrity includes portable entry naming, not just successful compression and extraction on
+  the build machine.
+- Package documentation must be verified from inside the staged package, including non-image local
+  links and licensed reference assets.
+- Final package generation must occur only after both local and remote tags are verified to resolve
+  to the same commit.
+- Checksums are properties of exact artifacts; source-metadata changes require new artifacts and
+  updated release notes even when functional code is unchanged.
+
+### Process Changes
+
+- Keep the manifest-driven builder as the only publication path for the five suites.
+- Require exact clean-tag/Core-version agreement before final archive naming.
+- Add local-versus-remote tag equality to the pre-upload checklist, before generating final ZIPs
+  and checksums.
+- Keep package checks for dependencies, links, images, forbidden workflow files, Core byte
+  identity, forward-slash ZIP paths, and full-stream integrity.
+- Continue using concise provenance disclosure in every suite and detailed workflow history only
+  in Developer or the complete repository as defined by the Release Manual.
+
+### Follow-Up
+
+- Publish or update the separate Thingiverse projects using the generated descriptions, covers,
+  and tag-aligned ZIPs.
+- Gather user feedback on Mini and Core teaching boundaries before considering a physically reduced
+  interpreter.
+- Add automation for comparing local and remote tag resolution before final package generation.
+- Keep future source work under `Unreleased` and preserve the synchronized release train.
+
 # Template for Future Entries
 
 ## Retrospective: [Milestone or Date]

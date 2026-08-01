@@ -96,6 +96,7 @@
 - [Development provenance](#2026-07-31--development-provenance-disclosure)
 - [Generated publication suites](#2026-07-31--generated-publication-suites-and-thingiverse-materials)
 - [2026.7 release preparation](#2026-07-31--20267-celtic-and-publishing-release-preparation)
+- [2026.7 publication checkpoint](#2026-08-01--20267-publication-and-tag-alignment-checkpoint)
 - [Journal-entry template](#yyyy-mm-dd--topic)
 
 ## Quick Links
@@ -194,7 +195,7 @@ for OpenSCAD.
 
 ## 3. Current baseline and milestones
 
-Current release candidate:
+Current stable milestone:
 
 - LogoSC release `2026.7`.
 
@@ -1111,7 +1112,7 @@ The current public baseline is:
 
 ```text
 Release: 2026.7
-Status: release candidate; 222 Foundation/Validation, 48 fastener, and 88 knot results verified
+Status: published as v2026.7; 222 Foundation/Validation, 48 fastener, and 88 knot results verified
 Purpose: irregular and large Celtic grids plus synchronized publication suites
 ```
 
@@ -3716,3 +3717,32 @@ Decision:
   plaque smoke, documentation checks, portable ZIP integrity, and clean diff review before tagging.
 - Tag the exact release-preparation commit as `v2026.7`; final Mini, Core, Developer, Knots &
   Celtic, and Nuts & Bolts ZIPs must be rebuilt from that tag.
+
+### 2026-08-01 — 2026.7 publication and tag-alignment checkpoint
+
+Context:
+
+- Release `2026.7` and its GitHub release-note source were committed and pushed.
+- The published remote tag resolved to the release-notes commit `95f19c6`, while the stale local
+  tag and first final ZIP build still resolved to the earlier preparation commit `d55b84f`.
+- Because every package records its exact source commit, the otherwise equivalent ZIPs had metadata
+  and checksums that did not identify the published tag target.
+
+Decision:
+
+- Treat remote `v2026.7` at `95f19c6bfdb3656e001a2fe56309427335b8328c` as the canonical published
+  source and synchronize the local tag to it without moving the remote tag again.
+- Rebuild all five packages from that exact clean tag and replace the prepared checksum list with
+  the new tag-aligned hashes.
+- Record `2026.7` as the current stable milestone. Keep future work under `Unreleased` until the
+  next deliberate feature boundary.
+- Preserve one repository and issue location for every suite; package-specific storefronts remain
+  generated publications rather than development forks.
+
+Verification:
+
+- Local and remote `refs/tags/v2026.7` resolve to `95f19c6bfdb3656e001a2fe56309427335b8328c`.
+- The tag-aligned rebuild passed Mini and Core CSG smokes, 222 Foundation/Validation results,
+  88 knot results, 48 fastener results, and the correctly quoted Diamond8 Plaque smoke.
+- All five final ZIPs again passed dependency, documentation, portable-path, integrity, and source
+  metadata checks.
