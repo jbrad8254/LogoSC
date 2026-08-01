@@ -12,6 +12,7 @@ publishing/
   docs/           Package-specific README, guide, and cheat-sheet sources.
   descriptions/   Short Thingiverse listing descriptions.
   images/         Generated Thingiverse cover images.
+  releases/       Prepared GitHub release-note bodies.
   build-packages.ps1
 ```
 
