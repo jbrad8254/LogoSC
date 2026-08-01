@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [2026.7] - 2026-07-31
+
+This feature and publishing release adds irregular Celtic regions, large scalable Celtic
+showcases and plaques, and the first synchronized Mini, Core, Developer, Knots & Celtic, and
+Nuts & Bolts publication system. The Core public API version advances to `2026.7`; established
+command syntax, opcode values, geometry behavior, and public APIs remain backward compatible.
+
 ### Added
 
 - Added the first complete multi-suite publishing system under `publishing/`: exact Mini, Core,

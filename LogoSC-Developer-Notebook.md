@@ -95,6 +95,7 @@
 - [Suite release manual](#2026-07-31--suite-release-manual-and-single-repository-publishing)
 - [Development provenance](#2026-07-31--development-provenance-disclosure)
 - [Generated publication suites](#2026-07-31--generated-publication-suites-and-thingiverse-materials)
+- [2026.7 release preparation](#2026-07-31--20267-celtic-and-publishing-release-preparation)
 - [Journal-entry template](#yyyy-mm-dd--topic)
 
 ## Quick Links
@@ -193,9 +194,9 @@ for OpenSCAD.
 
 ## 3. Current baseline and milestones
 
-Current stable milestone:
+Current release candidate:
 
-- LogoSC release `2026.6`.
+- LogoSC release `2026.7`.
 
 License milestone:
 
@@ -204,7 +205,7 @@ License milestone:
   may copy, modify, redistribute, and use it in commercial or closed-source
   projects as long as the copyright/license notice is preserved. README files
   should link to `LICENSE` rather than embedding the full license text.
-- Current source snapshot public API version `2026.6`.
+- Current source snapshot public API version `2026.7`.
 
 Major implemented features include:
 
@@ -236,12 +237,16 @@ Major implemented features include:
 - Optional knot topology, cords, bundles, Celtic grids, LogoSC-backed ribbons, bas-relief,
   beveled plaques, coordinated print-quality presets, and controlled half-turn bundle twists
   with closure-component tracing.
+- Blank Celtic cells, irregular regions and holes, scalable large-grid showcases, CELTIC word
+  geometry, and configurable large-grid plaque output.
+- Generated Mini, Core, Developer, Knots & Celtic, and Nuts & Bolts publications with tailored
+  documentation, Thingiverse materials, staged verification, and portable ZIP output.
 
 Append new milestones here. Do not rewrite this section as only the latest state.
 
 ---
 
-## Restart Checkpoint — 2026.6 Twisted Knot Bundles Prepared
+## Restart Checkpoint — 2026.7 Celtic and Publication Suites Prepared
 
 Current project state is suitable for a fresh chat/restart from the local Git repository or
 a repository ZIP.
@@ -1105,9 +1110,9 @@ should not become another manual.
 The current public baseline is:
 
 ```text
-Release: 2026.6
-Status: published as v2026.6; 222 Foundation/Validation, 48 fastener, and 85 knot results verified
-Purpose: controlled knot-bundle twists and clarified knot Customizer scopes
+Release: 2026.7
+Status: release candidate; 222 Foundation/Validation, 48 fastener, and 88 knot results verified
+Purpose: irregular and large Celtic grids plus synchronized publication suites
 ```
 
 `LogoSC-Experiments.scad` remains a separate lab bench. Keep experimental code there
@@ -3688,3 +3693,26 @@ Verification:
 - The correctly quoted Diamond8 Plaque CSG smoke passed from the staged knot package.
 - All five ZIPs passed full-stream integrity reads, portable-path checks, required-file and
   prohibited-file policy checks, and byte-identical Core comparison.
+
+### 2026-07-31 — 2026.7 Celtic and publishing release preparation
+
+Context:
+
+- The post-2026.6 work now forms one coherent public milestone: irregular Celtic occupancy,
+  scalable large showcases, plaque output, development provenance, and generated publication
+  suites for distinct user audiences.
+- The preview ZIPs correctly identified themselves as Unreleased and dirty; final public artifacts
+  must instead be generated from the exact clean release tag.
+
+Decision:
+
+- Advance the Core public API version from `2026.6` to `2026.7` without changing established
+  opcodes, command syntax, geometry behavior, or public API contracts.
+- Consolidate the current Unreleased changelog as `2026.7`, dated 2026-07-31, under the release
+  title "Celtic Grids and Multi-Suite Publishing."
+- Update live README, manual, cheat-sheet, and notebook baseline references while preserving
+  historical 2026.6 release records and rationale.
+- Require the complete source acceptance suites, staged package checks, correctly quoted Diamond8
+  plaque smoke, documentation checks, portable ZIP integrity, and clean diff review before tagging.
+- Tag the exact release-preparation commit as `v2026.7`; final Mini, Core, Developer, Knots &
+  Celtic, and Nuts & Bolts ZIPs must be rebuilt from that tag.

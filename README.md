@@ -461,7 +461,7 @@ LogoRegionIsConvex(region, tolerance = 0.001, strict = false);
 LogoRegionsAreIndividuallyConvex(regions, tolerance = 0.001, strict = false);
 ```
 
-The current public API version is `2026.6`.
+The current public API version is `2026.7`.
 
 ## Command examples
 
@@ -560,6 +560,7 @@ Core's filled-region contract.
 
 | Version | Highlights |
 | --- | --- |
+| 2026.7 | Irregular and large Celtic grids, plaque output, and synchronized publication suites |
 | 2026.6 | Controlled knot-bundle twists, closure-component tracing, and clearer knot Customizer scopes |
 | 2026.5 | Affine turtle transforms plus the optional knot, cord, bundle, ribbon, and relief-plaque companion |
 | 2026.4 | Topology/hole validation, convexity queries, expanded tests, and transform design notes |
@@ -572,7 +573,7 @@ Core's filled-region contract.
 
 - Expand optional validation only when additional topology policies provide clear value.
 - Keep knot topology and manufacturing features in the optional companion rather than Core.
-- Prototype the upward-compatible LogoSC Starter package described in `LogoSC-Future-Ideas.md`.
+- Refine the generated publication suites from user feedback without forking the language.
 - Keep manufacturable stroke rendering as a separate API with explicit width, cap, and join semantics.
 
 ## Requirements
