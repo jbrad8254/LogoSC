@@ -1,5 +1,31 @@
 # LogoSC Knots Design and Roadmap
 
+## Table of Contents
+
+- [Status and purpose](#status-and-purpose)
+- [How LogoSC is used](#how-logosc-is-used)
+- [Further reading and example collections](#further-reading-and-example-collections)
+- [Visual reference](#visual-reference)
+- [Goals](#goals)
+- [Shared representation](#shared-representation)
+- [Required feature: adjacent multi-cord bundles](#required-feature-adjacent-multi-cord-bundles)
+- [Generator 1: torus knots](#generator-1-torus-knots)
+- [Generator 2: braid words](#generator-2-braid-words)
+- [Generator 3: Celtic tile grids](#generator-3-celtic-tile-grids)
+- [Generator 4: harmonic and Lissajous curves](#generator-4-harmonic-and-lissajous-curves)
+- [Generator 5: polar rosettes](#generator-5-polar-rosettes)
+- [Generator 6: medial planar graphs](#generator-6-medial-planar-graphs)
+- [Over/under assignment](#overunder-assignment)
+- [2D ribbon generation](#2d-ribbon-generation)
+- [Bas-relief](#bas-relief)
+- [Export-quality presets](#export-quality-presets)
+- [Rounded cords](#rounded-cords)
+- [AI-assisted image-to-knot import](#ai-assisted-image-to-knot-import)
+- [Companion files](#companion-files)
+- [Verification requirements](#verification-requirements)
+- [Implementation sequence](#implementation-sequence)
+- [Open questions](#open-questions)
+
 ## Status and purpose
 
 This is the authoritative design plan for generative knot work in LogoSC. It covers organic or
@@ -1057,3 +1083,34 @@ gallery, and a clean optional-companion boundary.
 - Which tolerances define duplicate crossings, tangencies, and printable clearance?
 
 Record answers here before they become implementation assumptions.
+
+## Index
+
+- **AI-assisted import:** [image-to-knot import](#ai-assisted-image-to-knot-import),
+  [figurative references](#reusable-figurative-references)
+- **Bas-relief:** [design](#bas-relief), [implemented boundary](#implemented-bas-relief-boundary),
+  [backing plates](#implemented-backing-plate-boundary)
+- **Braids:** [braid-word generator](#generator-2-braid-words),
+  [circular closure](#implemented-circular-braid-boundary),
+  [braids versus bundles](#braid-topology-versus-bundle-geometry)
+- **Bundles:** [adjacent multi-cord bundles](#required-feature-adjacent-multi-cord-bundles),
+  [crossing-aware boundary](#implemented-crossing-aware-untwisted-bundle-boundary),
+  [half-turn twists](#implemented-möbius-like-bundle-twists)
+- **Celtic grids:** [tile-grid generator](#generator-3-celtic-tile-grids),
+  [explicit-grid boundary](#implemented-explicit-grid-boundary)
+- **Companion architecture:** [LogoSC boundary](#how-logosc-is-used),
+  [shared representation](#shared-representation), [companion files](#companion-files)
+- **Crossings:** [over/under assignment](#overunder-assignment),
+  [printable clearance](#required-feature-adjacent-multi-cord-bundles)
+- **Generators:** [torus knots](#generator-1-torus-knots), [braid words](#generator-2-braid-words),
+  [Celtic grids](#generator-3-celtic-tile-grids),
+  [harmonic curves](#generator-4-harmonic-and-lissajous-curves),
+  [polar rosettes](#generator-5-polar-rosettes),
+  [medial planar graphs](#generator-6-medial-planar-graphs)
+- **Manufacturing output:** [2D ribbons](#2d-ribbon-generation), [bas-relief](#bas-relief),
+  [rounded cords](#rounded-cords), [quality presets](#export-quality-presets)
+- **References:** [further reading](#further-reading-and-example-collections),
+  [visual references](#visual-reference)
+- **Roadmap:** [goals](#goals), [implementation sequence](#implementation-sequence),
+  [open questions](#open-questions)
+- **Verification:** [requirements](#verification-requirements)

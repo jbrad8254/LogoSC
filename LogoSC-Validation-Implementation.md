@@ -1,5 +1,22 @@
 # LogoSC Validation Implementation and Test Notes
 
+## Table of Contents
+
+- [Purpose and status](#purpose-and-status)
+- [Validation layers](#validation-layers)
+- [Explicit path extraction](#explicit-path-extraction)
+- [Per-path integrity algorithms](#per-path-integrity-algorithms)
+- [General segment relationships](#general-segment-relationships)
+- [Contour intersections](#contour-intersections)
+- [Point containment](#point-containment)
+- [Region relationships](#region-relationships)
+- [Convexity queries](#convexity-queries)
+- [Hole topology policy](#hole-topology-policy)
+- [Automated test matrix](#automated-test-matrix)
+- [Why these tests are immutable records](#why-these-tests-are-immutable-records)
+- [Verification](#verification)
+- [Known limits](#known-limits)
+
 ## Purpose and status
 
 This document describes the optional validation companion's architecture, geometric

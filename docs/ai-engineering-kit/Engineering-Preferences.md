@@ -1,5 +1,22 @@
 # Engineering Preferences
 
+## Table of Contents
+
+- [Purpose](#purpose)
+- [General Principles](#general-principles)
+- [Coding Style](#coding-style)
+- [Error Handling](#error-handling)
+- [API Design](#api-design)
+- [Documentation](#documentation)
+- [Examples](#examples)
+- [Testing](#testing)
+- [Review Expectations](#review-expectations)
+- [Versioning and Releases](#versioning-and-releases)
+- [Packaging and File Delivery](#packaging-and-file-delivery)
+- [Repository Discipline](#repository-discipline)
+- [Working with ChatGPT](#working-with-chatgpt)
+- [Final Preference](#final-preference)
+
 > This document is **not part of LogoSC** or any other specific repository.
 > It is a reusable engineering handbook describing the user's preferred
 > coding, documentation, review, and delivery practices.

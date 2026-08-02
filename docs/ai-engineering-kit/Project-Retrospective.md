@@ -1,5 +1,22 @@
 # Project Retrospective
 
+## Table of Contents
+
+- [Why This Document Exists](#why-this-document-exists)
+- [Why the Supporting Documents Were Added Now](#why-the-supporting-documents-were-added-now)
+- [The Four-Document Model](#the-four-document-model)
+- [Why These Documents Should Usually Remain Outside LogoSC](#why-these-documents-should-usually-remain-outside-logosc)
+- [What Worked Well](#what-worked-well)
+- [What Did Not Transfer Automatically](#what-did-not-transfer-automatically)
+- [Important Balance](#important-balance)
+- [Retrospective Practice](#retrospective-practice)
+- [Initial Retrospective: LogoSC Process Maturity](#initial-retrospective-logosc-process-maturity)
+- [Direct Git delivery and conditional ZIP fallback](#workflow-update-direct-git-delivery-and-conditional-zip-fallback)
+- [Retrospective: LogoSC 2026.5 Release](#retrospective-logosc-20265-release)
+- [Retrospective: LogoSC 2026.6 Release](#retrospective-logosc-20266-release)
+- [Retrospective: LogoSC 2026.7 Release](#retrospective-logosc-20267-release)
+- [Template for Future Entries](#template-for-future-entries)
+
 > This document is **not part of LogoSC's public user documentation**.
 >
 > It is a process record for the user and future ChatGPT conversations. Its purpose is to

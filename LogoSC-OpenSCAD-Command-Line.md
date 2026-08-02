@@ -7,6 +7,18 @@ export geometry, and render PNG previews from PowerShell or an automated build.
 This guide is a concise LogoSC-oriented introduction. The official OpenSCAD references at the
 end describe every supported option in detail.
 
+## Table of Contents
+
+- [Why this works](#why-this-works)
+- [Basic PowerShell setup](#basic-powershell-setup)
+- [Example 1: run the LogoSC regression suite](#example-1-run-the-logosc-regression-suite)
+- [Example 2: export and inspect a debug PNG](#example-2-export-and-inspect-a-debug-png)
+- [Example 3: generate a fastener documentation image](#example-3-generate-a-fastener-documentation-image)
+- [Example 4: export a normal model](#example-4-export-a-normal-model)
+- [What command-line verification proves](#what-command-line-verification-proves)
+- [Other platforms](#other-platforms)
+- [Official OpenSCAD documentation](#official-openscad-documentation)
+
 ## Why this works
 
 An OpenSCAD file is a program that evaluates to geometry. The GUI normally performs that

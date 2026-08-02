@@ -1,5 +1,18 @@
 # LogoSC Local Transform Design Notes
 
+## Table of Contents
+
+- [Status and purpose](#status-and-purpose)
+- [Motivation](#motivation)
+- [Agreed design direction](#agreed-design-direction)
+- [Readable canonical state](#readable-canonical-state)
+- [Internal representation](#internal-representation)
+- [Accepted command surface](#accepted-command-surface)
+- [Compatibility constraints](#compatibility-constraints)
+- [Resolved design decisions](#resolved-design-decisions)
+- [Planned sequencing](#planned-sequencing)
+- [Non-goals for the first implementation](#non-goals-for-the-first-implementation)
+
 ## Status and purpose
 
 This document records the design rationale and compatibility boundary for LogoSC's implemented

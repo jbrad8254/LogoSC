@@ -1,5 +1,24 @@
 # LogoSC
 
+## Table of Contents
+
+- [Short description](#short-description)
+- [The problem](#the-problem)
+- [What LogoSC does](#what-logosc-does)
+- [Project scale and pace](#project-scale-and-pace)
+- [About the developer](#about-the-developer)
+- [Target audience](#target-audience)
+- [How the project evolved](#how-the-project-evolved)
+- [Durable AI engineering: preserving project memory](#durable-ai-engineering-preserving-project-memory)
+- [How Codex and GPT-5.6 contributed](#how-codex-and-gpt-56-contributed)
+- [What was added during Build Week](#what-was-added-during-build-week)
+- [Challenges](#challenges)
+- [What I am proud of](#what-i-am-proud-of)
+- [What I learned](#what-i-learned)
+- [What comes next](#what-comes-next)
+- [Two-minute installation and test](#two-minute-installation-and-test)
+- [Supported platforms](#supported-platforms)
+
 ## Short description
 
 LogoSC gives OpenSCAD a Logo-inspired turtle-geometry language for creating reusable 2D

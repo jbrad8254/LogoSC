@@ -1,6 +1,24 @@
 # LogoSC Changelog
 
+## Table of Contents
+
+- [[Unreleased]](#unreleased)
+- [[2026.7] - 2026-07-31](#20267---2026-07-31)
+- [[2026.6] - 2026-07-31](#20266---2026-07-31)
+- [[2026.5] - 2026-07-29](#20265---2026-07-29)
+- [[2026.4] - 2026-07-27](#20264---2026-07-27)
+- [[2026.3] - 2026-07-22](#20263---2026-07-22)
+- [[2026.2.1] - 2026-07-21](#202621---2026-07-21)
+- [[2026.2] - 2026-07-13](#20262---2026-07-13)
+- [[2026.0] - Initial public foundation](#20260---initial-public-foundation)
+
 ## [Unreleased]
+
+### Documentation
+
+- Added linked tables of contents to Markdown documents over two estimated pages and
+  alphabetical subject indexes to documents over ten estimated pages. Repository guidance now
+  defines one estimated Markdown page as 500 words and requires this navigation to remain current.
 
 ## [2026.7] - 2026-07-31
 

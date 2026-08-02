@@ -5,6 +5,21 @@
 not certified fastener dimensions or tolerance classes. Calibrate clearance and strength for
 the printer, material, orientation, and load before relying on a printed part.
 
+## Table of Contents
+
+- [Quick start](#quick-start)
+- [Quickly verify the fastener calculations](#quickly-verify-the-fastener-calculations)
+- [Why head, drive, and drive size are separate](#why-head-drive-and-drive-size-are-separate)
+- [Model parameters](#model-parameters)
+- [Thread parameters](#thread-parameters)
+- [How the thread algorithm works](#how-the-thread-algorithm-works)
+- [Head and drive parameters](#head-and-drive-parameters)
+- [Gallery output](#gallery-output)
+- [Nut and assembly parameters](#nut-and-assembly-parameters)
+- [Resolution parameters](#resolution-parameters)
+- [Boolean and printing details](#boolean-and-printing-details)
+- [⚠ WARNING: PRINTED FASTENER STRENGTH IS UNKNOWN](#-warning-printed-fastener-strength-is-unknown)
+
 ## Quick start
 
 1. Open `LogoSC-Nuts-And-Bolts.scad` in OpenSCAD and show the Customizer.

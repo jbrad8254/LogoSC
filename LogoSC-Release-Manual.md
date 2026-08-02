@@ -5,6 +5,19 @@ suite. It is the persistent policy for package scope, shared documentation, veri
 versioning, ZIP creation, and publication. Release-specific facts remain in `CHANGELOG.md` and
 the Git tag; architectural rationale remains in `LogoSC-Developer-Notebook.md`.
 
+## Table of Contents
+
+- [1. Publishing model](#1-publishing-model)
+- [2. Compatibility and ownership rules](#2-compatibility-and-ownership-rules)
+- [3. Package scopes](#3-package-scopes)
+- [4. Documentation model](#4-documentation-model)
+- [5. Examples and downloadable models](#5-examples-and-downloadable-models)
+- [6. Publishing implementation](#6-publishing-implementation)
+- [7. Verification matrix](#7-verification-matrix)
+- [8. Release and publication procedure](#8-release-and-publication-procedure)
+- [9. Bug and support flow](#9-bug-and-support-flow)
+- [10. Policy changes](#10-policy-changes)
+
 ## 1. Publishing model
 
 LogoSC has one source repository, one development history, and one bug-fix location. Mini,

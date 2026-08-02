@@ -1,5 +1,21 @@
 # AI Engineering Kit — Handoff Note for a New ChatGPT Conversation
 
+## Table of Contents
+
+- [What You Are Receiving](#what-you-are-receiving)
+- [Choose the Delivery Mode](#choose-the-delivery-mode)
+- [Current LogoSC Repository Exception](#current-logosc-repository-exception)
+- [Import Procedure](#import-procedure)
+- [How to Preserve the Train of Thought](#how-to-preserve-the-train-of-thought)
+- [Collaboration Style to Continue](#collaboration-style-to-continue)
+- [What Not to Do](#what-not-to-do)
+- [How to Use the Retrospective](#how-to-use-the-retrospective)
+- [How to Use the Developer Notebook](#how-to-use-the-developer-notebook)
+- [Working Rule](#working-rule)
+- [Initial Response in the New Chat](#initial-response-in-the-new-chat)
+- [Pasteable Startup Message](#pasteable-startup-message)
+- [Final Intent](#final-intent)
+
 > This note is addressed to the next ChatGPT conversation.
 >
 > Its purpose is to transfer not only the LogoSC repository, but also the development process,

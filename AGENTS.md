@@ -45,6 +45,9 @@ The LogoSC-specific command-line verification guide is
 - Run or inspect `LogoSC-Foundation-Test-Runner.scad` after source changes when the tooling
   is available; require its final `LOGOSC_AUTOMATED_TEST_RESULT` to be `PASS`, and follow
   `LogoSC-OpenSCAD-Command-Line.md` for the tested console workflow.
+- For Markdown navigation, estimate one page as 500 words. Add a linked table of contents to
+  every Markdown document over 1,000 words and an alphabetical subject index to every Markdown
+  document over 5,000 words. Keep both synchronized when headings or indexed topics change.
 - Keep `LogoTestFailFast` false for complete acceptance runs; enable it only to isolate the
   first failed immutable result with OpenSCAD's assertion trace.
 - For documentation changes, verify local links, anchors, code fences, and referenced assets.

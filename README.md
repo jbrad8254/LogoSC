@@ -6,6 +6,22 @@ LogoSC is a small Logo-inspired turtle geometry layer for OpenSCAD. It turns com
 
 LogoSC is not trying to be a full Logo language. It is a lightweight OpenSCAD geometry DSL for making reusable 2D shapes, holes, ornaments, plaques, cutouts, and 3D-printing-friendly parts.
 
+## Table of Contents
+
+- [What LogoSC does](#what-logosc-does)
+- [Engineering guidance and restart order](#engineering-guidance-and-restart-order)
+- [Quick start](#quick-start)
+- [Current public API](#current-public-api)
+- [Command examples](#command-examples)
+- [Repository files](#repository-files)
+- [Design philosophy](#design-philosophy)
+- [Current status](#current-status)
+- [Version history](#version-history)
+- [Near-term roadmap](#near-term-roadmap)
+- [Requirements](#requirements)
+- [Contributing](#contributing)
+- [License](#license)
+
 ## What LogoSC does
 
 - Evaluates turtle-style command lists such as `MOVE`, `TURN`, `ARC`, `RUN`, and `REPEAT`.

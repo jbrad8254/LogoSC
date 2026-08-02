@@ -1,5 +1,14 @@
 # LogoSC Future Ideas
 
+## Table of Contents
+
+- [Purpose](#purpose)
+- [High Priority](#high-priority)
+- [Medium Priority](#medium-priority)
+- [Lower Priority](#lower-priority)
+- [Design Philosophy](#design-philosophy)
+- [2026.3 Feature Milestone](#20263-feature-milestone)
+
 ## Purpose
 
 This document captures feature ideas and longer-term directions that are intentionally

@@ -1,6 +1,6 @@
 # LogoSC Developer Notebook
 
-## Index
+## Table of Contents
 
 ### Project and architecture
 
@@ -108,7 +108,7 @@
 - [Testing and regression risks](#11-testing-and-regression-risks)
 - [Documentation conventions](#7-documentation-architecture-and-conventions)
 - [Packaging workflow](#8-repository-and-packaging-workflow)
-- [Latest release checkpoint](#2026-07-31--20266-publication-and-next-development-checkpoint)
+- [Latest release checkpoint](#2026-08-01--20267-publication-and-tag-alignment-checkpoint)
 
 ## ChatGPT bootstrap — read this first
 
@@ -2497,7 +2497,7 @@ Consequences:
   remains unknown until representative testing.
 - This is documentation-only; it does not change the OpenSCAD model or LogoSC public API.
 
-### 2026-07-22 â€” Fastener algorithm documentation and mapping figure
+### 2026-07-22 — Fastener algorithm documentation and mapping figure
 
 Context:
 
@@ -3746,3 +3746,52 @@ Verification:
   88 knot results, 48 fastener results, and the correctly quoted Diamond8 Plaque smoke.
 - All five final ZIPs again passed dependency, documentation, portable-path, integrity, and source
   metadata checks.
+
+### 2026-08-01 — Markdown navigation thresholds
+
+Decision:
+
+- Estimate Markdown pagination at 500 words per page because source Markdown has no fixed page
+  count before rendering.
+- Require a linked table of contents above 1,000 words and an alphabetical subject index above
+  5,000 words.
+- Keep both navigation structures synchronized with later heading and subject changes.
+
+Application:
+
+- Added missing tables of contents across the current long-form Markdown documentation.
+- Added subject indexes to this notebook and `LogoSC-Knots-Design.md`; the User Manual already
+  had both required navigation structures.
+- Recorded the durable maintenance rule in `AGENTS.md`.
+
+## Index
+
+- **Affine transforms:** [design direction](#2026-07-27--preliminary-local-transform-design-direction),
+  [implementation](#2026-07-27--canonical-local-affine-transforms)
+- **AI Engineering Kit:** [integration](#2026-07-18--ai-engineering-kit-integration),
+  [directory cleanup](#2026-07-18--ai-engineering-kit-directory-cleanup)
+- **Command-line verification:** [workflow](#2026-07-20--openscad-command-line-verification-guide)
+- **Debug rendering:** [direction](#10-stroke-and-debug-rendering-direction),
+  [gallery](#2026-07-20--indexed-debug-renderer-gallery)
+- **Documentation:** [architecture](#7-documentation-architecture-and-conventions),
+  [consistency](#2026-07-18--documentation-consistency-and-release-boundary-cleanup),
+  [long-document navigation](#2026-08-01--markdown-navigation-thresholds)
+- **Fasteners:** [customizable fasteners](#2026-07-21--customizable-nuts-bolts-and-helical-thread-profiles),
+  [test suite](#2026-07-24--non-rendering-fastener-test-suite)
+- **Knot companion:** [first vertical slice](#2026-07-27--optional-knot-companion-first-vertical-slice),
+  [Celtic grids](#2026-07-29--explicit-celtic-tile-grid-topology),
+  [ribbons](#2026-07-29--logosc-backed-planar-ribbons-and-underpass-masks),
+  [twisted bundles](#2026-07-29--twisted-bundle-closure-and-component-tracing)
+- **Packaging and publishing:** [repository workflow](#8-repository-and-packaging-workflow),
+  [suite release manual](#2026-07-31--suite-release-manual-and-single-repository-publishing),
+  [generated suites](#2026-07-31--generated-publication-suites-and-thingiverse-materials)
+- **Public API:** [stable API](#4-stable-public-api)
+- **Releases:** [2026.5](#2026-07-29--20265-publication-and-next-development-checkpoint),
+  [2026.6](#2026-07-31--20266-publication-and-next-development-checkpoint),
+  [2026.7](#2026-08-01--20267-publication-and-tag-alignment-checkpoint)
+- **Roadmap:** [current roadmap](#12-current-roadmap), [open questions](#13-open-questions)
+- **Testing:** [regression risks](#11-testing-and-regression-risks),
+  [automated result hierarchy](#2026-07-20--hierarchical-automated-test-results)
+- **Validation:** [path analysis](#2026-07-20--optional-path-analysis-and-validation),
+  [topology](#2026-07-27--general-topology-relations-and-strict-hole-validation),
+  [convexity](#2026-07-27--convexity-query-api)
