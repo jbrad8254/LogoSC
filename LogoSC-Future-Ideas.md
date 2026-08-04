@@ -21,7 +21,7 @@ Only the Active Sequence is a current commitment; all later sections are deferre
 
 The authoritative near-term order is now:
 
-1. implement the optional L-system companion;
+1. complete: implement the optional L-system companion source, examples, tests, and general docs;
 2. finish the agreed knot-companion scope, explicitly deferring anything that is not required for
    completion; and
 3. prepare the next synchronized release.
@@ -35,6 +35,9 @@ Keep L-systems outside the core library in an optional `LogoSC-LSystems.scad` co
 Koch, Hilbert, Dragon, Sierpiński, and plant examples. Define a reusable expansion and
 interpretation boundary, deterministic tests, a compact gallery, and documentation rather than
 leaving L-system logic embedded only in individual examples.
+
+Status: the companion development files are implemented and independently tested. Distribution
+packaging remains deferred until explicitly authorized.
 
 ---
 

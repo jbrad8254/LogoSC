@@ -25,6 +25,15 @@
 
 ### Added
 
+- Added deterministic Lévy C, Gosper, and symmetric canopy presets and expanded the L-system
+  example gallery from six models to a centered 3-by-3 grid of nine.
+- Changed the Lévy C preset's axiom from one segment to a four-sided square frame, applying the
+  folding rule along every side for a denser, space-filling gallery silhouette.
+
+- Added the optional `LogoSC-LSystems.scad` companion with generic integer-symbol rewriting,
+  action-based LogoSC interpretation, six named presets, a Customizer gallery, an independent
+  deterministic test runner, and focused design and user documentation. Distribution packaging
+  remains deliberately deferred.
 - Added `[SHEAR, xFactor]` as a backward-compatible opcode for composing a local X shear. The
   normal evaluator, debug evaluator, tracing, state stack, affine conversion, tests, cheat sheet,
   and user manual share the same transform semantics.
@@ -36,6 +45,41 @@
   The set includes a scalloped-cutout feature panel, connected radial fan, Koch-cutout plate,
   thickened Peano curve, tapered astroid sculpture with a centered through-opening, slotted link,
   perforated ring, and curvy `rotate_extrude()` wire spool. Every model rests at `Z=0`.
+
+### Fixed
+
+- Increased the printable L-system plant trunk from two to four times the base stroke width and
+  changed its stroke to a continuous height-based taper with fixed lengths and angles, preventing
+  upper continuation and terminal segments from returning to trunk-like thickness.
+- Revised the Plant preset into three recursive asymmetric Y-shaped levels, with a slightly
+  longer 40-degree right branch and a shorter 30-degree left branch at every fork.
+- Halved the Plant preset's recursive trunk-section length so the completed model remains close
+  in scale to the other L-system examples.
+- Made the Plant crown fuller by changing its net successive branch-length ratio from one half to
+  three quarters and displaying four recursive levels (16 terminal tips), while retaining the
+  tighter 20- and 30-degree fork angles.
+- Halved the straight trunk section preceding every recursive Plant fork from two base steps to
+  one, making the crown more compact without changing its branch proportions.
+- Halved both Plant Y-arm lead-ins to one and one-and-a-half base steps, preserving their slight
+  asymmetry while making the recursive crown less spindly.
+- Increased the Plant's starting trunk width from four to ten times the base stroke width, with
+  the continuous taper still reaching the original width at the highest tips.
+- Halved the Plant's original trunk and first-level branch lengths to reduce its gallery footprint
+  without reducing any of its printable stroke widths.
+- Increased the L-system gallery's Hilbert curve from depth two to depth four so its space-filling
+  structure is more apparent.
+- Increased the gallery Dragon curve by two requested levels, raising its effective rendered
+  depth from six to eight.
+- Corrected open-curve gallery centering to use the actual rendered stroke bounds and removed a
+  duplicate Dragon depth adjustment that centered depth-eight geometry using depth-ten bounds.
+- Reduced the Plant's movement geometry by 30 percent in both planar dimensions while preserving
+  its absolute printable stroke widths.
+
+- Enlarged the filled Sierpiński example's smallest triangles by approximately 10% so adjacent
+  regions overlap instead of meeting only at non-printable point contacts.
+- Increased the printable Hilbert and Dragon example strokes by 50%. Gave the plant a double-width
+  trunk and reduced each of its three displayed growth levels by `pow(1/2, 1/3)`, returning its
+  terminal branches to the original base width.
 
 ## [2026.7] - 2026-07-31
 

@@ -532,6 +532,11 @@ See `LogoSC-CheatSheet.md` and `LogoSC-User-Manual.md` for the complete command 
 - `LogoSC-Celtic-Large-Grids.md` — large-grid usage and measured performance guide.
 - `LogoSC-Knots-Tests.scad` — passive knot record, generator, cord, bundle, and braid tests.
 - `LogoSC-Knots-Test-Runner.scad` — direct entry point for the knot companion suite.
+- `LogoSC-LSystems.scad` — optional deterministic grammar expansion and interpretation companion.
+- `LogoSC-LSystems-Examples.scad` — centered 3-by-3 gallery for nine built-in L-systems.
+- `LogoSC-LSystems-Tests.scad` — passive rewriting, interpretation, and geometry-contract tests.
+- `LogoSC-LSystems-Test-Runner.scad` — direct entry point for the L-system companion suite.
+- `LogoSC-LSystems-Guide.md` — public L-system API and usage guide.
 - `LogoSC-Nuts-And-Bolts-Customizer.md` — detailed fastener parameter and calibration guide.
 - `LogoSC-User-Manual.md` — practical user documentation.
 - `CONTRIBUTING.md` — contribution philosophy, coding, testing, documentation, versioning, and packaging guidance.
@@ -571,7 +576,9 @@ reusable segment, contour, containment, and region-relation helpers without addi
 Manufacturable stroke/open-path rendering remains future work. The optional knot companion
 separately provides torus, braid, and Celtic-grid topology; rounded cords and multi-cord bundles;
 LogoSC-backed planar ribbons; and printable beveled relief plaques. It does not change LogoSC
-Core's filled-region contract.
+Core's filled-region contract. The optional L-system companion expands deterministic grammars into
+ordinary LogoSC command lists and includes Koch, quadratic Koch, Hilbert, Dragon, Sierpiński,
+plant, Lévy C, Gosper, and canopy presets without adding Core opcodes.
 
 ## Version history
 
@@ -588,10 +595,10 @@ Core's filled-region contract.
 
 ## Near-term roadmap
 
-1. Build the optional L-system companion, with a reusable expansion/interpreter boundary,
-   representative Koch, Hilbert, Dragon, Sierpiński, and plant examples, focused tests, and
-   documentation.
-2. Finish the planned knot-companion work. Complete the agreed remaining generator milestones,
+1. **L-system development complete:** the optional companion now has a reusable
+   expansion/interpreter boundary, six presets, focused tests, examples, and documentation.
+   Distribution integration remains deliberately deferred.
+2. **Next:** finish the planned knot-companion work. Complete the agreed remaining milestones,
    close or explicitly defer residual manufacturing and topology items, and keep all knot logic
    outside Core.
 3. Prepare and publish the next release only after the L-system and knot milestones form one

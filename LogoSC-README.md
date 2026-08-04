@@ -39,6 +39,11 @@
 - `LogoSC-Validation-Implementation.md` — validation algorithms, policies, complexity, and test matrix.
 - `LogoSC-Transforms-Design.md` — implemented affine-transform semantics and design rationale.
 - `LogoSC-LSystems-Notes.md` — design notes for L-system examples.
+- `LogoSC-LSystems.scad` — optional grammar records, rewriting, presets, and interpretation.
+- `LogoSC-LSystems-Examples.scad` — selectable filled and diagnostic L-system examples.
+- `LogoSC-LSystems-Tests.scad` — passive deterministic companion tests.
+- `LogoSC-LSystems-Test-Runner.scad` — direct entry point for the independent companion suite.
+- `LogoSC-LSystems-Guide.md` — L-system API, examples, scope, and performance guidance.
 - `LogoSC-Knots.scad` — optional topology, cords, bundles, ribbons, and printable relief plaques.
 - `LogoSC-Knots-Examples.scad` — selectable knot diagnostics, outputs, and presentation galleries.
 - `LogoSC-Celtic-Large-Grids.scad` — large irregular Celtic grids and a CELTIC word mask.
@@ -545,8 +550,8 @@ and the printed-fastener safety warning.
 
 ![LogoSC Examples gallery](images/examples-gallery.png)
 
-See `LogoSC-LSystems-Notes.md` for the design rationale behind the L-system
-helper examples.
+See `LogoSC-LSystems-Guide.md` for the implemented companion API and
+`LogoSC-LSystems-Notes.md` for its design rationale.
 
 Open the examples file directly in OpenSCAD. By default it renders the full
 example gallery:
@@ -590,8 +595,8 @@ manufacturing outputs described above.
 
 The active milestone order is:
 
-1. optional L-system companion and examples;
-2. completion or explicit deferral of the remaining knot roadmap; and
+1. completed L-system companion development, with distribution integration deferred;
+2. next, completion or explicit deferral of the remaining knot roadmap; and
 3. a synchronized, fully verified release.
 
 Stroke rendering, additional primitives, and other longer-term ideas remain outside this release

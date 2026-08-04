@@ -2,9 +2,10 @@
 
 ## Purpose
 
-This note describes how L-systems fit into LogoSC examples and future planning.
-It is not a new public API specification. LogoSC remains a small OpenSCAD
-geometry DSL that evaluates command lists into closed 2D regions.
+This note records the design rationale behind the implemented optional
+`LogoSC-LSystems.scad` companion. The public usage guide is
+`LogoSC-LSystems-Guide.md`. LogoSC remains a small OpenSCAD geometry DSL that
+evaluates command lists into closed 2D regions.
 
 L-systems are useful in LogoSC because they generate long turtle-style command
 sequences from compact recursive rules. They are especially good for fractal
@@ -66,9 +67,12 @@ There are two useful patterns.
   interpretation. Their weakness is that they add a second mini-language beside
   LogoSC.
 
-`LogoSC-Examples.scad` now contains a small generic L-system helper used only by
-the examples. It demonstrates the technique without making L-systems part of the
-public LogoSC command language.
+`LogoSC-LSystems.scad` now provides generic integer-symbol rules, deterministic
+expansion, action-based interpretation, and named preset constructors. It emits
+ordinary LogoSC commands without making L-systems part of the Core command
+language. The earlier helpers remain temporarily embedded in
+`LogoSC-Examples.scad` so existing generated suites do not acquire a new file
+dependency before the authorized distribution phase.
 
 ## Examples that fit well
 
@@ -101,16 +105,18 @@ F -> F[+F]F[-F]F
 ```
 
 They are excellent teaching examples, but their natural output is an open set of
-branches. A clean printable version probably wants future stroke/open-path
-rendering, or an explicit branch-thickening helper that converts centerlines into
-closed polygons.
+branches. The companion examples now turn those centerlines into printable
+round-ended outlines. Plant demonstrates asymmetric, tapered fabrication geometry;
+Canopy keeps the classic binary tree symmetric for comparison.
 
-### Dragon, Hilbert, Peano, and Gosper curves
+### Dragon, Hilbert, Lévy, and Gosper curves
 
 These curves are visually strong and good stress tests for recursion and command
-length. Most are naturally open centerline curves, so they are better future
-examples after LogoSC has a stroke renderer or a documented `offset()` workflow
-for thickened paths.
+length. The gallery thickens them with its example-owned stroke renderer. Hilbert
+shows orthogonal space filling, Dragon shows folding through non-drawing variables,
+Gosper fills a hexagonal region with two drawing symbols, and the four-sided Lévy
+frame shows how changing only the axiom can make one rewrite rule occupy space much
+more effectively.
 
 ## Examples that should not use L-systems
 
@@ -148,13 +154,17 @@ When in doubt, reduce depth first.
 
 ## Current implementation stance
 
-For now:
-
-- keep L-system helpers in `LogoSC-Examples.scad` or example-specific files;
-- do not add new core LogoSC opcodes for L-systems;
-- do not make L-system rewriting part of `RenderLogo2D()`;
-- prefer closed-boundary examples that work with LogoSC's current region model;
-- defer open centerline examples until stroke/open-path rendering is designed.
+- Keep grammar rewriting in the optional companion and add no Core opcodes.
+- Translate final symbols into ordinary LogoSC command lists.
+- Provide Koch, quadratic Koch, Hilbert, Dragon, Sierpiński, plant, Lévy C, Gosper, and canopy
+  presets in a centered 3-by-3 example gallery.
+- Render closed boundaries through normal Core APIs.
+- Give the known open examples explicit round-ended printable outlines in the
+  examples file, without presenting that example-owned renderer as a stable
+  general manufacturable stroke API in Core.
+- Keep tests and examples independent from the complete Foundation runner.
+- Defer all distribution manifests, storefront descriptions, package guides,
+  and archives until explicitly authorized.
 
 That keeps LogoSC focused: the core remains a 2D region generator, while L-systems
 serve as a compact way to generate interesting command lists.

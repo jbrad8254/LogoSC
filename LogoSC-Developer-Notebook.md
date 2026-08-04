@@ -99,6 +99,7 @@
 - [Printable Core cover models](#2026-08-03--printable-core-cover-models)
 - [Local SHEAR command](#2026-08-03--local-shear-command)
 - [L-system, knot, and release sequence](#2026-08-03--l-system-knot-and-release-sequence)
+- [Optional L-system companion](#2026-08-03--optional-l-system-companion)
 - [2026.7 release preparation](#2026-07-31--20267-celtic-and-publishing-release-preparation)
 - [2026.7 publication checkpoint](#2026-08-01--20267-publication-and-tag-alignment-checkpoint)
 - [Journal-entry template](#yyyy-mm-dd--topic)
@@ -675,10 +676,10 @@ changes, verify links, headings, code examples, and retained accepted content.
 
 The active sequence is:
 
-1. **L-system companion:** create an optional, reusable L-system expansion and interpretation
-   layer with representative Koch, Hilbert, Dragon, Sierpiński, and plant examples. Include
-   deterministic non-rendering tests, a small gallery, and focused public documentation.
-2. **Knot completion:** complete the agreed remaining generator milestones in
+1. **L-system companion — development complete:** the reusable expansion and interpretation
+   layer, nine presets, deterministic tests, 3-by-3 gallery, and public documentation are implemented.
+   Distribution integration remains deferred until explicitly authorized.
+2. **Knot completion — next:** complete the agreed remaining generator milestones in
    `LogoSC-Knots-Design.md`, then either implement or explicitly defer each residual collision,
    closure, Celtic, ribbon, export, and presentation item. Knot topology and manufacturing remain
    outside Core.
@@ -3876,6 +3877,35 @@ Verification:
 - Keep the active roadmap synchronized across the root README, project README, Future Ideas, and
   knot design. Preserve older dated decisions as history rather than rewriting them.
 
+### 2026-08-03 — Optional L-system companion
+
+Context:
+
+- `LogoSC-Examples.scad` already contained small example-local rewrite helpers, while the selected
+  roadmap called for a reusable companion comparable to the knot and fastener source sets.
+- Distribution work was explicitly deferred until separately authorized.
+
+Decision:
+
+- Add standalone `LogoSC-LSystems.scad` with integer-symbol grammar records, deterministic rule
+  expansion, action-based interpretation into ordinary LogoSC commands, accessors, validation,
+  and named Koch, quadratic Koch, Hilbert, Dragon, Sierpiński, plant, Lévy C, Gosper, and canopy
+  constructors.
+- Add a Customizer examples file, passive deterministic tests, and an independent test runner.
+  Closed systems use `RenderLogo2D()` and native extrusion. The examples give naturally open
+  systems explicit round-ended printable outlines while keeping that renderer example-owned
+  rather than defining a premature stable stroke API in Core.
+- Keep the earlier helpers temporarily embedded in `LogoSC-Examples.scad` so existing generated
+  distributions do not acquire an undeclared dependency before the authorized packaging phase.
+- Add a public companion guide and update general repository documentation, but do not edit
+  publishing manifests, package-specific guides, storefront descriptions, or archives.
+
+Verification:
+
+- Require warning-free individual and gallery CSG evaluation, CGAL STL exports for all closed
+  presets, visual review of filled and diagnostic systems, an independent companion PASS marker,
+  and the complete LogoSC acceptance wall.
+
 ## Index
 
 - **Affine transforms:** [design direction](#2026-07-27--preliminary-local-transform-design-direction),
@@ -3905,7 +3935,8 @@ Verification:
   [2026.6](#2026-07-31--20266-publication-and-next-development-checkpoint),
   [2026.7](#2026-08-01--20267-publication-and-tag-alignment-checkpoint)
 - **Roadmap:** [current roadmap](#12-current-roadmap), [open questions](#13-open-questions),
-  [L-system, knot, and release sequence](#2026-08-03--l-system-knot-and-release-sequence)
+  [L-system, knot, and release sequence](#2026-08-03--l-system-knot-and-release-sequence),
+  [optional L-system companion](#2026-08-03--optional-l-system-companion)
 - **Testing:** [regression risks](#11-testing-and-regression-risks),
   [automated result hierarchy](#2026-07-20--hierarchical-automated-test-results)
 - **Validation:** [path analysis](#2026-07-20--optional-path-analysis-and-validation),

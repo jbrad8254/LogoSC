@@ -36,8 +36,9 @@ be passed to `linear_extrude()` or `rotate_extrude()`.
   - [Choosing an entry point](#79-choosing-an-entry-point)
   - [Debug visualization](#710-debug-visualization)
   - [Path analysis and validation](#711-path-analysis-and-validation)
-  - [Optional knot companion](#712-optional-knot-companion)
-  - [OpenSCAD wrapper pattern](#713-openscad-wrapper-pattern)
+  - [Optional L-system companion](#712-optional-l-system-companion)
+  - [Optional knot companion](#713-optional-knot-companion)
+  - [OpenSCAD wrapper pattern](#714-openscad-wrapper-pattern)
 - [8. 3D printing workflow](#8-3d-printing-workflow)
 - [9. Segment-count controls](#9-segment-count-controls)
 - [10. Command reference](#10-command-reference)
@@ -82,6 +83,11 @@ LogoSC-Celtic-Large-Grids.scad     Large irregular Celtic grids and CELTIC word 
 LogoSC-Celtic-Large-Grids.md       Large-grid controls and measured timing guide.
 LogoSC-Knots-Tests.scad            Passive knot companion tests.
 LogoSC-Knots-Test-Runner.scad      Direct entry point for knot tests.
+LogoSC-LSystems.scad               Optional L-system grammar and interpretation companion.
+LogoSC-LSystems-Examples.scad      Selectable L-system examples and gallery.
+LogoSC-LSystems-Tests.scad         Passive deterministic L-system tests.
+LogoSC-LSystems-Test-Runner.scad   Direct entry point for L-system tests.
+LogoSC-LSystems-Guide.md           L-system companion usage and API guide.
 LogoSC-Experiments.scad            Experimental rendering and geometry workbench.
 LogoSC-OpenSCAD-Command-Line.md    Command-line testing, export, and PNG-preview guide.
 
@@ -1278,7 +1284,34 @@ The relationship helpers classify collinear and inter-contour contacts separatel
 self-intersection. The validator deliberately does not reject overlap between independent outer
 regions, because rendering separate regions may legitimately union them.
 
-### 7.12 Optional knot companion
+### 7.12 Optional L-system companion
+
+L-system rewriting remains outside Core. The optional companion expands integer-symbol grammars
+and interprets the final symbols as ordinary LogoSC commands:
+
+```scad
+include <LogoSC-Foundation-Core.scad>
+include <LogoSC-LSystems.scad>
+
+system = MakeKochLSystem();
+commands = LSystemCommands(system, depth = 2, size = 45);
+
+RenderLogo2D(commands);
+```
+
+Built-in constructors cover Koch, quadratic Koch, Hilbert, Dragon, Sierpiński, branching plant,
+Lévy C, Gosper, and symmetric canopy systems. `MakeLSystem()` and `MakeLSystemRule()` define custom
+deterministic grammars;
+`LSystemExpand()` returns rewritten symbols, while `LSystemInterpret()` performs the separate
+symbol-to-command stage.
+
+Closed grammars fit Core's filled-region model. Hilbert, Dragon, Lévy C, Gosper, plant, and canopy
+output are naturally open, so the companion examples construct explicit round-ended outlines for printable extrusion.
+That renderer remains example-owned rather than becoming a stable Core stroke API. See
+`LogoSC-LSystems-Guide.md` for record layouts, presets, width scaling, performance guidance, and
+testing.
+
+### 7.13 Optional knot companion
 
 Knot functionality remains outside Core. The companion stores one or more sampled 3D strands
 in a shared knot result, validates record structure and closure, provides preview-only
@@ -1770,7 +1803,7 @@ Choose `KnotExample = "BraidBundleGallery"` for the crossing-aware composition g
 Choose `KnotExample = "TwistGallery"` to compare untwisted, half-twist, and full-twist
 three-cord bundles. Component colors make the half-twist closure change visible.
 
-### 7.13 OpenSCAD wrapper pattern
+### 7.14 OpenSCAD wrapper pattern
 
 LogoSC intentionally remains a 2D geometry generator. Wrap its output with native
 OpenSCAD modules for final modeling:
