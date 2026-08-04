@@ -44,6 +44,11 @@ Gosper, plant, and canopy scenes are naturally open paths, so the examples conve
 into explicit round-ended printable outlines and extrude those outlines. This renderer belongs
 to the example file rather than Core.
 
+![Nine-model LogoSC L-system gallery rendered in OpenSCAD](images/l-system-gallery.png)
+
+*The centered 3-by-3 gallery: Koch, Quadratic Koch, Sierpiński; Hilbert, Dragon, Lévy C; Gosper,
+Plant, and Canopy.*
+
 ## Built-in systems
 
 Use `LSystemPreset(name)` or the named constructors. In the compact notation below, `F` and `G`
