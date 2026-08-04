@@ -25,6 +25,10 @@
 
 ### Added
 
+- Added focused contracts for seeded angle-jitter reproducibility and path-distance restoration
+  across `POP`, bringing the L-system suite to 25 passing tests.
+- Exported all nine L-system presets at their gallery defaults and verified that every STL has one
+  connected component with no boundary edges, non-manifold edges, or repeated-vertex facets.
 - Added seeded per-turn angle variation to the L-system examples, defaulting to plus-or-minus 10
   degrees for Plant and Canopy, with Customizer scopes for Off, Branching Only, or All Open Curves.
 - Documented reproducible angle jitter, why closed examples remain exact, and how future seeded

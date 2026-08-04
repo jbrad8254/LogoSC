@@ -162,7 +162,11 @@ When in doubt, reduce depth first.
 - Give the known open examples explicit round-ended printable outlines in the
   examples file, without presenting that example-owned renderer as a stable
   general manufacturable stroke API in Core.
-- Keep tests and examples independent from the complete Foundation runner.
+- Keep the 25-test focused suite and examples independent from the complete
+  Foundation runner. Cover seeded jitter reproducibility and branch path-distance
+  restoration as explicit example-renderer contracts.
+- Require every gallery-default STL to remain one closed, connected, manifold
+  surface without degenerate repeated-vertex facets.
 - Defer all distribution manifests, storefront descriptions, package guides,
   and archives until explicitly authorized.
 

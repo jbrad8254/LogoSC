@@ -70,14 +70,17 @@ function LSystemExampleAngleVariation(name) =
             ? LSystemAngleVariation
             : 0;
 
-function LSystemTurnJitter(variation, symbolIndex) =
+function LSystemTurnJitter(
+    variation,
+    symbolIndex,
+    randomSeed = LSystemRandomSeed) =
     variation <= 0
         ? 0
         : rands(
             -variation,
             variation,
             1,
-            LSystemRandomSeed + symbolIndex
+            randomSeed + symbolIndex
         )[0];
 
 function LSystemExampleDepth(name, requestedDepth) =

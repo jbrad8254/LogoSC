@@ -343,7 +343,14 @@ echo("symbols", len(symbols), "commands", len(commands));
 
 Run `LogoSC-LSystems-Test-Runner.scad` after companion changes. Its independent deterministic
 suite covers record validity, rewriting, interpretation, scaling, closed endpoints, and balanced
-branch stacks.
+branch stacks. It also verifies that identical angle-jitter seeds reproduce identical values and
+that `POP` restores accumulated path distance before the next tapered segment. The focused suite
+currently contains 25 tests.
+
+All nine presets have also been exported at their gallery defaults and inspected as STL triangle
+meshes. Each export formed one connected surface component with no boundary edges, non-manifold
+edges, or repeated-vertex facets. This is a useful structural printability check, but it does not
+replace slicer review for a particular nozzle, layer height, material, or scale.
 
 ## Scope boundary
 

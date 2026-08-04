@@ -1,5 +1,7 @@
 // Passive deterministic tests for LogoSC-LSystems.scad.
 
+use <LogoSC-LSystems-Examples.scad>
+
 function LSystemTestNearlyEqual(a, b, tolerance = 0.000001) =
     abs(a - b) <= tolerance;
 
@@ -167,12 +169,50 @@ function LSystemGeometryContractTestResults() =
         )
     ];
 
+function LSystemExampleContractTestResults() =
+    let(
+        jitterA = [for (index = [0 : 7]) LSystemTurnJitter(10, index, 1234)],
+        jitterB = [for (index = [0 : 7]) LSystemTurnJitter(10, index, 1234)],
+        jitterC = [for (index = [0 : 7]) LSystemTurnJitter(10, index, 4321)],
+        pathResult = LSystemStrokeEval(
+            [LSYS_F, LSYS_PUSH, LSYS_F, LSYS_POP, LSYS_F],
+            0,
+            10,
+            30,
+            0,
+            1,
+            1,
+            1,
+            stateGoto(0, 0, 0, 1)
+        ),
+        segments = pathResult[3]
+    )
+    [
+        LogoTestResult(
+            "L-system example angle jitter is seeded and reproducible",
+            jitterA == jitterB && jitterA != jitterC,
+            [jitterA, jitterB, jitterC]
+        ),
+        LogoTestResult(
+            "L-system example POP restores accumulated path distance",
+            len(segments) == 3
+            && segments[0][3] == 0
+            && segments[0][4] == 10
+            && segments[1][3] == 10
+            && segments[1][4] == 20
+            && segments[2][3] == 10
+            && segments[2][4] == 20,
+            segments
+        )
+    ];
+
 function LSystemAutomatedTestResults() =
     concat(
         LSystemPresetValidationTestResults(),
         LSystemRewriteTestResults(),
         LSystemInterpretationTestResults(),
-        LSystemGeometryContractTestResults()
+        LSystemGeometryContractTestResults(),
+        LSystemExampleContractTestResults()
     );
 
 function LSystemTestSuiteResult() =
