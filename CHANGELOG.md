@@ -19,6 +19,9 @@
 - Added linked tables of contents to Markdown documents over two estimated pages and
   alphabetical subject indexes to documents over ten estimated pages. Repository guidance now
   defines one estimated Markdown page as 500 words and requires this navigation to remain current.
+- Cleaned up the live roadmap after Mini packaging and affine commands were completed. The active
+  sequence is now the optional L-system companion, completion or explicit deferral of the
+  remaining knot roadmap, and then synchronized release preparation.
 
 ### Added
 

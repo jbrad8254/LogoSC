@@ -76,6 +76,11 @@ or AI image import. Callers must select dimensions and sampling appropriate for 
 Reserved strand fields and metadata allow later milestones to extend the representation without
 changing its established leading fields.
 
+The remaining knot milestone is scheduled immediately after the optional L-system companion and
+before the next release. “Finish” means completing the agreed remaining generators and making an
+explicit implement-or-defer decision for every residual item below; it does not require pulling
+knot-specific behavior into Core.
+
 ## How LogoSC is used
 
 The knot companion belongs to the LogoSC project, follows its record-oriented and deterministic
@@ -1061,6 +1066,13 @@ links where supported by the selected generator.
    - Add automatic crossing discovery and parity solving.
 7. **Medial planar graphs**
    - Generalize Celtic construction after tile topology is stable.
+8. **Knot completion and release boundary**
+   - Decide and record the disposition of tight-curve rejection, general collision discovery,
+     rectangular braid closure, random Celtic filling, explicit boundary maps, unified polygon
+     export, decorative borders, and bundled planar ribbons.
+   - Resolve or deliberately defer the remaining open questions, update focused tests and visual
+     galleries, run the independent knot suite and complete acceptance wall, and leave no
+     ambiguous “planned for this release” items before release preparation begins.
 
 Every milestone should include documentation, focused non-rendering tests, a small visual
 gallery, and a clean optional-companion boundary.

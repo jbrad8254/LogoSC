@@ -584,9 +584,15 @@ See `CHANGELOG.md`.
 
 ## Milestone roadmap
 
-- LogoSC-Foundation
-- LogoSC-Geometry
-- LogoSC-Language
-- LogoSC-Rendering
-- LogoSC-Fractals
-- LogoSC-1.0
+Completed foundations include the stable region evaluator, affine Logo state, validation
+companion, fastener examples, publishing suites, and the implemented knot generators and
+manufacturing outputs described above.
+
+The active milestone order is:
+
+1. optional L-system companion and examples;
+2. completion or explicit deferral of the remaining knot roadmap; and
+3. a synchronized, fully verified release.
+
+Stroke rendering, additional primitives, and other longer-term ideas remain outside this release
+sequence. See `LogoSC-Future-Ideas.md` for those non-commitments.

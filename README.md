@@ -588,10 +588,17 @@ Core's filled-region contract.
 
 ## Near-term roadmap
 
-- Expand optional validation only when additional topology policies provide clear value.
-- Keep knot topology and manufacturing features in the optional companion rather than Core.
-- Refine the generated publication suites from user feedback without forking the language.
-- Keep manufacturable stroke rendering as a separate API with explicit width, cap, and join semantics.
+1. Build the optional L-system companion, with a reusable expansion/interpreter boundary,
+   representative Koch, Hilbert, Dragon, Sierpiński, and plant examples, focused tests, and
+   documentation.
+2. Finish the planned knot-companion work. Complete the agreed remaining generator milestones,
+   close or explicitly defer residual manufacturing and topology items, and keep all knot logic
+   outside Core.
+3. Prepare and publish the next release only after the L-system and knot milestones form one
+   coherent, fully verified change set.
+
+Manufacturable stroke rendering, additional primitives, SVG workflow helpers, and optional
+validation policies remain later candidates rather than part of this release sequence.
 
 ## Requirements
 

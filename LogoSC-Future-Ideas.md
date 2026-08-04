@@ -3,20 +3,42 @@
 ## Table of Contents
 
 - [Purpose](#purpose)
-- [High Priority](#high-priority)
-- [Medium Priority](#medium-priority)
-- [Lower Priority](#lower-priority)
+- [Active Sequence](#active-sequence)
+- [Deferred High-Value Ideas](#deferred-high-value-ideas)
+- [Deferred Medium-Term Ideas](#deferred-medium-term-ideas)
+- [Deferred Lower-Priority Ideas](#deferred-lower-priority-ideas)
 - [Design Philosophy](#design-philosophy)
-- [2026.3 Feature Milestone](#20263-feature-milestone)
+- [Historical 2026.3 Feature Milestone](#historical-20263-feature-milestone)
 
 ## Purpose
 
-This document captures feature ideas and longer-term directions that are intentionally
-separate from the active roadmap. Items are not prioritized commitments.
+This document captures the selected active sequence plus feature ideas and longer-term directions.
+Only the Active Sequence is a current commitment; all later sections are deferred candidates.
 
 ---
 
-## High Priority
+## Active Sequence
+
+The authoritative near-term order is now:
+
+1. implement the optional L-system companion;
+2. finish the agreed knot-companion scope, explicitly deferring anything that is not required for
+   completion; and
+3. prepare the next synchronized release.
+
+The active details remain in `LogoSC-Developer-Notebook.md` and `LogoSC-Knots-Design.md`. Ideas
+elsewhere in this file do not preempt that sequence.
+
+### L-System Companion Library
+
+Keep L-systems outside the core library in an optional `LogoSC-LSystems.scad` companion. Include
+Koch, Hilbert, Dragon, Sierpiński, and plant examples. Define a reusable expansion and
+interpretation boundary, deterministic tests, a compact gallery, and documentation rather than
+leaving L-system logic embedded only in individual examples.
+
+---
+
+## Deferred High-Value Ideas
 
 ### Stroke Rendering
 
@@ -128,6 +150,10 @@ Status: accepted publication policy is now recorded in `LogoSC-Release-Manual.md
 design below remains as the proposal that led to the Mini, Core, Developer, Knots & Celtic, and
 Nuts & Bolts suite model.
 
+The implemented Mini suite fulfills the beginner-facing Starter direction. Do not create a
+second Starter dialect or independently evolving interpreter; refine Mini through the shared
+canonical Core implementation.
+
 Publish curated LogoSC editions for different audiences without creating independently evolving
 language forks. A command list written against a smaller edition must run unchanged in every
 larger edition.
@@ -180,7 +206,7 @@ geometry, Engineering analyzes and verifies it, and extensions solve specialized
 
 ---
 
-## Medium Priority
+## Deferred Medium-Term Ideas
 
 ### Additional Drawing Primitives
 
@@ -196,32 +222,15 @@ Candidate primitives:
 
 ---
 
-### Transformation Stack
+### Transform Commands — Resolved
 
-Investigate introducing transform stack operations rather than transformed variants of
-individual drawing commands.
+The canonical Logo state now provides the useful transform surface through `PUSH`/`POP`,
+`MOVE`/`GOTO`, `TURN`/`DIR`, `SCALE`, and `SHEAR`. A second matrix stack plus `TRANSLATE` and
+`ROTATE` aliases would duplicate existing Logo-style behavior, so this is no longer an active
+feature candidate.
 
-Possible operations:
-
-- PUSHMATRIX
-- POPMATRIX
-- TRANSLATE
-- ROTATE
-- SCALE
-
----
-
-### L-System Companion Library
-
-Keep L-systems outside the core library.
-
-Suggested module:
-
-```
-LogoSC-LSystems.scad
-```
-
-Include Koch, Hilbert, Dragon, Sierpiński, and plant examples.
+Advanced callers can convert canonical states with `LogoStateToAffine()` and
+`LogoAffineToState()` without adding a general matrix command to the language.
 
 ---
 
@@ -235,7 +244,7 @@ with native OpenSCAD responsible for 3D hull, Minkowski, boolean, and extrusion 
 
 ---
 
-## Lower Priority
+## Deferred Lower-Priority Ideas
 
 ### Performance
 
@@ -284,7 +293,7 @@ Avoid:
 
 ---
 
-## 2026.3 Feature Milestone
+## Historical 2026.3 Feature Milestone
 
 Release `2026.3` combines:
 

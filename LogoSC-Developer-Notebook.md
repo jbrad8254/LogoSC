@@ -98,6 +98,7 @@
 - [Printable Mini cover models](#2026-08-02--printable-mini-cover-models)
 - [Printable Core cover models](#2026-08-03--printable-core-cover-models)
 - [Local SHEAR command](#2026-08-03--local-shear-command)
+- [L-system, knot, and release sequence](#2026-08-03--l-system-knot-and-release-sequence)
 - [2026.7 release preparation](#2026-07-31--20267-celtic-and-publishing-release-preparation)
 - [2026.7 publication checkpoint](#2026-08-01--20267-publication-and-tag-alignment-checkpoint)
 - [Journal-entry template](#yyyy-mm-dd--topic)
@@ -327,10 +328,11 @@ Known open design issues:
   or spatial index.
 - README already includes a verified debug-overlay screenshot. Add another manual screenshot
   only if it teaches something the existing image does not.
-- Begin the upward-compatible LogoSC Starter package checkpoint with package boundaries,
-  teaching examples, and conformance criteria before considering a physically reduced library.
-- Keep tight-curve rejection, general collision discovery, and additional finished-plaque
-  options as later knot-companion candidates rather than expanding the 2026.6 release boundary.
+- Treat the existing Mini suite as the completed beginner-package direction; do not start a
+  second Starter dialect or interpreter.
+- Implement the optional L-system companion next, then finish the agreed knot-companion scope,
+  resolving or deliberately deferring tight-curve rejection, collision discovery, remaining
+  generators, and presentation/export options before release preparation.
 
 ---
 
@@ -671,24 +673,28 @@ changes, verify links, headings, code examples, and retained accepted content.
 
 ## 12. Current roadmap
 
-Near-term candidates:
+The active sequence is:
 
-- prototype the upward-compatible LogoSC Starter package, beginning with package boundaries,
-  teaching examples, and conformance criteria against the complete Core;
-- continue optional knot work only as focused later milestones; controlled half-turn bundle
-  twist, shared over/under motion, and explicit lane-closing permutations are complete;
-- keep future AI-assisted figurative-knot import outside Core: AI supplies an inspectable vector
-  blueprint, while deterministic companion code synthesizes and validates the actual routes;
-- expand optional validation only when additional topology policies provide clear value;
-- expand the non-rendering evaluator and validation suites alongside eventual open-path support;
-- measure generalized pairwise topology costs on real highly tessellated models before
-  considering optimization;
-- continue manufacturable stroke experiments separately from `RenderLogoDebug()` and
+1. **L-system companion:** create an optional, reusable L-system expansion and interpretation
+   layer with representative Koch, Hilbert, Dragon, Sierpiński, and plant examples. Include
+   deterministic non-rendering tests, a small gallery, and focused public documentation.
+2. **Knot completion:** complete the agreed remaining generator milestones in
+   `LogoSC-Knots-Design.md`, then either implement or explicitly defer each residual collision,
+   closure, Celtic, ribbon, export, and presentation item. Knot topology and manufacturing remain
+   outside Core.
+3. **Release:** after both milestones pass their focused suites and the complete acceptance wall,
+   synchronize distribution documentation, package manifests, release notes, version references,
+   images, and reproducible archives for the next release.
+
+Later candidates, outside this sequence:
+
+- manufacturable stroke rendering as a separate API from `RenderLogoDebug()` and
   `RenderLogo2D()`;
-- document recursion and generated command lists more fully;
-- continue L-system documentation and examples;
-- add CAD primitives only when they clearly reduce complexity; and
-- prepare a later milestone only after another coherent feature set is implemented and verified.
+- additional validation policies only when concrete topology use cases justify them;
+- topology-performance work only after measurement on highly tessellated real models;
+- additional CAD primitives only when they clearly reduce model complexity;
+- SVG workflow helpers and image-comparison regression testing; and
+- deterministic AI-assisted figurative-knot import from inspectable vector blueprints.
 
 ---
 
@@ -3841,6 +3847,35 @@ Verification:
 - Cover normal and debug dispatch, canonical state, primitive vertices, composition with `TURN`,
   command naming, malformed input, and the complete Foundation acceptance suite.
 
+### 2026-08-03 — L-system, knot, and release sequence
+
+Context:
+
+- The live roadmap still named a Starter package as the next checkpoint even though the Mini
+  suite now fulfills that beginner-facing role.
+- `LogoSC-Future-Ideas.md` still ranked unrelated longer-term candidates ahead of L-systems and
+  retained a redundant transform-stack proposal after canonical affine commands were complete.
+- The next development order was explicitly selected as L-systems, remaining knot work, then a
+  release.
+
+Decision:
+
+- Implement an optional L-system companion next, with a reusable expansion/interpreter boundary,
+  deterministic tests, representative examples, a compact gallery, and documentation.
+- Then complete the agreed remaining knot generators. For every residual collision, closure,
+  Celtic, ribbon, export, presentation, and open-question item, either implement it or record a
+  deliberate deferral before calling the knot milestone complete.
+- Begin release preparation only after the L-system and knot milestones pass their focused suites
+  and the complete acceptance wall. Defer distribution-document and package-manifest updates
+  until that release checkpoint.
+- Treat stroke rendering, additional primitives, SVG helpers, image comparison, and new
+  validation policies as later candidates outside this release sequence.
+
+Verification:
+
+- Keep the active roadmap synchronized across the root README, project README, Future Ideas, and
+  knot design. Preserve older dated decisions as history rather than rewriting them.
+
 ## Index
 
 - **Affine transforms:** [design direction](#2026-07-27--preliminary-local-transform-design-direction),
@@ -3869,7 +3904,8 @@ Verification:
 - **Releases:** [2026.5](#2026-07-29--20265-publication-and-next-development-checkpoint),
   [2026.6](#2026-07-31--20266-publication-and-next-development-checkpoint),
   [2026.7](#2026-08-01--20267-publication-and-tag-alignment-checkpoint)
-- **Roadmap:** [current roadmap](#12-current-roadmap), [open questions](#13-open-questions)
+- **Roadmap:** [current roadmap](#12-current-roadmap), [open questions](#13-open-questions),
+  [L-system, knot, and release sequence](#2026-08-03--l-system-knot-and-release-sequence)
 - **Testing:** [regression risks](#11-testing-and-regression-risks),
   [automated result hierarchy](#2026-07-20--hierarchical-automated-test-results)
 - **Validation:** [path analysis](#2026-07-20--optional-path-analysis-and-validation),
