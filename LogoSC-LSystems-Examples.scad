@@ -125,7 +125,8 @@ function LSystemExampleBounds(commands) =
         ];
 
 // Companion-example stroke evaluator result: [state, stack, branchLevel, segments].
-// Each segment is [fromPoint, toPoint, branchLevel]. This deliberately remains
+// Each segment is [fromPoint, toPoint, branchLevel, fromDistance, toDistance].
+// Distance is accumulated along the active path from the root. This deliberately remains
 // example-owned rather than becoming a general Core stroke API.
 function LSystemStrokeEval(
     symbols,
@@ -139,6 +140,7 @@ function LSystemStrokeEval(
     state,
     stack = [],
     branchLevel = 0,
+    pathDistance = 0,
     segments = []) =
     index >= len(symbols)
         ? [state, stack, branchLevel, segments]
@@ -150,37 +152,41 @@ function LSystemStrokeEval(
                 lowerLevelScale = branchLevel <= 1
                     ? lowerLevelLengthScale
                     : 1,
+                moveLength = step
+                    * symbolScale
+                    * lowerLevelScale
+                    * pow(branchStepCompensation, branchLevel),
                 nextState = stateMove(
                     state,
-                    step
-                        * symbolScale
-                        * lowerLevelScale
-                        * pow(branchStepCompensation, branchLevel)
+                    moveLength
                 ),
                 segment = [
                     [state[SX], state[SY]],
                     [nextState[SX], nextState[SY]],
-                    branchLevel
+                    branchLevel,
+                    pathDistance,
+                    pathDistance + moveLength
                 ]
             )
             LSystemStrokeEval(
                 symbols, index + 1, step, angle,
                 angleVariation,
                 branchStepCompensation, lowerLevelLengthScale, gScale, nextState,
-                stack, branchLevel, concat(segments, [segment])
+                stack, branchLevel, pathDistance + moveLength,
+                concat(segments, [segment])
             )
             : symbol == LSYS_f
-                ? LSystemStrokeEval(
+                ? let(
+                    moveLength = step
+                        * (branchLevel <= 1 ? lowerLevelLengthScale : 1)
+                        * pow(branchStepCompensation, branchLevel)
+                )
+                LSystemStrokeEval(
                     symbols, index + 1, step, angle,
                     angleVariation,
                     branchStepCompensation, lowerLevelLengthScale, gScale,
-                    stateMove(
-                        state,
-                        step
-                            * (branchLevel <= 1 ? lowerLevelLengthScale : 1)
-                            * pow(branchStepCompensation, branchLevel)
-                    ),
-                    stack, branchLevel, segments
+                    stateMove(state, moveLength),
+                    stack, branchLevel, pathDistance + moveLength, segments
                 )
                 : symbol == LSYS_PLUS
                     ? let(turn = angle + LSystemTurnJitter(angleVariation, index))
@@ -189,7 +195,7 @@ function LSystemStrokeEval(
                         angleVariation,
                         branchStepCompensation, lowerLevelLengthScale, gScale,
                         stateTurn(state, turn),
-                        stack, branchLevel, segments
+                        stack, branchLevel, pathDistance, segments
                     )
                     : symbol == LSYS_MINUS
                         ? let(turn = angle + LSystemTurnJitter(angleVariation, index))
@@ -198,15 +204,16 @@ function LSystemStrokeEval(
                             angleVariation,
                             branchStepCompensation, lowerLevelLengthScale, gScale,
                             stateTurn(state, -turn),
-                            stack, branchLevel, segments
+                            stack, branchLevel, pathDistance, segments
                         )
                         : symbol == LSYS_PUSH
                             ? LSystemStrokeEval(
                                 symbols, index + 1, step, angle,
                                 angleVariation,
                                 branchStepCompensation, lowerLevelLengthScale, gScale, state,
-                                concat(stack, [[state, branchLevel]]),
+                                concat(stack, [[state, branchLevel, pathDistance]]),
                                 branchLevel + 1,
+                                pathDistance,
                                 segments
                             )
                             : symbol == LSYS_POP && len(stack) > 0
@@ -220,6 +227,7 @@ function LSystemStrokeEval(
                                         ? []
                                         : [for (i = [0 : len(stack) - 2]) stack[i]],
                                     saved[1],
+                                    saved[2],
                                     segments
                                 )
                                 : LSystemStrokeEval(
@@ -227,7 +235,7 @@ function LSystemStrokeEval(
                                     angleVariation,
                                     branchStepCompensation, lowerLevelLengthScale,
                                     gScale, state,
-                                    stack, branchLevel, segments
+                                    stack, branchLevel, pathDistance, segments
                                 );
 
 function LSystemStrokeSegments(name, depth, size) =
@@ -248,16 +256,6 @@ function LSystemStrokeSegments(name, depth, size) =
     )
     result[3];
 
-function LSystemStrokeBounds(segments) =
-    let(points = concat(
-        [for (segment = segments) segment[0]],
-        [for (segment = segments) segment[1]]
-    ))
-    [
-        min([for (point = points) point[1]]),
-        max([for (point = points) point[1]])
-    ];
-
 function LSystemStrokeExtentBounds(segments) =
     let(points = concat(
         [for (segment = segments) segment[0]],
@@ -274,18 +272,18 @@ function LSystemStrokeExtentBounds(segments) =
         ]
     ];
 
-function LSystemSegmentWidth(name, point, bounds) =
+function LSystemSegmentWidth(name, pathDistance, maximumPathDistance) =
     name == "Hilbert" || name == "Dragon"
         ? LSystemStrokeWidth * HilbertDragonWidthScale
         : name == "Plant"
             ? let(
-                height = bounds[1] == bounds[0]
+                progress = maximumPathDistance <= 0
                     ? 0
-                    : (point[1] - bounds[0]) / (bounds[1] - bounds[0])
+                    : pathDistance / maximumPathDistance
             )
             LSystemStrokeWidth
                 * PlantTrunkWidthScale
-                * pow(1 / PlantTrunkWidthScale, height)
+                * pow(1 / PlantTrunkWidthScale, progress)
             : LSystemStrokeWidth;
 
 module RenderLSystemRoundSegment2D(fromPoint, toPoint, fromWidth, toWidth)
@@ -303,15 +301,15 @@ module RenderLSystemRoundSegment2D(fromPoint, toPoint, fromWidth, toWidth)
 module RenderLSystemOpenStroke2D(name, depth, size)
 {
     segments = LSystemStrokeSegments(name, depth, size);
-    bounds = LSystemStrokeBounds(segments);
+    maximumPathDistance = max([for (segment = segments) segment[4]]);
 
     for (segment = segments)
     {
         RenderLSystemRoundSegment2D(
             segment[0],
             segment[1],
-            LSystemSegmentWidth(name, segment[0], bounds),
-            LSystemSegmentWidth(name, segment[1], bounds)
+            LSystemSegmentWidth(name, segment[3], maximumPathDistance),
+            LSystemSegmentWidth(name, segment[4], maximumPathDistance)
         );
     }
 }

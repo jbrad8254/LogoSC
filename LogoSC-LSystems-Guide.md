@@ -102,7 +102,7 @@ mean repeated forward steps, and repeated signs mean repeated turns.
 | `Dragon` | `FX`; `X -> X+YF+`; `Y -> -FX-Y`; `turn = 90°` | A folding curve generated mainly by non-drawing variables; orientation changes emerge from substitution. |
 | `Levy C` | `F++F++F++F`; `F -> +F--F+`; `turn = 45°` | The C-fold applied to all four sides of a square, creating a dense framed pattern rather than one wandering strand. |
 | `Gosper` | `F`; `F -> F-G--G+F++FF+G-`; `G -> +F-GG--G-F++F+G`; `turn = 60°` | A hexagonal space-filling curve with two mutually recursive drawing symbols and strong planar coverage. |
-| `Plant` | `X`; `X -> F[++FX][---FGX]`; `F -> FF`; `turn = 10°` | An asymmetric recursive Y tree demonstrating saved turtle states, deterministic taper, and print-oriented length compensation. |
+| `Plant` | `X`; `X -> F[++FX][---FGX]`; `F -> FF`; `turn = 10°` | An asymmetric recursive Y tree demonstrating saved turtle states, path-distance taper, and print-oriented length compensation. |
 | `Canopy` | `X`; `X -> F[+X][-X]`; `F -> FF`; `turn = 28°` | A symmetric binary tree that isolates classic branching behavior and contrasts with the asymmetric Plant. |
 
 The listed turn is the preset's base angle. The example renderer can optionally add seeded
@@ -245,11 +245,13 @@ filled-region renderer. The examples therefore hull circles along each generated
 an explicit round-ended outline, then extrude it. `LSystemStrokeWidth` controls the base width.
 Hilbert and Dragon default to `1.5` times that width.
 
-The plant defaults to ten times the base width at its trunk and tapers continuously with height
-to the original base width at the uppermost tips. Each segment is a hull between independently
-sized endpoint circles, avoiding thick terminal segments when a branch returns from `POP`. The
-grammar uses fixed step lengths and fixed turn angles; there is no random variation in its shape.
-The starting thickness is controlled by `PlantTrunkWidthScale`.
+The plant defaults to ten times the base width at its trunk and tapers continuously according to
+accumulated travel distance from the root. Every pushed branch saves and restores that distance
+along with turtle position and heading. A sideways or downward-growing tip therefore continues
+to become thinner as its path grows; its absolute Y coordinate has no effect on width. The longest
+root-to-tip path reaches the original base stroke width. Each segment is a hull between
+independently sized endpoint circles, and the starting thickness is controlled by
+`PlantTrunkWidthScale`.
 
 This is intentionally example-owned printable geometry for these known systems, not a stable
 general-purpose stroke-width, cap, or join API in Core.

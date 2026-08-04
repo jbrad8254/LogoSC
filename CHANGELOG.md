@@ -61,7 +61,7 @@
 ### Fixed
 
 - Increased the printable L-system plant trunk from two to four times the base stroke width and
-  changed its stroke to a continuous height-based taper with fixed lengths and angles, preventing
+  changed its stroke to a continuous taper, preventing
   upper continuation and terminal segments from returning to trunk-like thickness.
 - Revised the Plant preset into three recursive asymmetric Y-shaped levels, with a slightly
   longer 40-degree right branch and a shorter 30-degree left branch at every fork.
@@ -86,6 +86,8 @@
   duplicate Dragon depth adjustment that centered depth-eight geometry using depth-ten bounds.
 - Reduced the Plant's movement geometry by 30 percent in both planar dimensions while preserving
   its absolute printable stroke widths.
+- Corrected the Plant taper to use accumulated root-to-segment path distance rather than absolute
+  Y position, so sideways and downward terminal branches no longer remain artificially thick.
 
 - Enlarged the filled Sierpiński example's smallest triangles by approximately 10% so adjacent
   regions overlap instead of meeting only at non-printable point contacts.
