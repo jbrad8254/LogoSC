@@ -11,8 +11,35 @@ Changing a rule or expansion depth creates a coherent family of related parts wi
 each branch or edge separately. For regular grids, fixed hole patterns, and other simple
 repetition, an OpenSCAD loop or ordinary LogoSC command list is usually clearer.
 
+## Classic computing and modern AI
+
+In classic computer science and computer graphics, L-systems are best known as compact parallel
+rewriting systems that turn a small grammar into complex recursive structure. They became useful
+examples in formal-language theory, fractal and space-filling-curve generation, turtle graphics,
+procedural modeling, and especially the simulation and visualization of plant development. The
+classic graphics workflow is the same separation used by this companion: first rewrite a symbol
+string, then interpret it as turtle commands. Early work also introduced stochastic L-systems to
+generate related but nonidentical specimens from one grammar. See Prusinkiewicz's
+[graphical applications of L-systems](https://algorithmicbotany.org/papers/graphical.gi86.html),
+[applications to computer imagery](https://algorithmicbotany.org/papers/applications-of-l-systems-to-computer-imagery.html),
+and the later review of
+[L-systems as visual plant models](https://algorithmicbotany.org/papers/l-sys.csiro96.html).
+
+L-systems are not a mainstream modern AI architecture: an ordinary L-system has fixed symbolic
+rules, no learned weights, and no built-in mechanism for fitting itself to data. Neural networks,
+transformers, and diffusion models are designed around statistical learning and optimization,
+whereas an L-system is primarily an explicit procedural generator. Its modern AI role is therefore
+usually hybrid: AI can infer a compact grammar from an image, choose rule parameters, or guide the
+random decisions of a procedural model. For example, Guo and colleagues use deep learning while
+[inferring L-system representations of branching images](https://www.cgmi.uni-konstanz.de/publikationen/Guo2020InverseProceduralModeling/index.html),
+and Ritchie and colleagues use neural networks to guide random choices in
+[procedural graphics programs](https://arxiv.org/abs/1603.06143), including L-system-like models.
+The useful division of labor is that AI handles uncertain recognition or search, while the
+L-system supplies a compact, editable, and exactly reproducible structure.
+
 ## Table of contents
 
+- [Classic computing and modern AI](#classic-computing-and-modern-ai)
 - [Quick start](#quick-start)
 - [Built-in systems](#built-in-systems)
 - [Data model](#data-model)
