@@ -1707,6 +1707,10 @@ function TestAffineTransformResultsLogo() =
     let(
         scaledMove = evalLogo([[SCALE, 2, 3], [MOVE, 10]]),
         scaledMoveState = ResultState(scaledMove),
+        sheared = evalLogo([[SHEAR, 0.5]]),
+        shearedState = ResultState(sheared),
+        shearedRect = evalLogo([[SHEAR, 0.5], [RECT, 10, 4]]),
+        shearedRectPoints = RegionOuter(ResultContours(shearedRect)[0]),
         turned = evalLogo([[SCALE, 2, 1], [TURN, 45], [MOVE, 10]]),
         turnedState = ResultState(turned),
         reflected = evalLogo([[SCALE, -1, 1], [MOVE, 10]]),
@@ -1751,13 +1755,33 @@ function TestAffineTransformResultsLogo() =
             LogoAffineToState([[1, 2, 3], [2, 4, 5]]),
         debugResult = evalLogoDebug([[SCALE, 2, 1], [TURN, 45], [MOVE, 10]]),
         debugEnd =
-            ResultDebugSegments(debugResult)[len(ResultDebugSegments(debugResult)) - 1][DS_TO]
+            ResultDebugSegments(debugResult)[len(ResultDebugSegments(debugResult)) - 1][DS_TO],
+        shearDebugResult = evalLogoDebug([[SHEAR, 0.5], [TURN, 90], [MOVE, 10]]),
+        shearDebugEnd = ResultDebugSegments(shearDebugResult)[
+            len(ResultDebugSegments(shearDebugResult)) - 1
+        ][DS_TO],
+        malformedShear =
+            let($LogoSCSuppressErrors = true)
+            evalLogo([[SHEAR]])
     )
     [
         LogoTestResult(
             "affine: two-axis SCALE transforms MOVE and state",
             LogoStateNearlyEqual(scaledMoveState, stateMake(20, 0, 0, 2, 3, 0)),
             scaledMoveState
+        ),
+        LogoTestResult(
+            "affine: SHEAR stores a local X-shear factor",
+            LogoStateNearlyEqual(shearedState, stateMake(0, 0, 0, 1, 1, 0.5)),
+            shearedState
+        ),
+        LogoTestResult(
+            "affine: SHEAR transforms primitive vertices",
+            LogoPointListsNearlyEqual(
+                shearedRectPoints,
+                [[4, -2], [6, 2], [-4, 2], [-6, -2]]
+            ),
+            shearedRectPoints
         ),
         LogoTestResult(
             "affine: TURN after anisotropic SCALE generates canonical shear",
@@ -1911,6 +1935,21 @@ function TestAffineTransformResultsLogo() =
             "affine: debug evaluator uses transformed MOVE geometry",
             LogoPointNearlyEqual(debugEnd, [10 * sqrt(2), 5 * sqrt(2)]),
             debugEnd
+        ),
+        LogoTestResult(
+            "affine: debug evaluator composes SHEAR with TURN",
+            LogoPointNearlyEqual(shearDebugEnd, [5, 10]),
+            shearDebugEnd
+        ),
+        LogoTestResult(
+            "affine: SHEAR command name is traceable",
+            CmdName(SHEAR) == "SHEAR",
+            CmdName(SHEAR)
+        ),
+        LogoTestResult(
+            "affine: malformed SHEAR is a no-op in soft-error mode",
+            LogoStateNearlyEqual(ResultState(malformedShear), stateMake(0, 0, 0, 1)),
+            ResultState(malformedShear)
         )
     ];
 

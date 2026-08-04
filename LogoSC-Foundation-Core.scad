@@ -22,6 +22,7 @@
 //     [DIR,    absoluteHeading]
 //     [SCALE,  scaleMultiplier]
 //     [SCALE,  scaleXMultiplier, scaleYMultiplier]
+//     [SHEAR,  xFactor]
 //     [GOTO,   x, y, heading]
 //
 //     [ARC,         radius, degrees[, segments]]
@@ -168,6 +169,7 @@ REGPOLY     = 13 + 0; // [REGPOLY, sides, radius[, rotation]]
 RECT        = 14 + 0; // [RECT, width, height]
 ROUNDEDRECT = 15 + 0; // [ROUNDEDRECT, width, height, radius[, segments]]
 HOLE        = 16 + 0; // [HOLE, cmds] attaches child contours to the latest region.
+SHEAR       = 17 + 0; // [SHEAR, xFactor]
 
 // Mathematical constants.
 LOGOT_PI = 3.141592653589793 + 0;
@@ -694,6 +696,18 @@ function DebugEvalScale(vCmd, state, stack, pen, segments, points) =
             points
         );
 
+function DebugEvalShear(vCmd, state, stack, pen, segments, points) =
+    (len(vCmd) <= CA1)
+        ? let(_err = SoftError("Malformed SHEAR command", vCmd))
+        DebugResult(state, stack, pen, segments, points)
+        : DebugAppendStationaryPoint(
+            stateShear(state, CmdArg(vCmd, CA1)),
+            stack,
+            pen,
+            segments,
+            points
+        );
+
 function DebugEvalPush(vCmd, state, stack, pen, segments, points) =
     DebugAppendStationaryPoint(state, concat(stack, [state]), pen, segments, points);
 
@@ -1000,6 +1014,8 @@ function DebugEvalOpcode(vCmd, state, stack, pen, segments, points, maxRec) =
         ? DebugEvalDir(vCmd, state, stack, pen, segments, points)
     : (vCmd[COP] == SCALE)
         ? DebugEvalScale(vCmd, state, stack, pen, segments, points)
+    : (vCmd[COP] == SHEAR)
+        ? DebugEvalShear(vCmd, state, stack, pen, segments, points)
     : (vCmd[COP] == GOTO)
         ? DebugEvalGoto(vCmd, state, stack, pen, segments, points)
     : (vCmd[COP] == RUN)
@@ -1538,6 +1554,14 @@ function stateScale(vState, scaleX, scaleY = undef) =
         vState[SH] + ((scaleX < 0) ? 180 : 0)
     );
 
+// Compose a local X shear: local [x,y] becomes [x + factor*y,y].
+function stateShear(vState, factor) =
+    StateComposeLocal(
+        vState,
+        [1, 0, factor, 1],
+        vState[SH]
+    );
+
 // Return the side of the heading vector used as the center of curvature.
 function ArcSign(degrees) =
     (degrees >= 0) ? 1 : -1;
@@ -1813,6 +1837,7 @@ function CmdName(op) =
     : (op == TURN)   ? "TURN"
     : (op == DIR)    ? "DIR"
     : (op == SCALE)  ? "SCALE"
+    : (op == SHEAR)  ? "SHEAR"
     : (op == GOTO)   ? "GOTO"
     : (op == RUN)    ? "RUN"
     : (op == PUSH)   ? "PUSH"
@@ -2058,6 +2083,22 @@ function EvalScale(vCmd, state, contours, stack, pen) =
                 stack,
                 pen
             );
+
+// Handle SHEAR.
+//
+// Composes a local X shear without moving the turtle.
+function EvalShear(vCmd, state, contours, stack, pen) =
+    (len(vCmd) <= CA1)
+        ? let(
+            _err = SoftError("Malformed SHEAR command", vCmd)
+        )
+        EvalResult(state, contours, stack, pen)
+        : EvalResult(
+            stateShear(state, CmdArg(vCmd, CA1)),
+            contours,
+            stack,
+            pen
+        );
 
 // Handle PUSH.
 //
@@ -2428,6 +2469,8 @@ function EvalOpcode(vCmd, state, contours, stack, pen, maxRec) =
         ? EvalDir(vCmd, state, contours, stack, pen)
     : (vCmd[COP] == SCALE)
         ? EvalScale(vCmd, state, contours, stack, pen)
+    : (vCmd[COP] == SHEAR)
+        ? EvalShear(vCmd, state, contours, stack, pen)
     : (vCmd[COP] == GOTO)
         ? EvalGoto(vCmd, state, contours, stack, pen)
     : (vCmd[COP] == RUN)

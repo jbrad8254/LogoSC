@@ -25,6 +25,7 @@ Compact LogoSC `2026.7` reference. Full docs:
 [`[DIR, absoluteHeading]`](LogoSC-User-Manual.md#dir)  [`[GOTO, x, y, heading]`](LogoSC-User-Manual.md#goto)
 [`[SCALE, uniform]`](LogoSC-User-Manual.md#scale)
 [`[SCALE, scaleX, scaleY]`](LogoSC-User-Manual.md#scale)
+[`[SHEAR, xFactor]`](LogoSC-User-Manual.md#shear)
 
 ## Closed geometry
 

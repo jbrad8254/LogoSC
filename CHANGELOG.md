@@ -22,6 +22,9 @@
 
 ### Added
 
+- Added `[SHEAR, xFactor]` as a backward-compatible opcode for composing a local X shear. The
+  normal evaluator, debug evaluator, tracing, state stack, affine conversion, tests, cheat sheet,
+  and user manual share the same transform semantics.
 - Added `LogoSC-Mini-Cover-Models.scad`, providing printable, Customizer-selectable LogoSC
   interpretations of all eight figures in the AI-generated Mini Thingiverse cover, including an
   `All` option that arranges the complete set on one build plate.

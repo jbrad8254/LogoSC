@@ -487,6 +487,7 @@ The current public API version is `2026.7`.
 [DIR,         absoluteHeading]
 [SCALE,       uniform]
 [SCALE,       scaleX, scaleY]
+[SHEAR,       xFactor]
 [GOTO,        x, y, heading]
 [ARC,         radius, degrees]
 [CIRCLE,      radius]

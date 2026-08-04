@@ -97,6 +97,7 @@
 - [Generated publication suites](#2026-07-31--generated-publication-suites-and-thingiverse-materials)
 - [Printable Mini cover models](#2026-08-02--printable-mini-cover-models)
 - [Printable Core cover models](#2026-08-03--printable-core-cover-models)
+- [Local SHEAR command](#2026-08-03--local-shear-command)
 - [2026.7 release preparation](#2026-07-31--20267-celtic-and-publishing-release-preparation)
 - [2026.7 publication checkpoint](#2026-08-01--20267-publication-and-tag-alignment-checkpoint)
 - [Journal-entry template](#yyyy-mm-dd--topic)
@@ -3814,10 +3815,37 @@ Verification:
   `All` output, visual review of the combined layout, verified nonnegative Z bounds, and a
   successful staged Core package build.
 
+### 2026-08-03 — Local SHEAR command
+
+Context:
+
+- Canonical Logo state and affine conversion already preserve X shear, but authors could create
+  it only indirectly through compositions such as anisotropic `SCALE` followed by `TURN`.
+- This supersedes the 2026-07-27 follow-up that intentionally deferred an explicit opcode until
+  the underlying affine model had received more exercise.
+- `TURN`, `DIR`, `MOVE`, and `GOTO` already cover rotation and translation, so adding aliases for
+  those operations would expand the language without adding capability.
+
+Decision:
+
+- Add backward-compatible opcode 17 as `[SHEAR, xFactor]`. In the current local frame it maps
+  `[x, y]` to `[x + xFactor*y, y]` and does not move the turtle.
+- Use a dimensionless factor rather than an angle, matching the canonical state's shear field and
+  avoiding undefined tangent values. Authors who prefer an angle can explicitly use `tan(angle)`.
+- Compose shear locally through `StateComposeLocal()` so it follows the established postmultiply
+  semantics and works uniformly with movement, arcs, primitives, holes, recursion, and state
+  stack operations.
+
+Verification:
+
+- Cover normal and debug dispatch, canonical state, primitive vertices, composition with `TURN`,
+  command naming, malformed input, and the complete Foundation acceptance suite.
+
 ## Index
 
 - **Affine transforms:** [design direction](#2026-07-27--preliminary-local-transform-design-direction),
-  [implementation](#2026-07-27--canonical-local-affine-transforms)
+  [implementation](#2026-07-27--canonical-local-affine-transforms),
+  [local SHEAR command](#2026-08-03--local-shear-command)
 - **AI Engineering Kit:** [integration](#2026-07-18--ai-engineering-kit-integration),
   [directory cleanup](#2026-07-18--ai-engineering-kit-directory-cleanup)
 - **Command-line verification:** [workflow](#2026-07-20--openscad-command-line-verification-guide)

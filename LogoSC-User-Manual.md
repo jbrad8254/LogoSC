@@ -479,7 +479,7 @@ at the current state but do not move the state.
 ### 5.1 Relative drawing vs. absolute layout
 
 Prefer relative commands inside reusable command lists. Use `MOVE`, `TURN`,
-`ARC`, `RUN`, `REPEAT`, and `SCALE` when defining a shape that should inherit
+`ARC`, `RUN`, `REPEAT`, `SCALE`, and `SHEAR` when defining a shape that should inherit
 the caller's position, heading, and scale. Use `GOTO` and `DIR` primarily for
 layout, anchoring, and deterministic setup.
 
@@ -731,7 +731,7 @@ A matrix cannot distinguish equivalent headings such as `30`, `390`, and
 heading nearest that value.
 
 LogoSC transforms column-vector points as `worldPoint = matrix * localPoint`.
-Local `TURN` and `SCALE` commands use:
+Local `TURN`, `SCALE`, and `SHEAR` commands use:
 
 ```text
 newMatrix = currentMatrix * localOperation
@@ -1981,6 +1981,34 @@ part =
 ];
 ```
 
+### `SHEAR`
+
+Syntax:
+
+```scad
+[SHEAR, xFactor]
+```
+
+Composes a local X shear without moving the turtle. In the current local frame,
+each point `[x, y]` becomes `[x + xFactor*y, y]`. A positive factor shifts
+positive-Y points toward positive X; a negative factor shifts them toward
+negative X.
+
+The factor is a dimensionless slope rather than an angle. For an angle-like
+input, use `tan(angle)`, avoiding angles at which the tangent is undefined.
+`SHEAR` composes with the current transform and is saved and restored by
+`PUSH` and `POP`.
+
+Example:
+
+```scad
+italicPlate =
+[
+    [SHEAR, 0.35],
+    [ROUNDEDRECT, 30, 18, 3]
+];
+```
+
 ### `GOTO`
 
 Syntax:
@@ -2863,6 +2891,7 @@ control smoothness globally.
 - [`ROUNDEDRECT`](#roundedrect)
 - [`RUN`](#run)
 - [`SCALE`](#scale)
+- [`SHEAR`](#shear)
 - [`TURN`](#turn)
 - [`ValidateLogoPaths()`](#711-path-analysis-and-validation)
 - [Coordinate system](#5-coordinate-model)

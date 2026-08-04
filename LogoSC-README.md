@@ -215,6 +215,8 @@ See `LogoSC-CheatSheet.md` for a compact syntax summary and
 [TURN,        deltaHeading]
 [DIR,         absoluteHeading]
 [SCALE,       scaleMultiplier]
+[SCALE,       scaleXMultiplier, scaleYMultiplier]
+[SHEAR,       xFactor]
 [GOTO,        x, y, heading]
 
 [ARC,         radius, degrees[, segments]]
