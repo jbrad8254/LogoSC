@@ -27,6 +27,8 @@
 
 - Added an OpenSCAD-rendered image of the nine-model L-system gallery and embedded it in the
   public L-systems guide.
+- Expanded the L-systems guide with an annotated Quick Start constructor, explicit preset-name
+  versus constructor selection, and a worked depth-zero/depth-one Koch rewrite and interpretation.
 - Added deterministic Lévy C, Gosper, and symmetric canopy presets and expanded the L-system
   example gallery from six models to a centered 3-by-3 grid of nine.
 - Changed the Lévy C preset's axiom from one segment to a four-sided square frame, applying the

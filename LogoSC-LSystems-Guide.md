@@ -17,6 +17,7 @@ repetition, an OpenSCAD loop or ordinary LogoSC command list is usually clearer.
 - [Built-in systems](#built-in-systems)
 - [Data model](#data-model)
 - [Expansion and interpretation](#expansion-and-interpretation)
+- [Worked expansion: one Koch level](#worked-expansion-one-koch-level)
 - [Closed and open output](#closed-and-open-output)
 - [Performance](#performance)
 - [Scope boundary](#scope-boundary)
@@ -29,6 +30,8 @@ Keep `LogoSC-Foundation-Core.scad` and `LogoSC-LSystems.scad` together:
 include <LogoSC-Foundation-Core.scad>
 include <LogoSC-LSystems.scad>
 
+// Construct the Koch preset record: triangular axiom, F rewrite rule,
+// 60-degree turns, and the per-depth step divisor.
 koch = MakeKochLSystem();
 commands = LSystemCommands(koch, depth = 2, size = 45);
 
@@ -51,21 +54,29 @@ Plant, and Canopy.*
 
 ## Built-in systems
 
-Use `LSystemPreset(name)` or the named constructors. In the compact notation below, `F` and `G`
+There are two equivalent ways to select a built-in system:
+
+```scad
+kochByName = LSystemPreset("Koch");
+kochByConstructor = MakeKochLSystem();
+```
+
+`LSystemPreset(name)` expects one of the exact strings in the **Preset name** column below. The
+constructor column gives the direct function alternative. In the compact notation, `F` and `G`
 draw, `+` and `-` turn by the listed angle, brackets save and restore turtle state, and other
 letters are non-drawing grammar variables. Repeated signs mean repeated turns.
 
-| Example | Compact axiom and transforms | What it illustrates |
-|---|---|---|
-| Koch | `F--F--F`; `F -> F+F--F+F`; 60° | A triangular rule producing a closed snowflake boundary; the clearest introduction to substitution. |
-| Quadratic Koch | `F+F+F+F`; `F -> F-F+F+FF-F-F+F`; 90° | A closed, square-grid island contrasting with Koch's triangular geometry. |
-| Sierpinski | `F-G-G`; `F -> F-G+F+G-F`; `G -> GG`; 120° | Two drawing symbols cooperate to form a triangular recursive region; the printable example adds 10% overlap. |
-| Hilbert | `A`; `A -> +BF-AFA-FB+`; `B -> -AF+BFB+FA-`; 90° | A grid-aligned space-filling path whose variables organize motion without drawing. |
-| Dragon | `FX`; `X -> X+YF+`; `Y -> -FX-Y`; 90° | A folding curve generated mainly by non-drawing variables; orientation changes emerge from substitution. |
-| Lévy C | `F++F++F++F`; `F -> +F--F+`; 45° | The C-fold applied to all four sides of a square, creating a dense framed pattern rather than one wandering strand. |
-| Gosper | `F`; `F -> F-G--G+F++FF+G-`; `G -> +F-GG--G-F++F+G`; 60° | A hexagonal space-filling curve with two mutually recursive drawing symbols and strong planar coverage. |
-| Plant | `X`; `X -> F[++FX][---FGX]`; `F -> FF`; 10° | An asymmetric recursive Y tree demonstrating saved turtle states, deterministic taper, and print-oriented length compensation. |
-| Canopy | `X`; `X -> F[+X][-X]`; `F -> FF`; 28° | A symmetric binary tree that isolates classic branching behavior and contrasts with the asymmetric Plant. |
+| Preset name | Direct constructor | Compact axiom and transforms | What it illustrates |
+|---|---|---|---|
+| `Koch` | `MakeKochLSystem()` | `F--F--F`; `F -> F+F--F+F`; 60° | A triangular rule producing a closed snowflake boundary; the clearest introduction to substitution. |
+| `Quadratic Koch` | `MakeQuadraticKochLSystem()` | `F+F+F+F`; `F -> F-F+F+FF-F-F+F`; 90° | A closed, square-grid island contrasting with Koch's triangular geometry. |
+| `Sierpinski` | `MakeSierpinskiLSystem()` | `F-G-G`; `F -> F-G+F+G-F`; `G -> GG`; 120° | Two drawing symbols cooperate to form a triangular recursive region; the printable example adds 10% overlap. |
+| `Hilbert` | `MakeHilbertLSystem()` | `A`; `A -> +BF-AFA-FB+`; `B -> -AF+BFB+FA-`; 90° | A grid-aligned space-filling path whose variables organize motion without drawing. |
+| `Dragon` | `MakeDragonLSystem()` | `FX`; `X -> X+YF+`; `Y -> -FX-Y`; 90° | A folding curve generated mainly by non-drawing variables; orientation changes emerge from substitution. |
+| `Lévy C` | `MakeLevyCLSystem()` | `F++F++F++F`; `F -> +F--F+`; 45° | The C-fold applied to all four sides of a square, creating a dense framed pattern rather than one wandering strand. |
+| `Gosper` | `MakeGosperLSystem()` | `F`; `F -> F-G--G+F++FF+G-`; `G -> +F-GG--G-F++F+G`; 60° | A hexagonal space-filling curve with two mutually recursive drawing symbols and strong planar coverage. |
+| `Plant` | `MakePlantLSystem()` | `X`; `X -> F[++FX][---FGX]`; `F -> FF`; 10° | An asymmetric recursive Y tree demonstrating saved turtle states, deterministic taper, and print-oriented length compensation. |
+| `Canopy` | `MakeCanopyLSystem()` | `X`; `X -> F[+X][-X]`; `F -> FF`; 28° | A symmetric binary tree that isolates classic branching behavior and contrasts with the asymmetric Plant. |
 
 The gallery orders these rows as closed regions, space-filling and folding curves, then branching
 systems. Every open example is centered from its actual generated stroke bounds rather than from
@@ -133,6 +144,67 @@ custom = MakeLSystem(
 commands = LSystemCommands(custom, 3, 40);
 ```
 
+## Worked expansion: one Koch level
+
+The Koch preset is a useful small example because it has one drawing symbol and one rewrite rule.
+In compact notation its starting axiom and rule are:
+
+```text
+axiom: F--F--F
+rule:  F -> F+F--F+F
+angle: 60 degrees
+```
+
+At depth zero, nothing has been rewritten, so the symbol sequence is simply the triangular axiom:
+
+```text
+F--F--F
+```
+
+For depth one, the expander examines every symbol in that sequence at the same time. Each `F` is
+replaced by `F+F--F+F`. The `+` and `-` symbols have no rewrite rules, so they copy themselves.
+Writing `K = F+F--F+F` temporarily makes the result easier to see:
+
+```text
+K--K--K
+```
+
+Expanding that abbreviation gives:
+
+```text
+F+F--F+F--F+F--F+F--F+F--F+F
+```
+
+The axiom contained three drawing symbols; depth one contains 12 because the rule replaces every
+`F` with four new `F` symbols. Depth two repeats the same parallel operation on all 12 and
+contains 48 drawing symbols. In general, this preset has `3 * 4^depth` drawing segments.
+
+Expansion still produces symbols, not geometry. Interpretation is the separate next stage:
+
+- `F` becomes a forward LogoSC `MOVE` that draws one segment;
+- `+` becomes `TURN 60`; and
+- `-` becomes `TURN -60`.
+
+For `size = 45` at depth one, Koch's step divisor of `3` makes every forward step
+`45 / 3^1 = 15` units. The turn sequence walks all three rewritten sides and returns to the
+starting point, producing a closed region suitable for `RenderLogo2D()`.
+
+The corresponding calls are:
+
+```scad
+koch = MakeKochLSystem();
+depth0Symbols = LSystemExpand(koch, 0);
+depth1Symbols = LSystemExpand(koch, 1);
+depth1Commands = LSystemCommands(koch, depth = 1, size = 45);
+
+echo("depth 0 symbols", depth0Symbols);
+echo("depth 1 symbols", depth1Symbols);
+echo("depth 1 LogoSC commands", depth1Commands);
+```
+
+OpenSCAD prints the integer symbol constants used internally rather than the compact letters shown
+above, but the rewriting order and resulting command sequence are the same.
+
 ## Closed and open output
 
 LogoSC Core produces filled regions. A closed L-system boundary is therefore a normal LogoSC
@@ -158,11 +230,10 @@ longer right branch turns 30 degrees and advances one and a half. The printable 
 uses `G` for the final half-step on that arm. The grammar's `F -> FF` expansion would
 make each successive level one half the preceding length, so the printable example applies a
 `1.5` branch-step compensation for an exact net scale of three quarters. The example adds one
-level to the requested depth, up to four
-levels, producing 16 terminal tips at its default depth. `PUSH` and `POP` return
-both branches to
-the same fork point. The lengths and angles are fixed. Each recursive trunk section uses
-one base step, keeping the crown compact relative to its branches.
+level to the requested depth, up to four levels, producing 16 terminal tips at its default depth.
+`PUSH` and `POP` return both branches to the same fork point. The lengths and angles are fixed.
+Each recursive trunk section uses one base step, keeping the crown compact relative to its
+branches.
 
 To keep the Plant close in size to the other gallery models, the printable example halves the
 lengths at branch depths zero and one—the original trunk and first Y arms. This changes only
