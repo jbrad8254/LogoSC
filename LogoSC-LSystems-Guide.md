@@ -122,13 +122,30 @@ commands returned by `LSystemCommands()` remain mathematically unchanged.
 
 ## Data model
 
-A rule is `[symbol, replacementSymbols]` and is constructed with:
+A rule record has the general form `[symbol, replacementSymbols]`. Construct one with:
+
+```scad
+rule = MakeLSystemRule(symbol, replacementSymbols);
+```
+
+`symbol` is the single symbol to match during expansion. `replacementSymbols` is the list that
+replaces every matching occurrence during one parallel rewrite pass.
+
+For example, this concrete rule represents `F -> F+F`:
 
 ```scad
 rule = MakeLSystemRule(LSYS_F, [LSYS_F, LSYS_PLUS, LSYS_F]);
 ```
 
-An interpretation is `[symbol, action, multiplier]`:
+An interpretation record has the general form `[symbol, action, multiplier]` and is constructed
+with:
+
+```scad
+interpretation = MakeLSystemInterpretation(symbol, action, multiplier);
+```
+
+For example, these concrete interpretations make `F` draw forward and `+` turn by one positive
+multiple of the system's turn angle:
 
 ```scad
 draw = MakeLSystemInterpretation(LSYS_F, LSYS_ACTION_DRAW);
