@@ -6,7 +6,8 @@
   "thingiverseDescription": "publishing/descriptions/thingiverse-mini.md",
   "thingiverseCover": "publishing/images/thingiverse-mini-cover.png",
   "entryPoints": [
-    "LogoSC-Mini-Examples.scad"
+    "LogoSC-Mini-Examples.scad",
+    "LogoSC-Mini-Cover-Models.scad"
   ],
   "verification": [
     {
@@ -14,11 +15,20 @@
       "input": "LogoSC-Mini-Examples.scad",
       "defines": [],
       "requiredMarker": ""
+    },
+    {
+      "name": "mini-cover-smoke",
+      "input": "LogoSC-Mini-Cover-Models.scad",
+      "defines": [
+        "CoverModel=\\\"All\\\""
+      ],
+      "requiredMarker": ""
     }
   ],
   "files": [
     "LogoSC-Foundation-Core.scad",
     "LogoSC-Mini-Examples.scad",
+    "LogoSC-Mini-Cover-Models.scad",
     "publishing/docs/LogoSC-Mini-Guide.md",
     "publishing/docs/LogoSC-Mini-CheatSheet.md"
   ],

@@ -20,6 +20,17 @@
   alphabetical subject indexes to documents over ten estimated pages. Repository guidance now
   defines one estimated Markdown page as 500 words and requires this navigation to remain current.
 
+### Added
+
+- Added `LogoSC-Mini-Cover-Models.scad`, providing printable, Customizer-selectable LogoSC
+  interpretations of all eight figures in the AI-generated Mini Thingiverse cover, including an
+  `All` option that arranges the complete set on one build plate.
+- Added `LogoSC-Core-Cover-Models.scad`, providing printable interpretations of all eight figures
+  in the AI-generated Core cover, with individual and complete-set Customizer output.
+  The set includes a scalloped-cutout feature panel, connected radial fan, Koch-cutout plate,
+  thickened Peano curve, tapered astroid sculpture with a centered through-opening, slotted link,
+  perforated ring, and curvy `rotate_extrude()` wire spool. Every model rests at `Z=0`.
+
 ## [2026.7] - 2026-07-31
 
 This feature and publishing release adds irregular Celtic regions, large scalable Celtic

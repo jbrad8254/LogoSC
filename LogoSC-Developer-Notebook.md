@@ -95,6 +95,8 @@
 - [Suite release manual](#2026-07-31--suite-release-manual-and-single-repository-publishing)
 - [Development provenance](#2026-07-31--development-provenance-disclosure)
 - [Generated publication suites](#2026-07-31--generated-publication-suites-and-thingiverse-materials)
+- [Printable Mini cover models](#2026-08-02--printable-mini-cover-models)
+- [Printable Core cover models](#2026-08-03--printable-core-cover-models)
 - [2026.7 release preparation](#2026-07-31--20267-celtic-and-publishing-release-preparation)
 - [2026.7 publication checkpoint](#2026-08-01--20267-publication-and-tag-alignment-checkpoint)
 - [Journal-entry template](#yyyy-mm-dd--topic)
@@ -3764,6 +3766,54 @@ Application:
   had both required navigation structures.
 - Recorded the durable maintenance rule in `AGENTS.md`.
 
+### 2026-08-02 — Printable Mini cover models
+
+Context:
+
+- The AI-generated Mini Thingiverse cover intentionally served as promotional art rather than an
+  exact manufacturing render, but its eight visible objects prompted a request for real models.
+
+Decision:
+
+- Add one Customizer-driven `LogoSC-Mini-Cover-Models.scad` entry point with independently
+  exportable mounting plate, triangle, perforated ring, flower, washer, rotor, capsule, and thick
+  washer models, plus an `All` selection that arranges the complete set on one build plate.
+- Use explicit printable dimensions rather than pretending to recover dimensions from the image.
+- Keep every 2D profile in LogoSC. Use native OpenSCAD only for extrusion, repeated radial
+  placement, union, and shallow or through subtraction, consistent with the Core boundary.
+- Include the script and a dedicated smoke export in the Mini package manifest.
+
+Verification:
+
+- Require warning-free CSG exports for every selector value, CGAL STL exports for printable
+  meshes, visual review of the generated shapes, and a successful staged Mini package build.
+
+### 2026-08-03 — Printable Core cover models
+
+Context:
+
+- The AI-generated Core cover depicts eight advanced but plausible LogoSC objects without
+  defining exact dimensions or executable source.
+
+Decision:
+
+- Add `LogoSC-Core-Cover-Models.scad` with a feature panel, connected radial paddle fan,
+  Koch-cutout plate, thickened Peano curve, tapered astroid sculpture, slotted link, perforated
+  ring, and curvy wire spool.
+- Preserve the image as inspiration rather than claiming dimensional reconstruction. Express the
+  Peano curve through an L-system and the astroid and spool profile as sampled LogoSC paths.
+- Use native OpenSCAD only for ordinary extrusion, radial placement, subtraction, and the spool's
+  `rotate_extrude()` operation around LogoSC-generated regions. Keep every printable model based
+  at `Z=0`; taper the astroid's centered opening through its complete height.
+- Provide individual Customizer output plus an `All` layout and include a dedicated Core package
+  smoke export.
+
+Verification:
+
+- Require warning-free CSG exports for the focused selectors, CGAL STL exports for individual and
+  `All` output, visual review of the combined layout, verified nonnegative Z bounds, and a
+  successful staged Core package build.
+
 ## Index
 
 - **Affine transforms:** [design direction](#2026-07-27--preliminary-local-transform-design-direction),
@@ -3784,7 +3834,9 @@ Application:
   [twisted bundles](#2026-07-29--twisted-bundle-closure-and-component-tracing)
 - **Packaging and publishing:** [repository workflow](#8-repository-and-packaging-workflow),
   [suite release manual](#2026-07-31--suite-release-manual-and-single-repository-publishing),
-  [generated suites](#2026-07-31--generated-publication-suites-and-thingiverse-materials)
+  [generated suites](#2026-07-31--generated-publication-suites-and-thingiverse-materials),
+  [Mini cover models](#2026-08-02--printable-mini-cover-models),
+  [Core cover models](#2026-08-03--printable-core-cover-models)
 - **Public API:** [stable API](#4-stable-public-api)
 - **Releases:** [2026.5](#2026-07-29--20265-publication-and-next-development-checkpoint),
   [2026.6](#2026-07-31--20266-publication-and-next-development-checkpoint),

@@ -6,7 +6,9 @@ the larger suites.
 
 ## Open this first
 
-Open `LogoSC-Mini-Examples.scad` in OpenSCAD and select an example in the Customizer.
+Open `LogoSC-Mini-Examples.scad` in OpenSCAD and select an example in the Customizer. Open
+`LogoSC-Mini-Cover-Models.scad` to print any promotional-cover model individually or select `All`
+to load the complete eight-model set.
 
 ## Included documentation
 

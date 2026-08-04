@@ -4,6 +4,11 @@ LogoSC Mini turns short Logo-style movement commands into real OpenSCAD geometry
 includes five progressive Customizer examples: a triangle, flower, badge, mounting plate, and
 printable token.
 
+The download also includes `LogoSC-Mini-Cover-Models.scad`, which turns all eight ideas shown in
+the promotional cover into real, independently selectable models: a rounded mounting plate,
+triangle plaque, perforated ring, eight-petal flower, plain washer, eight-lobed rotor, capsule
+token, and thick washer. Choose `All` to place the complete set on one build plate.
+
 Extract the ZIP, open `LogoSC-Mini-Examples.scad`, choose an example, and preview. The included
 five-minute guide and compact command card teach movement, turns, arcs, repetition, primitives,
 holes, and extrusion without requiring the complete developer toolset.

@@ -6,7 +6,8 @@
   "thingiverseDescription": "publishing/descriptions/thingiverse-core.md",
   "thingiverseCover": "publishing/images/thingiverse-core-cover.png",
   "entryPoints": [
-    "LogoSC-Core-Examples.scad"
+    "LogoSC-Core-Examples.scad",
+    "LogoSC-Core-Cover-Models.scad"
   ],
   "verification": [
     {
@@ -14,11 +15,20 @@
       "input": "LogoSC-Core-Examples.scad",
       "defines": [],
       "requiredMarker": ""
+    },
+    {
+      "name": "core-cover-smoke",
+      "input": "LogoSC-Core-Cover-Models.scad",
+      "defines": [
+        "CoverModel=\\\"All\\\""
+      ],
+      "requiredMarker": ""
     }
   ],
   "files": [
     "LogoSC-Foundation-Core.scad",
     "LogoSC-Core-Examples.scad",
+    "LogoSC-Core-Cover-Models.scad",
     "LogoSC-User-Manual.md",
     "LogoSC-CheatSheet.md",
     "CHANGELOG.md",

@@ -3,6 +3,19 @@
 LogoSC Core is the complete stable drawing library for ordinary model authors. Basic use requires
 only `LogoSC-Foundation-Core.scad`.
 
+## Print the cover models
+
+`LogoSC-Core-Cover-Models.scad` turns the eight ideas in the AI-generated promotional cover into
+deliberately dimensioned printable models: a mixed-feature panel, radial paddle fan, Koch-cutout
+plate, thickened Peano curve, tapered astroid sculpture, slotted link, perforated ring, and curvy
+wire spool.
+Select one model in the Customizer and press **F6** before exporting it as STL. Select `All` to
+arrange the complete set on one sufficiently large build plate.
+
+The fan's enlarged hub joins all twelve paddles into one printable model. The astroid has a
+centered, tapered opening cut through its full height. The spool revolves a C-shaped LogoSC radial
+profile with holes through both curved flanges. Every model has its lowest surface at `Z=0`.
+
 ## Quick start
 
 ```scad

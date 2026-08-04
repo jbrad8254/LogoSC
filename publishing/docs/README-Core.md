@@ -7,7 +7,9 @@ composition.
 ## Open this first
 
 Open `LogoSC-Core-Examples.scad`, then select `Motif`, `Panel`, `Transformed`, or `Debug` in the
-Customizer. Include `LogoSC-Foundation-Core.scad` from your own models.
+Customizer. Open `LogoSC-Core-Cover-Models.scad` to print any of the eight promotional-cover
+models individually or choose `All` for the complete set. Include `LogoSC-Foundation-Core.scad`
+from your own models.
 
 ## Documentation
 
