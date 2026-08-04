@@ -70,21 +70,39 @@ Thus `Quadratic Koch` becomes `MakeQuadraticKochLSystem()`, and the deliberately
 `Levy C` becomes `MakeLevyCLSystem()`. These are named OpenSCAD functions, not constructor names
 assembled dynamically at runtime.
 
-In the compact notation, `F` and `G` draw, `+` and `-` turn by the listed angle, brackets save and
-restore turtle state, and other letters are non-drawing grammar variables. Repeated signs mean
-repeated turns.
+The angle shown in each preset row is the **turn angle** used by `+` and `-`; it is not an angle
+attached to `F`. For example, `turn = 60°` means `+` changes the current heading by positive 60
+degrees and `-` changes it by negative 60 degrees. Thus `--` turns by negative 120 degrees before
+the next movement. All turns are relative to the turtle's current heading.
 
-| Preset name | Compact axiom and transforms | What it illustrates |
+The companion's compact symbols mean:
+
+| Symbol | Meaning during expansion and interpretation |
+|---|---|
+| `F`, `G` | Drawing symbols. A rule may replace them during expansion; interpretation moves forward one calculated step while drawing. |
+| `f` | Non-drawing movement. It advances one calculated step with the pen up. |
+| `+` | Turn left/positive by the preset's turn angle; it does not move the turtle. |
+| `-` | Turn right/negative by the preset's turn angle; it does not move the turtle. |
+| `[` | Push the complete turtle state so a branch can start from the current point and heading. |
+| `]` | Pop the most recently saved state, returning to that branch point and heading. |
+| `A`, `B`, `X`, `Y` | Grammar variables. They can expand through rules but do not draw or move unless a custom interpretation assigns an action. |
+| `->` | Rewrite notation: replace the symbol on the left with the sequence on the right during each parallel expansion pass. |
+
+An **axiom** is the depth-zero starting sequence. Adjacent symbols execute from left to right after
+expansion, while every rewrite within one expansion pass happens in parallel. Repeated letters
+mean repeated forward steps, and repeated signs mean repeated turns.
+
+| Preset name | Compact axiom, rules, and turn angle | What it illustrates |
 |---|---|---|
-| `Koch` | `F--F--F`; `F -> F+F--F+F`; 60° | A triangular rule producing a closed snowflake boundary; the clearest introduction to substitution. |
-| `Quadratic Koch` | `F+F+F+F`; `F -> F-F+F+FF-F-F+F`; 90° | A closed, square-grid island contrasting with Koch's triangular geometry. |
-| `Sierpinski` | `F-G-G`; `F -> F-G+F+G-F`; `G -> GG`; 120° | Two drawing symbols cooperate to form a triangular recursive region; the printable example adds 10% overlap. |
-| `Hilbert` | `A`; `A -> +BF-AFA-FB+`; `B -> -AF+BFB+FA-`; 90° | A grid-aligned space-filling path whose variables organize motion without drawing. |
-| `Dragon` | `FX`; `X -> X+YF+`; `Y -> -FX-Y`; 90° | A folding curve generated mainly by non-drawing variables; orientation changes emerge from substitution. |
-| `Levy C` | `F++F++F++F`; `F -> +F--F+`; 45° | The C-fold applied to all four sides of a square, creating a dense framed pattern rather than one wandering strand. |
-| `Gosper` | `F`; `F -> F-G--G+F++FF+G-`; `G -> +F-GG--G-F++F+G`; 60° | A hexagonal space-filling curve with two mutually recursive drawing symbols and strong planar coverage. |
-| `Plant` | `X`; `X -> F[++FX][---FGX]`; `F -> FF`; 10° | An asymmetric recursive Y tree demonstrating saved turtle states, deterministic taper, and print-oriented length compensation. |
-| `Canopy` | `X`; `X -> F[+X][-X]`; `F -> FF`; 28° | A symmetric binary tree that isolates classic branching behavior and contrasts with the asymmetric Plant. |
+| `Koch` | `F--F--F`; `F -> F+F--F+F`; `turn = 60°` | A triangular rule producing a closed snowflake boundary; the clearest introduction to substitution. |
+| `Quadratic Koch` | `F+F+F+F`; `F -> F-F+F+FF-F-F+F`; `turn = 90°` | A closed, square-grid island contrasting with Koch's triangular geometry. |
+| `Sierpinski` | `F-G-G`; `F -> F-G+F+G-F`; `G -> GG`; `turn = 120°` | Two drawing symbols cooperate to form a triangular recursive region; the printable example adds 10% overlap. |
+| `Hilbert` | `A`; `A -> +BF-AFA-FB+`; `B -> -AF+BFB+FA-`; `turn = 90°` | A grid-aligned space-filling path whose variables organize motion without drawing. |
+| `Dragon` | `FX`; `X -> X+YF+`; `Y -> -FX-Y`; `turn = 90°` | A folding curve generated mainly by non-drawing variables; orientation changes emerge from substitution. |
+| `Levy C` | `F++F++F++F`; `F -> +F--F+`; `turn = 45°` | The C-fold applied to all four sides of a square, creating a dense framed pattern rather than one wandering strand. |
+| `Gosper` | `F`; `F -> F-G--G+F++FF+G-`; `G -> +F-GG--G-F++F+G`; `turn = 60°` | A hexagonal space-filling curve with two mutually recursive drawing symbols and strong planar coverage. |
+| `Plant` | `X`; `X -> F[++FX][---FGX]`; `F -> FF`; `turn = 10°` | An asymmetric recursive Y tree demonstrating saved turtle states, deterministic taper, and print-oriented length compensation. |
+| `Canopy` | `X`; `X -> F[+X][-X]`; `F -> FF`; `turn = 28°` | A symmetric binary tree that isolates classic branching behavior and contrasts with the asymmetric Plant. |
 
 The gallery orders these rows as closed regions, space-filling and folding curves, then branching
 systems. Every open example is centered from its actual generated stroke bounds rather than from

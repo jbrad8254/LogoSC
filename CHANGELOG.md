@@ -31,6 +31,8 @@
   versus constructor selection, and a worked depth-zero/depth-one Koch rewrite and interpretation.
 - Simplified the built-in-system table by moving direct constructors into a documented naming
   convention and showing the exact ASCII `Levy C` preset string with `MakeLevyCLSystem()`.
+- Added a compact L-system symbol legend and labeled every preset angle explicitly as the relative
+  turn used by `+` and `-`, including accumulated turns, drawing, movement, branching, and variables.
 - Added deterministic Lévy C, Gosper, and symmetric canopy presets and expanded the L-system
   example gallery from six models to a centered 3-by-3 grid of nine.
 - Changed the Lévy C preset's axiom from one segment to a four-sided square frame, applying the
