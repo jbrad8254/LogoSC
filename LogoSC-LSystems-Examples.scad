@@ -22,6 +22,15 @@ LSystemExample = "Gallery"; // [Gallery,Koch,QuadraticKoch,Hilbert,Dragon,Sierpi
 LSystemDepth = 3; // [0:1:5]
 LSystemSize = 48; // [10:1:120]
 
+/* [Seeded Angle Variation] */
+
+// Closed examples remain exact so their filled polygons still close.
+LSystemAngleVariationScope = "Branching Only"; // [Off,Branching Only,All Open Curves]
+// Each turn uses base angle +/- this many degrees.
+LSystemAngleVariation = 10; // [0:1:30]
+// The same seed reproduces the same model.
+LSystemRandomSeed = 1; // [0:1:10000]
+
 /* [Filled Output] */
 
 LSystemHeight = 3; // [0.5:0.5:12]
@@ -52,6 +61,24 @@ function LSystemExamplePresetName(name) =
 
 function LSystemExampleHeading(name) =
     name == "Plant" || name == "Canopy" ? 90 : 0;
+
+function LSystemExampleAngleVariation(name) =
+    LSystemAngleVariationScope == "All Open Curves"
+        ? LSystemAngleVariation
+        : LSystemAngleVariationScope == "Branching Only"
+            && (name == "Plant" || name == "Canopy")
+            ? LSystemAngleVariation
+            : 0;
+
+function LSystemTurnJitter(variation, symbolIndex) =
+    variation <= 0
+        ? 0
+        : rands(
+            -variation,
+            variation,
+            1,
+            LSystemRandomSeed + symbolIndex
+        )[0];
 
 function LSystemExampleDepth(name, requestedDepth) =
     name == "Plant" ? min(requestedDepth + 1, 4)
@@ -105,6 +132,7 @@ function LSystemStrokeEval(
     index,
     step,
     angle,
+    angleVariation,
     branchStepCompensation,
     lowerLevelLengthScale,
     gScale,
@@ -137,12 +165,14 @@ function LSystemStrokeEval(
             )
             LSystemStrokeEval(
                 symbols, index + 1, step, angle,
+                angleVariation,
                 branchStepCompensation, lowerLevelLengthScale, gScale, nextState,
                 stack, branchLevel, concat(segments, [segment])
             )
             : symbol == LSYS_f
                 ? LSystemStrokeEval(
                     symbols, index + 1, step, angle,
+                    angleVariation,
                     branchStepCompensation, lowerLevelLengthScale, gScale,
                     stateMove(
                         state,
@@ -153,22 +183,27 @@ function LSystemStrokeEval(
                     stack, branchLevel, segments
                 )
                 : symbol == LSYS_PLUS
-                    ? LSystemStrokeEval(
+                    ? let(turn = angle + LSystemTurnJitter(angleVariation, index))
+                    LSystemStrokeEval(
                         symbols, index + 1, step, angle,
+                        angleVariation,
                         branchStepCompensation, lowerLevelLengthScale, gScale,
-                        stateTurn(state, angle),
+                        stateTurn(state, turn),
                         stack, branchLevel, segments
                     )
                     : symbol == LSYS_MINUS
-                        ? LSystemStrokeEval(
+                        ? let(turn = angle + LSystemTurnJitter(angleVariation, index))
+                        LSystemStrokeEval(
                             symbols, index + 1, step, angle,
+                            angleVariation,
                             branchStepCompensation, lowerLevelLengthScale, gScale,
-                            stateTurn(state, -angle),
+                            stateTurn(state, -turn),
                             stack, branchLevel, segments
                         )
                         : symbol == LSYS_PUSH
                             ? LSystemStrokeEval(
                                 symbols, index + 1, step, angle,
+                                angleVariation,
                                 branchStepCompensation, lowerLevelLengthScale, gScale, state,
                                 concat(stack, [[state, branchLevel]]),
                                 branchLevel + 1,
@@ -178,6 +213,7 @@ function LSystemStrokeEval(
                                 ? let(saved = stack[len(stack) - 1])
                                 LSystemStrokeEval(
                                     symbols, index + 1, step, angle,
+                                    angleVariation,
                                     branchStepCompensation, lowerLevelLengthScale,
                                     gScale, saved[0],
                                     len(stack) <= 1
@@ -188,6 +224,7 @@ function LSystemStrokeEval(
                                 )
                                 : LSystemStrokeEval(
                                     symbols, index + 1, step, angle,
+                                    angleVariation,
                                     branchStepCompensation, lowerLevelLengthScale,
                                     gScale, state,
                                     stack, branchLevel, segments
@@ -202,6 +239,7 @@ function LSystemStrokeSegments(name, depth, size) =
         initialState = stateGoto(0, 0, LSystemExampleHeading(name), 1),
         result = LSystemStrokeEval(
             symbols, 0, step, LSystemAngle(system),
+            LSystemExampleAngleVariation(name),
             name == "Plant" ? PlantBranchStepCompensation : 1,
             name == "Plant" ? PlantLowerLevelLengthScale : 1,
             name == "Plant" ? 0.5 : 1,

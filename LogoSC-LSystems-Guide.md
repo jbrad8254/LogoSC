@@ -19,6 +19,7 @@ repetition, an OpenSCAD loop or ordinary LogoSC command list is usually clearer.
 - [Expansion and interpretation](#expansion-and-interpretation)
 - [Worked expansion: one Koch level](#worked-expansion-one-koch-level)
 - [Closed and open output](#closed-and-open-output)
+- [Seeded angle variation](#seeded-angle-variation)
 - [Performance](#performance)
 - [Scope boundary](#scope-boundary)
 
@@ -103,6 +104,9 @@ mean repeated forward steps, and repeated signs mean repeated turns.
 | `Gosper` | `F`; `F -> F-G--G+F++FF+G-`; `G -> +F-GG--G-F++F+G`; `turn = 60°` | A hexagonal space-filling curve with two mutually recursive drawing symbols and strong planar coverage. |
 | `Plant` | `X`; `X -> F[++FX][---FGX]`; `F -> FF`; `turn = 10°` | An asymmetric recursive Y tree demonstrating saved turtle states, deterministic taper, and print-oriented length compensation. |
 | `Canopy` | `X`; `X -> F[+X][-X]`; `F -> FF`; `turn = 28°` | A symmetric binary tree that isolates classic branching behavior and contrasts with the asymmetric Plant. |
+
+The listed turn is the preset's base angle. The example renderer can optionally add seeded
+variation to that base angle as described in [Seeded angle variation](#seeded-angle-variation).
 
 The gallery orders these rows as closed regions, space-filling and folding curves, then branching
 systems. Every open example is centered from its actual generated stroke bounds rather than from
@@ -266,6 +270,43 @@ lengths at branch depths zero and one—the original trunk and first Y arms. Thi
 their geometry; the 10-times trunk width and the rest of the continuous width taper are not
 scaled down. It also applies a `0.7` overall movement-length factor, reducing both planar
 dimensions by 30 percent without scaling any stroke widths.
+
+## Seeded angle variation
+
+`LogoSC-LSystems-Examples.scad` can vary individual turn magnitudes while keeping the result
+repeatable. For a base turn of 90 degrees and a variation of 10 degrees, every `+` uses a seeded
+value from positive 80 through 100 degrees, and every `-` uses the corresponding negative range.
+Each turn receives its own value, so two `+` symbols do not necessarily turn by the same amount.
+
+The Customizer controls are:
+
+| Control | Default | Meaning |
+|---|---:|---|
+| `LSystemAngleVariationScope` | `Branching Only` | `Off`, only `Plant` and `Canopy`, or `All Open Curves`. |
+| `LSystemAngleVariation` | `10` | Maximum plus-or-minus variation in degrees. Zero also disables variation. |
+| `LSystemRandomSeed` | `1` | Reproduces the same per-turn values; changing it produces another deterministic variant. |
+
+The default gives Plant and Canopy organic variation while leaving Hilbert, Dragon, Levy C, and
+Gosper exact. Select `All Open Curves` to experiment with those other open examples. Closed
+examples remain exact even in that mode because independently perturbed turns can prevent their
+last point from meeting their first point, invalidate a filled polygon, or defeat Sierpinski's
+deliberate printable overlap.
+
+This feature randomizes interpretation, not rewriting: the axiom, rules, expanded symbols, and
+segment count remain deterministic. Only the angle used when interpreting each `+` or `-` varies.
+For useful results, keep the variation smaller than the preset's base turn angle.
+
+Length variation would use the same general idea: multiply each forward step by a seeded factor,
+such as a value from `0.9` through `1.1` for plus-or-minus 10 percent. It is intentionally deferred
+for now. Independent step-length changes can distort closed endpoints, weaken intended overlaps,
+open gaps between features, and make minimum printable widths or clearances harder to predict.
+In a closed grammar, every substituted section is designed to have a precise net displacement and
+heading. Randomizing its individual segment lengths changes that displacement, so the next
+section will probably not begin where expected and the final endpoint may miss the starting point.
+Angle variation creates the same closure risk. A future closure-safe system would need correlated
+variation that perturbs a section's interior while constraining or solving its final endpoint and
+heading. For open branching models, branch-aware correlated length variation may eventually be
+more useful than unrelated jitter on every `F`.
 
 ## Performance
 

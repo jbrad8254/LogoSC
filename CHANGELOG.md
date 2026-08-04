@@ -25,6 +25,10 @@
 
 ### Added
 
+- Added seeded per-turn angle variation to the L-system examples, defaulting to plus-or-minus 10
+  degrees for Plant and Canopy, with Customizer scopes for Off, Branching Only, or All Open Curves.
+- Documented reproducible angle jitter, why closed examples remain exact, and how future seeded
+  length variation would affect geometry and printability.
 - Added an OpenSCAD-rendered image of the nine-model L-system gallery and embedded it in the
   public L-systems guide.
 - Expanded the L-systems guide with an annotated Quick Start constructor, explicit preset-name
