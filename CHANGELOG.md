@@ -16,6 +16,9 @@
 
 ### Documentation
 
+- Added a persistent OpenSCAD community-submission guide with researched official venues, staged
+  outreach, release prerequisites, AI provenance language, ready-to-adapt announcements, and a
+  possible official Libraries-page request.
 - Added linked tables of contents to Markdown documents over two estimated pages and
   alphabetical subject indexes to documents over ten estimated pages. Repository guidance now
   defines one estimated Markdown page as 500 words and requires this navigation to remain current.

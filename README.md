@@ -554,6 +554,8 @@ See `LogoSC-CheatSheet.md` and `LogoSC-User-Manual.md` for the complete command 
 - `CHANGELOG.md` — release history.
 - `docs/ai-engineering-kit/` — maintainer-facing Codex/Git quick start plus AI handoff,
   bootstrap, collaboration, engineering-preference, and retrospective documents.
+- `docs/OpenSCAD/OpenSCAD-Community-Submission-Guide.md` — recommended community venues,
+  submission sequence, AI disclosure, draft announcement text, and release-readiness checklist.
 - `publishing/` — package manifests, tailored documentation, Thingiverse descriptions and covers,
   and the verified multi-suite ZIP builder.
 
