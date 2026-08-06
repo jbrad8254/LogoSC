@@ -16,6 +16,9 @@
 
 ### Documentation
 
+- Added a planned C++20/CMake knot-compiler milestone with compatible generated `.scad` records,
+  pre-resolved SVG ribbons for accelerated OpenSCAD import and extrusion, optional later STL/3MF
+  output, fixture parity checks, and a 128-by-32 `LogoSC` benchmark target.
 - Added a persistent OpenSCAD community-submission guide with researched official venues, staged
   outreach, release prerequisites, AI provenance language, ready-to-adapt announcements, and a
   possible official Libraries-page request.

@@ -682,8 +682,10 @@ The active sequence is:
    Distribution integration remains deferred until explicitly authorized.
 2. **Knot completion — next:** complete the agreed remaining generator milestones in
    `LogoSC-Knots-Design.md`, then either implement or explicitly defer each residual collision,
-   closure, Celtic, ribbon, export, and presentation item. Knot topology and manufacturing remain
-   outside Core.
+   closure, Celtic, ribbon, export, and presentation item. The design roadmap now also records a
+   future C++20/CMake accelerator that can emit compatible `.scad` records and pre-resolved SVG
+   ribbons; it is not required to complete the current OpenSCAD release. Knot topology and
+   manufacturing remain outside Core.
 3. **Release:** after both milestones pass their focused suites and the complete acceptance wall,
    synchronize distribution documentation, package manifests, release notes, version references,
    images, and reproducible archives for the next release.
@@ -3957,6 +3959,33 @@ Verification:
 - Add focused harmonic evaluation, segment-intersection, adjacency, closure, crossing-record,
   and validation tests; require the knot companion and complete acceptance suites to pass.
 
+### 2026-08-05 — Planned C++ knot compiler and SVG acceleration
+
+Context:
+
+- Large Celtic word grids spend disproportionate time in OpenSCAD topology evaluation and
+  sampled capsule or ribbon construction.
+- A standalone compiler can use conventional indexed graphs and polygon algorithms while
+  preserving OpenSCAD as the modeling and presentation environment.
+
+Decision:
+
+- Add a future C++20/CMake knot compiler to the authoritative knot roadmap. Its first input is
+  the established textual Celtic tile grid.
+- Emit a generated `.scad` knot record for compatibility and diagnostics, plus an SVG whose
+  ribbon outlines and underpass gaps are already resolved for fast OpenSCAD import, extrusion,
+  vector editing, and laser-cutting workflows.
+- Prefer Clipper2 or another established polygon library. Consider direct binary STL or 3MF
+  swept-cord output only after the SVG path is implemented and benchmarked.
+- Treat compilation as an explicit pre-build step; OpenSCAD cannot launch the executable during
+  evaluation. Keep the existing pure-OpenSCAD companion usable without the external tool.
+
+Verification:
+
+- Compare component topology, route closure, crossings, bounds, and deterministic output with
+  existing fixtures. Benchmark the current large-grid set and a 128-by-32 `LogoSC` stress mask,
+  separating compiler, SVG import, and final export time.
+
 ## Index
 
 - **Affine transforms:** [design direction](#2026-07-27--preliminary-local-transform-design-direction),
@@ -3974,6 +4003,7 @@ Verification:
   [test suite](#2026-07-24--non-rendering-fastener-test-suite)
 - **Knot companion:** [first vertical slice](#2026-07-27--optional-knot-companion-first-vertical-slice),
   [Celtic grids](#2026-07-29--explicit-celtic-tile-grid-topology),
+  [C++ and SVG accelerator](#2026-08-05--planned-c-knot-compiler-and-svg-acceleration),
   [Lissajous knot](#2026-08-05--spatial-lissajous-knot-and-crossing-discovery),
   [ribbons](#2026-07-29--logosc-backed-planar-ribbons-and-underpass-masks),
   [twisted bundles](#2026-07-29--twisted-bundle-closure-and-component-tracing)
