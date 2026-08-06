@@ -50,6 +50,10 @@ do not assume it is the user's intended active clone unless the user explicitly 
 - Do not perform broad renames, redesign stable APIs, or remove historical notebook entries
   without an explicit decision.
 - Treat the AI Engineering Kit as maintainer-facing companion material, not LogoSC public API.
+- When LogoSC work reveals another OpenSCAD capability that materially improves AI-assisted
+  graphics development, extend the living note "OpenSCAD features that support AI-assisted
+  graphics development" in `LogoSC-Developer-Notebook.md`, including the corresponding lesson
+  for other graphics tools or editors.
 
 ## Verification and Delivery
 

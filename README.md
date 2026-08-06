@@ -31,8 +31,8 @@ LogoSC is not trying to be a full Logo language. It is a lightweight OpenSCAD ge
 - Provides a preview-only debug renderer for visualizing low-level path execution.
 - Provides optional path analysis and validation without changing filled-region rendering.
 - Provides an optional sampled-knot companion with structural validation, debug rendering,
-  torus knots or links, circular braids, Celtic grids, and spatial Lissajous knots with
-  discovered projected crossings.
+  torus knots or links, circular braids, Celtic grids, spatial Lissajous knots, planar
+  harmonics, and polar-rosette medallions with discovered projected crossings.
 - Leaves 3D composition to native OpenSCAD tools such as `linear_extrude()`, `difference()`, `union()`, and `translate()`.
 
 ## Engineering guidance and restart order
@@ -210,8 +210,8 @@ RenderKnotCordBundle(
 
 `MakeTorusKnot(p, q, ...)` returns one closed sampled strand when `p` and `q` are coprime.
 Otherwise it returns `gcd(p,q)` independently closed components. Open
-`LogoSC-Knots-Examples.scad` for the unknot, trefoil, Hopf-link, Lissajous, Celtic, and
-explicit-crossing examples.
+`LogoSC-Knots-Examples.scad` for the unknot, trefoil, Hopf-link, Lissajous, harmonic,
+polar-rosette, Celtic, and explicit-crossing examples.
 `RenderKnotCords()` converts every sampled strand into printable sphere-hulled capsules.
 The caller chooses cord radius, sphere resolution, and sampling density.
 `RenderKnotDebug()` remains the preview-only diagnostic view. The implemented bundle stage uses
@@ -235,7 +235,7 @@ Planar cord output projects a copy of the master samples before rendering or bun
 A flattened cord view can fuse where the projection crosses itself, so Planar manufacturing
 geometry is a comparison/design view rather than an automatic printable-knot guarantee.
 
-The torus, Lissajous, braid, Celtic-grid, and cord paths do not invoke LogoSC evaluation: sampling and
+The torus, Lissajous, harmonic, polar, braid, Celtic-grid, and cord paths do not invoke LogoSC evaluation: sampling and
 validation are pure OpenSCAD functions, and native OpenSCAD constructs the 3D capsules. The
 planar ribbon compiler now uses Core region records and `RenderRegion2D()` for footprints and
 crossing masks. See
@@ -283,6 +283,61 @@ examples for Debug, Cord, Bundle, Ribbon, Relief, or Plaque output, or choose
 `LissajousGallery` to compare the 2:3:5, 3:4:5, and 3:5:7 families.
 
 ![LogoSC Lissajous knot gallery](images/knot-lissajous-gallery.png)
+
+### Generate a planar harmonic knot
+
+`MakeHarmonicKnot()` sums any number of `[amplitude, frequency, phaseDegrees]` terms on each
+planar axis. It discovers proper self-crossings and solves the alternating over/under constraints
+around the complete closed route:
+
+```scad
+harmonic = MakeHarmonicKnot(
+    xTerms = [[17, 3, 0], [3, 7, 25]],
+    yTerms = [[17, 4, 17], [3, 5, -20]],
+    sampleCount = 240
+);
+
+ReportKnotValidation(harmonic, strict = true);
+RenderKnotRibbons2D(harmonic, ribbonWidth = 2.4, crossingClearance = 0.7);
+```
+
+Frequencies must be positive integers so every term closes over one period. The shared
+`SolveKnotAlternatingParity()` solver constrains the two branches of each crossing to be
+opposite and successive encounters along every strand to alternate. Contradictory projections
+are rejected instead of receiving misleading crossing labels. Choose `Harmonic` in
+`LogoSC-Knots-Examples.scad` to use the documented multi-term preset with any individual output.
+
+### Generate a polar-rosette knot
+
+Polar rosettes modulate a circular route with two radial harmonics while an integer winding
+controls how many times it travels around the center:
+
+```scad
+rosette = MakePolarRosetteKnot(
+    baseRadius = 18,
+    radialAmplitude = 5,
+    radialFrequency = 7,
+    radialPhase = 13,
+    secondaryAmplitude = 0.5,
+    secondaryFrequency = 14,
+    secondaryPhase = 37,
+    winding = 2,
+    sampleCount = 280
+);
+
+RenderKnotRibbons2D(rosette, ribbonWidth = 2.2, crossingClearance = 0.8);
+```
+
+The base radius must remain larger than the combined absolute radial amplitudes. Positive
+integer frequencies and winding close the route, while the shared parity solver assigns the
+proper projected crossings as a cyclic alternating diagram. Choose `PolarRosette` for any
+individual knot output or `RosetteGallery` for the five-, seven-, and sixteen-crossing ribbon
+medallions.
+
+The default ribbon traversal clips only the under-curve samples near each crossing. The original
+over-curve is never removed or reconstructed, so tightly curved rosettes remain continuous.
+
+![LogoSC polar-rosette knot gallery](images/knot-polar-rosette-gallery.png)
 
 ### Generate a circular braid closure
 
@@ -381,11 +436,12 @@ RenderKnotRibbons2D(
 ```
 
 `KnotRibbonRegions()` converts every sampled segment into a closed rounded capsule
-`MakeRegion()`. Crossing masks are expanded flat-ended bands aligned with the recorded over
-branch. The renderer subtracts those masks from the continuous ribbon union, then restores
-slightly longer normal-width bands. Their controlled overlap reconnects to the source route
-without exposing rounded capsule caps. Every region reaches OpenSCAD through LogoSC Core's
-`RenderRegion2D()`; native OpenSCAD performs only the final union and difference.
+`MakeRegion()`. At each recorded crossing, the default traversal clips only capsules local to the
+under-branch parameter. Its flat-ended cut is aligned with the over tangent and sized from the
+crossing angle, ribbon width, and clearance; the over branch remains untouched. Select
+`crossingMethod = "legacy-mask"` to compare the earlier whole-ribbon mask-and-restore path. Every
+region reaches OpenSCAD through LogoSC Core's `RenderRegion2D()`; native OpenSCAD performs only
+the final Boolean composition.
 
 ![LogoSC planar knot ribbons and underpass masks](images/knot-ribbon-gallery.png)
 
@@ -409,10 +465,10 @@ RenderKnotBasRelief(
 ```
 
 The masked ribbon forms the continuous base layer. Every recorded overpass is then extruded from
-`baseHeight` to `baseHeight + overpassHeight`. Restored flat-ended overpass footprints extend
-beyond their subtraction masks and overlap the source ribbon, eliminating both isolated
-oval-tab ends and curve-to-overpass gaps while retaining side clearance above the underpassing
-ribbon.
+`baseHeight` to `baseHeight + overpassHeight`. Restored overpasses follow the original sampled
+curve beyond their subtraction masks and overlap the source ribbon with matching end tangents,
+eliminating both isolated tabs and curve-to-overpass gaps while retaining side clearance above
+the underpassing ribbon.
 
 ![LogoSC printable knot bas-relief](images/knot-bas-relief-gallery.png)
 
@@ -554,7 +610,7 @@ See `LogoSC-CheatSheet.md` and `LogoSC-User-Manual.md` for the complete command 
 - `LogoSC-Nuts-And-Bolts.scad` — customizable printable fastener and thread-profile model.
 - `LogoSC-Nuts-And-Bolts-Tests.scad` — passive non-rendering fastener calculation tests.
 - `LogoSC-Nuts-And-Bolts-Test-Runner.scad` — direct entry point for the fastener test suite.
-- `LogoSC-Knots.scad` — optional knot records, Lissajous/torus/braid/Celtic generators, cords,
+- `LogoSC-Knots.scad` — optional knot records, harmonic/polar/Lissajous/torus/braid/Celtic generators, cords,
   ribbons, reliefs, and bundles.
 - `LogoSC-Knots-Examples.scad` — knot diagnostics plus cord, bundle, and braid galleries.
 - `LogoSC-Celtic-Large-Grids.scad` — selectable large irregular Celtic masks and CELTIC word.
@@ -605,7 +661,7 @@ a preview-only debug renderer and an optional validator that detects basic path 
 self-intersections, invalid hole containment, and overlapping holes. The companion exposes
 reusable segment, contour, containment, and region-relation helpers without adding them to Core.
 Manufacturable stroke/open-path rendering remains future work. The optional knot companion
-separately provides torus, Lissajous, braid, and Celtic-grid topology; rounded cords and
+separately provides torus, Lissajous, harmonic, polar, braid, and Celtic-grid topology; rounded cords and
 multi-cord bundles;
 LogoSC-backed planar ribbons; and printable beveled relief plaques. It does not change LogoSC
 Core's filled-region contract. The optional L-system companion expands deterministic grammars into

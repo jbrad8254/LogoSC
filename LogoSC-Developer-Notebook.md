@@ -3986,6 +3986,165 @@ Verification:
   existing fixtures. Benchmark the current large-grid set and a 128-by-32 `LogoSC` stress mask,
   separating compiler, SVG import, and final export time.
 
+### 2026-08-05 — Alternating parity and planar harmonic knots
+
+Context:
+
+- Spatial Lissajous knots derive crossing order from Z, but planned planar harmonic and polar
+  generators need explicit over/under assignment.
+- Alternation is a graph-coloring constraint: crossing branches must oppose each other, and
+  successive encounters along every strand must alternate cyclically.
+
+Decision:
+
+- Add `SolveKnotAlternatingParity()` with deterministic component coloring, multi-strand
+  traversal edges, closed-strand last-to-first constraints, and an inspectable validity result.
+- Add `AssignKnotAlternatingCrossings()` to apply valid branch colors while preserving the
+  established knot, strand, and crossing record layouts. Reject contradictory cycles.
+- Add `MakeHarmonicKnot()` for user-authored multi-term planar X and Y equations. Require
+  positive integer frequencies, discover proper projected intersections, and apply the shared
+  alternating solver automatically.
+- Keep explicit crossing overrides, duplicate merging near sampled vertices, and polar rosettes
+  as the remaining parts of the harmonic milestone.
+
+Verification:
+
+- Cover deterministic self-crossing assignment, empty diagrams, multi-strand odd-cycle
+  contradiction, harmonic term evaluation, exact closure, discovered crossings, alternation,
+  planarity, and shared knot validation. Require the individual harmonic example, knot suite,
+  and complete acceptance wall to pass without warnings.
+
+### 2026-08-06 — Polar-rosette knot generator
+
+Context:
+
+- The completed alternating-parity solver made the planned polar family a small, reusable
+  extension rather than another crossing implementation.
+- Lissajous routes read as harmonic loops; circular radial modulation offers a stronger Celtic
+  medallion silhouette while retaining analytic, deterministic construction.
+
+Decision:
+
+- Add `MakePolarRosetteKnot()` with a positive base radius, two amplitude/frequency/phase radial
+  harmonics, positive integer angular winding, sampling, and intersection tolerance.
+- Require the base radius to exceed the combined absolute amplitudes so the route remains a
+  positive-radius medallion. Phase-shift the primary term in standard presets to avoid
+  sample-vertex crossing degeneracies.
+- Reuse proper segment crossing discovery and `AssignKnotAlternatingCrossings()` without adding
+  generator-specific crossing semantics.
+- Add individual output plus a fixed planar ribbon gallery containing validated five-, seven-,
+  and sixteen-crossing medallions. Use a secondary radial amplitude of `0.5` for restrained
+  curvature shoulders. Restore crossing overpasses from the original sampled curve segments
+  instead of a straight tangent patch so both ends match the surrounding medallion. Generate the
+  gallery image from the actual OpenSCAD geometry.
+
+Verification:
+
+- Cover radial evaluation, angular conversion, exact planar closure, deterministic crossing
+  counts, cyclic alternation, alternate-preset stability, and shared validation. Require the
+  gallery, individual output, knot suite, and complete acceptance wall to pass without warnings.
+
+### 2026-08-06 — Event-local ribbon crossing traversal
+
+Context:
+
+- Whole-ribbon subtraction followed by overpass reconstruction produced boundary mismatches at
+  the shallow crossing angles in the sixteen-crossing rosette.
+
+Decision:
+
+- Preserve the earlier implementation as `crossingMethod = "legacy-mask"`.
+- Make `traversal` the default. Use recorded crossing events, clip only sampled capsules local to
+  the under parameter, and leave the over curve untouched.
+- Use an effectively infinite cutter parallel to the over tangent. Only its side boundaries set
+  the underpass ends; finite cutter ends must remain outside the complete strand bounds.
+- Build immutable cumulative arc-length lists because OpenSCAD has no mutable traversal cursor.
+  Use per-capsule CSG and explicit self-crossing parameter ownership because OpenSCAD has no path
+  splitting or conventional offset-curve API.
+- Treat polar rotational symmetry as a future explicit fast path: construct one `1 / N` sector
+  and rotate it, without imposing symmetry assumptions on general knots.
+
+Verification:
+
+- Visually inspect enlarged angled and top-down sixteen-crossing renders, add focused ownership
+  and cut-boundary contracts, and require both the knot suite and full acceptance suite to pass.
+
+### 2026-08-06 — OpenSCAD features that support AI-assisted graphics development
+
+Purpose:
+
+- Maintain a living record of OpenSCAD capabilities that make LogoSC easier to develop,
+  diagnose, verify, and document with an AI coding agent.
+- Translate those observations into design guidance for other graphics languages, editors, and
+  modeling systems. Extend this note whenever later LogoSC work reveals another useful feature.
+- Recognize that OpenSCAD's developers made unusually consequential choices for automation and
+  reproducibility, even where those choices were originally intended for ordinary human use.
+
+Capabilities that have materially helped:
+
+- **A complete command-line application.** `openscad.com` can compile a source file without GUI
+  interaction. Explicit input and output paths make runs scriptable, repeatable, and easy for an
+  agent to invoke. A graphics system intended for automation should expose the same operations as
+  its editor through a documented, noninteractive CLI.
+- **Several useful output forms from one source.** The `-o` target can request console-oriented
+  echo output, lightweight CSG smoke artifacts, preview PNGs, or manufacturing exports such as
+  STL. This supports a verification ladder: inexpensive semantic tests first, structural compile
+  checks second, visual inspection next, and expensive final geometry only when warranted.
+- **Machine-readable diagnostics in ordinary logs.** `echo()`, `assert()`, warnings, errors, and
+  assertion traces expose values and call paths without requiring a debugger protocol. LogoSC can
+  emit exact `LOGOSC_AUTOMATED_TEST_RESULT` records and distinguish a completed suite from a
+  compile that merely returned control. Other tools should support structured diagnostics—JSON
+  when possible—alongside readable text, stable severity labels, source locations, and nonzero
+  failure status.
+- **Deterministic headless image generation.** Image size, camera, projection, view-all,
+  autocenter, preview, and full-render controls allow documentation images and visual regressions
+  to be reproduced. This was essential for finding crossing artifacts that appeared only at a
+  particular scale or view. Graphics tools should make every viewport property serializable and
+  settable from the command line or API.
+- **Cheap preview and authoritative render paths.** Fast preview images enable iteration, while
+  CGAL-backed rendering and mesh export provide a stronger final check. Separating these costs
+  lets an agent gather evidence progressively instead of paying the maximum render cost after
+  every edit.
+- **Text source as the model of record.** `.scad` files are diffable, searchable, reviewable, and
+  reproducible without an opaque editor database. Includes, `use`, modules, and functions support
+  real library boundaries. AI-friendly graphics systems should retain a stable textual or fully
+  serializable representation even when a rich direct-manipulation editor is available.
+- **Functional, parameterized construction.** Immutable values, list comprehensions, named module
+  parameters, and deterministic evaluation make generated geometry inspectable and testable.
+  OpenSCAD's Customizer convention also turns top-level variables into a lightweight public UI
+  without creating a second model definition.
+- **Native CSG composition.** `union()`, `difference()`, `intersection()`, extrusion, hulls, and
+  transforms let LogoSC concentrate on 2D path semantics while delegating established solid
+  operations. A graphics language is easier to extend when small domain-specific generators can
+  compose with reliable general primitives rather than reimplementing the whole geometry stack.
+- **Source-compatible diagnostic geometry.** The same program can render centerlines, samples,
+  crossing markers, ribbons, relief, and final solids through selectable modes. Diagnostic views
+  that share the production inputs are substantially more trustworthy than screenshots recreated
+  in a separate debugging tool.
+- **Straightforward artifact capture.** Logs, PNGs, CSG files, and meshes are ordinary files that
+  can be archived, compared, embedded in documentation, or inspected by external programs. Tools
+  become easier for agents when outputs are addressable artifacts rather than transient canvas
+  state.
+
+OpenSCAD-specific friction is worth recording beside the advantages. CLI quoting for `-D` varies
+by shell; some failures require checking diagnostic content rather than trusting the process exit
+code alone; immutable recursion can make traversal algorithms verbose; and there is no native
+path-splitting, offset-curve, or structured test-runner API. These gaps suggest corresponding
+improvements for future systems: typed parameter transport instead of shell expressions,
+unambiguous exit semantics, structured test results, geometry-query APIs, and first-class path
+operations. They do not diminish the value of the automation surface OpenSCAD already provides.
+
+General guidance for AI-friendly graphics systems:
+
+1. make all editor operations available through a deterministic CLI or local API;
+2. accept explicit parameters without fragile shell quoting;
+3. expose structured errors, warnings, traces, measurements, and test results;
+4. support fast previews and authoritative renders from identical source and camera state;
+5. export ordinary image, vector, scene, and manufacturing artifacts;
+6. keep the source representation textual or losslessly serializable and friendly to diffs;
+7. provide diagnostic overlays and geometry queries without requiring GUI interaction; and
+8. make performance timing, caching behavior, and render mode visible enough to benchmark.
+
 ## Index
 
 - **Affine transforms:** [design direction](#2026-07-27--preliminary-local-transform-design-direction),
@@ -4002,11 +4161,15 @@ Verification:
 - **Fasteners:** [customizable fasteners](#2026-07-21--customizable-nuts-bolts-and-helical-thread-profiles),
   [test suite](#2026-07-24--non-rendering-fastener-test-suite)
 - **Knot companion:** [first vertical slice](#2026-07-27--optional-knot-companion-first-vertical-slice),
+  [alternating parity and harmonics](#2026-08-05--alternating-parity-and-planar-harmonic-knots),
   [Celtic grids](#2026-07-29--explicit-celtic-tile-grid-topology),
   [C++ and SVG accelerator](#2026-08-05--planned-c-knot-compiler-and-svg-acceleration),
   [Lissajous knot](#2026-08-05--spatial-lissajous-knot-and-crossing-discovery),
+  [polar rosettes](#2026-08-06--polar-rosette-knot-generator),
   [ribbons](#2026-07-29--logosc-backed-planar-ribbons-and-underpass-masks),
   [twisted bundles](#2026-07-29--twisted-bundle-closure-and-component-tracing)
+- **OpenSCAD:** [AI-assisted development features](#2026-08-06--openscad-features-that-support-ai-assisted-graphics-development),
+  [command-line verification](#2026-07-20--openscad-command-line-verification-guide)
 - **Packaging and publishing:** [repository workflow](#8-repository-and-packaging-workflow),
   [suite release manual](#2026-07-31--suite-release-manual-and-single-repository-publishing),
   [generated suites](#2026-07-31--generated-publication-suites-and-thingiverse-materials),

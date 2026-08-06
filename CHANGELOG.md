@@ -31,6 +31,19 @@
 
 ### Added
 
+- Replaced the default planar-knot crossing composition with an event-local traversal renderer:
+  only under-branch sample capsules are clipped, cut length follows the crossing angle and ribbon
+  widths, and the original over curve remains untouched. The prior renderer remains available as
+  `crossingMethod = "legacy-mask"`; polar rosette symmetry is recorded as a future one-sector
+  rotation optimization.
+- Added `MakePolarRosetteKnot()` with two phase-controlled radial harmonics, integer angular
+  winding, proper crossing discovery, alternating assignment, focused tests, an individual
+  example, and a generated three-medallion ribbon gallery. A restrained secondary harmonic and
+  event-local underpass traversal keep the medallion ribbons smooth through crossings.
+- Added `SolveKnotAlternatingParity()` and `AssignKnotAlternatingCrossings()` with deterministic
+  multi-strand parity coloring, closed-traversal constraints, and contradiction detection.
+- Added `MakeHarmonicKnot()` for closed multi-term planar harmonic curves with automatic proper
+  crossing discovery and alternating assignment, plus focused tests and a selectable example.
 - Added `MakeLissajousKnot()` with closed three-axis harmonic sampling, proper projected
   self-crossing discovery, interpolated route parameters, Z-derived over/under branches,
   focused tests, a selectable example supporting every existing knot output mode, and a

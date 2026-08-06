@@ -1334,7 +1334,8 @@ the last capsule closes the route exactly. The caller remains responsible for se
 radius, sampling density, and fragment count that preserve clearance and surface quality.
 Planar ribbons and controlled bundle twists are implemented; AI image import remains deferred.
 
-There is no hidden LogoSC evaluation in the generators. The torus, Lissajous, braid, and Celtic tile-grid
+There is no hidden LogoSC evaluation in the generators. The torus, Lissajous, harmonic, polar,
+braid, and Celtic tile-grid
 generators and `ValidateKnot()` are pure OpenSCAD functions, while `RenderKnotDebug()` and
 `RenderKnotCords()` use native OpenSCAD geometry. The planar ribbon compiler is the first knot
 stage that uses Core behind the scenes: it constructs `MakeRegion()` capsule footprints and
@@ -1349,8 +1350,9 @@ The opening Customizer sections separate scene selection from controls whose sco
 
 | `KnotExample` selection | `KnotOutput` | `KnotView` |
 |---|---|---|
-| `Unknot`, `Trefoil`, `HopfLink`, `Lissajous`, `CelticGrid`, `CrossingRecord` | Selects the individual renderer | Applies to Debug, Cord, and Bundle |
+| `Unknot`, `Trefoil`, `HopfLink`, `Lissajous`, `Harmonic`, `PolarRosette`, `CelticGrid`, `CrossingRecord` | Selects the individual renderer | Applies to Debug, Cord, and Bundle |
 | `CordGallery`, `BundleGallery`, `TwistGallery`, `LissajousGallery`, `BraidGallery`, `BraidBundleGallery`, `CelticGallery` | Ignored; the gallery has fixed cord output | Selects Planar or Spatial presentation |
+| `RosetteGallery` | Ignored; the gallery has fixed ribbon output | Ignored; this is a fixed planar scene |
 | `RibbonGallery`, `ReliefGallery`, `PlaqueGallery` | Ignored; the gallery has a fixed output | Ignored; these are fixed planar scenes |
 
 Individual Ribbon, Relief, and Plaque output also ignores `KnotView` and automatically projects
@@ -1412,6 +1414,67 @@ Relief, or Plaque output. Choose `LissajousGallery` to compare validated 2:3:5, 
 3:5:7 routes as spatial or planar cords.
 
 ![LogoSC Lissajous knot gallery](images/knot-lissajous-gallery.png)
+
+#### Planar harmonic knots and alternating parity
+
+`MakeHarmonicKnot()` accepts one or more `[amplitude, frequency, phaseDegrees]` terms for each
+axis:
+
+```scad
+harmonic = MakeHarmonicKnot(
+    xTerms = [[17, 3, 0], [3, 7, 25]],
+    yTerms = [[17, 4, 17], [3, 5, -20]],
+    sampleCount = 240
+);
+
+RenderKnotRibbons2D(harmonic, ribbonWidth = 2.4, crossingClearance = 0.7);
+```
+
+Positive integer frequencies close every term over one period. After proper projected segment
+intersections are discovered, `SolveKnotAlternatingParity()` treats every crossing branch as a
+parity node. Both branches of a crossing must be opposite, successive encounters on a strand
+must alternate, and the last and first encounters on a closed strand must also be opposite.
+The deterministic solver supports multiple strands and reports contradictory cycles.
+`AssignKnotAlternatingCrossings()` writes a valid solution back into crossing records;
+`MakeHarmonicKnot()` performs both operations automatically. Explicit crossing overrides and
+near-vertex duplicate merging remain future work.
+
+#### Polar-rosette knots
+
+`MakePolarRosetteKnot()` produces circular medallions by modulating radius with two cosine terms
+while an integer winding controls angular travel:
+
+```scad
+rosette = MakePolarRosetteKnot(
+    baseRadius = 18,
+    radialAmplitude = 5,
+    radialFrequency = 7,
+    radialPhase = 13,
+    secondaryAmplitude = 0.5,
+    secondaryFrequency = 14,
+    secondaryPhase = 37,
+    winding = 2,
+    sampleCount = 280
+);
+
+RenderKnotRibbons2D(rosette, ribbonWidth = 2.2, crossingClearance = 0.8);
+```
+
+Both radial frequencies and the winding are positive integers so the sampled route closes over
+one period. The base radius must exceed the combined absolute amplitudes, keeping every sampled
+radius positive. Degree phases rotate the radial waves relative to the sampling interval and to
+each other. The generator discovers proper crossings and applies the same deterministic
+alternating-parity solver as planar harmonic knots; contradictory parameter sets are rejected.
+
+The default ribbon traversal clips only sampled capsules local to an underpass event. It never
+removes or reconstructs the overpass, preserving the original rosette curvature without a flat
+crossing splice.
+
+Choose `KnotExample = "PolarRosette"` for Debug, Cord, Bundle, Ribbon, Relief, or Plaque output.
+Choose `RosetteGallery` for fixed planar ribbon medallions with five, seven, and sixteen
+crossings.
+
+![LogoSC polar-rosette knot gallery](images/knot-polar-rosette-gallery.png)
 
 #### Celtic tile grids
 
@@ -1501,19 +1564,14 @@ that contour in Core's `MakeRegion()`. Overlapping segment regions create a cont
 with rounded sampled joins. This segment-region representation avoids asking one self-crossing
 polygon contour to describe the entire ribbon.
 
-For every recorded crossing:
-
-1. the compiler finds the recorded over branch and its normalized parameter;
-2. it interpolates the branch center and planar tangent;
-3. `KnotRibbonCrossingMaskRegions()` constructs an expanded flat-ended band aligned with that
-   branch;
-4. the renderer subtracts all expanded masks from the continuous ribbon union;
-5. `KnotRibbonOverpassRegions()` restores slightly longer, normal-width, flat-ended bands.
-
-The white space beside a restored overpass is therefore a real geometric cut through the
-underpassing footprint. `crossingClearance` expands the mask radially beyond the normal ribbon
-half-width. Larger values create a more obvious gap but can remove too much material from tight
-patterns.
+For every recorded crossing, the default `traversal` method uses the existing branch parameters
+instead of searching again. It visits capsules near the under-branch parameter and clips only
+those capsules with a flat-ended rectangle aligned to the over tangent. The required length is
+derived from the local crossing angle, both ribbon radii, and `crossingClearance`. The over branch
+is never subtracted, including at a self-crossing on the same closed strand. Larger clearances
+create a more obvious gap but require a larger isolated crossing neighborhood. Select
+`crossingMethod = "legacy-mask"` to retain the earlier whole-ribbon mask and restored-overpass
+implementation for comparison.
 
 ![LogoSC planar knot ribbons and underpass masks](images/knot-ribbon-gallery.png)
 
@@ -1548,10 +1606,10 @@ model layout and tests. A hidden overlap of at most `0.01` joins raised overpass
 the base instead of leaving exactly coplanar touching shells; it does not change the external
 height.
 
-The restored overpass is deliberately longer than its expanded subtraction mask. Its flat ends
-overlap the uninterrupted source ribbon, so clearance remains visible along the sides of the
-crossing without leaving an isolated oval, a capsule-shaped tab, or a triangular gap where the
-next route section begins to curve.
+The restored overpass is deliberately longer than its expanded subtraction mask and follows the
+original sampled route. Its curved ends overlap the uninterrupted source ribbon with matching
+position and tangent, so clearance remains visible along the sides of the crossing without
+leaving an isolated oval, a straight splice, or a triangular gap where the route curves.
 
 ![LogoSC printable knot bas-relief](images/knot-bas-relief-gallery.png)
 
@@ -1617,7 +1675,8 @@ The example Customizer coordinates the three main tessellation costs with `KnotP
 | `Fine` | 2 | 48 | 20 |
 | `Custom` | `KnotRouteSampleScale` | `KnotCordFragments` | `KnotRibbonArcFragments` |
 
-Route sampling controls how closely torus, Lissajous, braid, and Celtic centerlines follow their
+Route sampling controls how closely torus, Lissajous, harmonic, polar, braid, and Celtic
+centerlines follow their
 mathematical curves. Cord fragments control round 3D cross-sections. Ribbon arc fragments
 control rounded sampled-segment ends, plaque corners, and bevel profiles. Increasing all three
 can substantially increase preview, CGAL, and STL costs.

@@ -54,6 +54,10 @@ remains responsible for extrusion, hulls, Minkowski operations, booleans, and 3D
   `gcd(p,q)` independently closed components for a torus link;
 - `MakeLissajousKnot()`, sampling three integer-frequency harmonic axes, discovering proper
   self-intersections in XY, and choosing over/under branches from interpolated Z;
+- `MakeHarmonicKnot()`, summing user-authored planar harmonic terms, discovering projected
+  crossings, and assigning a deterministic alternating diagram through parity constraints;
+- `MakePolarRosetteKnot()`, combining two radial harmonics with integer angular winding to
+  produce circular alternating knot medallions;
 - `RenderKnotCords()`, producing manufacturable round cords from sphere-hulled capsules with
   explicit radius and fragment controls;
 - `MakeKnotBundle()` and `RenderKnotCordBundle()`, expanding each master route into stable,
@@ -71,7 +75,7 @@ remains responsible for extrusion, hulls, Minkowski operations, booleans, and 3D
   footprints, raising crossing overpasses, and adding optional beveled backing plates;
 - selectable planar-projection and spatial views across diagnostics, cords, bundles, and
   presentation galleries;
-- a dedicated 94-result automated suite plus topology, bundle, twisted-bundle, braid,
+- a dedicated 113-result automated suite plus topology, bundle, twisted-bundle, braid,
   braided-bundle, Celtic tile-grid, ribbon, relief, and plaque presentation galleries.
 
 This slice deliberately does not implement general collision discovery, tight-curve rejection,
@@ -93,7 +97,8 @@ rendering do not call the LogoSC evaluator behind the scenes.
 The present execution path is:
 
 ```text
-MakeTorusKnot(), MakeLissajousKnot(), MakeCircularBraidKnot(), or MakeCelticTileGridKnot()
+MakeTorusKnot(), MakeLissajousKnot(), MakeHarmonicKnot(), MakePolarRosetteKnot(),
+MakeCircularBraidKnot(), or MakeCelticTileGridKnot()
   -> pure OpenSCAD functions calculate sampled strand and crossing records
   -> ValidateKnot() checks those records without producing geometry
   -> RenderKnotDebug() uses native color(), translate(), sphere(), and hull()
@@ -629,13 +634,19 @@ This boundary deliberately excludes random filling and substitution systems.
 
 ## Generator 4: harmonic and Lissajous curves
 
-The first spatial Lissajous slice is implemented as `MakeLissajousKnot()`. It accepts three
+The spatial Lissajous slice is implemented as `MakeLissajousKnot()`. It accepts three
 positive integer frequencies, three positive amplitudes, three degree phases, a sample count,
 and an intersection tolerance. The closed sampled route is compared pairwise in XY; adjacent
 segments, endpoints, parallel segments, and tangencies are excluded. Proper intersections
 record both route parameters, and interpolated Z determines the over branch. Equal-height
-crossings are rejected as ambiguous. The more general multi-term planar input and alternating
-parity solver described below remain planned.
+crossings are rejected as ambiguous.
+
+`MakeHarmonicKnot()` implements the general multi-term planar form below. Each term is
+`[amplitude, positiveIntegerFrequency, phaseDegrees]`. The generator samples a closed route,
+discovers proper self-crossings, builds traversal and crossing-opposition constraints, and
+requires the projection to admit a deterministic alternating assignment. Non-alternating
+constraint cycles are rejected. Duplicate merging near vertices remains deferred because the
+current proper-intersection policy excludes endpoints.
 
 Organic closed routes can use multiple harmonic terms:
 
@@ -651,15 +662,52 @@ xTerms = [[amplitude, frequency, phase], ...];
 yTerms = [[amplitude, frequency, phase], ...];
 ```
 
-Integer frequencies over a complete period produce closed curves. The sampled route then needs
-crossing discovery:
+Integer frequencies over a complete period produce closed curves.
 
-1. compare nonadjacent segment pairs;
-2. reject disjoint bounding boxes;
-3. classify proper intersections;
-4. interpolate both route parameters;
-5. merge duplicate detections near vertices;
-6. reject tangencies and ambiguous multi-way crossings initially.
+### Implemented crossing-discovery algorithm
+
+`KnotSampledSelfIntersections()` operates on the polyline produced by a parametric generator. If
+the closed route has `S` sampled segments, it enumerates every unordered segment pair and skips
+pairs that are adjacent in traversal order, including the first/last closure pair. The current
+implementation has no bounding-box broad phase or spatial index.
+
+For each remaining pair, `KnotProperSegmentIntersection()` performs a 2D parametric line-segment
+test. It takes the cross product of the two direction vectors as the denominator, rejects a pair
+when that denominator is within `intersectionTolerance` of zero, and otherwise solves the blend
+fractions on both segments. Both fractions must be strictly inside the segments after applying
+the tolerance, so endpoint contacts, parallel or collinear segments, and sampled tangencies do
+not become crossings.
+
+Each accepted result stores the interpolated XY crossing point, the normalized route parameter
+on each polyline visit, and the interpolated Z value on each visit. `MakeLissajousKnot()` compares
+the Z values and makes the higher visit the over branch; equal-height visits within tolerance are
+rejected. Planar harmonic and polar generators instead send the two parameters to the
+alternating-parity solver, which assigns consistent over/under states or rejects a contradictory
+diagram.
+
+The enumeration performs approximately `S * (S - 3) / 2` intersection tests for one closed
+strand. Each test is constant-time arithmetic, so discovery is `O(S^2)` time and stores `O(K)`
+records for `K` accepted crossings, in addition to the `O(S)` samples. Doubling sampling makes
+this stage roughly four times as expensive. OpenSCAD's immutable list comprehensions add
+evaluator and allocation overhead without changing the asymptotic bound.
+
+Current limitations are intentional and observable:
+
+- discovery follows the sampled polyline, not the exact analytic curve, so insufficient sampling
+  can miss or move crossings;
+- there is no broad-phase acceleration, sweep line, grid, or rotational-symmetry reduction;
+- only self-intersections within the single sampled route passed to the function are discovered;
+- endpoint and near-endpoint crossings are excluded, and duplicate detections near a shared
+  sample vertex are not merged;
+- parallel, collinear, tangent, and nearly tangent contacts are excluded rather than classified;
+- multi-way or tightly clustered crossings are not consolidated into one topological event;
+- the absolute tolerance is coordinate-scale dependent, and topology can change with sampling or
+  tolerance; and
+- ribbon generation assumes an isolated crossing neighborhood containing only the intended pair
+  of local branches.
+
+A future accelerator can preserve the crossing-record contract while using bounding boxes, a
+uniform grid, a sweep line, or a symmetric-generator fast path to reduce candidate pairs.
 
 To request an alternating diagram:
 
@@ -670,10 +718,21 @@ To request an alternating diagram:
 5. report inconsistency when the projection cannot alternate.
 
 This family offers a broad organic design space, but arbitrary parameters can create tangencies,
-clustered crossings, tiny loops, and abrupt topology changes. Implement it after crossing
-records and braid validation are stable.
+clustered crossings, tiny loops, and abrupt topology changes. Callers should inspect validation
+and debug output when exploring parameter sets near those degeneracies.
 
 ## Generator 5: polar rosettes
+
+`MakePolarRosetteKnot()` implements this family with base radius, primary and secondary radial
+amplitudes, positive integer radial frequencies, independent degree phases, positive integer
+angular winding, sample count, and intersection tolerance. The base radius must exceed the sum
+of absolute radial amplitudes so the route remains a positive-radius circular medallion.
+
+The generator reuses proper segment-intersection discovery and
+`AssignKnotAlternatingCrossings()`. Phase-shifting the primary radial term keeps standard presets
+away from sample-vertex degeneracies. The documented gallery uses a secondary amplitude of
+`0.5`, retaining smooth petal profiles and five-, seven-, and sixteen-crossing alternating
+results. Arbitrary parameter sets can still be rejected when their projection cannot alternate.
 
 Circular medallions can use:
 
@@ -686,6 +745,11 @@ y(t) = radius(t)*sin(angle(t))
 
 Polar rosettes reuse harmonic crossing discovery and parity solving while naturally producing
 circular motifs.
+
+Their exact rotational symmetry also permits a future fast path: construct and clip one
+fundamental `1 / N` peak sector, then rotate the completed sector `N` times. That optimization is
+specific to declared symmetric generators; the general knot renderer must not infer symmetry from
+samples.
 
 ## Generator 6: medial planar graphs
 
@@ -713,6 +777,13 @@ alternating traversal, explicit overrides, multiple strands, contradictory-cycle
 deterministic choice between equivalent assignments. It must never silently label both
 encounters of one crossing as over or both as under.
 
+`SolveKnotAlternatingParity()` now constructs opposite-color constraints between both branches
+of every crossing and between successive crossing encounters along every strand. Closed strands
+also constrain their last encounter against their first. Components are colored deterministically
+from the lowest unassigned branch, and odd or otherwise contradictory cycles return an invalid
+result. `AssignKnotAlternatingCrossings()` applies a valid solution to ordinary crossing records.
+Explicit user overrides remain deferred.
+
 ## 2D ribbon generation
 
 Centerlines must become closed regions before normal LogoSC rendering. The knot companion should
@@ -733,12 +804,70 @@ subtract an overpass clearance mask from the under ribbon and then add the overp
 wraps it with Core's `MakeRegion()`. The union of segment regions gives continuous width and
 rounded sampled joins without forcing a self-crossing route into one invalid polygon contour.
 
-For each crossing, the compiler interpolates the recorded over branch and its planar tangent.
-`KnotRibbonCrossingMaskRegions()` creates an expanded flat-ended band along that tangent;
-`KnotRibbonOverpassRegions()` creates a slightly longer normal-width flat-ended band.
-`RenderKnotRibbons2D()` subtracts the expanded masks from the union of continuous ribbon regions
-and then restores every overpass. All footprints and masks are rendered by
-`RenderRegion2D()` before native OpenSCAD performs the Boolean composition.
+For each crossing, the compiler already knows both branch parameters and their planar tangents.
+The default `traversal` method visits sampled capsules near each under event and clips only those
+capsules with a band aligned to the over tangent. Crossing angle, ribbon radii, and clearance
+determine the local under-curve ownership distance and band width. The band extends beyond the
+complete strand bounds so only its parallel sides, never its finite ends, can terminate the
+underpass. The over branch is never removed or reconstructed, so its original sampled curvature
+remains continuous. `legacy-mask` retains the earlier whole-ribbon subtraction and curved-
+overpass restoration for comparison. All footprints and masks are rendered by `RenderRegion2D()`
+before native OpenSCAD performs the Boolean composition.
+
+### Crossing-artifact postmortem and guardrails
+
+The sixteen-crossing polar rosette exposed several avoidable mistakes in the first ribbon
+iterations. Record these failure modes so a visually plausible low-crossing example does not
+hide them in the next generator:
+
+- **Mistaking a compositor defect for a curve defect.** Increasing samples, averaging points, or
+  changing harmonic amplitudes can make a curve look different, but cannot repair a straight or
+  incorrectly bounded crossing replacement. First render the centerline and continuous ribbon
+  without crossing composition. If both are smooth, debug the crossing compiler, not the
+  generator.
+- **Removing and reconstructing the over branch.** A straight tangent patch cannot generally
+  match a curved source at both ends. Even a restored sequence of sampled capsules can expose
+  seams when its clipping boundary differs from the subtraction boundary. The default algorithm
+  therefore leaves the over branch untouched and modifies only the under branch.
+- **Using a fixed mask length.** Shallow crossing angles project a ribbon width much farther along
+  the other branch than near-right-angle crossings. A fixed rectangle that works for five- and
+  seven-crossing examples can produce wedges in a sixteen-crossing example.
+- **Allowing finite cutter ends near the curve.** This was the final one-sided tooth. The end of a
+  crossing rectangle intersected one side of the curved under-ribbon, so the artifact appeared to
+  depend on traversal direction. Once cutting is restricted to local under-branch capsules, make
+  the band extend beyond the whole strand bounds; only its two sides should define the gap.
+- **Approximating physical travel with normalized parameter distance.** Parametric samples are
+  uniformly spaced in parameter, not necessarily in arc length. Estimating both sides from one
+  segment length can omit a boundary capsule on the faster-moving side. Build cumulative physical
+  lengths and measure local ownership along the sampled curve.
+- **Broadening ownership before proving locality.** Assigning large event cells to underpasses can
+  let a shallow, long cutter affect unrelated nearby geometry, especially at self-crossings.
+  Require both local arc ownership and spatial bounds overlap. Also enforce the design assumption
+  that no third branch enters the printable crossing neighborhood.
+- **Inspecting only a convenient crop or camera angle.** One zoomed view excluded the remaining
+  artifact. Inspect the complete motif top-down, an oblique extruded view, and enlarged views of
+  both sides of multiple crossings. Rotational symmetry makes inconsistent sides especially easy
+  to detect; do not assume one crossing view proves all rotated copies.
+- **Replacing a failing method without retaining a comparison path.** Keep materially different
+  implementations selectable until the new output and tests are accepted. Here the prior behavior
+  remains available as `crossingMethod = "legacy-mask"`.
+
+OpenSCAD makes this work more cumbersome than an imperative geometry library: lists are
+immutable, traversal state is expressed through recursion and comprehensions, there is no native
+path-splitting or offset-curve API, and capsule-level CSG is the available composition unit. Those
+constraints justify explicit prefix-length lists and ownership predicates; they do not justify
+tuning visual artifacts by eye.
+
+For future knot types, use this order:
+
+1. validate the sampled centerline and its crossing records independently;
+2. render a continuous ribbon with crossing logic disabled;
+3. inspect crossing angle, branch parameters, tangent directions, and neighborhood isolation;
+4. cut only the recorded under branch and leave the over geometry unchanged;
+5. test the shallowest angle and densest crossing preset first;
+6. inspect full top-down and oblique renders before close-up approval;
+7. add focused ownership and boundary tests, then run the complete knot and Foundation suites;
+8. optimize repeated symmetric sectors only after the single-sector geometry is correct.
 
 The boundary requires structurally valid planar samples, positive width, nonnegative clearance,
 and a nondegenerate tangent at every crossing. It deliberately does not expose this as a general
@@ -762,10 +891,10 @@ This is robust and visually explicit, though it does not create a truly separate
 `KnotBasReliefTotalHeight()` reports their sum. Raised regions overlap the base internally by at
 most `0.01` to avoid relying on exactly coplanar shell contact without changing external height.
 
-Before extrusion, the restored overpass span is extended beyond the expanded subtraction mask.
-Its flat ends overlap the source ribbon inside the straight crossing segment. This eliminates
-isolated capsule halos and curve-to-overpass gaps while preserving clearance along the underpass
-sides.
+Before extrusion, the restored overpass follows enough original sampled segments to extend
+beyond the expanded subtraction mask. Its curved ends overlap the unchanged source ribbon with
+matching position and tangent. This eliminates isolated capsule halos and curve-to-overpass gaps
+while preserving clearance along the underpass sides.
 
 The bare result is positive printable geometry with no backing plate. Separate link components
 remain separate solids unless a caller supplies support or uses the plaque renderer.
@@ -1116,17 +1245,20 @@ links where supported by the selected generator.
      complete.
    - Random filling and explicit boundary maps remain deferred.
 5. **2D ribbon compiler** — implemented
-   - Rounded capsule regions, Core rendering, underpass masks, restored overpasses, tests, and a
-     comparison gallery are complete.
+   - Rounded capsule regions, Core rendering, event-local underpass traversal, retained legacy
+     mask comparison, tests, and a comparison gallery are complete.
    - Bas-relief extrusion and corrected overpass overlap are complete.
    - Bas-relief backing plates, top-edge bevels, and print-quality presets are complete.
    - Unified polygon export, decorative borders, and bundled planar ribbons remain deferred.
-6. **Harmonic/Lissajous and polar generators** — spatial Lissajous slice implemented
+6. **Harmonic/Lissajous and polar generators** — implemented
    - Three-axis single-term Lissajous sampling, proper projected crossing discovery, Z-derived
      crossing order, tests, an individual Customizer example, and a three-route gallery are
      complete.
-   - General multi-term planar harmonics, duplicate merging near vertices, alternating parity
-     solving, and polar rosettes remain planned.
+   - General multi-term planar harmonics and deterministic alternating parity solving are
+     complete, including contradiction tests and a selectable example.
+   - Polar rosettes with two radial harmonics, angular winding, alternating crossings, tests,
+     an individual example, and a three-medallion ribbon gallery are complete.
+   - Duplicate merging near vertices and explicit crossing overrides remain deferred.
 7. **Medial planar graphs**
    - Generalize Celtic construction after tile topology is stable.
 8. **External C++ knot compiler and SVG acceleration** — planned
@@ -1182,7 +1314,9 @@ Record answers here before they become implementation assumptions.
   [explicit-grid boundary](#implemented-explicit-grid-boundary)
 - **Companion architecture:** [LogoSC boundary](#how-logosc-is-used),
   [shared representation](#shared-representation), [companion files](#companion-files)
-- **Crossings:** [over/under assignment](#overunder-assignment),
+- **Crossings:** [discovery algorithm](#implemented-crossing-discovery-algorithm),
+  [over/under assignment](#overunder-assignment),
+  [ribbon-artifact postmortem](#crossing-artifact-postmortem-and-guardrails),
   [printable clearance](#required-feature-adjacent-multi-cord-bundles)
 - **External compiler:** [C++ and SVG acceleration](#external-c-knot-compiler-and-svg-path)
 - **Generators:** [torus knots](#generator-1-torus-knots), [braid words](#generator-2-braid-words),
