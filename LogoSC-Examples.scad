@@ -63,6 +63,7 @@ LogoExampleLabelYOffset = -26;
 
 LogoExampleWordmarkWidth = 126;
 LogoExampleWordmarkHeight = 36;
+LogoExampleWordmarkSCShear = 0.25; // [0:0.05:0.5]
 
 /* [Logo Example Colors] */
 
@@ -671,24 +672,11 @@ LogoGlyphL =
     [MOVE, 32]
 ];
 
-// A small generated-shear transform used by both O glyphs. Nonuniform SCALE
-// followed by TURN creates shear; world-absolute DIR removes the overall
-// rotation while deliberately preserving that shear in canonical state.
-LogoWordmarkItalicTransform =
-[
-    [SCALE, 1.2, 0.8],
-    [TURN, -78],
-    [DIR, 0]
-];
-
 LogoGlyphO =
-    concat(
-        LogoWordmarkItalicTransform,
-        [
-            [CIRCLE, 8, 64],
-            [HOLE, [[CIRCLE, 4, 32]]]
-        ]
-    );
+[
+    [CIRCLE, 8, 64],
+    [HOLE, [[CIRCLE, 4, 32]]]
+];
 
 LogoGlyphGBody =
 [
@@ -734,12 +722,11 @@ function LogoGlyphKochOHole(radius = 4, segments = 36) =
 
 // Gear-like O: a Koch snowflake outline with a larger center hole.
 // This keeps the mark as filled region geometry; no stroke API is used.
-// The outline is scoped because its path TURNs would otherwise persist and
-// recanonicalize the italic transform before HOLE inherits the current state.
-// POP restores the exact italic frame shared by the outer and centered hole.
+// The outline is scoped because its path TURNs would otherwise persist before
+// HOLE inherits the current state. POP restores the origin frame shared by the
+// outer path and centered hole.
 LogoGlyphKochO =
     concat(
-        LogoWordmarkItalicTransform,
         [[PUSH]],
         LogoGlyphKochOOuter(),
         [[POP]],
@@ -751,7 +738,8 @@ LogoGlyphKochO =
 //
 // The S is built from three horizontal lozenges plus two alternating vertical
 // connectors. The C uses broad rounded terminals and a left spine, giving the
-// final two letters a related mechanical/"machined badge" appearance.
+// final two letters a related mechanical/"machined badge" appearance. Their
+// shared explicit SHEAR gives the OpenSCAD suffix a forward-leaning emphasis.
 LogoGlyphSCrossbar =
 [
     [ROUNDEDRECT, 17, 4, 2, 6]
@@ -777,6 +765,26 @@ LogoGlyphCEndCap =
     [CIRCLE, 2, 20]
 ];
 
+function LogoWordmarkShearedOffset(offset, shear) =
+    [offset[0] + shear * offset[1], offset[1]];
+
+module RenderLogoWordmarkShearedRegion2D(
+    cmds,
+    offset = [0, 0],
+    shear = 0,
+    convexity = LogoExampleConvexity)
+{
+    shearedOffset = LogoWordmarkShearedOffset(offset, shear);
+
+    translate(shearedOffset)
+    {
+        RenderLogo2D(
+            concat([[SHEAR, shear]], cmds),
+            convexity = convexity
+        );
+    }
+}
+
 module RenderLogoGlyphG2D(convexity = LogoExampleConvexity)
 {
     RenderLogo2D(LogoGlyphGBody, convexity = convexity);
@@ -792,57 +800,74 @@ module RenderLogoGlyphG2D(convexity = LogoExampleConvexity)
     }
 }
 
-module RenderLogoGlyphS2D(convexity = LogoExampleConvexity)
+module RenderLogoGlyphS2D(
+    convexity = LogoExampleConvexity,
+    shear = 0)
 {
     // Three rounded crossbars.
     for (y = [-10, 0, 10])
     {
-        translate([0, y])
-        {
-            RenderLogo2D(LogoGlyphSCrossbar, convexity = convexity);
-        }
+        RenderLogoWordmarkShearedRegion2D(
+            LogoGlyphSCrossbar,
+            offset = [0, y],
+            shear = shear,
+            convexity = convexity
+        );
     }
 
     // Alternating connectors create the classic S path as a filled region.
-    translate([-6.5, 5])
-    {
-        RenderLogo2D(LogoGlyphSConnector, convexity = convexity);
-    }
-
-    translate([6.5, -5])
-    {
-        RenderLogo2D(LogoGlyphSConnector, convexity = convexity);
-    }
+    RenderLogoWordmarkShearedRegion2D(
+        LogoGlyphSConnector,
+        offset = [-6.5, 5],
+        shear = shear,
+        convexity = convexity
+    );
+    RenderLogoWordmarkShearedRegion2D(
+        LogoGlyphSConnector,
+        offset = [6.5, -5],
+        shear = shear,
+        convexity = convexity
+    );
 }
 
-module RenderLogoGlyphC2D(convexity = LogoExampleConvexity)
+module RenderLogoGlyphC2D(
+    convexity = LogoExampleConvexity,
+    shear = 0)
 {
     // Rounded top and bottom terminals.
     for (y = [-10, 10])
     {
-        translate([0, y])
-        {
-            RenderLogo2D(LogoGlyphCTerminal, convexity = convexity);
-        }
+        RenderLogoWordmarkShearedRegion2D(
+            LogoGlyphCTerminal,
+            offset = [0, y],
+            shear = shear,
+            convexity = convexity
+        );
     }
 
     // Left spine joins the terminals into a solid open C.
-    translate([-6, 0])
-    {
-        RenderLogo2D(LogoGlyphCSpine, convexity = convexity);
-    }
+    RenderLogoWordmarkShearedRegion2D(
+        LogoGlyphCSpine,
+        offset = [-6, 0],
+        shear = shear,
+        convexity = convexity
+    );
 
     // Circular terminal caps emphasize that the right side is intentionally open.
     for (y = [-10, 10])
     {
-        translate([8, y])
-        {
-            RenderLogo2D(LogoGlyphCEndCap, convexity = convexity);
-        }
+        RenderLogoWordmarkShearedRegion2D(
+            LogoGlyphCEndCap,
+            offset = [8, y],
+            shear = shear,
+            convexity = convexity
+        );
     }
 }
 
-module RenderLogoSCFeatureWordmark2D(convexity = LogoExampleConvexity)
+module RenderLogoSCFeatureWordmark2D(
+    convexity = LogoExampleConvexity,
+    scShear = LogoExampleWordmarkSCShear)
 {
     RenderLogo2D(LogoGlyphL, convexity = convexity);
 
@@ -863,12 +888,12 @@ module RenderLogoSCFeatureWordmark2D(convexity = LogoExampleConvexity)
 
     translate([92, 16])
     {
-        RenderLogoGlyphS2D(convexity = convexity);
+        RenderLogoGlyphS2D(convexity = convexity, shear = scShear);
     }
 
     translate([112, 16])
     {
-        RenderLogoGlyphC2D(convexity = convexity);
+        RenderLogoGlyphC2D(convexity = convexity, shear = scShear);
     }
 }
 

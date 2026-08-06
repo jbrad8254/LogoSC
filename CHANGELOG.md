@@ -67,6 +67,13 @@
   thickened Peano curve, tapered astroid sculpture with a centered through-opening, slotted link,
   perforated ring, and curvy `rotate_extrude()` wire spool. Every model rests at `Z=0`.
 
+### Changed
+
+- Changed the LogoSC wordmark to keep `Logo` upright and apply an explicit `[SHEAR, 0.25]` to the
+  complete multi-region `SC` suffix. Regenerated `images/logosc-wordmark.png` from the selected
+  OpenSCAD geometry with the established oblique 3D presentation, and refreshed
+  `images/examples-gallery.png` so its masthead and expanded gallery match the current source.
+
 ### Fixed
 
 - Increased the printable L-system plant trunk from two to four times the base stroke width and

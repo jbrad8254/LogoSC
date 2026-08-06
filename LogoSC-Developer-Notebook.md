@@ -98,6 +98,7 @@
 - [Printable Mini cover models](#2026-08-02--printable-mini-cover-models)
 - [Printable Core cover models](#2026-08-03--printable-core-cover-models)
 - [Local SHEAR command](#2026-08-03--local-shear-command)
+- [Wordmark SC shear](#2026-08-05--wordmark-sc-shear-and-documentation-image)
 - [L-system, knot, and release sequence](#2026-08-03--l-system-knot-and-release-sequence)
 - [Optional L-system companion](#2026-08-03--optional-l-system-companion)
 - [2026.7 release preparation](#2026-07-31--20267-celtic-and-publishing-release-preparation)
@@ -3906,6 +3907,30 @@ Verification:
   presets, visual review of filled and diagnostic systems, an independent companion PASS marker,
   and the complete LogoSC acceptance wall.
 
+### 2026-08-05 — Wordmark SC shear and documentation image
+
+Context:
+
+- The feature wordmark previously demonstrated generated shear by composing nonuniform `SCALE`,
+  `TURN`, and world-absolute `DIR` on both O glyphs.
+- The new explicit `SHEAR` opcode made that workaround unnecessary and provided a clearer way to
+  distinguish the OpenSCAD suffix from the `Logo` portion of the name.
+
+Decision:
+
+- Keep `Logo` upright and apply a local X shear factor of `0.25` to the complete `SC` suffix.
+- Transform both each S/C component and its placement offset through the same affine frame so the
+  separately rendered rounded rectangles and circles remain coherent multi-region glyphs.
+- Regenerate `images/logosc-wordmark.png` from the actual OpenSCAD model at 1050 by 345 pixels,
+  using a 25-degree X camera rotation that clearly shows the extruded red geometry's 3D depth.
+- Regenerate `images/examples-gallery.png` at its established 1077 by 771 pixels with an elevated
+  top-down camera that fits the current six-column gallery and updated wordmark masthead.
+
+Verification:
+
+- Require the complete Foundation/Validation PASS marker, a warning-free Examples CSG export,
+  visual inspection of both regenerated PNGs, and documentation-link and image-dimension checks.
+
 ## Index
 
 - **Affine transforms:** [design direction](#2026-07-27--preliminary-local-transform-design-direction),
@@ -3942,3 +3967,4 @@ Verification:
 - **Validation:** [path analysis](#2026-07-20--optional-path-analysis-and-validation),
   [topology](#2026-07-27--general-topology-relations-and-strict-hole-validation),
   [convexity](#2026-07-27--convexity-query-api)
+- **Wordmark:** [SC shear and documentation image](#2026-08-05--wordmark-sc-shear-and-documentation-image)

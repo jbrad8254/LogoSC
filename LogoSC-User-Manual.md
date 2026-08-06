@@ -396,9 +396,9 @@ modeling tool rather than as a test harness. It contains a gallery module plus
 individual named examples for washers, mounting plates, radial holes, Koch
 snowflake geometry, L-system-generated fractal outlines, rotate-extruded
 profiles, twisted extrusions, a small spiral tower, and the LogoSC feature
-wordmark. The wordmark is centered above the gallery as a masthead, and its two
-O glyphs use generated LogoSC shear for a visible right-leaning italic treatment. A dedicated
-six-cell row demonstrates canonical local transforms.
+wordmark. The wordmark is centered above the gallery as a masthead. Its `Logo` portion remains
+upright, while the `SC` suffix uses explicit LogoSC `[SHEAR, 0.25]` commands for a coherent
+right-leaning italic treatment. A dedicated six-cell row demonstrates canonical local transforms.
 
 ![Figure 4-1](images/examples-gallery.png)
 
