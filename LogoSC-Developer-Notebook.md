@@ -4306,6 +4306,33 @@ General guidance for AI-friendly graphics systems:
    presets, CLI arguments, and APIs; and
 9. make performance timing, caching behavior, and render mode visible enough to benchmark.
 
+#### AI-to-AI handoff: graphics-app interfaces worth requesting
+
+When helping design or integrate another graphics application, push for these interfaces first:
+
+- Keep one textual or losslessly serialized scene as the source of truth, with stable object and
+  parameter IDs suitable for small diffs.
+- Expose GUI operations through a deterministic CLI or local API. Accept typed JSON parameters;
+  do not make an AI construct language expressions through shell quoting.
+- Provide headless validation, cheap preview, authoritative render, and export as separate cost
+  levels operating on the same scene.
+- Make camera, projection, viewport, quality, seed, fonts, and environment explicit and
+  serializable so images are reproducible.
+- Return structured diagnostics with severity, source/object location, parameters, progress,
+  timing, cancellation, and reliable exit status. Preserve both the scene-language trace and the
+  native crash report.
+- Expose geometry facts and diagnostic layersâ€”bounds, topology, intersections, element counts,
+  selected objects, and intermediate pathsâ€”rather than forcing every check through pixels.
+- Generate human controls from the same typed parameter schema used by the API and tests. Keep
+  stable machine values separate from display labels, warnings, and timing marks; OpenSCAD's
+  removal of parentheses from a Customizer label caused a real LogoSC dispatch failure.
+- Write logs, images, vectors, scenes, and meshes as ordinary addressable artifacts with build
+  metadata. Make documentation searchable, versioned, and rich in executable examples.
+
+For an AI client, the ideal edit loop is: inspect scene and schema, apply a small change, validate,
+render a targeted diagnostic view, query geometry facts, run focused tests, then produce the final
+artifact. Design the app so none of those steps requires a human to click the canvas.
+
 ## Index
 
 - **Affine transforms:** [design direction](#2026-07-27--preliminary-local-transform-design-direction),
@@ -4331,6 +4358,7 @@ General guidance for AI-friendly graphics systems:
   [ribbons](#2026-07-29--logosc-backed-planar-ribbons-and-underpass-masks),
   [twisted bundles](#2026-07-29--twisted-bundle-closure-and-component-tracing)
 - **OpenSCAD:** [AI-assisted development features](#2026-08-06--openscad-features-that-support-ai-assisted-graphics-development),
+  [AI-to-AI graphics-app handoff](#ai-to-ai-handoff-graphics-app-interfaces-worth-requesting),
   [command-line verification](#2026-07-20--openscad-command-line-verification-guide)
 - **Packaging and publishing:** [repository workflow](#8-repository-and-packaging-workflow),
   [suite release manual](#2026-07-31--suite-release-manual-and-single-repository-publishing),
