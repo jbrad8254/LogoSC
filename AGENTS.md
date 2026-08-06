@@ -19,6 +19,17 @@ The short reusable setup explanation is
 The LogoSC-specific command-line verification guide is
 `LogoSC-OpenSCAD-Command-Line.md`.
 
+## Machine-Specific Repository Locations
+
+The user's active LogoSC clone starts in different locations on the two development PCs:
+
+- This PC (`RAINBOW`): `C:\Users\johng\Documents\GitHub\LogoSC`
+- Other PC: `C:\Users\johng\OneDrive\Documents\GitHub\LogoSC`
+
+Treat these paths as machine-specific location hints, not substitutes for repository-root
+verification. A path under `C:\Users\johng\.codex\worktrees\` is a Codex-managed worktree;
+do not assume it is the user's intended active clone unless the user explicitly selects it.
+
 ## Project Boundaries
 
 - LogoSC evaluates command lists into 2D polygonal regions.
