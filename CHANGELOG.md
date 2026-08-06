@@ -31,6 +31,13 @@
 
 ### Added
 
+- Added the dependency-free C++20 `logosc-knot-grid` command-line preprocessor with exact output
+  sizing, a built-in 5-by-7 font, optional BDF fonts, pixel or connected-stroke scaling,
+  configurable spacing, margins, and tile patterns, plain ASCII grid validation and
+  normalization, CRLF/CR/LF selection, deterministic
+  hashes and statistics, delayed progress dots, CMake tests, and generated OpenSCAD adapters.
+- Added a committed 128-by-32 `LogoSC` ASCII grid and adapter plus the large-Celtic
+  `GeneratedPlaque **` scene, which compiles the generated input into a printable plaque.
 - Added measured performance-warning suffixes to the knot and large-Celtic Customizers, with
   documented RAINBOW timing results and thresholds.
 - Added `LOGOSC128 ***`, a batch-only 128-by-32 Celtic LogoSC word using native 18-by-24 glyphs,

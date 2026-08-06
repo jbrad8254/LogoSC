@@ -1,8 +1,9 @@
 include <LogoSC-Knots.scad>
+include <generated/LogoSC-Celtic-Generated.scad>
 
 /* [Large Celtic Scene] */
 
-CelticLargeExample = "CELTIC *"; // [Diamond8,Ring16 *,Diamond24 *,Ring32 **,CELTIC *,LOGOSC128 ***]
+CelticLargeExample = "CELTIC *"; // [Diamond8,Ring16 *,Diamond24 *,Ring32 **,CELTIC *,LOGOSC128 ***,GeneratedPlaque **]
 
 /* [Output] */
 
@@ -42,10 +43,16 @@ function CelticLargeCanonicalExampleName(name) =
     : name == "Ring32 **" || name == "Ring32 (**)" ? "Ring32"
     : name == "CELTIC *" || name == "CELTIC (*)" ? "CELTIC"
     : name == "LOGOSC128 ***" || name == "LOGOSC128 (***)" ? "LOGOSC128"
+    : name == "GeneratedPlaque **"
+        || name == "GeneratedPlaque (**)"
+        || name == "GeneratedPlaque ***"
+        || name == "GeneratedPlaque (***)" ? "GeneratedPlaque"
     : name;
 
 CelticLargeSelectedExample = CelticLargeCanonicalExampleName(CelticLargeExample);
-CelticLargeSelectedOutput = CelticLargeOutput;
+CelticLargeSelectedOutput = CelticLargeSelectedExample == "GeneratedPlaque"
+    ? "Plaque"
+    : CelticLargeOutput;
 
 function CelticLargeTile(row, column) =
     (row + column) % 3 == 0
@@ -279,7 +286,9 @@ function CelticLargeExamplePattern(example) =
     : "Ring";
 
 function CelticLargeExampleGrid(example) =
-    example == "LOGOSC128"
+    example == "GeneratedPlaque"
+    ? GeneratedCelticGrid
+    : example == "LOGOSC128"
     ? CelticLogoGrid()
     : example == "CELTIC"
     ? CelticLargeWordGrid()
@@ -289,7 +298,9 @@ function CelticLargeExampleGrid(example) =
     );
 
 function CelticLargeTimeEstimate(example, output) =
-    example == "LOGOSC128"
+    example == "GeneratedPlaque"
+    ? "about 40 seconds for the committed grid"
+    : example == "LOGOSC128"
     ? output == "Topology"
         ? "several minutes"
         : output == "Cord"
@@ -341,7 +352,8 @@ assert(
     || CelticLargeSelectedExample == "Diamond24"
     || CelticLargeSelectedExample == "Ring32"
     || CelticLargeSelectedExample == "CELTIC"
-    || CelticLargeSelectedExample == "LOGOSC128",
+    || CelticLargeSelectedExample == "LOGOSC128"
+    || CelticLargeSelectedExample == "GeneratedPlaque",
     "Unknown large Celtic example."
 );
 assert(

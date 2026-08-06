@@ -6,6 +6,7 @@ enough to expose both its design possibilities and its computational cost.
 ## Table of Contents
 
 - [Included scenes](#included-scenes)
+- [Generated ASCII grid plaque](#generated-ascii-grid-plaque)
 - [Output choices](#output-choices)
 - [Measured OpenSCAD 2021.01 timings](#measured-openscad-202101-timings)
   - [Other development PC](#other-development-pc-original-measurements)
@@ -27,6 +28,7 @@ Select `CelticLargeExample` in OpenSCAD's Customizer:
 | `Ring32 **` | Very slow 32-by-32 stress example with exterior and interior boundaries |
 | `CELTIC *` | A 37-by-9 bitmap word mask built from blank and occupied cells |
 | `LOGOSC128 ***` | Batch-only 128-by-32 LogoSC word built from native 18-by-24 glyphs |
+| `GeneratedPlaque **` | Printable plaque compiled from the C++ generator's committed 128-by-32 grid adapter |
 
 Customizer suffixes warn about approximate minimum-sampling Cord CSG time on `RAINBOW`: `(*)`
 means more than 3 seconds, `(**)` more than 30 seconds, and `(***)` more than 3 minutes. The
@@ -36,6 +38,41 @@ The word mask is ordinary grid data. Five-by-seven glyphs select occupied cells;
 the remaining cells empty. Occupied cells receive deterministic `X`, `>`, and `<` tiles. The
 normal Celtic compiler then discovers boundary loops, traces closed components, assigns
 crossings, and verifies cyclic alternation.
+
+## Generated ASCII grid plaque
+
+`tools/logosc-knot-grid/` contains a dependency-free C++20 generator. Its primary `.grid` output
+is plain ASCII: each line is one rectangular row containing only `X`, `>`, `<`, and `.`, with no
+quotes, commas, brackets, or other framing. The final character in a row is followed directly by
+the selected line ending. The tool writes native line endings by default and supports explicit
+`crlf`, carriage-return-only `cr`, or `lf` output.
+
+OpenSCAD 2021.01 cannot read arbitrary text rows, so the same command can write a generated
+`.scad` adapter containing those rows as a list. The committed pair is:
+
+```text
+generated/LogoSC-Celtic-Generated.grid
+generated/LogoSC-Celtic-Generated.scad
+```
+
+Select `GeneratedPlaque **` to compile that adapter into a printable bas-relief plaque. This
+scene always selects plaque output; the regular `CelticLargeOutput` control is intentionally
+ignored. Regenerate both files together from the repository root:
+
+```powershell
+build/logosc-knot-grid/Release/logosc-knot-grid.exe `
+    --text LogoSC --width 128 --height 32 --scale 1 --scale-mode stroke `
+    --output generated/LogoSC-Celtic-Generated.grid --line-ending crlf `
+    --scad-output generated/LogoSC-Celtic-Generated.scad
+```
+
+The command accepts a different string, size, integer scale, spacing, margins, tile pattern, or
+BDF bitmap font. It can also validate an existing grid with `--input`. The committed plaque uses
+one-cell stroke scaling. Scale-2 filled pixels and scale-3 connected strokes both crossed severe
+OpenSCAD topology or plaque-construction cliffs; the latter exceeded ten minutes. Scale 1
+produces a readable 88-cell fixture that compiled to plaque CSG in approximately 38 seconds on
+RAINBOW. Its normalized FNV-1a grid hash is `e8804e48ba7db0bf`. Larger output remains appropriate
+as input to the planned faster renderer.
 
 ![CELTIC spelled with blank-cell knot grids](images/knot-celtic-word.png)
 
@@ -113,7 +150,7 @@ measurement yet.
 The complete dropdown was remeasured with the shipped minimum sampling, default `Cord` output,
 and CSG compilation specifically to assign Customizer warning suffixes:
 
-| Scene | Cord CSG | Suffix |
+| Scene | Default scene CSG | Suffix |
 |---|---:|---|
 | `Diamond8` | 0.570 s | |
 | `Ring16` | 3.665 s | `(*)` |
@@ -121,10 +158,14 @@ and CSG compilation specifically to assign Customizer warning suffixes:
 | `Ring32` | 44.125 s | `(**)` |
 | `CELTIC` | 20.628 s | `(*)` |
 | `LOGOSC128` | about 180 s | `(***)` |
+| `GeneratedPlaque` | 37.848 s (Plaque) | `(**)` |
 
 These newer single-run values do not replace the earlier measurement set; they record a separate
 run for the UI-warning decision. Cache and system state explain some variation, especially for
 `Ring32`, without changing any threshold classification.
+
+The generated scene deliberately forces Plaque rather than the global Cord default. Its row is
+therefore the complete user-visible plaque CSG time, not a cord comparison.
 
 The final `LOGOSC128` Cord measurement was 179.803 seconds inside the benchmark stopwatch and
 about 180.5 seconds for the complete command invocation. A neighboring 17-by-24 native-glyph

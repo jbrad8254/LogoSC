@@ -1207,10 +1207,11 @@ design; the intended use is user-owned, licensed, or newly generated source imag
 ## External C++ knot compiler and SVG path
 
 Large Celtic grids expose a performance boundary in OpenSCAD's immutable list evaluation,
-repeated topology scans, and geometry construction. A future external compiler should move
-grid parsing, route tracing, crossing assignment, and production-shape construction into a
-standalone C++20 command-line program. This is an optional accelerated build path, not a
-replacement for the readable OpenSCAD reference implementation or LogoSC Core.
+repeated topology scans, and geometry construction. The first external-tool stage is now a
+standalone C++20 text-to-grid generator and validator. Later stages should move route tracing,
+crossing assignment, and production-shape construction into the same toolchain. This remains an
+optional accelerated build path, not a replacement for the readable OpenSCAD reference
+implementation or LogoSC Core.
 
 The proposed toolchain is C++20 with CMake. Use indexed graph structures and hash-based lookup
 for tile connectivity, boundary loops, components, and crossings. Prefer an established polygon
@@ -1218,7 +1219,23 @@ library such as Clipper2 for offsets and Boolean operations rather than implemen
 computational geometry primitives locally. Keep the executable deterministic, cross-platform,
 and usable without an embedded scripting runtime.
 
-The first milestone should accept the same textual Celtic grid vocabulary and emit two outputs:
+The implemented preprocessing milestone accepts a string, exact output dimensions, margins,
+spacing, integer pixel or connected-stroke scaling, a tile pattern, and either the built-in 5-by-7 font or an external BDF
+bitmap font. It writes the compact grid vocabulary as a deliberately trivial ASCII contract:
+
+- one rectangular row per line;
+- only `X`, `>`, `<`, and `.` characters;
+- no quotes, commas, brackets, escaping, or header; and
+- native, explicit CRLF, carriage-return-only CR, or explicit LF line endings.
+
+It also validates and normalizes an existing grid. Because OpenSCAD 2021.01 cannot read an
+arbitrary text file, the tool can write a generated `.scad` adapter containing the identical rows
+as a string list. `GeneratedPlaque **` in `LogoSC-Celtic-Large-Grids.scad` consumes the committed
+adapter and forces printable plaque output. A delayed worker prints progress dots only after a
+run exceeds two seconds, so ordinary fast generation remains quiet apart from its final summary.
+
+The next compiler milestone should accept the same textual Celtic grid vocabulary and emit two
+additional outputs:
 
 1. a generated `.scad` file containing sampled knot strands, crossings, metadata, and summary
    statistics compatible with the existing LogoSC knot renderers and diagnostics;
@@ -1226,7 +1243,7 @@ The first milestone should accept the same textual Celtic grid vocabulary and em
    already resolved, suitable for direct `import()` and `linear_extrude()` in OpenSCAD, vector
    editing, laser cutting, or other 2D manufacturing workflows.
 
-The SVG route is the primary performance target for flat knots and plaques. OpenSCAD should
+The SVG route remains the primary performance target for flat knots and plaques. OpenSCAD should
 receive finished 2D regions instead of reconstructing thousands of sampled capsules and
 crossing-local Boolean operations. A generated wrapper can remain deliberately small:
 
@@ -1261,6 +1278,9 @@ LogoSC-Knots-Examples.scad
 LogoSC-Knots-Tests.scad
 LogoSC-Knots-Test-Runner.scad
 LogoSC-Knots-Design.md
+tools/logosc-knot-grid/
+generated/LogoSC-Celtic-Generated.grid
+generated/LogoSC-Celtic-Generated.scad
 ```
 
 The first, examples, tests, runner, and design files are implemented.
@@ -1330,9 +1350,12 @@ links where supported by the selected generator.
    - Duplicate merging near vertices and explicit crossing overrides remain deferred.
 7. **Medial planar graphs**
    - Generalize Celtic construction after tile topology is stable.
-8. **External C++ knot compiler and SVG acceleration** — planned
-   - Prototype a C++20/CMake executable that reads the established Celtic grid vocabulary and
-     writes compatible `.scad` knot records plus finished interlaced SVG ribbon geometry.
+8. **External C++ knot compiler and SVG acceleration** — preprocessing implemented
+   - The C++20/CMake executable now generates exact-size text grids, accepts built-in or BDF
+     fonts, validates existing plain-ASCII grids, writes OpenSCAD adapters, reports deterministic
+     hashes and statistics, and supplies the `GeneratedPlaque **` fixture.
+   - Next, compile those grids into compatible `.scad` knot records plus finished interlaced SVG
+     ribbon geometry.
    - Compare topology against existing OpenSCAD fixtures and benchmark through the 128-by-32
      `LogoSC` stress case before deciding whether direct STL or 3MF mesh generation is needed.
    - This accelerator may be implemented after the next release; its presence must not become a
@@ -1387,7 +1410,7 @@ Record answers here before they become implementation assumptions.
   [over/under assignment](#overunder-assignment),
   [ribbon-artifact postmortem](#crossing-artifact-postmortem-and-guardrails),
   [printable clearance](#required-feature-adjacent-multi-cord-bundles)
-- **External compiler:** [C++ and SVG acceleration](#external-c-knot-compiler-and-svg-path)
+- **External compiler:** [C++ grid preprocessing and SVG acceleration](#external-c-knot-compiler-and-svg-path)
 - **Generators:** [torus knots](#generator-1-torus-knots), [braid words](#generator-2-braid-words),
   [Celtic grids](#generator-3-celtic-tile-grids),
   [harmonic curves](#generator-4-harmonic-and-lissajous-curves),

@@ -680,12 +680,13 @@ The active sequence is:
 1. **L-system companion — development complete:** the reusable expansion and interpretation
    layer, nine presets, deterministic tests, 3-by-3 gallery, and public documentation are implemented.
    Distribution integration remains deferred until explicitly authorized.
-2. **Knot completion — next:** complete the agreed remaining generator milestones in
-   `LogoSC-Knots-Design.md`, then either implement or explicitly defer each residual collision,
-   closure, Celtic, ribbon, export, and presentation item. The design roadmap now also records a
-   future C++20/CMake accelerator that can emit compatible `.scad` records and pre-resolved SVG
-   ribbons; it is not required to complete the current OpenSCAD release. Knot topology and
-   manufacturing remain outside Core.
+2. **Knot completion — next:** the C++ text-to-grid generator and generated-plaque bridge are
+   implemented. Complete the accelerated topology and finished-SVG stages plus the agreed
+   remaining generator milestones in `LogoSC-Knots-Design.md`, then either implement or explicitly
+   defer each residual collision, closure, Celtic, ribbon, export, and presentation item.
+   Compatible generated knot records and pre-resolved SVG ribbons remain optional and are not
+   required to complete the current OpenSCAD release. Knot topology and manufacturing remain
+   outside Core.
 3. **Release:** after both milestones pass their focused suites and the complete acceptance wall,
    synchronize distribution documentation, package manifests, release notes, version references,
    images, and reproducible archives for the next release.
@@ -4089,6 +4090,43 @@ Measured result:
   cliffs and were rejected after runs exceeded roughly 7 to 10 minutes. The shipped even-height,
   two-cell-gap layout is deliberately close to the requested threshold.
 
+### 2026-08-06 — C++ text-to-Celtic-grid generator and plaque bridge
+
+Context:
+
+- The 128-by-32 LogoSC fixture established the OpenSCAD performance baseline, but authoring text
+  masks and transporting them into a future faster renderer needed a stable external format.
+- The requested compact format is not a quoted OpenSCAD list: it is ordinary ASCII with one
+  `X`, `>`, `<`, and `.` row per line and nothing else.
+- OpenSCAD 2021.01 has no general text-file reader, so it cannot consume that format directly.
+
+Decision:
+
+- Add the dependency-free C++20/CMake `tools/logosc-knot-grid/` executable. It generates an
+  exact-size grid from text, supports a built-in 5-by-7 font or a BDF bitmap font, accepts size,
+  scale, pixel or connected-stroke scaling, margin, spacing, pattern, and line-ending overrides,
+  and validates existing grids.
+- Write the plain `.grid` contract as the primary interchange file and optionally write a
+  generated `.scad` adapter containing identical rows. Keep both committed for the reference
+  fixture so OpenSCAD users do not need a C++ toolchain.
+- Print a deterministic hash and summary for reproducibility. Start progress dots only after two
+  seconds so slow future compiler stages show life without cluttering normal millisecond runs.
+- Add `GeneratedPlaque **` to the large-Celtic Customizer. It consumes the generated adapter and
+  forces printable bas-relief plaque output.
+- Keep the committed fixture at one-cell stroke scale. Scale-2 filled pixels and scale-3
+  connected strokes both hit severe OpenSCAD topology or plaque-construction cliffs; the latter
+  exceeded ten minutes. The 88-cell scale-1 fixture compiled to plaque CSG in about 38 seconds,
+  so it receives `(**)` and leaves `LOGOSC128 ***` as the only three-star example.
+- This completes preprocessing and interchange only. Indexed topology compilation, compatible
+  sampled knot records, and finished interlaced SVG ribbon polygons remain the next accelerator
+  stages.
+
+Verification:
+
+- Require MSVC and CMake builds, the executable self-test, plain-grid validation/round-trip checks,
+  exact row/column and character checks, deterministic fixture hash, and successful OpenSCAD
+  compilation of the generated plaque.
+
 ### 2026-08-06 — OpenSCAD features that support AI-assisted graphics development
 
 Purpose:
@@ -4352,6 +4390,7 @@ artifact. Design the app so none of those steps requires a human to click the ca
   [alternating parity and harmonics](#2026-08-05--alternating-parity-and-planar-harmonic-knots),
   [Celtic grids](#2026-07-29--explicit-celtic-tile-grid-topology),
   [C++ and SVG accelerator](#2026-08-05--planned-c-knot-compiler-and-svg-acceleration),
+  [C++ grid generator and plaque bridge](#2026-08-06--c-text-to-celtic-grid-generator-and-plaque-bridge),
   [Lissajous knot](#2026-08-05--spatial-lissajous-knot-and-crossing-discovery),
   [polar rosettes](#2026-08-06--polar-rosette-knot-generator),
   [128-by-32 LogoSC stress scene](#2026-08-06--native-glyph-128-by-32-celtic-logosc-stress-scene),

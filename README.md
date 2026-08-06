@@ -427,6 +427,11 @@ to 4,118 cord segments and take about three minutes on the RAINBOW development P
 The [large-grid guide](LogoSC-Celtic-Large-Grids.md) records measured OpenSCAD 2021.01 timings
 and recommends topology-only output while editing slow masks.
 
+An optional C++20 tool under `tools/logosc-knot-grid/` now converts a string into an exact-size
+plain ASCII Celtic grid, validates existing grids, accepts the built-in font or a BDF bitmap
+font, and writes a generated OpenSCAD adapter. The large-grid Customizer's
+`GeneratedPlaque **` scene turns the committed 128-by-32 adapter into a printable plaque.
+
 ### Render planar knot ribbons
 
 Project a knot before compiling its sampled segments into LogoSC regions:
@@ -622,6 +627,9 @@ See `LogoSC-CheatSheet.md` and `LogoSC-User-Manual.md` for the complete command 
 - `LogoSC-Knots-Examples.scad` — knot diagnostics plus cord, bundle, and braid galleries.
 - `LogoSC-Celtic-Large-Grids.scad` — selectable large irregular Celtic masks and CELTIC word.
 - `LogoSC-Celtic-Large-Grids.md` — large-grid usage and measured performance guide.
+- `tools/logosc-knot-grid/` — optional C++20 text-to-grid generator, validator, tests, and build guide.
+- `generated/LogoSC-Celtic-Generated.grid` — unquoted ASCII `X`, `>`, `<`, and `.` grid fixture.
+- `generated/LogoSC-Celtic-Generated.scad` — generated adapter used by the printable plaque scene.
 - `LogoSC-Knots-Tests.scad` — passive knot record, generator, cord, bundle, and braid tests.
 - `LogoSC-Knots-Test-Runner.scad` — direct entry point for the knot companion suite.
 - `LogoSC-LSystems.scad` — optional deterministic grammar expansion and interpretation companion.
@@ -693,9 +701,10 @@ plant, Lévy C, Gosper, and canopy presets without adding Core opcodes.
 1. **L-system development complete:** the optional companion now has a reusable
    expansion/interpreter boundary, six presets, focused tests, examples, and documentation.
    Distribution integration remains deliberately deferred.
-2. **Next:** finish the planned knot-companion work. Complete the agreed remaining milestones,
-   close or explicitly defer residual manufacturing and topology items, and keep all knot logic
-   outside Core.
+2. **Next:** finish the planned knot-companion work. The C++ text-to-grid preprocessor and
+   OpenSCAD generated-plaque bridge are implemented; the accelerated topology compiler and
+   finished interlaced SVG output remain. Complete or explicitly defer the other residual
+   manufacturing and topology items, and keep all knot logic outside Core.
 3. Prepare and publish the next release only after the L-system and knot milestones form one
    coherent, fully verified change set.
 
@@ -710,6 +719,8 @@ validation policies remain later candidates rather than part of this release seq
 - Optional validation additionally requires `LogoSC-Foundation-Validation.scad`.
 - Optional knot generation additionally requires `LogoSC-Knots.scad`; its ribbon renderer uses
   the stable Core region API without changing Core.
+- Optional text-to-Celtic-grid preprocessing requires a C++20 compiler and CMake 3.20 or newer;
+  committed generated fixtures keep ordinary OpenSCAD use independent of that toolchain.
 
 Maintainers can use [LogoSC-OpenSCAD-Command-Line.md](LogoSC-OpenSCAD-Command-Line.md)
 to run tests, capture diagnostics, and export geometry or PNG previews without opening the GUI.

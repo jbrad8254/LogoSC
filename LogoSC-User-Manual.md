@@ -81,6 +81,8 @@ LogoSC-Knots.scad                  Optional knot records, sampled generators, an
 LogoSC-Knots-Examples.scad         Knot diagnostics plus cord, bundle, and braid galleries.
 LogoSC-Celtic-Large-Grids.scad     Large irregular Celtic grids and CELTIC word showcase.
 LogoSC-Celtic-Large-Grids.md       Large-grid controls and measured timing guide.
+tools/logosc-knot-grid/            Optional C++20 text-to-Celtic-grid preprocessor.
+generated/                         Plain grid fixture and generated OpenSCAD adapter.
 LogoSC-Knots-Tests.scad            Passive knot companion tests.
 LogoSC-Knots-Test-Runner.scad      Direct entry point for knot tests.
 LogoSC-LSystems.scad               Optional L-system grammar and interpretation companion.
@@ -1550,6 +1552,13 @@ The companion [large-grid guide](LogoSC-Celtic-Large-Grids.md) explains its Topo
 Ribbon outputs and records measured OpenSCAD 2021.01 timings. Use Topology while editing the
 larger masks; 24-by-24 and 32-by-32 examples are intentionally slow.
 
+The optional `tools/logosc-knot-grid/` C++20 program generates exact-size text masks without
+running OpenSCAD. Its `.grid` files are plain rectangular ASCII rows containing only `X`, `>`,
+`<`, and `.`, without quotes or separators. It can use its built-in 5-by-7 font or a BDF bitmap
+font and can emit the `.scad` row-list adapter required by OpenSCAD 2021.01. Select
+`GeneratedPlaque **` in the large-grid Customizer to turn the committed adapter into a printable
+bas-relief plaque.
+
 This MVP deliberately excludes random tile filling and user-selectable boundary pairing.
 
 #### Planar knot ribbons
@@ -2986,6 +2995,7 @@ control smoothness globally.
 - [`$fa`](#9-segment-count-controls), [`$fn`](#9-segment-count-controls), [`$fs`](#9-segment-count-controls)
 - [`ARC`](#arc)
 - [`CHANGELOG.md`](#1-files)
+- [Celtic grids and generated plaques](#celtic-tile-grids)
 - [`CIRCLE`](#circle)
 - [`DIR`](#dir)
 - [`evalLogo()`](#74-evallogo)

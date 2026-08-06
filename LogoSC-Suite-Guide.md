@@ -246,6 +246,11 @@ The large-grid showcase demonstrates that blank cells can become deliberate nega
 Large scenes print an early scene/output-specific duration estimate rather than pretending that
 OpenSCAD offers a trustworthy model-level percentage-complete callback.
 
+The optional C++20 `logosc-knot-grid` preprocessor converts text into exact-size plain ASCII
+tile grids and can emit the adapter needed by OpenSCAD 2021.01. The showcase's
+`GeneratedPlaque **` scene turns the committed 128-by-32 adapter into a printable plaque; the
+unquoted grid remains suitable input for the planned accelerated Celtic renderer.
+
 ### Planar ribbons
 
 ![LogoSC planar knot ribbons and underpass masks](images/knot-ribbon-gallery.png)
