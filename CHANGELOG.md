@@ -28,6 +28,10 @@
 
 ### Added
 
+- Added `MakeLissajousKnot()` with closed three-axis harmonic sampling, proper projected
+  self-crossing discovery, interpolated route parameters, Z-derived over/under branches,
+  focused tests, a selectable example supporting every existing knot output mode, and a
+  three-route Lissajous gallery with a generated documentation image.
 - Added focused contracts for seeded angle-jitter reproducibility and path-distance restoration
   across `POP`, bringing the L-system suite to 25 passing tests.
 - Exported all nine L-system presets at their gallery defaults and verified that every STL has one

@@ -231,6 +231,200 @@ function KnotVectorRotateAroundAxis(vector, axis, angle) =
         )
     );
 
+// Return the signed 2D cross product of vectors a and b.
+function KnotCross2D(a, b) = a[0] * b[1] - a[1] * b[0];
+
+function KnotLissajousPoint(
+    parameter,
+    frequencies = [3, 4, 5],
+    amplitudes = [20, 20, 6],
+    phases = [0, 17, 31]) =
+[
+    amplitudes[0] * sin(360 * frequencies[0] * parameter + phases[0]),
+    amplitudes[1] * sin(360 * frequencies[1] * parameter + phases[1]),
+    amplitudes[2] * sin(360 * frequencies[2] * parameter + phases[2])
+];
+
+function KnotLissajousSamples(
+    frequencies,
+    amplitudes,
+    phases,
+    sampleCount) =
+[
+    for (sampleIndex = [0 : sampleCount])
+        KnotLissajousPoint(
+            sampleIndex / sampleCount,
+            frequencies,
+            amplitudes,
+            phases
+        )
+];
+
+function KnotSegmentsAreAdjacent(firstIndex, secondIndex, segmentCount) =
+    secondIndex == firstIndex + 1
+    || (firstIndex == 0 && secondIndex == segmentCount - 1);
+
+// A proper intersection excludes segment endpoints, parallel segments, and
+// tangencies. The result is [point2D, blendA, blendB] or undef.
+function KnotProperSegmentIntersection(a0, a1, b0, b1, tolerance = 0.000001) =
+    let(
+        a = [a1[0] - a0[0], a1[1] - a0[1]],
+        b = [b1[0] - b0[0], b1[1] - b0[1]],
+        offset = [b0[0] - a0[0], b0[1] - a0[1]],
+        denominator = KnotCross2D(a, b),
+        blendA = abs(denominator) <= tolerance
+            ? undef
+            : KnotCross2D(offset, b) / denominator,
+        blendB = abs(denominator) <= tolerance
+            ? undef
+            : KnotCross2D(offset, a) / denominator
+    )
+    is_undef(blendA)
+    || blendA <= tolerance
+    || blendA >= 1 - tolerance
+    || blendB <= tolerance
+    || blendB >= 1 - tolerance
+    ? undef
+    : [
+        [a0[0] + blendA * a[0], a0[1] + blendA * a[1]],
+        blendA,
+        blendB
+    ];
+
+function KnotSampledSelfIntersections(samples, tolerance = 0.000001) =
+    let(segmentCount = len(samples) - 1)
+[
+    for (firstIndex = [0 : segmentCount - 2])
+        for (secondIndex = [firstIndex + 1 : segmentCount - 1])
+            if (!KnotSegmentsAreAdjacent(firstIndex, secondIndex, segmentCount))
+                let(
+                    intersection = KnotProperSegmentIntersection(
+                        samples[firstIndex],
+                        samples[firstIndex + 1],
+                        samples[secondIndex],
+                        samples[secondIndex + 1],
+                        tolerance
+                    )
+                )
+                if (!is_undef(intersection))
+                    [
+                        intersection[0],
+                        (firstIndex + intersection[1]) / segmentCount,
+                        (secondIndex + intersection[2]) / segmentCount,
+                        samples[firstIndex][2]
+                            + intersection[1]
+                                * (samples[firstIndex + 1][2] - samples[firstIndex][2]),
+                        samples[secondIndex][2]
+                            + intersection[2]
+                                * (samples[secondIndex + 1][2] - samples[secondIndex][2])
+                    ]
+];
+
+function KnotLissajousCrossings(intersections) =
+[
+    for (intersection = intersections)
+        MakeKnotCrossing(
+            intersection[0],
+            0,
+            intersection[1],
+            0,
+            intersection[2],
+            0,
+            intersection[3] >= intersection[4] ? "A" : "B"
+        )
+];
+
+function KnotIntersectionsHaveDistinctHeights(
+    intersections,
+    tolerance,
+    index = 0) =
+    index >= len(intersections)
+    ? true
+    : abs(intersections[index][3] - intersections[index][4]) > tolerance
+        && KnotIntersectionsHaveDistinctHeights(
+            intersections,
+            tolerance,
+            index + 1
+        );
+
+function KnotCrossingEncounterIndexes(crossingCount) =
+    crossingCount == 0 ? [] : [for (index = [0 : crossingCount - 1]) index];
+
+// Construct one closed spatial Lissajous route and discover every proper
+// self-crossing in its XY projection. Integer frequencies guarantee closure;
+// interpolated Z chooses the over branch at each crossing.
+function MakeLissajousKnot(
+    frequencies = [3, 4, 5],
+    amplitudes = [20, 20, 6],
+    phases = [0, 17, 31],
+    sampleCount = 240,
+    intersectionTolerance = 0.000001) =
+    assert(
+        is_list(frequencies) && len(frequencies) == 3
+        && min([for (frequency = frequencies)
+            is_num(frequency) && frequency > 0 && floor(frequency) == frequency ? 1 : 0]) == 1,
+        "Lissajous frequencies must be three positive integers."
+    )
+    assert(
+        is_list(amplitudes) && len(amplitudes) == 3
+        && min([for (amplitude = amplitudes)
+            is_num(amplitude) && amplitude > 0 ? 1 : 0]) == 1,
+        "Lissajous amplitudes must be three positive numbers."
+    )
+    assert(
+        is_list(phases) && len(phases) == 3
+        && min([for (phase = phases) is_num(phase) ? 1 : 0]) == 1,
+        "Lissajous phases must be three numbers in degrees."
+    )
+    assert(
+        is_num(sampleCount) && floor(sampleCount) == sampleCount && sampleCount >= 12,
+        "Lissajous sample count must be an integer of at least 12."
+    )
+    assert(
+        is_num(intersectionTolerance) && intersectionTolerance > 0,
+        "Lissajous intersection tolerance must be positive."
+    )
+    let(
+        samples = KnotLissajousSamples(
+            frequencies,
+            amplitudes,
+            phases,
+            sampleCount
+        ),
+        intersections = KnotSampledSelfIntersections(
+            samples,
+            intersectionTolerance
+        ),
+        crossings = KnotLissajousCrossings(intersections)
+    )
+    assert(
+        KnotIntersectionsHaveDistinctHeights(
+            intersections,
+            intersectionTolerance
+        ),
+        "Lissajous projection has a crossing with ambiguous Z order."
+    )
+    MakeKnot(
+        [
+            MakeKnotStrand(
+                true,
+                samples,
+                KnotCrossingEncounterIndexes(len(crossings)),
+                [0],
+                ["generator", "lissajous"]
+            )
+        ],
+        crossings,
+        [
+            "generator", "lissajous",
+            "frequencies", frequencies,
+            "amplitudes", amplitudes,
+            "phases", phases,
+            "sampleCount", sampleCount,
+            "intersectionPolicy", "properProjectedSegments"
+        ]
+    );
+
 function KnotVectorSignedAngle(from, to, axis) =
     atan2(
         KnotVectorDot(axis, KnotVectorCross(from, to)),

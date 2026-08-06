@@ -274,6 +274,65 @@ function KnotTorusTestResults() =
     )
 ];
 
+function KnotLissajousTestResults() =
+    let(
+        knot = MakeLissajousKnot(sampleCount = 120),
+        strand = KnotStrands(knot)[0],
+        samples = KnotStrandSamples(strand),
+        crossings = KnotCrossings(knot),
+        properIntersection = KnotProperSegmentIntersection(
+            [-1, -1, 0],
+            [1, 1, 0],
+            [-1, 1, 0],
+            [1, -1, 0]
+        )
+    )
+[
+    LogoTestResult(
+        "Lissajous point evaluates three harmonic axes",
+        KnotTestPointNearlyEqual(
+            KnotLissajousPoint(0, [1, 1, 1], [2, 3, 4], [90, 0, -90]),
+            [2, 0, -4]
+        )
+    ),
+    LogoTestResult(
+        "Lissajous proper segment intersection",
+        !is_undef(properIntersection)
+        && KnotTestNearlyEqual(properIntersection[0][0], 0)
+        && KnotTestNearlyEqual(properIntersection[0][1], 0)
+        && KnotTestNearlyEqual(properIntersection[1], 0.5)
+        && KnotTestNearlyEqual(properIntersection[2], 0.5)
+    ),
+    LogoTestResult(
+        "Lissajous adjacent segments do not self-intersect",
+        KnotSegmentsAreAdjacent(2, 3, 12)
+        && KnotSegmentsAreAdjacent(0, 11, 12)
+        && !KnotSegmentsAreAdjacent(2, 4, 12)
+    ),
+    LogoTestResult(
+        "Lissajous generator closes sampled route",
+        len(KnotStrands(knot)) == 1
+        && KnotStrandSampleCount(strand) == 121
+        && KnotTestPointNearlyEqual(samples[0], samples[120])
+    ),
+    LogoTestResult(
+        "Lissajous generator discovers projected crossings",
+        len(crossings) == 8
+        && len(KnotStrandCrossingEncounters(strand)) == 8
+        && min([
+            for (crossing = crossings)
+                KnotCrossingOverBranch(crossing) == "A"
+                || KnotCrossingOverBranch(crossing) == "B"
+                ? 1
+                : 0
+        ]) == 1
+    ),
+    LogoTestResult(
+        "Lissajous generator validates",
+        KnotValidationIsValid(ValidateKnot(knot))
+    )
+];
+
 function KnotCordTestResults() =
     let(
         unknot = MakeTorusKnot(1, 1, 20, 6, 24),
@@ -1139,6 +1198,7 @@ function KnotAutomatedTestResults() =
         KnotRecordTestResults(),
         KnotValidationTestResults(),
         KnotTorusTestResults(),
+        KnotLissajousTestResults(),
         KnotCordTestResults(),
         KnotBundleTestResults(),
         KnotBraidTestResults(),

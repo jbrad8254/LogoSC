@@ -30,8 +30,9 @@ LogoSC is not trying to be a full Logo language. It is a lightweight OpenSCAD ge
 - Supports reusable relative command lists through `RUN`.
 - Provides a preview-only debug renderer for visualizing low-level path execution.
 - Provides optional path analysis and validation without changing filled-region rendering.
-- Provides an optional sampled-knot companion with structural validation, debug rendering, and
-  torus knots or links with correct multi-component behavior.
+- Provides an optional sampled-knot companion with structural validation, debug rendering,
+  torus knots or links, circular braids, Celtic grids, and spatial Lissajous knots with
+  discovered projected crossings.
 - Leaves 3D composition to native OpenSCAD tools such as `linear_extrude()`, `difference()`, `union()`, and `translate()`.
 
 ## Engineering guidance and restart order
@@ -209,7 +210,8 @@ RenderKnotCordBundle(
 
 `MakeTorusKnot(p, q, ...)` returns one closed sampled strand when `p` and `q` are coprime.
 Otherwise it returns `gcd(p,q)` independently closed components. Open
-`LogoSC-Knots-Examples.scad` for the unknot, trefoil, Hopf-link, and explicit-crossing gallery.
+`LogoSC-Knots-Examples.scad` for the unknot, trefoil, Hopf-link, Lissajous, Celtic, and
+explicit-crossing examples.
 `RenderKnotCords()` converts every sampled strand into printable sphere-hulled capsules.
 The caller chooses cord radius, sphere resolution, and sampling density.
 `RenderKnotDebug()` remains the preview-only diagnostic view. The implemented bundle stage uses
@@ -233,7 +235,7 @@ Planar cord output projects a copy of the master samples before rendering or bun
 A flattened cord view can fuse where the projection crosses itself, so Planar manufacturing
 geometry is a comparison/design view rather than an automatic printable-knot guarantee.
 
-The torus, braid, Celtic-grid, and cord paths do not invoke LogoSC evaluation: sampling and
+The torus, Lissajous, braid, Celtic-grid, and cord paths do not invoke LogoSC evaluation: sampling and
 validation are pure OpenSCAD functions, and native OpenSCAD constructs the 3D capsules. The
 planar ribbon compiler now uses Core region records and `RenderRegion2D()` for footprints and
 crossing masks. See
@@ -255,6 +257,32 @@ lanes for presentation only; the manufacturing renderer emits ordinary geometry.
 Choose `TwistGallery` to compare untwisted, half-twist, and full-twist three-cord bundles.
 Because twist rotates the bundle frame out of the master route's plane, the twist gallery keeps
 a spatial presentation even when the master route is projected with `KnotView = "Planar"`.
+
+### Generate a Lissajous knot
+
+`MakeLissajousKnot()` samples three sinusoidal axes over one complete period. Integer
+frequencies close the route exactly; its XY segment intersections become explicit crossing
+records, and interpolated Z selects the over branch:
+
+```scad
+lissajous = MakeLissajousKnot(
+    frequencies = [3, 4, 5],
+    amplitudes = [20, 20, 6],
+    phases = [0, 17, 31],
+    sampleCount = 240
+);
+
+ReportKnotValidation(lissajous, strict = true);
+RenderKnotCords(lissajous, cordRadius = 0.8);
+```
+
+The initial implementation accepts only proper, interior segment intersections. Endpoint
+contacts and tangencies are excluded, and a projection with indistinguishable branch heights
+is rejected rather than assigned an arbitrary crossing order. Choose `Lissajous` in the knot
+examples for Debug, Cord, Bundle, Ribbon, Relief, or Plaque output, or choose
+`LissajousGallery` to compare the 2:3:5, 3:4:5, and 3:5:7 families.
+
+![LogoSC Lissajous knot gallery](images/knot-lissajous-gallery.png)
 
 ### Generate a circular braid closure
 
@@ -526,7 +554,8 @@ See `LogoSC-CheatSheet.md` and `LogoSC-User-Manual.md` for the complete command 
 - `LogoSC-Nuts-And-Bolts.scad` — customizable printable fastener and thread-profile model.
 - `LogoSC-Nuts-And-Bolts-Tests.scad` — passive non-rendering fastener calculation tests.
 - `LogoSC-Nuts-And-Bolts-Test-Runner.scad` — direct entry point for the fastener test suite.
-- `LogoSC-Knots.scad` — optional knot records, torus/braid generators, cords, and bundles.
+- `LogoSC-Knots.scad` — optional knot records, Lissajous/torus/braid/Celtic generators, cords,
+  ribbons, reliefs, and bundles.
 - `LogoSC-Knots-Examples.scad` — knot diagnostics plus cord, bundle, and braid galleries.
 - `LogoSC-Celtic-Large-Grids.scad` — selectable large irregular Celtic masks and CELTIC word.
 - `LogoSC-Celtic-Large-Grids.md` — large-grid usage and measured performance guide.
@@ -576,7 +605,8 @@ a preview-only debug renderer and an optional validator that detects basic path 
 self-intersections, invalid hole containment, and overlapping holes. The companion exposes
 reusable segment, contour, containment, and region-relation helpers without adding them to Core.
 Manufacturable stroke/open-path rendering remains future work. The optional knot companion
-separately provides torus, braid, and Celtic-grid topology; rounded cords and multi-cord bundles;
+separately provides torus, Lissajous, braid, and Celtic-grid topology; rounded cords and
+multi-cord bundles;
 LogoSC-backed planar ribbons; and printable beveled relief plaques. It does not change LogoSC
 Core's filled-region contract. The optional L-system companion expands deterministic grammars into
 ordinary LogoSC command lists and includes Koch, quadratic Koch, Hilbert, Dragon, Sierpiński,

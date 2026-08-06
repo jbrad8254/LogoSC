@@ -51,6 +51,8 @@ remains responsible for extrusion, hulls, Minkowski operations, booleans, and 3D
   markers;
 - `MakeTorusKnot()`, producing one component for coprime `p` and `q` or
   `gcd(p,q)` independently closed components for a torus link;
+- `MakeLissajousKnot()`, sampling three integer-frequency harmonic axes, discovering proper
+  self-intersections in XY, and choosing over/under branches from interpolated Z;
 - `RenderKnotCords()`, producing manufacturable round cords from sphere-hulled capsules with
   explicit radius and fragment controls;
 - `MakeKnotBundle()` and `RenderKnotCordBundle()`, expanding each master route into stable,
@@ -68,7 +70,7 @@ remains responsible for extrusion, hulls, Minkowski operations, booleans, and 3D
   footprints, raising crossing overpasses, and adding optional beveled backing plates;
 - selectable planar-projection and spatial views across diagnostics, cords, bundles, and
   presentation galleries;
-- a dedicated 88-result automated suite plus topology, bundle, twisted-bundle, braid,
+- a dedicated 94-result automated suite plus topology, bundle, twisted-bundle, braid,
   braided-bundle, Celtic tile-grid, ribbon, relief, and plaque presentation galleries.
 
 This slice deliberately does not implement general collision discovery, tight-curve rejection,
@@ -90,7 +92,7 @@ rendering do not call the LogoSC evaluator behind the scenes.
 The present execution path is:
 
 ```text
-MakeTorusKnot(), MakeCircularBraidKnot(), or MakeCelticTileGridKnot()
+MakeTorusKnot(), MakeLissajousKnot(), MakeCircularBraidKnot(), or MakeCelticTileGridKnot()
   -> pure OpenSCAD functions calculate sampled strand and crossing records
   -> ValidateKnot() checks those records without producing geometry
   -> RenderKnotDebug() uses native color(), translate(), sphere(), and hull()
@@ -626,6 +628,14 @@ This boundary deliberately excludes random filling and substitution systems.
 
 ## Generator 4: harmonic and Lissajous curves
 
+The first spatial Lissajous slice is implemented as `MakeLissajousKnot()`. It accepts three
+positive integer frequencies, three positive amplitudes, three degree phases, a sample count,
+and an intersection tolerance. The closed sampled route is compared pairwise in XY; adjacent
+segments, endpoints, parallel segments, and tangencies are excluded. Proper intersections
+record both route parameters, and interpolated Z determines the over branch. Equal-height
+crossings are rejected as ambiguous. The more general multi-term planar input and alternating
+parity solver described below remain planned.
+
 Organic closed routes can use multiple harmonic terms:
 
 ```text
@@ -1062,8 +1072,12 @@ links where supported by the selected generator.
    - Bas-relief extrusion and corrected overpass overlap are complete.
    - Bas-relief backing plates, top-edge bevels, and print-quality presets are complete.
    - Unified polygon export, decorative borders, and bundled planar ribbons remain deferred.
-6. **Harmonic/Lissajous and polar generators**
-   - Add automatic crossing discovery and parity solving.
+6. **Harmonic/Lissajous and polar generators** — spatial Lissajous slice implemented
+   - Three-axis single-term Lissajous sampling, proper projected crossing discovery, Z-derived
+     crossing order, tests, an individual Customizer example, and a three-route gallery are
+     complete.
+   - General multi-term planar harmonics, duplicate merging near vertices, alternating parity
+     solving, and polar rosettes remain planned.
 7. **Medial planar graphs**
    - Generalize Celtic construction after tile topology is stable.
 8. **Knot completion and release boundary**

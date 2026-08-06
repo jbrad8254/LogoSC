@@ -283,7 +283,7 @@ Verified working state:
   repetition, holes, stacks, validation, and debug rendering.
 - `LogoSC-Nuts-And-Bolts.scad` supplies the standalone customizable fastener application while
   keeping native OpenSCAD responsible for twisted extrusion and 3D booleans.
-- `LogoSC-Knots.scad` supplies optional torus, braid, Celtic-grid, cord, bundle, planar-ribbon,
+- `LogoSC-Knots.scad` supplies optional torus, Lissajous, braid, Celtic-grid, cord, bundle, planar-ribbon,
   bas-relief, and beveled-plaque workflows without adding knot topology to Core.
 - `RenderLogoDebug()` is implemented and visually verified.
 - Debug visualization is preview/debug-only, not intended to create manufacturable stroke geometry.
@@ -3931,6 +3931,32 @@ Verification:
 - Require the complete Foundation/Validation PASS marker, a warning-free Examples CSG export,
   visual inspection of both regenerated PNGs, and documentation-link and image-dimension checks.
 
+### 2026-08-05 — Spatial Lissajous knot and crossing discovery
+
+Context:
+
+- The knot roadmap placed harmonic/Lissajous generation after the completed torus, braid,
+  Celtic-grid, and ribbon milestones.
+- A true three-axis Lissajous route can supply crossing order directly from spatial height,
+  allowing useful knot output before the more general planar parity solver is complete.
+
+Decision:
+
+- Add `MakeLissajousKnot()` with three positive integer frequencies, positive amplitudes,
+  degree phases, deterministic sampling, and exact periodic closure.
+- Discover proper self-intersections between nonadjacent XY segments, interpolate both route
+  parameters and heights, and choose the over branch from Z. Reject endpoint contacts,
+  tangencies, parallel overlaps, and ambiguous equal-height crossings in this first slice.
+- Reuse the shared knot record and every existing Debug, Cord, Bundle, Ribbon, Relief, and
+  Plaque renderer. Add a three-route gallery comparing 2:3:5, 3:4:5, and 3:5:7 frequency sets.
+  Keep general multi-term harmonic curves, parity solving, duplicate merging, and polar
+  rosettes explicit in the remaining roadmap.
+
+Verification:
+
+- Add focused harmonic evaluation, segment-intersection, adjacency, closure, crossing-record,
+  and validation tests; require the knot companion and complete acceptance suites to pass.
+
 ## Index
 
 - **Affine transforms:** [design direction](#2026-07-27--preliminary-local-transform-design-direction),
@@ -3948,6 +3974,7 @@ Verification:
   [test suite](#2026-07-24--non-rendering-fastener-test-suite)
 - **Knot companion:** [first vertical slice](#2026-07-27--optional-knot-companion-first-vertical-slice),
   [Celtic grids](#2026-07-29--explicit-celtic-tile-grid-topology),
+  [Lissajous knot](#2026-08-05--spatial-lissajous-knot-and-crossing-discovery),
   [ribbons](#2026-07-29--logosc-backed-planar-ribbons-and-underpass-masks),
   [twisted bundles](#2026-07-29--twisted-bundle-closure-and-component-tracing)
 - **Packaging and publishing:** [repository workflow](#8-repository-and-packaging-workflow),

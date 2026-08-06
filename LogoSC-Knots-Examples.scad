@@ -4,7 +4,7 @@ include <LogoSC-Knots.scad>
 
 /* [Scene Selection] */
 
-KnotExample = "PlaqueGallery"; // [Unknot,Trefoil,HopfLink,CelticGrid,CrossingRecord,CordGallery,BundleGallery,TwistGallery,BraidGallery,BraidBundleGallery,CelticGallery,RibbonGallery,ReliefGallery,PlaqueGallery]
+KnotExample = "PlaqueGallery"; // [Unknot,Trefoil,HopfLink,Lissajous,CelticGrid,CrossingRecord,CordGallery,BundleGallery,TwistGallery,LissajousGallery,BraidGallery,BraidBundleGallery,CelticGallery,RibbonGallery,ReliefGallery,PlaqueGallery]
 
 /* [Individual Output - ignored by Gallery scenes] */
 
@@ -115,6 +115,11 @@ function KnotCelticExampleGrid(variant = 0) =
 function KnotExampleResult(name) =
     name == "Unknot"
     ? MakeTorusKnot(1, 1, 18, 5, KnotExampleSampleCount(72, 12))
+    : name == "Lissajous"
+        ? MakeLissajousKnot(
+            amplitudes = [18, 18, 5],
+            sampleCount = KnotExampleSampleCount(240, 48)
+        )
     : name == "BraidHopf"
         ? MakeCircularBraidKnot(
             2,
@@ -371,6 +376,55 @@ module RenderKnotCordGallery()
             ]
         );
     RenderKnotGalleryLabel("HOPF LINK", [145, -30, -8]);
+}
+
+module RenderKnotLissajousGalleryExample(
+    frequencies,
+    phases,
+    sampleCount,
+    position,
+    rotation,
+    colorValue)
+{
+    translate(position)
+    rotate(KnotView == "Planar" ? [0, 0, rotation[2]] : rotation)
+        RenderKnotGalleryCords(
+            MakeLissajousKnot(
+                frequencies,
+                [18, 18, 5],
+                phases,
+                KnotExampleSampleCount(sampleCount, 48)
+            ),
+            [colorValue],
+            0.72
+        );
+}
+
+module RenderKnotLissajousGallery()
+{
+    RenderKnotGalleryLabel(
+        str("LogoSC  LISSAJOUS KNOTS  -  ", KnotView),
+        [85, 39, -8],
+        5.8
+    );
+
+    RenderKnotLissajousGalleryExample(
+        [2, 3, 5], [11, 23, 37], 120,
+        [25, 4, 0], [56, 0, -8], [0.08, 0.62, 0.76]
+    );
+    RenderKnotGalleryLabel("2 : 3 : 5", [25, -30, -8], 3.5);
+
+    RenderKnotLissajousGalleryExample(
+        [3, 4, 5], [0, 17, 31], 120,
+        [85, 4, 0], [56, 0, 7], [0.94, 0.52, 0.08]
+    );
+    RenderKnotGalleryLabel("3 : 4 : 5", [85, -30, -8], 3.5);
+
+    RenderKnotLissajousGalleryExample(
+        [3, 5, 7], [7, 19, 41], 160,
+        [145, 4, 0], [56, 0, -7], [0.52, 0.24, 0.78]
+    );
+    RenderKnotGalleryLabel("3 : 5 : 7", [145, -30, -8], 3.5);
 }
 
 module RenderKnotBundleGalleryExample(
@@ -981,6 +1035,10 @@ else if (KnotExample == "BraidBundleGallery")
 else if (KnotExample == "BraidGallery")
 {
     RenderKnotBraidGallery();
+}
+else if (KnotExample == "LissajousGallery")
+{
+    RenderKnotLissajousGallery();
 }
 else if (KnotExample == "BundleGallery")
 {

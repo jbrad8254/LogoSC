@@ -77,7 +77,7 @@ LogoSC-Nuts-And-Bolts.scad         Customizable printable fastener model.
 LogoSC-Nuts-And-Bolts-Tests.scad   Passive non-rendering fastener calculation tests.
 LogoSC-Nuts-And-Bolts-Test-Runner.scad Direct entry point for fastener tests.
 LogoSC-Nuts-And-Bolts-Customizer.md Detailed fastener Customizer guide.
-LogoSC-Knots.scad                  Optional knot records, torus/braid generators, and cords.
+LogoSC-Knots.scad                  Optional knot records, sampled generators, and cords.
 LogoSC-Knots-Examples.scad         Knot diagnostics plus cord, bundle, and braid galleries.
 LogoSC-Celtic-Large-Grids.scad     Large irregular Celtic grids and CELTIC word showcase.
 LogoSC-Celtic-Large-Grids.md       Large-grid controls and measured timing guide.
@@ -1334,7 +1334,7 @@ the last capsule closes the route exactly. The caller remains responsible for se
 radius, sampling density, and fragment count that preserve clearance and surface quality.
 Planar ribbons and controlled bundle twists are implemented; AI image import remains deferred.
 
-There is no hidden LogoSC evaluation in the generators. The torus, braid, and Celtic tile-grid
+There is no hidden LogoSC evaluation in the generators. The torus, Lissajous, braid, and Celtic tile-grid
 generators and `ValidateKnot()` are pure OpenSCAD functions, while `RenderKnotDebug()` and
 `RenderKnotCords()` use native OpenSCAD geometry. The planar ribbon compiler is the first knot
 stage that uses Core behind the scenes: it constructs `MakeRegion()` capsule footprints and
@@ -1349,8 +1349,8 @@ The opening Customizer sections separate scene selection from controls whose sco
 
 | `KnotExample` selection | `KnotOutput` | `KnotView` |
 |---|---|---|
-| `Unknot`, `Trefoil`, `HopfLink`, `CelticGrid`, `CrossingRecord` | Selects the individual renderer | Applies to Debug, Cord, and Bundle |
-| `CordGallery`, `BundleGallery`, `TwistGallery`, `BraidGallery`, `BraidBundleGallery`, `CelticGallery` | Ignored; the gallery has fixed cord output | Selects Planar or Spatial presentation |
+| `Unknot`, `Trefoil`, `HopfLink`, `Lissajous`, `CelticGrid`, `CrossingRecord` | Selects the individual renderer | Applies to Debug, Cord, and Bundle |
+| `CordGallery`, `BundleGallery`, `TwistGallery`, `LissajousGallery`, `BraidGallery`, `BraidBundleGallery`, `CelticGallery` | Ignored; the gallery has fixed cord output | Selects Planar or Spatial presentation |
 | `RibbonGallery`, `ReliefGallery`, `PlaqueGallery` | Ignored; the gallery has a fixed output | Ignored; these are fixed planar scenes |
 
 Individual Ribbon, Relief, and Plaque output also ignores `KnotView` and automatically projects
@@ -1385,6 +1385,33 @@ OpenSCAD lighting and surface shading, not additional strand or crossing states.
 
 Choose `KnotExample = "CordGallery"` for this labeled presentation scene. It is generated from
 the same knot records and capsule renderer used for normal cord output.
+
+#### Lissajous knots
+
+`MakeLissajousKnot()` creates a closed spatial route from three sinusoidal coordinates:
+
+```scad
+lissajous = MakeLissajousKnot(
+    frequencies = [3, 4, 5],
+    amplitudes = [20, 20, 6],
+    phases = [0, 17, 31],
+    sampleCount = 240
+);
+
+ReportKnotValidation(lissajous, strict = true);
+RenderKnotCords(lissajous, cordRadius = 0.8);
+```
+
+Frequencies are positive integers so all three axes close over one period. Amplitudes set the
+XY footprint and Z depth; phases are degrees. The generator compares nonadjacent projected
+segments, records proper interior intersections, interpolates both normalized route parameters,
+and selects the over branch from interpolated Z. It rejects ambiguous equal-height crossings.
+Endpoint contacts and tangencies are deliberately outside this first crossing-discovery slice.
+Choose `KnotExample = "Lissajous"` to send the same record through Debug, Cord, Bundle, Ribbon,
+Relief, or Plaque output. Choose `LissajousGallery` to compare validated 2:3:5, 3:4:5, and
+3:5:7 routes as spatial or planar cords.
+
+![LogoSC Lissajous knot gallery](images/knot-lissajous-gallery.png)
 
 #### Celtic tile grids
 
@@ -1590,7 +1617,7 @@ The example Customizer coordinates the three main tessellation costs with `KnotP
 | `Fine` | 2 | 48 | 20 |
 | `Custom` | `KnotRouteSampleScale` | `KnotCordFragments` | `KnotRibbonArcFragments` |
 
-Route sampling controls how closely torus, braid, and Celtic centerlines follow their
+Route sampling controls how closely torus, Lissajous, braid, and Celtic centerlines follow their
 mathematical curves. Cord fragments control round 3D cross-sections. Ribbon arc fragments
 control rounded sampled-segment ends, plaque corners, and bevel profiles. Increasing all three
 can substantially increase preview, CGAL, and STL costs.
