@@ -3,6 +3,17 @@
 `LogoSC-Celtic-Large-Grids.scad` demonstrates the canonical `"."` blank cell with grids large
 enough to expose both its design possibilities and its computational cost.
 
+## Table of Contents
+
+- [Included scenes](#included-scenes)
+- [Output choices](#output-choices)
+- [Measured OpenSCAD 2021.01 timings](#measured-openscad-202101-timings)
+  - [Other development PC](#other-development-pc-original-measurements)
+  - [RAINBOW](#rainbow-2026-08-05)
+  - [RAINBOW comparison](#rainbow-comparison)
+- [Progress reporting](#progress-reporting)
+- [Command-line timing](#command-line-timing)
+
 ## Included scenes
 
 Select `CelticLargeExample` in OpenSCAD's Customizer:
@@ -46,8 +57,13 @@ settled.
 
 ## Measured OpenSCAD 2021.01 timings
 
-These measurements were taken on the development machine through `openscad.com`. They are useful
-scale indicators, not universal performance guarantees.
+These measurements were taken through `openscad.com`. They are useful scale indicators, not
+universal performance guarantees. Keep results separated by computer because processor speed,
+system load, and machine-specific paths can materially affect elapsed time.
+
+### Other development PC (original measurements)
+
+The computer name was not recorded with the original measurements.
 
 | Grid and mask | Calculation only | Low-resolution cord CSG | Cord segments |
 |---|---:|---:|---:|
@@ -59,6 +75,36 @@ scale indicators, not universal performance guarantees.
 | 24-by-24 ring | about 29.5 s | not separately measured | 3,112 |
 | 32-by-32 ring | about 75.5 s | not separately measured | 5,368 |
 | `CELTIC` word, 37 by 9 | about 46 s | about 37–52 s for a preview PNG | 838 |
+
+### RAINBOW (2026-08-05)
+
+`RAINBOW` used an AMD Ryzen 9 5950X 16-Core Processor with 32 logical processors and
+OpenSCAD 2021.01. Each result below is one elapsed-time measurement from the documented
+PowerShell command-line workflow; all commands exited successfully and reported the expected
+scene, output mode, dimensions, and segment count.
+
+The separate `LogoSC-Knots-Test-Runner.scad` verification passed all 88 results in 0.910 seconds.
+That suite timing is not included in the comparison because the original PC has no matching
+measurement yet.
+
+| Grid and mask | Calculation only | Low-resolution cord CSG | Cord segments |
+|---|---:|---:|---:|
+| 8-by-8 diamond | 0.505 s | 0.543 s | 352 |
+| 16-by-16 ring | 3.544 s | 3.659 s | 1,464 |
+| 24-by-24 diamond | 12.132 s | 12.884 s | 2,944 |
+| 32-by-32 ring | 66.763 s | 61.949 s | 5,368 |
+| `CELTIC` word, 37 by 9 | 27.179 s | 24.725 s | 838 |
+
+### RAINBOW comparison
+
+Across the seven directly comparable calculation or CSG rows, combined elapsed time fell from
+about 169.5 seconds on the original development PC to 123.55 seconds on `RAINBOW`. That is about
+27% less elapsed time, or 1.37 times the throughput. Individual improvements ranged from about
+10% less time for the 8-by-8 cord CSG to about 47% less time for the 24-by-24 cord CSG.
+
+The original `CELTIC` cord result was a preview PNG range, not a CSG measurement, so it is not
+included in the comparison. Likewise, the newly measured 16-by-16 and 32-by-32 cord CSG rows
+have no original-PC counterparts yet.
 
 The cost is not determined by the rectangular dimensions alone. Occupied-cell count, boundary
 length, number of separate boundary loops, route-component count, crossings, sampling, and
