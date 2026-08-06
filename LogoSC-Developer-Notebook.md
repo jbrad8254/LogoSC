@@ -101,6 +101,7 @@
 - [Wordmark SC shear](#2026-08-05--wordmark-sc-shear-and-documentation-image)
 - [L-system, knot, and release sequence](#2026-08-03--l-system-knot-and-release-sequence)
 - [Optional L-system companion](#2026-08-03--optional-l-system-companion)
+- [C++ knot topology and SVG compiler](#2026-08-06--c-knot-topology-and-svg-compiler)
 - [2026.7 release preparation](#2026-07-31--20267-celtic-and-publishing-release-preparation)
 - [2026.7 publication checkpoint](#2026-08-01--20267-publication-and-tag-alignment-checkpoint)
 - [Journal-entry template](#yyyy-mm-dd--topic)
@@ -4127,6 +4128,55 @@ Verification:
   exact row/column and character checks, deterministic fixture hash, and successful OpenSCAD
   compilation of the generated plaque.
 
+### 2026-08-06 — C++ knot topology and SVG compiler
+
+Context:
+
+- The committed grid preprocessor still left OpenSCAD doing the expensive boundary searches,
+  component tracing, curve sampling, and per-segment ribbon Booleans.
+- The external format needed to remain inspectable and compatible with the existing OpenSCAD
+  implementation, while the accelerated manufacturing path needed finished planar geometry.
+
+Decision:
+
+- Port the exact Celtic port, clockwise boundary-loop, adjacent boundary-pairing, component-cycle,
+  quadratic sampling, and checkerboard crossing rules to indexed C++ structures. Emit both a
+  LogoSC-compatible sampled `.scad` knot record and an interlaced SVG.
+- Resolve SVG underpasses by cumulative arc length and crossing angle. Split and merge cut
+  intervals on each closed strand, then emit visible segments as overlapping closed capsule
+  polygons.
+- Preserve the pure-OpenSCAD path as `GeneratedPlaque **` and add `FastSvgPlaque` as the practical
+  interactive path. Keep the external compiler optional and its generated artifacts committed.
+- Preserve a permanent slow parity test outside the routine knot suite. It recomputes the same
+  fixture in OpenSCAD and compares every sample and crossing, so normal tests remain quick.
+
+Failure and correction:
+
+- The first SVG used ordinary stroked paths. It imported, previewed, and even extruded by itself,
+  but its extrusion was not a closed mesh when a later union forced CGAL conversion. Neither
+  `offset(delta = 0)` nor a standalone extrusion test exposed a usable manufacturing result.
+- Explicit closed capsule polygons fixed the final plaque Boolean. The guardrail is to verify the
+  complete manufacturing composition, not merely SVG validity, preview appearance, or isolated
+  extrusion. OpenSCAD's separate CSG, preview, and CGAL/export modes made that distinction visible.
+
+Measured result on RAINBOW:
+
+- C++ topology: 0.000304 seconds; complete grid, sampled record, and closed SVG: 0.020449 seconds.
+- OpenSCAD reference topology plus parity comparison: 30.028 seconds. The corresponding speedups
+  are roughly 99,000 times for topology and 1,470 times for complete external artifact creation,
+  including OpenSCAD startup and parsing in the reference number.
+- Fast plaque CSG: 0.684 seconds versus 37.848 seconds, about 55 times faster. Preview: 1.027
+  seconds versus about 38.9 seconds, about 38 times faster.
+- Full STL command: 43.6 seconds, with 12.1 seconds reported in CGAL rendering. OpenSCAD reported
+  8,364 CGAL facets; the STL contains one connected watertight component with 33,132 triangles,
+  no boundary edges, and no non-manifold edges.
+
+Verification:
+
+- Require the CMake self-test, exact committed-artifact regeneration, XML parsing, permanent
+  C++/OpenSCAD route-and-crossing parity, accelerated CSG and preview, and a complete CGAL STL
+  export before treating vector output as printable.
+
 ### 2026-08-06 — OpenSCAD features that support AI-assisted graphics development
 
 Purpose:
@@ -4155,6 +4205,14 @@ mesh, and repeat without asking a person to operate the GUI after every change.
 | Textual parametric models | `.scad` source, functions, modules, `include`, and `use` | Search, diff, patch, review, and test geometry without reverse-engineering an opaque editor file. |
 | Customizer UI from source annotations | Named variables, section comments, enumerated choices, ranges, steps, and hidden controls | Turn tested code parameters into an immediate human-facing UI without building and synchronizing a separate application. |
 | Accessible documentation | OpenSCAD language reference, user manual, command-line documentation/help, and examples | Discover exact syntax and flags, understand preview versus render behavior, and verify how CSG, extrusion, hulls, transforms, special variables, and Customizer annotations behave. |
+
+The C++ knot SVG work exposed another benefit of those distinct output modes. A stroked SVG
+looked correct in preview and could be extruded alone, yet failed as a non-closed mesh only when
+the complete plaque union forced CGAL conversion. The same headless source could be exercised as
+CSG, preview PNG, isolated extrusion, and final STL, making it possible to localize the contract
+boundary and replace strokes with closed polygons. An AI-friendly graphics tool should therefore
+expose cheap intermediate modes and authoritative manufacturing export separately, while making
+clear that success at an earlier level does not certify the next one.
 
 A representative LogoSC automation sequence is:
 
@@ -4391,6 +4449,7 @@ artifact. Design the app so none of those steps requires a human to click the ca
   [Celtic grids](#2026-07-29--explicit-celtic-tile-grid-topology),
   [C++ and SVG accelerator](#2026-08-05--planned-c-knot-compiler-and-svg-acceleration),
   [C++ grid generator and plaque bridge](#2026-08-06--c-text-to-celtic-grid-generator-and-plaque-bridge),
+  [C++ topology and SVG compiler](#2026-08-06--c-knot-topology-and-svg-compiler),
   [Lissajous knot](#2026-08-05--spatial-lissajous-knot-and-crossing-discovery),
   [polar rosettes](#2026-08-06--polar-rosette-knot-generator),
   [128-by-32 LogoSC stress scene](#2026-08-06--native-glyph-128-by-32-celtic-logosc-stress-scene),

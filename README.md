@@ -419,7 +419,7 @@ mask spells **CELTIC** with knot geometry:
 ![CELTIC spelled with blank-cell knot grids](images/knot-celtic-word.png)
 
 The separate large-grid Customizer also includes `LOGOSC128 ***`, a deliberately batch-only
-128-by-32 LogoSC word and future C++/SVG acceleration fixture. Its native 18-by-24 glyphs compile
+128-by-32 LogoSC word and C++/SVG acceleration benchmark. Its native 18-by-24 glyphs compile
 to 4,118 cord segments and take about three minutes on the RAINBOW development PC.
 
 ![LogoSC spelled as a 128-by-32 Celtic knot grid](images/knot-celtic-logosc-128.png)
@@ -428,9 +428,11 @@ The [large-grid guide](LogoSC-Celtic-Large-Grids.md) records measured OpenSCAD 2
 and recommends topology-only output while editing slow masks.
 
 An optional C++20 tool under `tools/logosc-knot-grid/` now converts a string into an exact-size
-plain ASCII Celtic grid, validates existing grids, accepts the built-in font or a BDF bitmap
-font, and writes a generated OpenSCAD adapter. The large-grid Customizer's
-`GeneratedPlaque **` scene turns the committed 128-by-32 adapter into a printable plaque.
+plain ASCII Celtic grid, validates existing grids, compiles indexed knot topology, and writes a
+generated OpenSCAD adapter, compatible sampled knot record, and interlaced SVG. The large-grid
+Customizer's `GeneratedPlaque **` scene retains the reference OpenSCAD path; `FastSvgPlaque`
+imports the pre-resolved SVG into a printable plaque in about one second for CSG or preview on
+RAINBOW.
 
 ### Render planar knot ribbons
 

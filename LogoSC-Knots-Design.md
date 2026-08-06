@@ -22,6 +22,7 @@
 - [Rounded cords](#rounded-cords)
 - [AI-assisted image-to-knot import](#ai-assisted-image-to-knot-import)
 - [External C++ knot compiler and SVG path](#external-c-knot-compiler-and-svg-path)
+  - [Indexed topology and crossing algorithm](#indexed-topology-and-crossing-algorithm)
 - [Companion files](#companion-files)
 - [Verification requirements](#verification-requirements)
 - [Implementation sequence](#implementation-sequence)
@@ -1207,11 +1208,10 @@ design; the intended use is user-owned, licensed, or newly generated source imag
 ## External C++ knot compiler and SVG path
 
 Large Celtic grids expose a performance boundary in OpenSCAD's immutable list evaluation,
-repeated topology scans, and geometry construction. The first external-tool stage is now a
-standalone C++20 text-to-grid generator and validator. Later stages should move route tracing,
-crossing assignment, and production-shape construction into the same toolchain. This remains an
-optional accelerated build path, not a replacement for the readable OpenSCAD reference
-implementation or LogoSC Core.
+repeated topology scans, and geometry construction. The standalone C++20 tool now covers text and
+grid input, indexed topology, compatible sampled knot records, crossing assignment, and finished
+interlaced SVG. This remains an optional accelerated build path, not a replacement for the
+readable OpenSCAD reference implementation or LogoSC Core.
 
 The proposed toolchain is C++20 with CMake. Use indexed graph structures and hash-based lookup
 for tile connectivity, boundary loops, components, and crossings. Prefer an established polygon
@@ -1234,18 +1234,19 @@ as a string list. `GeneratedPlaque **` in `LogoSC-Celtic-Large-Grids.scad` consu
 adapter and forces printable plaque output. A delayed worker prints progress dots only after a
 run exceeds two seconds, so ordinary fast generation remains quiet apart from its final summary.
 
-The next compiler milestone should accept the same textual Celtic grid vocabulary and emit two
+The topology-and-SVG milestone accepts the same textual Celtic grid vocabulary and emits two
 additional outputs:
 
-1. a generated `.scad` file containing sampled knot strands, crossings, metadata, and summary
-   statistics compatible with the existing LogoSC knot renderers and diagnostics;
+1. a generated `.scad` file containing sampled knot strands, crossings, metadata, and dimensions
+   compatible with the existing LogoSC knot renderers and diagnostics;
 2. an SVG containing completed ribbon polygons with rounded outlines and underpass clearances
    already resolved, suitable for direct `import()` and `linear_extrude()` in OpenSCAD, vector
    editing, laser cutting, or other 2D manufacturing workflows.
 
-The SVG route remains the primary performance target for flat knots and plaques. OpenSCAD should
-receive finished 2D regions instead of reconstructing thousands of sampled capsules and
-crossing-local Boolean operations. A generated wrapper can remain deliberately small:
+The SVG route is the primary performance path for flat knots and plaques. OpenSCAD receives
+finished 2D regions instead of reconstructing thousands of sampled capsules and crossing-local
+Boolean operations. `FastSvgPlaque` is the deliberately small wrapper around `import()` and
+`linear_extrude()`:
 
 ```scad
 linear_extrude(height = 2)
@@ -1257,12 +1258,41 @@ routes, bypassing repeated OpenSCAD `sphere()` and `hull()` cord construction. S
 first because it is inspectable, easy to compare visually, retains exact planar geometry, and
 serves both OpenSCAD and non-OpenSCAD workflows.
 
-Verification must compare C++ results against known OpenSCAD fixtures: component counts, route
-closure, crossing count and order, bounds, and deterministic hashes or normalized records. SVG
-tests should check closed paths, valid fill rules, resolved underpass gaps, expected dimensions,
-and successful OpenSCAD import and extrusion. Benchmarks should include the existing 8-, 16-,
-24-, and 32-cell cases, the 37-by-9 `CELTIC` word, and a 128-by-32 `LogoSC` stress mask. Record
-parse, topology, SVG generation, OpenSCAD import, and final export times separately.
+`LogoSC-Celtic-Generated-Test.scad` recomputes the committed 128-by-32 fixture through the
+OpenSCAD reference and recursively compares all sampled points and crossing records within a
+numeric tolerance. It also validates the generated knot and checks 38 components, 32 crossings,
+and 928 segments. The SVG is imported into the accelerated plaque scene and verified through CSG,
+preview, and full STL export.
+
+### Indexed topology and crossing algorithm
+
+Each occupied cell contributes four integer port states. Interior ports link directly to the
+opposite port of an occupied neighbor. Exposed ports are indexed by their geometric edge vertices;
+a hash map supplies the possible boundary successor states, and the same clockwise turn ranking
+as the OpenSCAD reference traces each independent exterior or hole boundary. Adjacent states on
+each boundary loop are paired. Following those successor links produces closed component cycles;
+canonical visited-state tracking removes the reverse traversal of each component.
+
+Each component is then sampled from the exact quadratic tile and boundary formulas used by
+OpenSCAD. Every `X` cell contributes its two crossing branches, with checkerboard parity selecting
+the over branch. For SVG, cumulative arc length locates the under-branch encounter. The cut
+half-length is `(ribbonRadius + clearance) / abs(sin(crossingAngle))` plus one cap radius. Wrapped
+intervals on closed strands are split, intervals are sorted and merged, and the remaining visible
+spans are emitted as overlapping closed capsule polygons.
+
+For `R` rows, `C` columns, `E` occupied port states, `S` sampled points, and `K` crossings, grid
+indexing, boundary tracing, component tracing, and sampling are `O(R*C + E + S)`. Sorting cut
+intervals adds at most `O(K log K)` overall. Space is `O(R*C + E + S + K)`. This replaces the
+reference implementation's repeated immutable-list searches, which behave much closer to
+quadratic on large fixtures.
+
+Important limitations are deliberate: only `X`, `>`, `<`, and `.` Celtic tiles are accepted;
+crossings must be isolated and transverse enough to fit the requested ribbon and gap; ribbons
+have uniform width; and the SVG uses sampled capsules rather than a general-purpose polygon
+offset library. An early SVG-stroke implementation previewed correctly but produced a non-closed
+mesh when its extrusion entered a plaque Boolean. Emitting explicit closed capsule polygons fixed
+the final CGAL export. Preserve that regression lesson when changing vector output: preview and
+standalone extrusion are insufficient; test the final manufacturing Boolean.
 
 OpenSCAD cannot launch the compiler during model evaluation. Generation is therefore an
 explicit build step performed by the executable, CMake, or a repository script before the
@@ -1281,6 +1311,9 @@ LogoSC-Knots-Design.md
 tools/logosc-knot-grid/
 generated/LogoSC-Celtic-Generated.grid
 generated/LogoSC-Celtic-Generated.scad
+generated/LogoSC-Celtic-Generated-Knot.scad
+generated/LogoSC-Celtic-Generated.svg
+LogoSC-Celtic-Generated-Test.scad
 ```
 
 The first, examples, tests, runner, and design files are implemented.
@@ -1350,16 +1383,13 @@ links where supported by the selected generator.
    - Duplicate merging near vertices and explicit crossing overrides remain deferred.
 7. **Medial planar graphs**
    - Generalize Celtic construction after tile topology is stable.
-8. **External C++ knot compiler and SVG acceleration** — preprocessing implemented
-   - The C++20/CMake executable now generates exact-size text grids, accepts built-in or BDF
-     fonts, validates existing plain-ASCII grids, writes OpenSCAD adapters, reports deterministic
-     hashes and statistics, and supplies the `GeneratedPlaque **` fixture.
-   - Next, compile those grids into compatible `.scad` knot records plus finished interlaced SVG
-     ribbon geometry.
-   - Compare topology against existing OpenSCAD fixtures and benchmark through the 128-by-32
-     `LogoSC` stress case before deciding whether direct STL or 3MF mesh generation is needed.
-   - This accelerator may be implemented after the next release; its presence must not become a
-     prerequisite for the existing optional OpenSCAD knot companion.
+8. **External C++ knot compiler and SVG acceleration** — implemented
+   - The C++20/CMake executable generates or validates grids, compiles indexed topology, writes
+     compatible `.scad` knot records, and emits finished interlaced SVG ribbon geometry.
+   - `FastSvgPlaque` imports the SVG without invoking native Celtic topology or ribbon Boolean
+     construction; the permanent parity runner compares the generated record with OpenSCAD.
+   - Direct STL or 3MF mesh generation remains optional future work after broader grid benchmarks.
+   - The accelerator remains optional and is not a prerequisite for the OpenSCAD knot companion.
 9. **Knot completion and release boundary**
    - Decide and record the disposition of tight-curve rejection, general collision discovery,
      rectangular braid closure, random Celtic filling, explicit boundary maps, unified polygon

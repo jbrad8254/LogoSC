@@ -1544,7 +1544,7 @@ For larger studies, `LogoSC-Celtic-Large-Grids.scad` provides selectable 8-by-8,
 The same showcase provides `LOGOSC128 ***`, an intentional batch-only 128-by-32 LogoSC word
 made from native 18-by-24 cell glyphs rather than enlarged 5-by-7 pixels. Its default Cord output
 contains 4,118 segments and takes approximately three minutes on RAINBOW. It also serves as the
-planned stress fixture for a future C++ compiler and pre-resolved SVG workflow.
+stress fixture for the implemented C++ compiler and pre-resolved SVG workflow.
 
 ![LogoSC spelled as a 128-by-32 Celtic knot grid](images/knot-celtic-logosc-128.png)
 
@@ -1555,9 +1555,10 @@ larger masks; 24-by-24 and 32-by-32 examples are intentionally slow.
 The optional `tools/logosc-knot-grid/` C++20 program generates exact-size text masks without
 running OpenSCAD. Its `.grid` files are plain rectangular ASCII rows containing only `X`, `>`,
 `<`, and `.`, without quotes or separators. It can use its built-in 5-by-7 font or a BDF bitmap
-font and can emit the `.scad` row-list adapter required by OpenSCAD 2021.01. Select
-`GeneratedPlaque **` in the large-grid Customizer to turn the committed adapter into a printable
-bas-relief plaque.
+font and can emit the `.scad` row-list adapter required by OpenSCAD 2021.01, a compatible sampled
+knot record, and a pre-resolved interlaced SVG. Select `GeneratedPlaque **` in the large-grid
+Customizer for the reference compiler or `FastSvgPlaque` for the approximately one-second SVG
+import path. The accelerated path is the practical choice for iterative plaque work.
 
 This MVP deliberately excludes random tile filling and user-selectable boundary pairing.
 

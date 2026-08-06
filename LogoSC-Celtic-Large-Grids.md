@@ -29,6 +29,7 @@ Select `CelticLargeExample` in OpenSCAD's Customizer:
 | `CELTIC *` | A 37-by-9 bitmap word mask built from blank and occupied cells |
 | `LOGOSC128 ***` | Batch-only 128-by-32 LogoSC word built from native 18-by-24 glyphs |
 | `GeneratedPlaque **` | Printable plaque compiled from the C++ generator's committed 128-by-32 grid adapter |
+| `FastSvgPlaque` | The same generated word imported as pre-resolved interlaced SVG geometry |
 
 Customizer suffixes warn about approximate minimum-sampling Cord CSG time on `RAINBOW`: `(*)`
 means more than 3 seconds, `(**)` more than 30 seconds, and `(***)` more than 3 minutes. The
@@ -48,22 +49,29 @@ the selected line ending. The tool writes native line endings by default and sup
 `crlf`, carriage-return-only `cr`, or `lf` output.
 
 OpenSCAD 2021.01 cannot read arbitrary text rows, so the same command can write a generated
-`.scad` adapter containing those rows as a list. The committed pair is:
+`.scad` adapter containing those rows as a list. The committed artifacts are:
 
 ```text
 generated/LogoSC-Celtic-Generated.grid
 generated/LogoSC-Celtic-Generated.scad
+generated/LogoSC-Celtic-Generated-Knot.scad
+generated/LogoSC-Celtic-Generated.svg
 ```
 
-Select `GeneratedPlaque **` to compile that adapter into a printable bas-relief plaque. This
-scene always selects plaque output; the regular `CelticLargeOutput` control is intentionally
-ignored. Regenerate both files together from the repository root:
+Select `GeneratedPlaque **` to compile that adapter through the readable OpenSCAD reference
+implementation. Select `FastSvgPlaque` to import the C++ compiler's already interlaced, closed
+SVG regions. Both scenes always select plaque output; the regular `CelticLargeOutput` control is
+intentionally ignored. Regenerate all four artifacts together from the repository root:
 
 ```powershell
 build/logosc-knot-grid/Release/logosc-knot-grid.exe `
     --text LogoSC --width 128 --height 32 --scale 1 --scale-mode stroke `
     --output generated/LogoSC-Celtic-Generated.grid --line-ending crlf `
-    --scad-output generated/LogoSC-Celtic-Generated.scad
+    --scad-output generated/LogoSC-Celtic-Generated.scad `
+    --knot-scad-output generated/LogoSC-Celtic-Generated-Knot.scad `
+    --svg-output generated/LogoSC-Celtic-Generated.svg `
+    --cell-size 4 --samples-per-tile 4 --samples-per-boundary 2 `
+    --crossing-height 2 --ribbon-width 0.9 --crossing-clearance 0.3
 ```
 
 The command accepts a different string, size, integer scale, spacing, margins, tile pattern, or
@@ -71,15 +79,17 @@ BDF bitmap font. It can also validate an existing grid with `--input`. The commi
 one-cell stroke scaling. Scale-2 filled pixels and scale-3 connected strokes both crossed severe
 OpenSCAD topology or plaque-construction cliffs; the latter exceeded ten minutes. Scale 1
 produces a readable 88-cell fixture that compiled to plaque CSG in approximately 38 seconds on
-RAINBOW. Its normalized FNV-1a grid hash is `e8804e48ba7db0bf`. Larger output remains appropriate
-as input to the planned faster renderer.
+RAINBOW. Its normalized FNV-1a grid hash is `e8804e48ba7db0bf`. The C++ topology compiler emits
+the same 38 components, 32 crossings, and 928 sampled segments as the OpenSCAD reference, then
+writes closed capsule polygons to SVG. Explicit closed polygons are larger than SVG stroked paths,
+but survive OpenSCAD's final CGAL Boolean and produce a valid printable STL.
 
 ![CELTIC spelled with blank-cell knot grids](images/knot-celtic-word.png)
 
 `LOGOSC128 ***` is the first deliberately three-star LogoSC example. Its six glyphs are drawn
 directly at 18 by 24 cells with one-cell strokes; they are not enlarged 5-by-7 bitmaps. The
-128-by-32 padded mask is both a showcase and the shared stress fixture planned for comparison
-with the future C++/SVG knot compiler.
+128-by-32 padded mask is both a showcase and the shared stress fixture for comparison with the
+implemented C++/SVG knot compiler.
 
 ![LogoSC spelled as a 128-by-32 Celtic knot grid](images/knot-celtic-logosc-128.png)
 
@@ -159,13 +169,28 @@ and CSG compilation specifically to assign Customizer warning suffixes:
 | `CELTIC` | 20.628 s | `(*)` |
 | `LOGOSC128` | about 180 s | `(***)` |
 | `GeneratedPlaque` | 37.848 s (Plaque) | `(**)` |
+| `FastSvgPlaque` | 0.684 s (Plaque) | |
 
 These newer single-run values do not replace the earlier measurement set; they record a separate
 run for the UI-warning decision. Cache and system state explain some variation, especially for
 `Ring32`, without changing any threshold classification.
 
-The generated scene deliberately forces Plaque rather than the global Cord default. Its row is
-therefore the complete user-visible plaque CSG time, not a cord comparison.
+Both generated scenes deliberately force Plaque rather than the global Cord default. Their rows
+are therefore complete user-visible plaque CSG times, not cord comparisons.
+
+The accelerated scene's preview command took 1.027 seconds, compared with about 38.9 seconds for
+the reference plaque preview: approximately 38 times faster. CSG creation is approximately 55
+times faster. A full STL command took 43.6 seconds, of which OpenSCAD reported 12.1 seconds in
+CGAL rendering; file construction and writing account for the remainder. OpenSCAD reported a
+simple result with 8,364 CGAL facets; the STL contains one connected watertight component with
+33,132 triangles, no boundary edges, and no non-manifold edges.
+
+The cross-language parity runner `LogoSC-Celtic-Generated-Test.scad` took 30.028 seconds to
+recompute the reference topology and compare every sampled route and crossing. The C++ topology
+stage took 0.000304 seconds, roughly 99,000 times faster when OpenSCAD startup and parsing are
+included. Complete grid, record, and closed-polygon SVG generation took 0.020449 seconds, roughly
+1,470 times faster than that reference calculation. These figures describe different pipeline
+boundaries and should not be combined into one headline number.
 
 The final `LOGOSC128` Cord measurement was 179.803 seconds inside the benchmark stopwatch and
 about 180.5 seconds for the complete command invocation. A neighboring 17-by-24 native-glyph

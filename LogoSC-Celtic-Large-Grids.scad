@@ -1,9 +1,10 @@
 include <LogoSC-Knots.scad>
 include <generated/LogoSC-Celtic-Generated.scad>
+include <generated/LogoSC-Celtic-Generated-Knot.scad>
 
 /* [Large Celtic Scene] */
 
-CelticLargeExample = "CELTIC *"; // [Diamond8,Ring16 *,Diamond24 *,Ring32 **,CELTIC *,LOGOSC128 ***,GeneratedPlaque **]
+CelticLargeExample = "CELTIC *"; // [Diamond8,Ring16 *,Diamond24 *,Ring32 **,CELTIC *,LOGOSC128 ***,GeneratedPlaque **,FastSvgPlaque]
 
 /* [Output] */
 
@@ -51,6 +52,7 @@ function CelticLargeCanonicalExampleName(name) =
 
 CelticLargeSelectedExample = CelticLargeCanonicalExampleName(CelticLargeExample);
 CelticLargeSelectedOutput = CelticLargeSelectedExample == "GeneratedPlaque"
+    || CelticLargeSelectedExample == "FastSvgPlaque"
     ? "Plaque"
     : CelticLargeOutput;
 
@@ -298,7 +300,9 @@ function CelticLargeExampleGrid(example) =
     );
 
 function CelticLargeTimeEstimate(example, output) =
-    example == "GeneratedPlaque"
+    example == "FastSvgPlaque"
+    ? "about 1 second for CSG or preview"
+    : example == "GeneratedPlaque"
     ? "about 40 seconds for the committed grid"
     : example == "LOGOSC128"
     ? output == "Topology"
@@ -353,7 +357,8 @@ assert(
     || CelticLargeSelectedExample == "Ring32"
     || CelticLargeSelectedExample == "CELTIC"
     || CelticLargeSelectedExample == "LOGOSC128"
-    || CelticLargeSelectedExample == "GeneratedPlaque",
+    || CelticLargeSelectedExample == "GeneratedPlaque"
+    || CelticLargeSelectedExample == "FastSvgPlaque",
     "Unknown large Celtic example."
 );
 assert(
@@ -368,6 +373,47 @@ assert(
     "Large Celtic view must be Planar or Spatial."
 );
 
+module RenderCelticFastSvgPlaque()
+{
+    svgSize = GeneratedCelticKnotSvgSize;
+    plateBounds = [
+        [-CelticLargePlateMargin, -CelticLargePlateMargin],
+        [
+            svgSize[0] + CelticLargePlateMargin,
+            svgSize[1] + CelticLargePlateMargin
+        ]
+    ];
+    joinOverlap = min(0.01, CelticLargeReliefBaseHeight / 10);
+
+    union()
+    {
+        RenderKnotOptionalColor(
+            CelticLargeUsePreviewColors ? CelticLargePlateColor : undef
+        )
+            RenderKnotReliefPlate(
+                plateBounds,
+                CelticLargePlateCornerRadius,
+                CelticLargePlateThickness,
+                CelticLargePlateEdgeStyle,
+                CelticLargePlateBevelWidth,
+                CelticLargePlateBevelHeight,
+                CelticLargeRibbonFragments
+            );
+
+        RenderKnotOptionalColor(
+            CelticLargeUsePreviewColors ? CelticLargeKnotColor : undef
+        )
+        translate([0, 0, CelticLargePlateThickness - joinOverlap])
+            linear_extrude(
+                height = CelticLargeReliefBaseHeight
+                    + CelticLargeReliefOverpassHeight
+                    + joinOverlap,
+                convexity = 10
+            )
+                import("generated/LogoSC-Celtic-Generated.svg");
+    }
+}
+
 echo(
     "LogoSC large Celtic grid: working; this may take time",
     "scene",
@@ -379,18 +425,24 @@ echo(
     "actual time may vary"
 );
 
-celticLargeGrid = CelticLargeExampleGrid(CelticLargeSelectedExample);
-celticLargeKnot = MakeCelticTileGridKnot(
-    celticLargeGrid,
-    cellSize = CelticLargeCellSize,
-    samplesPerTile = 4,
-    samplesPerBoundary = 2,
-    crossingHeight = CelticLargeCrossingHeight
-);
-celticLargeDisplayKnot = KnotForView(celticLargeKnot, CelticLargeView);
-celticLargeWidth =
-    KnotCelticGridColumnCount(celticLargeGrid) * CelticLargeCellSize;
-celticLargeHeight = len(celticLargeGrid) * CelticLargeCellSize;
+if (CelticLargeSelectedExample == "FastSvgPlaque")
+{
+    RenderCelticFastSvgPlaque();
+}
+else
+{
+    celticLargeGrid = CelticLargeExampleGrid(CelticLargeSelectedExample);
+    celticLargeKnot = MakeCelticTileGridKnot(
+        celticLargeGrid,
+        cellSize = CelticLargeCellSize,
+        samplesPerTile = 4,
+        samplesPerBoundary = 2,
+        crossingHeight = CelticLargeCrossingHeight
+    );
+    celticLargeDisplayKnot = KnotForView(celticLargeKnot, CelticLargeView);
+    celticLargeWidth =
+        KnotCelticGridColumnCount(celticLargeGrid) * CelticLargeCellSize;
+    celticLargeHeight = len(celticLargeGrid) * CelticLargeCellSize;
 
 echo(
     "LogoSC large Celtic grid",
@@ -414,49 +466,50 @@ echo(
     KnotCordSegmentCount(celticLargeKnot)
 );
 
-if (CelticLargeSelectedOutput != "Topology")
-{
-    translate([-celticLargeWidth / 2, celticLargeHeight / 2, 0])
+    if (CelticLargeSelectedOutput != "Topology")
     {
-        if (CelticLargeSelectedOutput == "Cord")
+        translate([-celticLargeWidth / 2, celticLargeHeight / 2, 0])
         {
-            RenderKnotCords(
-                celticLargeDisplayKnot,
-                cordRadius = CelticLargeCordRadius,
-                fragments = CelticLargeCordFragments
-            );
-        }
-        else if (CelticLargeSelectedOutput == "Ribbon")
-        {
-            RenderKnotRibbons2D(
-                KnotForView(celticLargeKnot, "Planar"),
-                ribbonWidth = CelticLargeRibbonWidth,
-                crossingClearance = CelticLargeRibbonClearance,
-                arcFragments = CelticLargeRibbonFragments
-            );
-        }
-        else
-        {
-            RenderKnotBasReliefPlaque(
-                KnotForView(celticLargeKnot, "Planar"),
-                ribbonWidth = CelticLargeRibbonWidth,
-                crossingClearance = CelticLargeRibbonClearance,
-                plateThickness = CelticLargePlateThickness,
-                plateMargin = CelticLargePlateMargin,
-                plateCornerRadius = CelticLargePlateCornerRadius,
-                baseHeight = CelticLargeReliefBaseHeight,
-                overpassHeight = CelticLargeReliefOverpassHeight,
-                arcFragments = CelticLargeRibbonFragments,
-                plateColor = CelticLargeUsePreviewColors
-                    ? CelticLargePlateColor
-                    : undef,
-                reliefColor = CelticLargeUsePreviewColors
-                    ? CelticLargeKnotColor
-                    : undef,
-                plateEdgeStyle = CelticLargePlateEdgeStyle,
-                plateBevelWidth = CelticLargePlateBevelWidth,
-                plateBevelHeight = CelticLargePlateBevelHeight
-            );
+            if (CelticLargeSelectedOutput == "Cord")
+            {
+                RenderKnotCords(
+                    celticLargeDisplayKnot,
+                    cordRadius = CelticLargeCordRadius,
+                    fragments = CelticLargeCordFragments
+                );
+            }
+            else if (CelticLargeSelectedOutput == "Ribbon")
+            {
+                RenderKnotRibbons2D(
+                    KnotForView(celticLargeKnot, "Planar"),
+                    ribbonWidth = CelticLargeRibbonWidth,
+                    crossingClearance = CelticLargeRibbonClearance,
+                    arcFragments = CelticLargeRibbonFragments
+                );
+            }
+            else
+            {
+                RenderKnotBasReliefPlaque(
+                    KnotForView(celticLargeKnot, "Planar"),
+                    ribbonWidth = CelticLargeRibbonWidth,
+                    crossingClearance = CelticLargeRibbonClearance,
+                    plateThickness = CelticLargePlateThickness,
+                    plateMargin = CelticLargePlateMargin,
+                    plateCornerRadius = CelticLargePlateCornerRadius,
+                    baseHeight = CelticLargeReliefBaseHeight,
+                    overpassHeight = CelticLargeReliefOverpassHeight,
+                    arcFragments = CelticLargeRibbonFragments,
+                    plateColor = CelticLargeUsePreviewColors
+                        ? CelticLargePlateColor
+                        : undef,
+                    reliefColor = CelticLargeUsePreviewColors
+                        ? CelticLargeKnotColor
+                        : undef,
+                    plateEdgeStyle = CelticLargePlateEdgeStyle,
+                    plateBevelWidth = CelticLargePlateBevelWidth,
+                    plateBevelHeight = CelticLargePlateBevelHeight
+                );
+            }
         }
     }
 }

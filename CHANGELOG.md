@@ -11,6 +11,7 @@
 - [[2026.2.1] - 2026-07-21](#202621---2026-07-21)
 - [[2026.2] - 2026-07-13](#20262---2026-07-13)
 - [[2026.0] - Initial public foundation](#20260---initial-public-foundation)
+- [Index](#index)
 
 ## [Unreleased]
 
@@ -31,6 +32,10 @@
 
 ### Added
 
+- Extended `logosc-knot-grid` into an indexed Celtic topology compiler that emits compatible
+  sampled `.scad` knot records and pre-resolved closed-polygon SVG ribbons. Added the printable
+  `FastSvgPlaque` scene, permanent C++/OpenSCAD parity test, manufacturing export check, and
+  separated compiler, preview, CSG, and STL benchmarks.
 - Added the dependency-free C++20 `logosc-knot-grid` command-line preprocessor with exact output
   sizing, a built-in 5-by-7 font, optional BDF fonts, pixel or connected-stroke scaling,
   configurable spacing, margins, and tile patterns, plain ASCII grid validation and
@@ -685,3 +690,14 @@ an internal development snapshot and was not published as a separate release.
   cursor-style full-loop motion.
 - 3D composition remains the responsibility of native OpenSCAD operations such
   as `linear_extrude()` and `rotate_extrude()`.
+
+## Index
+
+- **Affine transforms and SHEAR:** [Unreleased](#unreleased), [2026.7](#20267---2026-07-31)
+- **AI engineering and documentation:** [Unreleased](#unreleased), [2026.3](#20263---2026-07-22)
+- **Celtic grids and knot compiler:** [Unreleased](#unreleased), [2026.5](#20265---2026-07-29)
+- **Core commands and geometry:** [2026.0](#20260---initial-public-foundation), [2026.2](#20262---2026-07-13)
+- **Fasteners:** [2026.3](#20263---2026-07-22)
+- **L-systems:** [Unreleased](#unreleased)
+- **Mini library and publishing:** [Unreleased](#unreleased), [2026.6](#20266---2026-07-31)
+- **Testing and validation:** [Unreleased](#unreleased), [2026.2.1](#202621---2026-07-21), [2026.3](#20263---2026-07-22)

@@ -35,3 +35,4 @@ GeneratedCelticGrid = [
 ];
 GeneratedCelticGridRows = 32;
 GeneratedCelticGridColumns = 128;
+GeneratedCelticGridOccupiedCellBounds = [46,12,81,19];
