@@ -2,7 +2,7 @@ include <LogoSC-Knots.scad>
 
 /* [Large Celtic Scene] */
 
-CelticLargeExample = "CELTIC"; // [Diamond8,Ring16,Diamond24,Ring32,CELTIC]
+CelticLargeExample = "CELTIC *"; // [Diamond8,Ring16 *,Diamond24 *,Ring32 **,CELTIC *,LOGOSC128 ***]
 
 /* [Output] */
 
@@ -35,6 +35,17 @@ CelticLargePlateBevelHeight = 0.6; // [0.1:0.1:4]
 CelticLargeUsePreviewColors = true;
 CelticLargePlateColor = [0.16, 0.22, 0.32]; // [0:0.01:1]
 CelticLargeKnotColor = [0.92, 0.52, 0.10]; // [0:0.01:1]
+
+function CelticLargeCanonicalExampleName(name) =
+    name == "Ring16 *" || name == "Ring16 (*)" ? "Ring16"
+    : name == "Diamond24 *" || name == "Diamond24 (*)" ? "Diamond24"
+    : name == "Ring32 **" || name == "Ring32 (**)" ? "Ring32"
+    : name == "CELTIC *" || name == "CELTIC (*)" ? "CELTIC"
+    : name == "LOGOSC128 ***" || name == "LOGOSC128 (***)" ? "LOGOSC128"
+    : name;
+
+CelticLargeSelectedExample = CelticLargeCanonicalExampleName(CelticLargeExample);
+CelticLargeSelectedOutput = CelticLargeOutput;
 
 function CelticLargeTile(row, column) =
     (row + column) % 3 == 0
@@ -84,6 +95,12 @@ function CelticLargeMaskGrid(size, pattern) =
 function CelticLargeGlyph(letter) =
     letter == "C"
     ? [".XXX.", "X...X", "X....", "X....", "X....", "X...X", ".XXX."]
+    : letter == "O"
+        ? [".XXX.", "X...X", "X...X", "X...X", "X...X", "X...X", ".XXX."]
+    : letter == "G"
+        ? [".XXX.", "X...X", "X....", "X.XXX", "X...X", "X...X", ".XXX."]
+    : letter == "S"
+        ? [".XXXX", "X....", "X....", ".XXX.", "....X", "....X", "XXXX."]
     : letter == "E"
         ? ["XXXXX", "X....", "X....", "XXXX.", "X....", "X....", "XXXXX"]
         : letter == "L"
@@ -133,6 +150,120 @@ function CelticLargeWordGrid() =
         [CelticLargeBlankRow(len(CelticLargeWord) * 6 + 1)]
     );
 
+CelticLogoWord = ["L", "O", "G", "O", "S", "C"];
+CelticLogoColumns = 128;
+CelticLogoRows = 32;
+CelticLogoGlyphWidth = 18;
+CelticLogoGlyphHeight = 24;
+CelticLogoGlyphGap = 2;
+CelticLogoLeftPadding = 5;
+CelticLogoTopPadding = 4;
+
+function CelticLogoHorizontalStroke(row, column, strokeRow) =
+    row == strokeRow;
+
+function CelticLogoLeftStroke(row, column, startRow, endRow) =
+    column == 0 && row >= startRow && row <= endRow;
+
+function CelticLogoRightStroke(row, column, startRow, endRow) =
+    column == CelticLogoGlyphWidth - 1
+    && row >= startRow
+    && row <= endRow;
+
+function CelticLogoGlyphCell(letter, row, column) =
+    letter == "L"
+    ? CelticLogoLeftStroke(row, column, 0, CelticLogoGlyphHeight - 1)
+        || row == CelticLogoGlyphHeight - 1
+    : letter == "O"
+        ? CelticLogoHorizontalStroke(row, column, 0)
+            || CelticLogoHorizontalStroke(
+                row, column, CelticLogoGlyphHeight - 2
+            )
+            || CelticLogoLeftStroke(
+                row, column, 0, CelticLogoGlyphHeight - 1
+            )
+            || CelticLogoRightStroke(
+                row, column, 0, CelticLogoGlyphHeight - 1
+            )
+    : letter == "G"
+        ? CelticLogoHorizontalStroke(row, column, 0)
+            || CelticLogoHorizontalStroke(
+                row, column, CelticLogoGlyphHeight - 2
+            )
+            || CelticLogoLeftStroke(
+                row, column, 0, CelticLogoGlyphHeight - 1
+            )
+            || CelticLogoRightStroke(
+                row, column, floor(CelticLogoGlyphHeight / 2),
+                CelticLogoGlyphHeight - 1
+            )
+            || (
+                row == floor(CelticLogoGlyphHeight / 2)
+                && column >= 9
+            )
+    : letter == "S"
+        ? CelticLogoHorizontalStroke(row, column, 0)
+            || CelticLogoHorizontalStroke(
+                row, column, floor(CelticLogoGlyphHeight / 2)
+            )
+            || CelticLogoHorizontalStroke(
+                row, column, CelticLogoGlyphHeight - 2
+            )
+            || CelticLogoLeftStroke(
+                row, column, 0, floor(CelticLogoGlyphHeight / 2)
+            )
+            || CelticLogoRightStroke(
+                row, column, floor(CelticLogoGlyphHeight / 2),
+                CelticLogoGlyphHeight - 1
+            )
+    : assert(letter == "C", "Unknown native LogoSC glyph.")
+        CelticLogoHorizontalStroke(row, column, 0)
+        || CelticLogoHorizontalStroke(
+            row, column, CelticLogoGlyphHeight - 2
+        )
+        || CelticLogoLeftStroke(
+            row, column, 0, CelticLogoGlyphHeight - 1
+        );
+
+function CelticLogoCellIsOccupied(row, column) =
+    let(
+        glyphRow = row - CelticLogoTopPadding,
+        wordColumn = column - CelticLogoLeftPadding,
+        glyphStride = CelticLogoGlyphWidth + CelticLogoGlyphGap,
+        glyphIndex = floor(wordColumn / glyphStride),
+        glyphColumn = wordColumn % glyphStride
+    )
+    glyphRow >= 0
+    && glyphRow < CelticLogoGlyphHeight
+    && wordColumn >= 0
+    && wordColumn < len(CelticLogoWord) * CelticLogoGlyphWidth
+        + (len(CelticLogoWord) - 1) * CelticLogoGlyphGap
+    && glyphIndex < len(CelticLogoWord)
+    && glyphColumn < CelticLogoGlyphWidth
+    && CelticLogoGlyphCell(
+        CelticLogoWord[glyphIndex], glyphRow, glyphColumn
+    );
+
+function CelticLogoRow(row, column = 0, result = "") =
+    column >= CelticLogoColumns
+    ? result
+    : CelticLogoRow(
+        row,
+        column + 1,
+        str(
+            result,
+            CelticLogoCellIsOccupied(row, column)
+            ? CelticLargeTile(row, column)
+            : "."
+        )
+    );
+
+function CelticLogoGrid() =
+[
+    for (row = [0 : CelticLogoRows - 1])
+        CelticLogoRow(row)
+];
+
 function CelticLargeExampleSize(example) =
     example == "Diamond8"
     ? 8
@@ -148,7 +279,9 @@ function CelticLargeExamplePattern(example) =
     : "Ring";
 
 function CelticLargeExampleGrid(example) =
-    example == "CELTIC"
+    example == "LOGOSC128"
+    ? CelticLogoGrid()
+    : example == "CELTIC"
     ? CelticLargeWordGrid()
     : CelticLargeMaskGrid(
         CelticLargeExampleSize(example),
@@ -156,7 +289,13 @@ function CelticLargeExampleGrid(example) =
     );
 
 function CelticLargeTimeEstimate(example, output) =
-    output == "Topology"
+    example == "LOGOSC128"
+    ? output == "Topology"
+        ? "several minutes"
+        : output == "Cord"
+            ? "at least 3 minutes"
+            : "potentially much longer than 3 minutes"
+    : output == "Topology"
     ? example == "Diamond8"
         ? "about 1 second"
         : example == "Ring16"
@@ -197,18 +336,19 @@ function CelticLargeTimeEstimate(example, output) =
                             : "roughly 1-3 minutes";
 
 assert(
-    CelticLargeExample == "Diamond8"
-    || CelticLargeExample == "Ring16"
-    || CelticLargeExample == "Diamond24"
-    || CelticLargeExample == "Ring32"
-    || CelticLargeExample == "CELTIC",
+    CelticLargeSelectedExample == "Diamond8"
+    || CelticLargeSelectedExample == "Ring16"
+    || CelticLargeSelectedExample == "Diamond24"
+    || CelticLargeSelectedExample == "Ring32"
+    || CelticLargeSelectedExample == "CELTIC"
+    || CelticLargeSelectedExample == "LOGOSC128",
     "Unknown large Celtic example."
 );
 assert(
-    CelticLargeOutput == "Topology"
-    || CelticLargeOutput == "Cord"
-    || CelticLargeOutput == "Ribbon"
-    || CelticLargeOutput == "Plaque",
+    CelticLargeSelectedOutput == "Topology"
+    || CelticLargeSelectedOutput == "Cord"
+    || CelticLargeSelectedOutput == "Ribbon"
+    || CelticLargeSelectedOutput == "Plaque",
     "Large Celtic output must be Topology, Cord, Ribbon, or Plaque."
 );
 assert(
@@ -219,15 +359,15 @@ assert(
 echo(
     "LogoSC large Celtic grid: working; this may take time",
     "scene",
-    CelticLargeExample,
+    CelticLargeSelectedExample,
     "output",
-    CelticLargeOutput,
+    CelticLargeSelectedOutput,
     "estimated on the development machine",
-    CelticLargeTimeEstimate(CelticLargeExample, CelticLargeOutput),
+    CelticLargeTimeEstimate(CelticLargeSelectedExample, CelticLargeSelectedOutput),
     "actual time may vary"
 );
 
-celticLargeGrid = CelticLargeExampleGrid(CelticLargeExample);
+celticLargeGrid = CelticLargeExampleGrid(CelticLargeSelectedExample);
 celticLargeKnot = MakeCelticTileGridKnot(
     celticLargeGrid,
     cellSize = CelticLargeCellSize,
@@ -242,7 +382,7 @@ celticLargeHeight = len(celticLargeGrid) * CelticLargeCellSize;
 
 echo(
     "LogoSC large Celtic grid",
-    CelticLargeExample,
+    CelticLargeSelectedExample,
     "rows",
     len(celticLargeGrid),
     "columns",
@@ -262,11 +402,11 @@ echo(
     KnotCordSegmentCount(celticLargeKnot)
 );
 
-if (CelticLargeOutput != "Topology")
+if (CelticLargeSelectedOutput != "Topology")
 {
     translate([-celticLargeWidth / 2, celticLargeHeight / 2, 0])
     {
-        if (CelticLargeOutput == "Cord")
+        if (CelticLargeSelectedOutput == "Cord")
         {
             RenderKnotCords(
                 celticLargeDisplayKnot,
@@ -274,7 +414,7 @@ if (CelticLargeOutput != "Topology")
                 fragments = CelticLargeCordFragments
             );
         }
-        else if (CelticLargeOutput == "Ribbon")
+        else if (CelticLargeSelectedOutput == "Ribbon")
         {
             RenderKnotRibbons2D(
                 KnotForView(celticLargeKnot, "Planar"),

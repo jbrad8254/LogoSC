@@ -54,6 +54,15 @@ do not assume it is the user's intended active clone unless the user explicitly 
   graphics development, extend the living note "OpenSCAD features that support AI-assisted
   graphics development" in `LogoSC-Developer-Notebook.md`, including the corresponding lesson
   for other graphics tools or editors.
+- After changes that can materially affect knot example performance, remeasure every
+  `KnotExample` and `CelticLargeExample` scene on the active PC and keep their Customizer timing
+  suffixes and the timing tables in `LogoSC-Knots-Design.md` and
+  `LogoSC-Celtic-Large-Grids.md` synchronized.
+- Apply the same timing-warning convention to any future example Customizer with long-running
+  choices: `(*)` over approximately 3 seconds, `(**)` over 30 seconds, and `(***)` over 3 minutes
+  on the active development PC. Keep the explanatory legend in the main knot example rather than
+  repeating it in every Customizer; document measurements in the relevant design or companion
+  guide.
 
 ## Verification and Delivery
 

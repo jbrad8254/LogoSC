@@ -31,6 +31,25 @@
 
 ### Added
 
+- Added measured performance-warning suffixes to the knot and large-Celtic Customizers, with
+  documented RAINBOW timing results and thresholds.
+- Added `LOGOSC128 ***`, a batch-only 128-by-32 Celtic LogoSC word using native 18-by-24 glyphs,
+  with 4,118 cord segments, a generated preview, and an approximately three-minute RAINBOW Cord
+  benchmark for later C++/SVG acceleration comparisons.
+- Restored the 16-crossing RosetteGallery route from an obsolete experimental 480 samples to 160,
+  preserving the corrected crossings while reducing recursive stack and GUI geometry pressure;
+  verified CSG, preview PNG, and full CGAL rendering.
+- Fixed zero-crossing ribbon and bas-relief rendering on OpenSCAD 2021.01 by replacing deprecated
+  `[0 : -1]` crossing loops with an explicit empty-index helper, as identified by the supplied
+  source-level assertion trace.
+- Made RosetteGallery sampling and ribbon fragments truly presentation-fixed, preventing saved
+  low-quality individual settings from reducing it to partial, crossing-free, or stale geometry.
+- Clarified the knot Customizer by placing `PolarRosette Individual` next to
+  `RosetteGallery *` and echoing displayed and canonical scene selections during compilation;
+  canonicalization accepts OpenSCAD's parenthesis-stripped Customizer values.
+- Removed the hidden benchmark scene override that could retain a stale index and make every
+  visible knot-scene choice render the same individual plaque; benchmarks now override the
+  visible `KnotExample` selector directly.
 - Replaced the default planar-knot crossing composition with an event-local traversal renderer:
   only under-branch sample capsules are clipped, cut length follows the crossing angle and ribbon
   widths, and the original over curve remains untouched. The prior renderer remains available as

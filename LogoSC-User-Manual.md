@@ -1350,9 +1350,9 @@ The opening Customizer sections separate scene selection from controls whose sco
 
 | `KnotExample` selection | `KnotOutput` | `KnotView` |
 |---|---|---|
-| `Unknot`, `Trefoil`, `HopfLink`, `Lissajous`, `Harmonic`, `PolarRosette`, `CelticGrid`, `CrossingRecord` | Selects the individual renderer | Applies to Debug, Cord, and Bundle |
+| `Unknot`, `Trefoil`, `HopfLink`, `Lissajous`, `Harmonic`, `PolarRosette Individual`, `CelticGrid`, `CrossingRecord` | Selects the individual renderer | Applies to Debug, Cord, and Bundle |
 | `CordGallery`, `BundleGallery`, `TwistGallery`, `LissajousGallery`, `BraidGallery`, `BraidBundleGallery`, `CelticGallery` | Ignored; the gallery has fixed cord output | Selects Planar or Spatial presentation |
-| `RosetteGallery` | Ignored; the gallery has fixed ribbon output | Ignored; this is a fixed planar scene |
+| `RosetteGallery *` | Ignored; the gallery has three fixed ribbon outputs | Ignored; this is a fixed planar scene |
 | `RibbonGallery`, `ReliefGallery`, `PlaqueGallery` | Ignored; the gallery has a fixed output | Ignored; these are fixed planar scenes |
 
 Individual Ribbon, Relief, and Plaque output also ignores `KnotView` and automatically projects
@@ -1472,7 +1472,8 @@ crossing splice.
 
 Choose `KnotExample = "PolarRosette"` for Debug, Cord, Bundle, Ribbon, Relief, or Plaque output.
 Choose `RosetteGallery` for fixed planar ribbon medallions with five, seven, and sixteen
-crossings.
+crossings. The gallery uses its validated fixed sampling and ribbon fragments; individual Print
+Quality and Custom sample controls do not alter this presentation scene.
 
 ![LogoSC polar-rosette knot gallery](images/knot-polar-rosette-gallery.png)
 
@@ -1537,6 +1538,13 @@ For larger studies, `LogoSC-Celtic-Large-Grids.scad` provides selectable 8-by-8,
 24-by-24, and 32-by-32 masks plus a sparse 37-by-9 bitmap spelling **CELTIC**:
 
 ![CELTIC spelled with blank-cell knot grids](images/knot-celtic-word.png)
+
+The same showcase provides `LOGOSC128 ***`, an intentional batch-only 128-by-32 LogoSC word
+made from native 18-by-24 cell glyphs rather than enlarged 5-by-7 pixels. Its default Cord output
+contains 4,118 segments and takes approximately three minutes on RAINBOW. It also serves as the
+planned stress fixture for a future C++ compiler and pre-resolved SVG workflow.
+
+![LogoSC spelled as a 128-by-32 Celtic knot grid](images/knot-celtic-logosc-128.png)
 
 The companion [large-grid guide](LogoSC-Celtic-Large-Grids.md) explains its Topology, Cord, and
 Ribbon outputs and records measured OpenSCAD 2021.01 timings. Use Topology while editing the

@@ -1347,6 +1347,7 @@ function KnotRibbonTestResults() =
         "knot ribbon no-crossing mask identity",
         len(KnotRibbonCrossingMaskRegions(unknot, 2, 0.5, 4)) == 0
         && len(KnotRibbonOverpassRegions(unknot, 2, 0.5, 4)) == 0
+        && KnotCrossingIndexes(unknot) == []
         && len(KnotRibbonRegions(unknot, 2, 4))
             == KnotCordSegmentCount(unknot)
     ),

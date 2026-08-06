@@ -4,7 +4,9 @@ include <LogoSC-Knots.scad>
 
 /* [Scene Selection] */
 
-KnotExample = "PlaqueGallery"; // [Unknot,Trefoil,HopfLink,Lissajous,Harmonic,PolarRosette,CelticGrid,CrossingRecord,CordGallery,BundleGallery,TwistGallery,LissajousGallery,RosetteGallery,BraidGallery,BraidBundleGallery,CelticGallery,RibbonGallery,ReliefGallery,PlaqueGallery]
+// Timing suffixes use Standard-preset CSG compilation on RAINBOW:
+// (*) > 3 seconds, (**) > 30 seconds, (***) > 3 minutes.
+KnotExample = "PlaqueGallery"; // [Unknot,Trefoil,HopfLink,Lissajous,Harmonic,PolarRosette Individual,RosetteGallery *,CelticGrid,CrossingRecord,CordGallery,BundleGallery,TwistGallery,LissajousGallery,BraidGallery,BraidBundleGallery,CelticGallery,RibbonGallery,ReliefGallery,PlaqueGallery]
 
 /* [Individual Output - ignored by Gallery scenes] */
 
@@ -67,6 +69,23 @@ KnotReliefPlateBevelHeight = 0.6; // [0.1:0.1:4]
 KnotReliefUsePreviewColors = true;
 KnotReliefPlateColor = [0.16, 0.22, 0.32]; // [0:0.01:1]
 KnotReliefKnotColor = [0.92, 0.52, 0.10]; // [0:0.01:1]
+
+function KnotCanonicalExampleName(name) =
+    name == "PolarRosette Individual"
+        || name == "PolarRosette (Individual)" ? "PolarRosette"
+    : name == "RosetteGallery *"
+        || name == "RosetteGallery (*)" ? "RosetteGallery"
+    : name;
+
+SelectedKnotExample = KnotCanonicalExampleName(KnotExample);
+
+echo(
+    "LogoSC knot scene selection",
+    "displayed",
+    KnotExample,
+    "canonical",
+    SelectedKnotExample
+);
 
 function KnotExampleCordFragments() =
     KnotPrintPresetCordFragments(
@@ -459,7 +478,7 @@ module RenderKnotRosetteGalleryExample(
         secondaryFrequency,
         secondaryPhase,
         winding,
-        KnotExampleSampleCount(sampleCount, 48)
+        sampleCount
     );
 
     color(colorValue)
@@ -470,7 +489,7 @@ module RenderKnotRosetteGalleryExample(
             rosette,
             ribbonWidth = galleryRibbonWidth,
             crossingClearance = galleryCrossingClearance,
-            arcFragments = KnotExampleRibbonArcFragments()
+            arcFragments = 10
         );
 }
 
@@ -495,7 +514,7 @@ module RenderKnotRosetteGallery()
     RenderKnotGalleryLabel("7 CROSSINGS", [85, -30, -1], 3.2);
 
     RenderKnotRosetteGalleryExample(
-        8, 9, 16, 27, 3, 480,
+        8, 9, 16, 27, 3, 160,
         [145, 4, 0], -7, [0.52, 0.24, 0.78]
     );
     RenderKnotGalleryLabel("16 CROSSINGS", [145, -30, -1], 3.2);
@@ -1082,51 +1101,51 @@ module RenderKnotPlaqueGallery()
     RenderKnotGalleryLabel("4 x 4 PLAQUE", [145, -30, -1], 3.2);
 }
 
-if (KnotExample == "PlaqueGallery")
+if (SelectedKnotExample == "PlaqueGallery")
 {
     RenderKnotPlaqueGallery();
 }
-else if (KnotExample == "ReliefGallery")
+else if (SelectedKnotExample == "ReliefGallery")
 {
     RenderKnotReliefGallery();
 }
-else if (KnotExample == "RibbonGallery")
+else if (SelectedKnotExample == "RibbonGallery")
 {
     RenderKnotRibbonGallery();
 }
-else if (KnotExample == "CelticGallery")
+else if (SelectedKnotExample == "CelticGallery")
 {
     RenderKnotCelticGallery();
 }
-else if (KnotExample == "TwistGallery")
+else if (SelectedKnotExample == "TwistGallery")
 {
     RenderKnotTwistGallery();
 }
-else if (KnotExample == "BraidBundleGallery")
+else if (SelectedKnotExample == "BraidBundleGallery")
 {
     RenderKnotBraidBundleGallery();
 }
-else if (KnotExample == "BraidGallery")
+else if (SelectedKnotExample == "BraidGallery")
 {
     RenderKnotBraidGallery();
 }
-else if (KnotExample == "LissajousGallery")
+else if (SelectedKnotExample == "LissajousGallery")
 {
     RenderKnotLissajousGallery();
 }
-else if (KnotExample == "RosetteGallery")
+else if (SelectedKnotExample == "RosetteGallery")
 {
     RenderKnotRosetteGallery();
 }
-else if (KnotExample == "BundleGallery")
+else if (SelectedKnotExample == "BundleGallery")
 {
     RenderKnotBundleGallery();
 }
-else if (KnotExample == "CordGallery")
+else if (SelectedKnotExample == "CordGallery")
 {
     RenderKnotCordGallery();
 }
-else if (KnotExample == "Gallery")
+else if (SelectedKnotExample == "Gallery")
 {
     translate([24, 24, 0])
         RenderKnotExample("Unknot");
@@ -1143,5 +1162,5 @@ else if (KnotExample == "Gallery")
 else
 {
     translate([24, 24, 0])
-        RenderKnotExample(KnotExample);
+        RenderKnotExample(SelectedKnotExample);
 }

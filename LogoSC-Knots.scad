@@ -3420,6 +3420,13 @@ function KnotCrossingOtherBranch(branch) =
     assert(branch == "A" || branch == "B", "Knot crossing branch must be A or B.")
     branch == "A" ? "B" : "A";
 
+// OpenSCAD 2021.01 treats [0 : -1] as a descending range instead of an
+// empty range. Always route crossing-index loops through this helper.
+function KnotCrossingIndexes(knot) =
+    len(KnotCrossings(knot)) == 0
+    ? []
+    : [0 : len(KnotCrossings(knot)) - 1];
+
 function KnotRibbonCrossingSpan(
     ribbonWidth,
     crossingClearance,
@@ -3700,7 +3707,7 @@ module RenderKnotCurvedOverpasses2D(
     arcFragments,
     convexity = 10)
 {
-    for (crossingIndex = [0 : len(KnotCrossings(knot)) - 1])
+    for (crossingIndex = KnotCrossingIndexes(knot))
     {
         crossing = KnotCrossings(knot)[crossingIndex];
         branch = KnotCrossingOverBranch(crossing);
@@ -3924,7 +3931,7 @@ module RenderKnotTraversalRibbons2D(
                     convexity
                 );
 
-                for (crossingIndex = [0 : len(KnotCrossings(knot)) - 1])
+                for (crossingIndex = KnotCrossingIndexes(knot))
                     let(crossing = KnotCrossings(knot)[crossingIndex])
                     if (KnotRibbonTraversalMaskApplies(
                         knot,

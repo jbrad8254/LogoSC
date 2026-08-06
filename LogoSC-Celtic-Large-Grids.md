@@ -10,6 +10,7 @@ enough to expose both its design possibilities and its computational cost.
 - [Measured OpenSCAD 2021.01 timings](#measured-openscad-202101-timings)
   - [Other development PC](#other-development-pc-original-measurements)
   - [RAINBOW](#rainbow-2026-08-05)
+  - [RAINBOW Customizer-warning remeasurement](#rainbow-customizer-warning-remeasurement-2026-08-06)
   - [RAINBOW comparison](#rainbow-comparison)
 - [Progress reporting](#progress-reporting)
 - [Command-line timing](#command-line-timing)
@@ -21,10 +22,15 @@ Select `CelticLargeExample` in OpenSCAD's Customizer:
 | Scene | Purpose |
 |---|---|
 | `Diamond8` | Small responsive 8-by-8 irregular region |
-| `Ring16` | Medium 16-by-16 region with an internal blank opening |
-| `Diamond24` | Slow 24-by-24 stress example |
-| `Ring32` | Very slow 32-by-32 stress example with exterior and interior boundaries |
-| `CELTIC` | A 37-by-9 bitmap word mask built from blank and occupied cells |
+| `Ring16 *` | Medium 16-by-16 region with an internal blank opening |
+| `Diamond24 *` | Slow 24-by-24 stress example |
+| `Ring32 **` | Very slow 32-by-32 stress example with exterior and interior boundaries |
+| `CELTIC *` | A 37-by-9 bitmap word mask built from blank and occupied cells |
+| `LOGOSC128 ***` | Batch-only 128-by-32 LogoSC word built from native 18-by-24 glyphs |
+
+Customizer suffixes warn about approximate minimum-sampling Cord CSG time on `RAINBOW`: `(*)`
+means more than 3 seconds, `(**)` more than 30 seconds, and `(***)` more than 3 minutes. The
+display labels are normalized to canonical scene names before dispatch.
 
 The word mask is ordinary grid data. Five-by-seven glyphs select occupied cells; `"."` leaves
 the remaining cells empty. Occupied cells receive deterministic `X`, `>`, and `<` tiles. The
@@ -32,6 +38,13 @@ normal Celtic compiler then discovers boundary loops, traces closed components, 
 crossings, and verifies cyclic alternation.
 
 ![CELTIC spelled with blank-cell knot grids](images/knot-celtic-word.png)
+
+`LOGOSC128 ***` is the first deliberately three-star LogoSC example. Its six glyphs are drawn
+directly at 18 by 24 cells with one-cell strokes; they are not enlarged 5-by-7 bitmaps. The
+128-by-32 padded mask is both a showcase and the shared stress fixture planned for comparison
+with the future C++/SVG knot compiler.
+
+![LogoSC spelled as a 128-by-32 Celtic knot grid](images/knot-celtic-logosc-128.png)
 
 ## Output choices
 
@@ -95,6 +108,32 @@ measurement yet.
 | 32-by-32 ring | 66.763 s | 61.949 s | 5,368 |
 | `CELTIC` word, 37 by 9 | 27.179 s | 24.725 s | 838 |
 
+### RAINBOW Customizer-warning remeasurement (2026-08-06)
+
+The complete dropdown was remeasured with the shipped minimum sampling, default `Cord` output,
+and CSG compilation specifically to assign Customizer warning suffixes:
+
+| Scene | Cord CSG | Suffix |
+|---|---:|---|
+| `Diamond8` | 0.570 s | |
+| `Ring16` | 3.665 s | `(*)` |
+| `Diamond24` | 12.557 s | `(*)` |
+| `Ring32` | 44.125 s | `(**)` |
+| `CELTIC` | 20.628 s | `(*)` |
+| `LOGOSC128` | about 180 s | `(***)` |
+
+These newer single-run values do not replace the earlier measurement set; they record a separate
+run for the UI-warning decision. Cache and system state explain some variation, especially for
+`Ring32`, without changing any threshold classification.
+
+The final `LOGOSC128` Cord measurement was 179.803 seconds inside the benchmark stopwatch and
+about 180.5 seconds for the complete command invocation. A neighboring 17-by-24 native-glyph
+trial measured 181.475 seconds. Because repeated nearby measurements straddle three minutes and
+the user-visible command exceeds it, the scene conservatively carries `(***)`. Attempts to make
+the glyphs 25 or 26 cells high, or reduce the inter-letter gap to one cell, crossed severe
+topology-performance cliffs and were stopped after roughly 7 to 10 minutes. The shipped 18-by-24
+layout deliberately stays near the requested threshold.
+
 ### RAINBOW comparison
 
 Across the seven directly comparable calculation or CSG rows, combined elapsed time fell from
@@ -117,6 +156,8 @@ Practical guidance:
 - 16-by-16 is workable, but expect a pause after changes.
 - 24-by-24 is a deliberate slow example.
 - 32-by-32 should normally be treated as batch work.
+- `LOGOSC128 ***` is an intentional multi-minute batch fixture, not an interactive editing
+  scene.
 - Use `Topology` while authoring large masks, then switch to `Cord`, `Ribbon`, or `Plaque` for
   final review.
 

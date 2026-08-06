@@ -602,8 +602,9 @@ Every `"X"` cell creates a crossing record with normalized parameters. Checkerbo
 assigns equal/opposite Z bumps, and the complete result is rejected unless sorted encounters
 alternate cyclically on every component.
 
-`LogoSC-Celtic-Large-Grids.scad` provides deliberate 8-, 16-, 24-, and 32-cell scaling examples
-plus a sparse 37-by-9 CELTIC word mask. The tracer resumes its search after the previous
+`LogoSC-Celtic-Large-Grids.scad` provides deliberate 8-, 16-, 24-, and 32-cell scaling examples,
+a sparse 37-by-9 CELTIC word mask, and a batch-only 128-by-32 `LOGOSC128 ***` mask made from
+native 18-by-24 glyphs. The tracer resumes its search after the previous
 lowest-numbered visited state rather than rescanning from zero for every component. This
 preserves deterministic results while materially reducing large-grid calculation time. Boundary
 length, separate loops, route components, crossings, sampling, and output geometry still make
@@ -622,6 +623,7 @@ sampling were:
 | 16-by-16 ring | about 4.4 s | not separately measured | 1,464 |
 | 24-by-24 ring | about 29.5 s | not separately measured | 3,112 |
 | 32-by-32 ring | about 75.5 s | not separately measured | 5,368 |
+| LOGOSC word, 128 by 32 | not separately finalized | about 180 s | 4,118 |
 | CELTIC word, 37 by 9 | about 46 s | about 37–52 s for preview PNG | 838 |
 
 These timings are illustrative, not guarantees. Results will vary with processor speed,
@@ -933,6 +935,73 @@ raises radial facets; `Custom` uses the three explicit Customizer values.
 The resolver functions live in the knot companion so their mappings can be tested, but they do
 not alter generator or renderer defaults. Direct API callers remain free to choose every sample
 and fragment count independently.
+
+### Customizer scene timing warnings
+
+The `KnotExample` dropdown appends a warning suffix to scenes whose Standard-preset command-line
+CSG compilation is slow enough to make casual Customizer exploration surprising:
+
+- `(*)` means longer than approximately 3 seconds;
+- `(**)` means longer than approximately 30 seconds; and
+- `(***)` means longer than approximately 3 minutes.
+
+The suffix is a user-facing label. `KnotCanonicalExampleName()` removes it before scene dispatch,
+so warning text does not leak into generator names. Benchmark scripts override the public
+`KnotExample` selector directly. Do not add a second hidden scene selector: saved or retained
+Customizer state can let it override the visible dropdown and misleadingly route every selection
+through one individual knot and its output mode.
+
+The current classifications were measured on `RAINBOW` on 2026-08-06 using the Standard preset,
+`openscad.com`, and CSG output. Approximate wall times were:
+
+| Scene | Seconds | Suffix |
+|---|---:|---|
+| Unknot | 0.45 | |
+| Trefoil | 0.43 | |
+| HopfLink | 0.43 | |
+| Lissajous | 1.51 | |
+| Harmonic | 2.30 | |
+| PolarRosette | 1.23 | |
+| CelticGrid | 0.70 | |
+| CrossingRecord | 0.41 | |
+| CordGallery | 0.44 | |
+| BundleGallery | 0.52 | |
+| TwistGallery | 0.59 | |
+| LissajousGallery | 0.79 | |
+| RosetteGallery | 2.11 CSG; 3.36 preview | `(*)` |
+| BraidGallery | 0.43 | |
+| BraidBundleGallery | 0.52 | |
+| CelticGallery | 0.58 | |
+| RibbonGallery | 1.63 | |
+| ReliefGallery | 1.91 | |
+| PlaqueGallery | 1.94 | |
+
+These are navigation warnings, not performance guarantees. GUI preview, full CGAL rendering,
+PNG or mesh export, `Fine` or `Custom` quality, other output modes, cache state, and different
+hardware can take substantially longer. Re-run the complete scene benchmark and update both the
+dropdown and this table after changes that materially affect generators, sampling, galleries, or
+renderers. Use a conservative suffix when repeated measurements straddle a threshold.
+
+`RosetteGallery` deliberately fixes its validated 120-, 140-, and 160-sample routes and ten
+ribbon arc fragments. It does not inherit the individual model's Print Quality or Custom sample
+controls; low saved settings previously removed crossing records, produced partial/stale gallery
+geometry, and exposed the zero-crossing loop defect.
+
+The Customizer places `PolarRosette Individual` immediately before `RosetteGallery *` to
+distinguish the single knot routed through `KnotOutput`—Plaque by default—from the fixed
+three-medallion presentation. Compilation echoes both the displayed selector value and canonical
+dispatch name so stale or mistaken Customizer state is visible in the console.
+
+Customizer dropdown values avoid parentheses because OpenSCAD removes them from the assigned
+value (`RosetteGallery (*)` becomes `RosetteGallery *`). The canonicalizer accepts both forms so
+older command-line scripts and saved parameter sets remain compatible.
+
+The separate `LogoSC-Celtic-Large-Grids.scad` Customizer contains the deliberately expensive
+Celtic stress scenes that are not present in `KnotExample`. Its current RAINBOW Cord-CSG labels
+are `Ring16 *`, `Diamond24 *`, `Ring32 **`, and `CELTIC *`; only `Diamond8` remains
+unmarked among the original scenes. `LOGOSC128 ***` is the intentional batch-only stress
+example. Exact measurements and machine-separated history are maintained in
+`LogoSC-Celtic-Large-Grids.md`.
 
 ## Rounded cords
 
@@ -1326,6 +1395,8 @@ Record answers here before they become implementation assumptions.
   [medial planar graphs](#generator-6-medial-planar-graphs)
 - **Manufacturing output:** [2D ribbons](#2d-ribbon-generation), [bas-relief](#bas-relief),
   [rounded cords](#rounded-cords), [quality presets](#export-quality-presets)
+- **Performance:** [Customizer scene warnings](#customizer-scene-timing-warnings),
+  [Celtic-grid measurements](#generator-3-celtic-tile-grids)
 - **References:** [further reading](#further-reading-and-example-collections),
   [visual references](#visual-reference)
 - **Roadmap:** [goals](#goals), [implementation sequence](#implementation-sequence),

@@ -332,7 +332,8 @@ The base radius must remain larger than the combined absolute radial amplitudes.
 integer frequencies and winding close the route, while the shared parity solver assigns the
 proper projected crossings as a cyclic alternating diagram. Choose `PolarRosette` for any
 individual knot output or `RosetteGallery` for the five-, seven-, and sixteen-crossing ribbon
-medallions.
+medallions. The gallery keeps validated fixed sampling and ribbon fragments, independent of
+individual Print Quality or Custom sample settings.
 
 The default ribbon traversal clips only the under-curve samples near each crossing. The original
 over-curve is never removed or reconstructed, so tightly curved rosettes remain continuous.
@@ -416,6 +417,12 @@ For deliberately larger masks, open `LogoSC-Celtic-Large-Grids.scad`. Its select
 mask spells **CELTIC** with knot geometry:
 
 ![CELTIC spelled with blank-cell knot grids](images/knot-celtic-word.png)
+
+The separate large-grid Customizer also includes `LOGOSC128 ***`, a deliberately batch-only
+128-by-32 LogoSC word and future C++/SVG acceleration fixture. Its native 18-by-24 glyphs compile
+to 4,118 cord segments and take about three minutes on the RAINBOW development PC.
+
+![LogoSC spelled as a 128-by-32 Celtic knot grid](images/knot-celtic-logosc-128.png)
 
 The [large-grid guide](LogoSC-Celtic-Large-Grids.md) records measured OpenSCAD 2021.01 timings
 and recommends topology-only output while editing slow masks.
