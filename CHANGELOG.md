@@ -30,6 +30,12 @@
   sequence is now the optional L-system companion, completion or explicit deferral of the
   remaining knot roadmap, and then synchronized release preparation.
 
+### Changed
+
+- Rebenchmarked every knot gallery and individual scene using full Standard-preset preview time
+  on RAINBOW. The Customizer now groups galleries before individuals, sorts each group from
+  fastest to slowest, and applies warning suffixes from interactive rather than CSG-only cost.
+
 ### Added
 
 - Added `MakeMedialGraphKnot()` for simple straight-line planar embeddings, with graph validation,

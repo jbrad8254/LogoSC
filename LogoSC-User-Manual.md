@@ -1352,10 +1352,13 @@ The opening Customizer sections separate scene selection from controls whose sco
 
 | `KnotExample` selection | `KnotOutput` | `KnotView` |
 |---|---|---|
-| `Unknot`, `Trefoil`, `HopfLink`, `Lissajous`, `Harmonic`, `PolarRosette Individual`, `CelticGrid`, `MedialGraph`, `CrossingRecord` | Selects the individual renderer | Applies to Debug, Cord, and Bundle |
-| `CordGallery`, `BundleGallery`, `TwistGallery`, `LissajousGallery`, `BraidGallery`, `BraidBundleGallery`, `CelticGallery` | Ignored; the gallery has fixed cord output | Selects Planar or Spatial presentation |
-| `RosetteGallery *`, `MedialGraphGallery` | Ignored; each gallery has three fixed ribbon outputs | Ignored; these are fixed planar scenes |
-| `RibbonGallery`, `ReliefGallery`, `PlaqueGallery` | Ignored; the gallery has a fixed output | Ignored; these are fixed planar scenes |
+| `MedialGraphGallery`, `RibbonGallery *`, `ReliefGallery *`, `PlaqueGallery *`, `RosetteGallery *` | Ignored; each gallery has fixed presentation output | Ignored; these are fixed planar scenes |
+| `BraidGallery *`, `CordGallery *`, `BundleGallery *`, `BraidBundleGallery *`, `LissajousGallery *`, `TwistGallery **`, `CelticGallery **` | Ignored; each gallery has fixed cord output | Selects Planar or Spatial presentation |
+| `CrossingRecord`, `Unknot`, `Trefoil`, `HopfLink`, `CelticGrid`, `MedialGraph`, `PolarRosette Individual`, `Lissajous`, `Harmonic` | Selects the individual renderer | Applies to Debug, Cord, and Bundle |
+
+The Customizer lists all galleries first and all individual scenes second. Within each block the
+entries run from fastest to slowest according to the Standard-preset preview benchmark documented
+in `LogoSC-Knots-Design.md`; suffixes warn about approximate interactive cost on RAINBOW.
 
 Individual Ribbon, Relief, and Plaque output also ignores `KnotView` and automatically projects
 the source route to Planar because LogoSC regions are 2D. This lets a user switch from Spatial

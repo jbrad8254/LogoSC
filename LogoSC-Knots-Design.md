@@ -978,11 +978,11 @@ and fragment count independently.
 ### Customizer scene timing warnings
 
 The `KnotExample` dropdown appends a warning suffix to scenes whose Standard-preset command-line
-CSG compilation is slow enough to make casual Customizer exploration surprising:
+preview is slow enough to make casual Customizer exploration surprising:
 
-- `(*)` means longer than approximately 3 seconds;
-- `(**)` means longer than approximately 30 seconds; and
-- `(***)` means longer than approximately 3 minutes.
+- `*` means longer than approximately 3 seconds;
+- `**` means longer than approximately 30 seconds; and
+- `***` means longer than approximately 3 minutes.
 
 The suffix is a user-facing label. `KnotCanonicalExampleName()` removes it before scene dispatch,
 so warning text does not leak into generator names. Benchmark scripts override the public
@@ -991,29 +991,41 @@ Customizer state can let it override the visible dropdown and misleadingly route
 through one individual knot and its output mode.
 
 The current classifications were measured on `RAINBOW` on 2026-08-06 using the Standard preset,
-`openscad.com`, and CSG output. Approximate wall times were:
+`openscad.com --preview`, orthographic projection, and a 512-by-320 output image. Borderline
+scenes were repeated, and a conservative suffix is retained when measurements straddle a
+threshold. Galleries and individual scenes are separately ordered from fastest to slowest in the
+Customizer.
+
+Gallery wall times were:
 
 | Scene | Seconds | Suffix |
 |---|---:|---|
-| Unknot | 0.45 | |
-| Trefoil | 0.43 | |
-| HopfLink | 0.43 | |
-| Lissajous | 1.51 | |
-| Harmonic | 2.30 | |
-| PolarRosette | 1.23 | |
-| CelticGrid | 0.70 | |
-| CrossingRecord | 0.41 | |
-| CordGallery | 0.44 | |
-| BundleGallery | 0.52 | |
-| TwistGallery | 0.59 | |
-| LissajousGallery | 0.79 | |
-| RosetteGallery | 2.11 CSG; 3.36 preview | `(*)` |
-| BraidGallery | 0.43 | |
-| BraidBundleGallery | 0.52 | |
-| CelticGallery | 0.58 | |
-| RibbonGallery | 1.63 | |
-| ReliefGallery | 1.91 | |
-| PlaqueGallery | 1.94 | |
+| MedialGraphGallery | 1.95 | |
+| RibbonGallery | 2.88 median; 2.84–3.11 observed | `*` |
+| ReliefGallery | 3.14 | `*` |
+| PlaqueGallery | 3.19 | `*` |
+| RosetteGallery | 3.37 | `*` |
+| BraidGallery | 11.28 | `*` |
+| CordGallery | 12.64 | `*` |
+| BundleGallery | 20.30 | `*` |
+| BraidBundleGallery | 21.02 | `*` |
+| LissajousGallery | 25.18 | `*` |
+| TwistGallery | 31.13 | `**` |
+| CelticGallery | 33.71 | `**` |
+
+Individual-scene wall times, using the default Plaque output, were:
+
+| Scene | Seconds | Suffix |
+|---|---:|---|
+| CrossingRecord | 0.67 | |
+| Unknot | 0.68 | |
+| Trefoil | 0.69 | |
+| HopfLink | 0.69 | |
+| CelticGrid | 0.96 | |
+| MedialGraph | 0.96 | |
+| PolarRosette Individual | 1.57 | |
+| Lissajous | 1.79 | |
+| Harmonic | 2.55 | |
 
 These are navigation warnings, not performance guarantees. GUI preview, full CGAL rendering,
 PNG or mesh export, `Fine` or `Custom` quality, other output modes, cache state, and different
@@ -1026,10 +1038,11 @@ ribbon arc fragments. It does not inherit the individual model's Print Quality o
 controls; low saved settings previously removed crossing records, produced partial/stale gallery
 geometry, and exposed the zero-crossing loop defect.
 
-The Customizer places `PolarRosette Individual` immediately before `RosetteGallery *` to
-distinguish the single knot routed through `KnotOutput`—Plaque by default—from the fixed
-three-medallion presentation. Compilation echoes both the displayed selector value and canonical
-dispatch name so stale or mistaken Customizer state is visible in the console.
+The Customizer places all gallery scenes first and all individual scenes second. Each group is
+sorted by its measured preview time. `PolarRosette Individual` distinguishes the single knot
+routed through `KnotOutput`—Plaque by default—from the fixed three-medallion presentation.
+Compilation echoes both the displayed selector value and canonical dispatch name so stale or
+mistaken Customizer state is visible in the console.
 
 Customizer dropdown values avoid parentheses because OpenSCAD removes them from the assigned
 value (`RosetteGallery (*)` becomes `RosetteGallery *`). The canonicalizer accepts both forms so

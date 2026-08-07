@@ -4291,9 +4291,13 @@ That shared parameter contract greatly reduces drift between implementation, aut
 LogoSC uses this pattern for example selection, output modes, print-quality presets, knot and
 bundle dimensions, ribbon clearance, relief and plaque geometry, L-system controls, and the
 nuts-and-bolts application. The knot example dropdown now also demonstrates that generated UI
-needs operational guidance: lightweight `(*)`, `(**)`, and `(***)` suffixes warn humans before
-selecting scenes measured at more than 3 seconds, 30 seconds, or 3 minutes, while a normalization
-function keeps those labels separate from canonical program values.
+needs operational guidance: lightweight `*`, `**`, and `***` suffixes warn humans before selecting
+scenes measured at more than 3 seconds, 30 seconds, or 3 minutes, while a normalization function
+keeps those labels separate from canonical program values. Benchmark the complete interactive
+preview rather than CSG compilation alone: the 2026-08-06 RAINBOW audit found 3D gallery previews
+roughly 12 to 34 seconds even when their CSG trees compiled in well under a second. Keep galleries
+and individual scenes in separate fastest-to-slowest blocks so cost and scene scope are visible
+before selection.
 
 For other graphics systems, the general lesson is to treat declarative parameter metadata as a
 first-class bridge between code and interactive tools. It should support labels, grouping, units,

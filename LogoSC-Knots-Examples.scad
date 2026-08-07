@@ -4,9 +4,10 @@ include <LogoSC-Knots.scad>
 
 /* [Scene Selection] */
 
-// Timing suffixes use Standard-preset CSG compilation on RAINBOW:
-// (*) > 3 seconds, (**) > 30 seconds, (***) > 3 minutes.
-KnotExample = "PlaqueGallery"; // [Unknot,Trefoil,HopfLink,Lissajous,Harmonic,PolarRosette Individual,MedialGraph,RosetteGallery *,CelticGrid,CrossingRecord,CordGallery,BundleGallery,TwistGallery,LissajousGallery,BraidGallery,BraidBundleGallery,CelticGallery,MedialGraphGallery,RibbonGallery,ReliefGallery,PlaqueGallery]
+// Galleries are ordered by Standard-preset preview time on RAINBOW,
+// followed by individual examples in their own fastest-to-slowest order.
+// * > 3 seconds, ** > 30 seconds, *** > 3 minutes.
+KnotExample = "PlaqueGallery *"; // [MedialGraphGallery,RibbonGallery *,ReliefGallery *,PlaqueGallery *,RosetteGallery *,BraidGallery *,CordGallery *,BundleGallery *,BraidBundleGallery *,LissajousGallery *,TwistGallery **,CelticGallery **,CrossingRecord,Unknot,Trefoil,HopfLink,CelticGrid,MedialGraph,PolarRosette Individual,Lissajous,Harmonic]
 
 /* [Individual Output - ignored by Gallery scenes] */
 
@@ -73,8 +74,18 @@ KnotReliefKnotColor = [0.92, 0.52, 0.10]; // [0:0.01:1]
 function KnotCanonicalExampleName(name) =
     name == "PolarRosette Individual"
         || name == "PolarRosette (Individual)" ? "PolarRosette"
+    : name == "RibbonGallery *" ? "RibbonGallery"
+    : name == "ReliefGallery *" ? "ReliefGallery"
+    : name == "PlaqueGallery *" ? "PlaqueGallery"
     : name == "RosetteGallery *"
         || name == "RosetteGallery (*)" ? "RosetteGallery"
+    : name == "BraidGallery *" ? "BraidGallery"
+    : name == "CordGallery *" ? "CordGallery"
+    : name == "BundleGallery *" ? "BundleGallery"
+    : name == "BraidBundleGallery *" ? "BraidBundleGallery"
+    : name == "LissajousGallery *" ? "LissajousGallery"
+    : name == "TwistGallery **" ? "TwistGallery"
+    : name == "CelticGallery **" ? "CelticGallery"
     : name;
 
 SelectedKnotExample = KnotCanonicalExampleName(KnotExample);
