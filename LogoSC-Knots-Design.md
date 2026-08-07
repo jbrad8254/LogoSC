@@ -34,8 +34,8 @@ This is the authoritative design plan for generative knot work in LogoSC. It cov
 Gordian-style parametric knots and traditional Celtic interlace. The torus, circular-braid, and
 explicit Celtic tile-grid generators, single-cord manufacturing, and controlled integer
 half-turn bundle twists are implemented. Medial planar-graph interlace, planar ribbon footprints,
-underpass masks, and printable beveled bas-relief plaques are also implemented. The remaining
-work is the explicit completion/defer audit described below.
+underpass masks, and printable beveled bas-relief plaques are also implemented. The `2026.8`
+completion/defer audit is closed; explicitly deferred expansions are recorded below.
 
 LogoSC remains a 2D filled-region evaluator. A future optional companion may use LogoSC for
 planar routes, ribbon footprints, masks, local transforms, and repeated motifs. Native OpenSCAD
@@ -87,9 +87,9 @@ or AI image import. Callers must select dimensions and sampling appropriate for 
 Reserved strand fields and metadata allow later milestones to extend the representation without
 changing its established leading fields.
 
-The planned knot generators are now implemented. The remaining knot milestone before the next
-release is a completion audit: make an explicit implement-or-defer decision for every residual
-item below, synchronize tests and galleries, and keep knot-specific behavior outside Core.
+The planned knot generators and the `2026.8` completion audit are complete. Residual expansion
+ideas below are deliberately deferred, tests and galleries are synchronized, and knot-specific
+behavior remains outside Core.
 
 ## How LogoSC is used
 
@@ -1447,35 +1447,42 @@ links where supported by the selected generator.
      construction; the permanent parity runner compares the generated record with OpenSCAD.
    - Direct STL or 3MF mesh generation remains optional future work after broader grid benchmarks.
    - The accelerator remains optional and is not a prerequisite for the OpenSCAD knot companion.
-9. **Knot completion and release boundary**
-   - Decide and record the disposition of tight-curve rejection, general collision discovery,
-     rectangular braid closure, random Celtic filling, explicit boundary maps, unified polygon
-     export, decorative borders, and bundled planar ribbons.
-   - Resolve or deliberately defer the remaining open questions, update focused tests and visual
-     galleries, run the independent knot suite and complete acceptance wall, and leave no
-     ambiguous “planned for this release” items before release preparation begins.
+9. **Knot completion and `2026.8` release boundary** — complete
+   - Tight-curve rejection and general collision discovery are deferred until real manufacturing
+     failures justify a shared clearance policy and acceleration structure.
+   - Rectangular braid return routing, random Celtic filling, and explicit boundary maps are
+     deferred as new topology or authoring features rather than release corrections.
+   - Unified polygon export, decorative borders, and bundled planar ribbons are deferred as
+     additional presentation/export surfaces over the stable sampled-knot representation.
+   - Direct STL/3MF output and general medial-graph planarization remain optional external-tool
+     expansions. The implemented SVG path is the accelerated manufacturing boundary for `2026.8`.
+   - Focused tests and galleries are synchronized. The independent knot suite and complete
+     release acceptance wall are required verification steps, not unfinished feature work.
 
 Every milestone should include documentation, focused non-rendering tests, a small visual
 gallery, and a clean optional-companion boundary.
 
 ## Open questions
 
-- Is the organic family named Gordian knots, Gorgon knots, or generative knots?
-- Centerlines initially use explicit samples. Analytic source descriptions may be preserved in
-  metadata later without replacing the sampled rendering contract.
-- Multi-component links are first-class results from the beginning.
-- Implemented decision: untwisted bundle lanes are exposed as individual strand records with
-  master/lane metadata.
-- Implemented decision: integer half-turn twists rotate stable 3D offsets and deliberately trace
-  the resulting identity or reversal closure permutation into output components.
-- Implemented decision: braid closure is circular first. Rectangular exterior return routing
-  remains a later presentation/manufacturing option over the same signed-word topology.
-- What is the smallest useful Celtic tile vocabulary?
-- Should flat ribbons cut a visible underpass gap or retain continuous color-coded layers?
-- How should overlapping Z bumps combine when crossings are close?
-- Which tolerances define duplicate crossings, tangencies, and printable clearance?
+The release-boundary disposition is explicit:
 
-Record answers here before they become implementation assumptions.
+- Use **generative knots** for the broad organic family; retain mathematical names such as torus,
+  Lissajous, harmonic, and rosette for specific generators.
+- Sampled centerlines remain the stable interchange contract. Optional analytic source metadata
+  may be added later without replacing those samples.
+- Multi-component links are first-class results. Untwisted bundle lanes remain individual strand
+  records with master/lane metadata, and integer half-turn twists retain their implemented
+  identity/reversal closure semantics.
+- Circular braid closure is the implemented boundary. Rectangular exterior return routing is
+  deferred presentation/manufacturing work over the same signed-word topology.
+- The `X`, `>`, `<`, and `.` Celtic vocabulary is sufficient for `2026.8`. Random filling and
+  custom boundary maps are deferred authoring features.
+- Flat presentation ribbons use visible underpass gaps through event-local traversal clipping.
+  Continuous geometry remains available for diagnostic comparison rather than final interlace.
+- Generators must avoid overlapping Z bumps through their documented sampling and spacing
+  constraints. General bump blending and collision resolution are deferred.
+- Existing generator-specific tolerances define proper crossings and duplicate handling.
+  A unified printable-clearance policy is deferred until measured failures provide requirements.
 
 ## Index
 

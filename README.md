@@ -606,7 +606,7 @@ LogoRegionIsConvex(region, tolerance = 0.001, strict = false);
 LogoRegionsAreIndividuallyConvex(regions, tolerance = 0.001, strict = false);
 ```
 
-The current public API version is `2026.7`.
+The current public API version is `2026.8`.
 
 ## Command examples
 
@@ -720,6 +720,7 @@ plant, Lévy C, Gosper, and canopy presets without adding Core opcodes.
 
 | Version | Highlights |
 | --- | --- |
+| 2026.8 | SHEAR, L-systems, harmonic and medial knots, crossing-safe ribbons, and accelerated Celtic SVG plaques |
 | 2026.7 | Irregular and large Celtic grids, plaque output, and synchronized publication suites |
 | 2026.6 | Controlled knot-bundle twists, closure-component tracing, and clearer knot Customizer scopes |
 | 2026.5 | Affine turtle transforms plus the optional knot, cord, bundle, ribbon, and relief-plaque companion |
@@ -731,15 +732,13 @@ plant, Lévy C, Gosper, and canopy presets without adding Core opcodes.
 
 ## Near-term roadmap
 
-1. **L-system development complete:** the optional companion now has a reusable
-   expansion/interpreter boundary, nine presets, focused tests, examples, and documentation.
-   Distribution integration remains deliberately deferred.
-2. **Next:** audit the completed knot-generator milestone. The planned OpenSCAD generators and
-   optional C++ topology/SVG accelerator are implemented; complete or explicitly defer the
-   residual collision, closure, manufacturing, export, and presentation items, and keep all knot
-   logic outside Core.
-3. Prepare and publish the next release only after the L-system and knot milestones form one
-   coherent, fully verified change set.
+1. **L-system milestone complete:** the optional companion has nine presets, focused tests,
+   examples, and documentation. Distribution packaging is explicitly deferred beyond `2026.8`.
+2. **Knot milestone complete:** the planned OpenSCAD generators and optional C++ topology/SVG
+   accelerator are implemented. Residual collision, closure, export, and presentation expansions
+   are explicitly deferred beyond `2026.8`; knot logic remains outside Core.
+3. **Release candidate:** synchronize and verify the `2026.8` source, documentation, release
+   notes, and five existing publication suites before tagging and publication.
 
 Manufacturable stroke rendering, additional primitives, SVG workflow helpers, and optional
 validation policies remain later candidates rather than part of this release sequence.

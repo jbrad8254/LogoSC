@@ -103,6 +103,7 @@
 - [Optional L-system companion](#2026-08-03--optional-l-system-companion)
 - [C++ knot topology and SVG compiler](#2026-08-06--c-knot-topology-and-svg-compiler)
 - [Medial planar-graph knot generator](#2026-08-06--medial-planar-graph-knot-generator)
+- [2026.8 release-candidate preparation](#2026-08-06--20268-release-candidate-preparation)
 - [2026.7 release preparation](#2026-07-31--20267-celtic-and-publishing-release-preparation)
 - [2026.7 publication checkpoint](#2026-08-01--20267-publication-and-tag-alignment-checkpoint)
 - [Journal-entry template](#yyyy-mm-dd--topic)
@@ -116,7 +117,7 @@
 - [Testing and regression risks](#11-testing-and-regression-risks)
 - [Documentation conventions](#7-documentation-architecture-and-conventions)
 - [Packaging workflow](#8-repository-and-packaging-workflow)
-- [Latest release checkpoint](#2026-08-01--20267-publication-and-tag-alignment-checkpoint)
+- [Latest release checkpoint](#2026-08-06--20268-release-candidate-preparation)
 
 ## ChatGPT bootstrap — read this first
 
@@ -214,7 +215,8 @@ License milestone:
   may copy, modify, redistribute, and use it in commercial or closed-source
   projects as long as the copyright/license notice is preserved. README files
   should link to `LICENSE` rather than embedding the full license text.
-- Current source snapshot public API version `2026.7`.
+- Current source snapshot public API version `2026.8` release candidate; `2026.7` remains the
+  latest published stable milestone until the matching tag and publications exist.
 
 Major implemented features include:
 
@@ -250,12 +252,15 @@ Major implemented features include:
   geometry, and configurable large-grid plaque output.
 - Generated Mini, Core, Developer, Knots & Celtic, and Nuts & Bolts publications with tailored
   documentation, Thingiverse materials, staged verification, and portable ZIP output.
+- Backward-compatible `SHEAR`, the optional nine-preset L-system companion, harmonic/Lissajous,
+  polar-rosette, and medial-graph knots, event-local ribbon crossings, and the optional C++/SVG
+  Celtic accelerator prepared together for `2026.8`.
 
 Append new milestones here. Do not rewrite this section as only the latest state.
 
 ---
 
-## Restart Checkpoint — 2026.7 Celtic and Publication Suites Prepared
+## Restart Checkpoint — 2026.8 Release Candidate Prepared
 
 Current project state is suitable for a fresh chat/restart from the local Git repository or
 a repository ZIP.
@@ -323,6 +328,11 @@ Verified working state:
   milestone, including printable relief plaques and export-quality presets.
 - Release `2026.6` adds controlled knot-bundle half-turns, closure-permutation cycle
   tracing, crossing remapping through traced components, and clearer knot Customizer scopes.
+- Release `2026.7` adds irregular and large Celtic regions, configurable large-grid plaques, and
+  the synchronized five-suite publication system.
+- The `2026.8` release candidate adds `SHEAR`, optional L-systems, new harmonic and medial knot
+  families, event-local ribbon crossings, and the optional C++/SVG Celtic accelerator. It is not
+  published until the maintainer commits, tags, rebuilds, and uploads the accepted candidate.
 
 Known open design issues:
 
@@ -334,9 +344,9 @@ Known open design issues:
   only if it teaches something the existing image does not.
 - Treat the existing Mini suite as the completed beginner-package direction; do not start a
   second Starter dialect or interpreter.
-- Implement the optional L-system companion next, then finish the agreed knot-companion scope,
-  resolving or deliberately deferring tight-curve rejection, collision discovery, remaining
-  generators, and presentation/export options before release preparation.
+- The L-system and knot milestones are complete for `2026.8`. Their remaining packaging,
+  collision, closure, and presentation/export expansions are explicitly deferred; do not reopen
+  them during release preparation without a separate scope decision.
 
 ---
 
@@ -679,17 +689,15 @@ changes, verify links, headings, code examples, and retained accepted content.
 
 The active sequence is:
 
-1. **L-system companion — development complete:** the reusable expansion and interpretation
-   layer, nine presets, deterministic tests, 3-by-3 gallery, and public documentation are implemented.
-   Distribution integration remains deferred until explicitly authorized.
-2. **Knot completion — audit next:** the C++ topology/SVG accelerator and all planned OpenSCAD
-   generators, including medial planar graphs, are implemented. Explicitly implement or defer
-   each residual collision, closure, Celtic, ribbon, export, and presentation item, then run the
-   complete knot acceptance wall. The accelerator remains optional; knot topology and
-   manufacturing remain outside Core.
-3. **Release:** after both milestones pass their focused suites and the complete acceptance wall,
-   synchronize distribution documentation, package manifests, release notes, version references,
-   images, and reproducible archives for the next release.
+1. **L-system companion — milestone complete:** nine presets, deterministic tests, the 3-by-3
+   gallery, and public documentation are implemented. A sixth distribution package is explicitly
+   deferred beyond `2026.8`.
+2. **Knot completion — milestone complete:** the C++ topology/SVG accelerator, planned OpenSCAD
+   generators, and completion/defer audit are complete. Later collision, closure, authoring,
+   mesh-export, and presentation expansions are explicitly deferred.
+3. **`2026.8` release candidate — active:** synchronize versioning, changelog, release notes,
+   package inputs, and current-status documentation; run every focused suite and the complete
+   acceptance wall; then build and inspect all five existing publication suites.
 
 Later candidates, outside this sequence:
 
@@ -1129,6 +1137,9 @@ Release: 2026.7
 Status: published as v2026.7; 222 Foundation/Validation, 48 fastener, and 88 knot results verified
 Purpose: irregular and large Celtic grids plus synchronized publication suites
 ```
+
+The current source is the `2026.8` release candidate. It preserves `2026.7` above as the latest
+published baseline until an authorized `v2026.8` tag and final tagged package rebuild exist.
 
 `LogoSC-Experiments.scad` remains a separate lab bench. Keep experimental code there
 until behavior is understood and the user explicitly approves promotion into the core.
@@ -4217,6 +4228,47 @@ Verification:
   seconds for the individual plaque and 0.80 seconds for the gallery, below the warning threshold.
 - Generate and inspect the top-down gallery image from the actual OpenSCAD geometry.
 
+### 2026-08-06 — 2026.8 release-candidate preparation
+
+Scope decision:
+
+- Advance the Core public API version from `2026.7` to `2026.8` while preserving every existing
+  opcode value and established API. Consolidate the accumulated Unreleased work around `SHEAR`,
+  optional L-systems, new generative knots, corrected ribbon crossings, and accelerated Celtic
+  SVG plaques.
+- Close the knot completion audit by explicitly deferring general collision discovery,
+  tight-curve rejection, rectangular braid returns, random Celtic filling, custom boundary maps,
+  unified polygon export, decorative borders, bundled planar ribbons, direct compiler STL/3MF,
+  and automatic medial-graph planarization.
+- Keep L-system source, examples, tests, and public guidance in the complete repository, but defer
+  a sixth synchronized publication package beyond `2026.8`. Continue publishing the existing
+  Mini, Core, Developer, Knots & Celtic, and Nuts & Bolts suites.
+- Prepare `publishing/releases/v2026.8.md`; final archive names and checksums must come from a
+  clean rebuild of the authorized `v2026.8` tag, not from the dirty candidate build.
+
+Release-candidate verification on RAINBOW:
+
+- Foundation/Validation passed 227 of 227 results; knots passed 122 of 122; fasteners passed 48
+  of 48; and L-systems passed 25 of 25.
+- A fresh MSVC/CMake build passed its CTest self-test. Exact regeneration reproduced all four
+  committed grid, adapter, sampled-record, and SVG files byte for byte. The permanent OpenSCAD
+  parity fixture passed with 38 components, 32 crossings, and 928 segments.
+- All nine L-system gallery-default STLs were single connected closed manifolds with no boundary,
+  non-manifold, or degenerate faces. Default bolt and nut, medial-graph plaque, and accelerated
+  SVG plaque STLs passed the same mesh checks. The high-resolution M20 assembly preview was
+  regenerated and visually inspected.
+- All five dirty release-candidate packages staged independently. Ten package OpenSCAD checks
+  passed, every staged Core matched the candidate source byte for byte, all ZIP streams tested
+  clean, paths were portable, and Git/Codex metadata was absent. Dirty package hashes are review
+  evidence only and must not be copied into final release notes.
+
+Handoff:
+
+- Review the release-preparation diff and documentation checks. After maintainer approval, commit
+  the candidate, create the matching `v2026.8` tag, rebuild all five packages from that exact clean
+  tag, record final checksums, publish, and add the post-release checkpoint without moving older
+  tags.
+
 ### 2026-08-06 — OpenSCAD features that support AI-assisted graphics development
 
 Purpose:
@@ -4506,12 +4558,14 @@ artifact. Design the app so none of those steps requires a human to click the ca
 - **Packaging and publishing:** [repository workflow](#8-repository-and-packaging-workflow),
   [suite release manual](#2026-07-31--suite-release-manual-and-single-repository-publishing),
   [generated suites](#2026-07-31--generated-publication-suites-and-thingiverse-materials),
+  [2026.8 release candidate](#2026-08-06--20268-release-candidate-preparation),
   [Mini cover models](#2026-08-02--printable-mini-cover-models),
   [Core cover models](#2026-08-03--printable-core-cover-models)
 - **Public API:** [stable API](#4-stable-public-api)
 - **Releases:** [2026.5](#2026-07-29--20265-publication-and-next-development-checkpoint),
   [2026.6](#2026-07-31--20266-publication-and-next-development-checkpoint),
-  [2026.7](#2026-08-01--20267-publication-and-tag-alignment-checkpoint)
+  [2026.7](#2026-08-01--20267-publication-and-tag-alignment-checkpoint),
+  [2026.8 candidate](#2026-08-06--20268-release-candidate-preparation)
 - **Roadmap:** [current roadmap](#12-current-roadmap), [open questions](#13-open-questions),
   [L-system, knot, and release sequence](#2026-08-03--l-system-knot-and-release-sequence),
   [optional L-system companion](#2026-08-03--optional-l-system-companion)

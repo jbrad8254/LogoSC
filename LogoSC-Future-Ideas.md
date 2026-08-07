@@ -22,15 +22,15 @@ Only the Active Sequence is a current commitment; all later sections are deferre
 The authoritative near-term order is now:
 
 1. complete: implement the optional L-system companion source, examples, tests, and general docs;
-2. finish the agreed knot-companion scope, explicitly deferring anything that is not required for
-   completion; and
-3. prepare the next synchronized release.
+2. complete: finish the agreed knot-companion scope and explicitly defer later expansions; and
+3. prepare and verify the synchronized `2026.8` release candidate.
 
 The active details remain in `LogoSC-Developer-Notebook.md` and `LogoSC-Knots-Design.md`. Ideas
 elsewhere in this file do not preempt that sequence.
 
 Status: every planned knot generator is implemented, including medial planar graphs and the
-optional C++/SVG Celtic accelerator. The knot completion/defer audit is the next active step.
+optional C++/SVG Celtic accelerator. The completion/defer audit is closed for `2026.8`; later
+collision, closure, export, and presentation expansions remain deferred candidates.
 
 ### L-System Companion Library
 
@@ -40,7 +40,8 @@ interpretation boundary, deterministic tests, a compact gallery, and documentati
 leaving L-system logic embedded only in individual examples.
 
 Status: the companion development files are implemented and independently tested. Distribution
-packaging remains deferred until explicitly authorized.
+packaging is explicitly deferred beyond `2026.8`; the source remains available in the complete
+repository without adding a sixth publication suite at this release boundary.
 
 ---
 

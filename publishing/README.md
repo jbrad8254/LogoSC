@@ -51,7 +51,7 @@ environment without OpenSCAD, but output from that mode is not ready for publica
 
 ## Version identity
 
-From a clean tag matching the Core version, such as `v2026.7`, the archives use that release
+From a clean tag matching the Core version, such as `v2026.8`, the archives use that release
 identity. A mismatched clean tag is rejected. From an untagged or dirty working tree, the builder
 uses an explicit unreleased identity containing the Core version and base commit; dirty output is
 a review artifact, not a final public release.

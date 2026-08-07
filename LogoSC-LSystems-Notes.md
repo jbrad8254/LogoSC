@@ -167,8 +167,9 @@ When in doubt, reduce depth first.
   restoration as explicit example-renderer contracts.
 - Require every gallery-default STL to remain one closed, connected, manifold
   surface without degenerate repeated-vertex facets.
-- Defer all distribution manifests, storefront descriptions, package guides,
-  and archives until explicitly authorized.
+- Keep L-system source, examples, tests, and guidance in the complete repository,
+  while explicitly deferring a dedicated synchronized publication package beyond
+  release `2026.8`.
 
 That keeps LogoSC focused: the core remains a 2D region generator, while L-systems
 serve as a compact way to generate interesting command lists.

@@ -3,6 +3,7 @@
 ## Table of Contents
 
 - [[Unreleased]](#unreleased)
+- [[2026.8] - 2026-08-06](#20268---2026-08-06)
 - [[2026.7] - 2026-07-31](#20267---2026-07-31)
 - [[2026.6] - 2026-07-31](#20266---2026-07-31)
 - [[2026.5] - 2026-07-29](#20265---2026-07-29)
@@ -14,6 +15,14 @@
 - [Index](#index)
 
 ## [Unreleased]
+
+## [2026.8] - 2026-08-06
+
+This feature release adds the backward-compatible `SHEAR` command, the optional nine-preset
+L-system companion, new Lissajous, harmonic, polar-rosette, and medial-graph knot generators,
+event-local crossing-safe ribbon rendering, and the optional accelerated C++/SVG Celtic plaque
+workflow. Existing opcode values, command syntax, geometry behavior, and established public APIs
+remain backward compatible; the Core public API version advances to `2026.8`.
 
 ### Documentation
 
@@ -35,6 +44,10 @@
 - Rebenchmarked every knot gallery and individual scene using full Standard-preset preview time
   on RAINBOW. The Customizer now groups galleries before individuals, sorts each group from
   fastest to slowest, and applies warning suffixes from interactive rather than CSG-only cost.
+- Changed the LogoSC wordmark to keep `Logo` upright and apply an explicit `[SHEAR, 0.25]` to the
+  complete multi-region `SC` suffix. Regenerated `images/logosc-wordmark.png` from the selected
+  OpenSCAD geometry with the established oblique 3D presentation, and refreshed
+  `images/examples-gallery.png` so its masthead and expanded gallery match the current source.
 
 ### Added
 
@@ -112,7 +125,7 @@
   folding rule along every side for a denser, space-filling gallery silhouette.
 
 - Added the optional `LogoSC-LSystems.scad` companion with generic integer-symbol rewriting,
-  action-based LogoSC interpretation, six named presets, a Customizer gallery, an independent
+  action-based LogoSC interpretation, six initial named presets, a Customizer gallery, an independent
   deterministic test runner, and focused design and user documentation. Distribution packaging
   remains deliberately deferred.
 - Added `[SHEAR, xFactor]` as a backward-compatible opcode for composing a local X shear. The
@@ -126,13 +139,6 @@
   The set includes a scalloped-cutout feature panel, connected radial fan, Koch-cutout plate,
   thickened Peano curve, tapered astroid sculpture with a centered through-opening, slotted link,
   perforated ring, and curvy `rotate_extrude()` wire spool. Every model rests at `Z=0`.
-
-### Changed
-
-- Changed the LogoSC wordmark to keep `Logo` upright and apply an explicit `[SHEAR, 0.25]` to the
-  complete multi-region `SC` suffix. Regenerated `images/logosc-wordmark.png` from the selected
-  OpenSCAD geometry with the established oblique 3D presentation, and refreshed
-  `images/examples-gallery.png` so its masthead and expanded gallery match the current source.
 
 ### Fixed
 
@@ -170,6 +176,16 @@
 - Increased the printable Hilbert and Dragon example strokes by 50%. Gave the plant a double-width
   trunk and reduced each of its three displayed growth levels by `pow(1/2, 1/3)`, returning its
   terminal branches to the original base width.
+
+### Verification
+
+- Passed 227 Foundation/Validation, 122 knot, 48 fastener, and 25 L-system deterministic results.
+- Passed a fresh MSVC/CMake build, native self-test, exact generated-artifact reproduction, and
+  the permanent 38-component, 32-crossing, 928-segment C++/OpenSCAD parity fixture.
+- Verified all nine L-system defaults plus representative fastener, medial-knot, and accelerated
+  SVG-plaque STLs as single connected closed manifolds without degenerate triangles.
+- Staged all five release-candidate packages independently and passed ten OpenSCAD package checks,
+  dependency/document/image validation, Core byte-identity checks, and portable ZIP integrity.
 
 ## [2026.7] - 2026-07-31
 
@@ -702,11 +718,11 @@ an internal development snapshot and was not published as a separate release.
 
 ## Index
 
-- **Affine transforms and SHEAR:** [Unreleased](#unreleased), [2026.7](#20267---2026-07-31)
-- **AI engineering and documentation:** [Unreleased](#unreleased), [2026.3](#20263---2026-07-22)
-- **Celtic grids and knot compiler:** [Unreleased](#unreleased), [2026.5](#20265---2026-07-29)
+- **Affine transforms and SHEAR:** [2026.8](#20268---2026-08-06), [2026.7](#20267---2026-07-31)
+- **AI engineering and documentation:** [2026.8](#20268---2026-08-06), [2026.3](#20263---2026-07-22)
+- **Celtic grids and knot compiler:** [2026.8](#20268---2026-08-06), [2026.5](#20265---2026-07-29)
 - **Core commands and geometry:** [2026.0](#20260---initial-public-foundation), [2026.2](#20262---2026-07-13)
 - **Fasteners:** [2026.3](#20263---2026-07-22)
-- **L-systems:** [Unreleased](#unreleased)
-- **Mini library and publishing:** [Unreleased](#unreleased), [2026.6](#20266---2026-07-31)
-- **Testing and validation:** [Unreleased](#unreleased), [2026.2.1](#202621---2026-07-21), [2026.3](#20263---2026-07-22)
+- **L-systems:** [2026.8](#20268---2026-08-06)
+- **Mini library and publishing:** [2026.8](#20268---2026-08-06), [2026.6](#20266---2026-07-31)
+- **Testing and validation:** [2026.8](#20268---2026-08-06), [2026.2.1](#202621---2026-07-21), [2026.3](#20263---2026-07-22)

@@ -137,7 +137,7 @@ official OpenSCAD command-line documentation.
 
 ## Versioning
 
-Current public API version: `2026.7`.
+Current public API version: `2026.8`.
 
 `LogoSC-Foundation-Core.scad` exposes:
 
@@ -155,7 +155,7 @@ user-model compatibility checks.
 Example:
 
 ```scad
-assert(LogoSCVersionAtLeast(2026, 7), "This model requires LogoSC 2026.7+");
+assert(LogoSCVersionAtLeast(2026, 8), "This model requires LogoSC 2026.8+");
 ```
 
 ## Public API quick reference
