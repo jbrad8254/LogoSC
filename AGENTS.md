@@ -19,6 +19,17 @@ The short reusable setup explanation is
 The LogoSC-specific command-line verification guide is
 `LogoSC-OpenSCAD-Command-Line.md`.
 
+## Machine-Specific Repository Locations
+
+The user's active LogoSC clone starts in different locations on the two development PCs:
+
+- This PC (`RAINBOW`): `C:\Users\johng\Documents\GitHub\LogoSC`
+- Other PC: `C:\Users\johng\OneDrive\Documents\GitHub\LogoSC`
+
+Treat these paths as machine-specific location hints, not substitutes for repository-root
+verification. A path under `C:\Users\johng\.codex\worktrees\` is a Codex-managed worktree;
+do not assume it is the user's intended active clone unless the user explicitly selects it.
+
 ## Project Boundaries
 
 - LogoSC evaluates command lists into 2D polygonal regions.
@@ -39,6 +50,19 @@ The LogoSC-specific command-line verification guide is
 - Do not perform broad renames, redesign stable APIs, or remove historical notebook entries
   without an explicit decision.
 - Treat the AI Engineering Kit as maintainer-facing companion material, not LogoSC public API.
+- When LogoSC work reveals another OpenSCAD capability that materially improves AI-assisted
+  graphics development, extend the living note "OpenSCAD features that support AI-assisted
+  graphics development" in `LogoSC-Developer-Notebook.md`, including the corresponding lesson
+  for other graphics tools or editors.
+- After changes that can materially affect knot example performance, remeasure every
+  `KnotExample` and `CelticLargeExample` scene on the active PC and keep their Customizer timing
+  suffixes and the timing tables in `LogoSC-Knots-Design.md` and
+  `LogoSC-Celtic-Large-Grids.md` synchronized.
+- Apply the same timing-warning convention to any future example Customizer with long-running
+  choices: `(*)` over approximately 3 seconds, `(**)` over 30 seconds, and `(***)` over 3 minutes
+  on the active development PC. Keep the explanatory legend in the main knot example rather than
+  repeating it in every Customizer; document measurements in the relevant design or companion
+  guide.
 
 ## Verification and Delivery
 

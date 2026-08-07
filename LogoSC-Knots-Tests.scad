@@ -274,6 +274,228 @@ function KnotTorusTestResults() =
     )
 ];
 
+function KnotAlternatingParityTestResults() =
+    let(
+        selfCrossing = MakeKnot(
+            [
+                MakeKnotStrand(
+                    true,
+                    [[-1, -1, 0], [1, 1, 0], [-1, 1, 0], [1, -1, 0], [-1, -1, 0]],
+                    [0]
+                )
+            ],
+            [MakeKnotCrossing([0, 0], 0, 0.125, 0, 0.625, 0, "A")]
+        ),
+        selfResult = SolveKnotAlternatingParity(selfCrossing),
+        assignedSelf = AssignKnotAlternatingCrossings(selfCrossing),
+        twoStrandCrossings = [
+            MakeKnotCrossing([0, 0], 0, 0.2, 1, 0.2, 0),
+            MakeKnotCrossing([1, 0], 0, 0.7, 1, 0.7, 0)
+        ],
+        twoStrand = MakeKnot(
+            [
+                MakeKnotStrand(true, [[0, 0, 0], [2, 0, 0], [0, 0, 0]], [0, 1]),
+                MakeKnotStrand(true, [[0, 1, 0], [2, 1, 0], [0, 1, 0]], [0, 1])
+            ],
+            twoStrandCrossings
+        ),
+        assignedTwoStrand = AssignKnotAlternatingCrossings(twoStrand),
+        contradictoryCrossings = [
+            MakeKnotCrossing([0, 0], 0, 0.1, 1, 0.1, 0),
+            MakeKnotCrossing([1, 0], 0, 0.4, 1, 0.4, 0),
+            MakeKnotCrossing([2, 0], 0, 0.7, 1, 0.7, 0)
+        ],
+        contradictory = MakeKnot(
+            [
+                MakeKnotStrand(true, [[0, 0, 0], [3, 0, 0], [0, 0, 0]], [0, 1, 2]),
+                MakeKnotStrand(true, [[0, 1, 0], [3, 1, 0], [0, 1, 0]], [0, 1, 2])
+            ],
+            contradictoryCrossings
+        ),
+        contradictionResult = SolveKnotAlternatingParity(contradictory),
+        emptyResult = SolveKnotAlternatingParity(MakeKnot([]))
+    )
+[
+    LogoTestResult(
+        "alternating parity builds crossing and traversal constraints",
+        len(KnotAlternatingConstraintEdges(selfCrossing)) == 3
+    ),
+    LogoTestResult(
+        "alternating parity solves a self-crossing",
+        KnotAlternatingParityIsValid(selfResult)
+        && KnotAlternatingParityColors(selfResult) == [0, 1]
+    ),
+    LogoTestResult(
+        "alternating parity assigns deterministic over branch",
+        KnotCrossingOverBranch(KnotCrossings(assignedSelf)[0]) == "B"
+        && KnotValidationIsValid(ValidateKnot(assignedSelf))
+    ),
+    LogoTestResult(
+        "alternating parity assigns valid multi-strand over records",
+        KnotValidationIsValid(ValidateKnot(assignedTwoStrand))
+        && KnotCrossingOverStrand(KnotCrossings(assignedTwoStrand)[0])
+            == KnotCrossingStrandB(KnotCrossings(assignedTwoStrand)[0])
+    ),
+    LogoTestResult(
+        "alternating parity detects contradictory closed traversal",
+        !KnotAlternatingParityIsValid(contradictionResult)
+    ),
+    LogoTestResult(
+        "alternating parity accepts knot without crossings",
+        KnotAlternatingParityIsValid(emptyResult)
+        && KnotAlternatingParityColors(emptyResult) == []
+    )
+];
+
+function KnotLissajousTestResults() =
+    let(
+        knot = MakeLissajousKnot(sampleCount = 120),
+        strand = KnotStrands(knot)[0],
+        samples = KnotStrandSamples(strand),
+        crossings = KnotCrossings(knot),
+        properIntersection = KnotProperSegmentIntersection(
+            [-1, -1, 0],
+            [1, 1, 0],
+            [-1, 1, 0],
+            [1, -1, 0]
+        )
+    )
+[
+    LogoTestResult(
+        "Lissajous point evaluates three harmonic axes",
+        KnotTestPointNearlyEqual(
+            KnotLissajousPoint(0, [1, 1, 1], [2, 3, 4], [90, 0, -90]),
+            [2, 0, -4]
+        )
+    ),
+    LogoTestResult(
+        "Lissajous proper segment intersection",
+        !is_undef(properIntersection)
+        && KnotTestNearlyEqual(properIntersection[0][0], 0)
+        && KnotTestNearlyEqual(properIntersection[0][1], 0)
+        && KnotTestNearlyEqual(properIntersection[1], 0.5)
+        && KnotTestNearlyEqual(properIntersection[2], 0.5)
+    ),
+    LogoTestResult(
+        "Lissajous adjacent segments do not self-intersect",
+        KnotSegmentsAreAdjacent(2, 3, 12)
+        && KnotSegmentsAreAdjacent(0, 11, 12)
+        && !KnotSegmentsAreAdjacent(2, 4, 12)
+    ),
+    LogoTestResult(
+        "Lissajous generator closes sampled route",
+        len(KnotStrands(knot)) == 1
+        && KnotStrandSampleCount(strand) == 121
+        && KnotTestPointNearlyEqual(samples[0], samples[120])
+    ),
+    LogoTestResult(
+        "Lissajous generator discovers projected crossings",
+        len(crossings) == 8
+        && len(KnotStrandCrossingEncounters(strand)) == 8
+        && min([
+            for (crossing = crossings)
+                KnotCrossingOverBranch(crossing) == "A"
+                || KnotCrossingOverBranch(crossing) == "B"
+                ? 1
+                : 0
+        ]) == 1
+    ),
+    LogoTestResult(
+        "Lissajous generator validates",
+        KnotValidationIsValid(ValidateKnot(knot))
+    )
+];
+
+function KnotHarmonicTestResults() =
+    let(
+        knot = MakeHarmonicKnot(sampleCount = 120),
+        strand = KnotStrands(knot)[0],
+        samples = KnotStrandSamples(strand),
+        crossings = KnotCrossings(knot)
+    )
+[
+    LogoTestResult(
+        "harmonic term validation",
+        KnotHarmonicTermsAreValid([[20, 3, 0], [4, 5, 30]])
+        && !KnotHarmonicTermsAreValid([])
+        && !KnotHarmonicTermsAreValid([[20, 2.5, 0]])
+    ),
+    LogoTestResult(
+        "harmonic point sums multiple terms",
+        KnotTestPointNearlyEqual(
+            KnotHarmonicPoint(
+                0,
+                [[2, 1, 90], [3, 2, -90]],
+                [[4, 1, 0]]
+            ),
+            [-1, 0, 0]
+        )
+    ),
+    LogoTestResult(
+        "harmonic generator closes planar route",
+        KnotStrandSampleCount(strand) == 121
+        && KnotTestPointNearlyEqual(samples[0], samples[120])
+        && KnotIsPlanar(knot)
+    ),
+    LogoTestResult(
+        "harmonic generator discovers and alternates crossings",
+        len(crossings) == 8
+        && KnotCelticKnotIsAlternating(knot)
+    ),
+    LogoTestResult(
+        "harmonic generator validates",
+        KnotValidationIsValid(ValidateKnot(knot))
+    )
+];
+
+function KnotPolarRosetteTestResults() =
+    let(
+        rosette = MakePolarRosetteKnot(sampleCount = 120),
+        strand = KnotStrands(rosette)[0],
+        samples = KnotStrandSamples(strand),
+        crossings = KnotCrossings(rosette),
+        sevenFold = MakePolarRosetteKnot(
+            18, 5, 7, 13, 0.5, 14, 37, 2, 140
+        )
+    )
+[
+    LogoTestResult(
+        "polar rosette radius evaluates two harmonics",
+        KnotTestNearlyEqual(
+            KnotPolarRosetteRadius(0, 10, 2, 1, 0, 1, 2, 180),
+            11
+        )
+    ),
+    LogoTestResult(
+        "polar rosette point applies angular winding",
+        KnotTestPointNearlyEqual(
+            KnotPolarRosettePoint(0, 10, 2, 1, 0, 1, 2, 180, 1),
+            [11, 0, 0]
+        )
+    ),
+    LogoTestResult(
+        "polar rosette closes planar sampled route",
+        KnotStrandSampleCount(strand) == 121
+        && KnotTestPointNearlyEqual(samples[0], samples[120])
+        && KnotIsPlanar(rosette)
+    ),
+    LogoTestResult(
+        "polar rosette discovers alternating crossings",
+        len(crossings) == 5
+        && KnotCelticKnotIsAlternating(rosette)
+    ),
+    LogoTestResult(
+        "polar rosette alternate preset remains deterministic",
+        len(KnotCrossings(sevenFold)) == 7
+        && KnotCelticKnotIsAlternating(sevenFold)
+    ),
+    LogoTestResult(
+        "polar rosette validates",
+        KnotValidationIsValid(ValidateKnot(rosette))
+        && KnotValidationIsValid(ValidateKnot(sevenFold))
+    )
+];
+
 function KnotCordTestResults() =
     let(
         unknot = MakeTorusKnot(1, 1, 20, 6, 24),
@@ -942,6 +1164,161 @@ function KnotCelticTestResults() =
     )
 ];
 
+function KnotMedialGraphTestResults() =
+    let(
+        pathVertices = [[0, 0], [24, 0]],
+        pathEdges = [[0, 1]],
+        path = MakeMedialGraphKnot(
+            pathVertices,
+            pathEdges,
+            2.5,
+            8,
+            6
+        ),
+        triangleVertices = [[0, 0], [30, 0], [15, 26]],
+        triangleEdges = [[0, 1], [1, 2], [2, 0]],
+        triangle = MakeMedialGraphKnot(
+            triangleVertices,
+            triangleEdges,
+            2.5,
+            8,
+            6
+        ),
+        squareVertices = [[0, 0], [30, 0], [30, 30], [0, 30]],
+        squareEdges = [[0, 1], [1, 2], [2, 3], [3, 0]],
+        square = MakeMedialGraphKnot(
+            squareVertices,
+            squareEdges,
+            2.5,
+            8,
+            6
+        ),
+        treeVertices = [[24, 20], [24, 50], [50, 5], [-2, 5]],
+        treeEdges = [[0, 1], [0, 2], [0, 3]],
+        tree = MakeMedialGraphKnot(
+            treeVertices,
+            treeEdges,
+            3.5,
+            8,
+            6
+        ),
+        crossingVertices = [[0, 0], [20, 20], [0, 20], [20, 0]],
+        crossingEdges = [[0, 1], [2, 3]],
+        firstPathStrand = KnotStrands(path)[0],
+        firstPathCrossing = KnotCrossings(path)[0]
+    )
+[
+    LogoTestResult(
+        "medial graph structure validation",
+        KnotMedialGraphIsValid(pathVertices, pathEdges)
+        && KnotMedialGraphIsValid(triangleVertices, triangleEdges)
+        && !KnotMedialGraphIsValid(
+            [[0, 0], [0, 0]],
+            [[0, 1]]
+        )
+        && !KnotMedialGraphIsValid(
+            [[0, 0], [20, 0], [40, 0]],
+            [[0, 1]]
+        )
+    ),
+    LogoTestResult(
+        "medial graph edge validation",
+        KnotMedialEdgeIsValid([0, 1], 2)
+        && !KnotMedialEdgeIsValid([0, 0], 2)
+        && !KnotMedialEdgeIsValid([0, 2], 2)
+        && KnotMedialEdgesAreUnique([[0, 1], [1, 2]])
+        && !KnotMedialEdgesAreUnique([[0, 1], [1, 0]])
+    ),
+    LogoTestResult(
+        "medial graph rejects crossing and overlapping edges",
+        !KnotMedialGraphIsValid(crossingVertices, crossingEdges)
+        && !KnotMedialGraphIsValid(
+            [[0, 0], [10, 0], [20, 0]],
+            [[0, 1], [0, 2]]
+        )
+    ),
+    LogoTestResult(
+        "medial state transitions and reverse darts",
+        KnotMedialOtherEndpointState(0) == 2
+        && KnotMedialOppositeSideState(0) == 1
+        && KnotMedialSuccessorState(pathVertices, pathEdges, 0) == 3
+        && KnotMedialTraceCycles(pathVertices, pathEdges) == [[0, 3]]
+    ),
+    LogoTestResult(
+        "medial edge crossing geometry",
+        KnotTestPointNearlyEqual(
+            KnotMedialStatePoint(
+                pathVertices,
+                pathEdges,
+                0,
+                2.5
+            ),
+            [0, 2.5, 0]
+        )
+        && KnotTestPointNearlyEqual(
+            KnotMedialEdgePoint(
+                pathVertices,
+                pathEdges,
+                0,
+                2.5,
+                0.5
+            ),
+            [12, 0, 0]
+        )
+    ),
+    LogoTestResult(
+        "medial path component counts and closure",
+        len(KnotStrands(path)) == 1
+        && len(KnotCrossings(path)) == 1
+        && KnotCordSegmentCount(path) == 28
+        && KnotStrandSampleCount(firstPathStrand) == 29
+        && KnotTestPointNearlyEqual(
+            KnotStrandSamples(firstPathStrand)[0],
+            KnotStrandSamples(firstPathStrand)[28]
+        )
+    ),
+    LogoTestResult(
+        "medial graph route and crossing records",
+        len(KnotStrands(triangle)) == 1
+        && len(KnotCrossings(triangle)) == 3
+        && KnotCordSegmentCount(triangle) == 84
+        && len(KnotStrands(square)) == 2
+        && len(KnotCrossings(square)) == 4
+        && KnotCordSegmentCount(square) == 112
+        && len(KnotStrands(tree)) == 1
+        && len(KnotCrossings(tree)) == 3
+        && KnotCordSegmentCount(tree) == 84
+        && KnotCrossingPoint(firstPathCrossing) == [12, 0]
+        && KnotCrossingStrandA(firstPathCrossing) == 0
+        && KnotCrossingStrandB(firstPathCrossing) == 0
+        && KnotCrossingParameterA(firstPathCrossing)
+            != KnotCrossingParameterB(firstPathCrossing)
+    ),
+    LogoTestResult(
+        "medial graph alternation and validation",
+        KnotCelticKnotIsAlternating(path)
+        && KnotCelticKnotIsAlternating(triangle)
+        && KnotCelticKnotIsAlternating(square)
+        && KnotCelticKnotIsAlternating(tree)
+        && KnotValidationIsValid(ValidateKnot(path))
+        && KnotValidationIsValid(ValidateKnot(triangle))
+        && KnotValidationIsValid(ValidateKnot(square))
+        && KnotValidationIsValid(ValidateKnot(tree))
+    ),
+    LogoTestResult(
+        "medial graph metadata",
+        KnotMetadata(path) == [
+            "generator", "medialPlanarGraph",
+            "vertices", pathVertices,
+            "edges", pathEdges,
+            "trackOffset", 2.5,
+            "samplesPerEdge", 8,
+            "samplesPerVertex", 6,
+            "crossingPolicy", "alternatingParity"
+        ]
+    )
+];
+
 function KnotRibbonTestResults() =
     let(
         spatialCeltic = MakeCelticTileGridKnot(
@@ -981,6 +1358,19 @@ function KnotRibbonTestResults() =
         firstTangent = KnotStrandTangentAtParameter(
             firstOverStrand,
             firstOverParameter
+        ),
+        firstUnderBranch = KnotCrossingOtherBranch(firstOverBranch),
+        firstUnderStrandIndex = KnotCrossingBranchStrand(
+            firstCrossing,
+            firstUnderBranch
+        ),
+        firstUnderStrand = KnotStrands(planarCeltic)[firstUnderStrandIndex],
+        firstUnderSegment = min(
+            KnotStrandSegmentCount(firstUnderStrand) - 1,
+            floor(
+                KnotCrossingBranchParameter(firstCrossing, firstUnderBranch)
+                * KnotStrandSegmentCount(firstUnderStrand)
+            )
         ),
         unknot = KnotForView(
             MakeTorusKnot(1, 1, 18, 5, 24),
@@ -1074,9 +1464,45 @@ function KnotRibbonTestResults() =
         && firstTangent[2] == 0
     ),
     LogoTestResult(
+        "knot ribbon traversal clips only the local under branch",
+        KnotRibbonTraversalMaskApplies(
+            planarCeltic,
+            firstCrossing,
+            firstUnderStrandIndex,
+            firstUnderSegment,
+            2.4,
+            0.7
+        )
+        && !KnotRibbonTraversalMaskApplies(
+            planarCeltic,
+            firstCrossing,
+            KnotCrossingBranchStrand(firstCrossing, firstOverBranch),
+            min(
+                KnotStrandSegmentCount(firstOverStrand) - 1,
+                floor(firstOverParameter * KnotStrandSegmentCount(firstOverStrand))
+            ),
+            2.4,
+            0.7
+        )
+    ),
+    LogoTestResult(
+        "knot ribbon traversal mask has crossing-angle boundaries",
+        len(RegionOuter(KnotRibbonTraversalCrossingRegion(
+            planarCeltic,
+            firstCrossing,
+            2.4,
+            0.7
+        ))) == 4
+        && KnotTestNearlyEqual(
+            KnotRibbonTraversalParameterDistance(0.98, 0.02, true),
+            0.04
+        )
+    ),
+    LogoTestResult(
         "knot ribbon no-crossing mask identity",
         len(KnotRibbonCrossingMaskRegions(unknot, 2, 0.5, 4)) == 0
         && len(KnotRibbonOverpassRegions(unknot, 2, 0.5, 4)) == 0
+        && KnotCrossingIndexes(unknot) == []
         && len(KnotRibbonRegions(unknot, 2, 4))
             == KnotCordSegmentCount(unknot)
     ),
@@ -1139,10 +1565,15 @@ function KnotAutomatedTestResults() =
         KnotRecordTestResults(),
         KnotValidationTestResults(),
         KnotTorusTestResults(),
+        KnotAlternatingParityTestResults(),
+        KnotLissajousTestResults(),
+        KnotHarmonicTestResults(),
+        KnotPolarRosetteTestResults(),
         KnotCordTestResults(),
         KnotBundleTestResults(),
         KnotBraidTestResults(),
         KnotCelticTestResults(),
+        KnotMedialGraphTestResults(),
         KnotRibbonTestResults()
     );
 

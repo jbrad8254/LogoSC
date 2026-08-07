@@ -2,7 +2,7 @@
 // LogoSC Knots - optional sampled-knot companion
 //
 // Pure OpenSCAD functions define and validate sampled knot records and generate
-// torus, circular-braid, and Celtic tile-grid routes. Native sphere/hull
+// torus, harmonic, polar-rosette, circular-braid, and Celtic tile-grid routes. Native sphere/hull
 // geometry produces diagnostics, manufacturable rounded cords, and adjacent
 // cord bundles with optional traced half-turn twists. The planar ribbon compiler uses LogoSC Core
 // region records and RenderRegion2D(); it does not call evalLogo().
@@ -229,6 +229,661 @@ function KnotVectorRotateAroundAxis(vector, axis, angle) =
             unitAxis,
             KnotVectorDot(unitAxis, vector) * (1 - cosine)
         )
+    );
+
+// Return the signed 2D cross product of vectors a and b.
+function KnotCross2D(a, b) = a[0] * b[1] - a[1] * b[0];
+
+function KnotLissajousPoint(
+    parameter,
+    frequencies = [3, 4, 5],
+    amplitudes = [20, 20, 6],
+    phases = [0, 17, 31]) =
+[
+    amplitudes[0] * sin(360 * frequencies[0] * parameter + phases[0]),
+    amplitudes[1] * sin(360 * frequencies[1] * parameter + phases[1]),
+    amplitudes[2] * sin(360 * frequencies[2] * parameter + phases[2])
+];
+
+function KnotLissajousSamples(
+    frequencies,
+    amplitudes,
+    phases,
+    sampleCount) =
+[
+    for (sampleIndex = [0 : sampleCount])
+        KnotLissajousPoint(
+            sampleIndex / sampleCount,
+            frequencies,
+            amplitudes,
+            phases
+        )
+];
+
+function KnotSegmentsAreAdjacent(firstIndex, secondIndex, segmentCount) =
+    secondIndex == firstIndex + 1
+    || (firstIndex == 0 && secondIndex == segmentCount - 1);
+
+// A proper intersection excludes segment endpoints, parallel segments, and
+// tangencies. The result is [point2D, blendA, blendB] or undef.
+function KnotProperSegmentIntersection(a0, a1, b0, b1, tolerance = 0.000001) =
+    let(
+        a = [a1[0] - a0[0], a1[1] - a0[1]],
+        b = [b1[0] - b0[0], b1[1] - b0[1]],
+        offset = [b0[0] - a0[0], b0[1] - a0[1]],
+        denominator = KnotCross2D(a, b),
+        blendA = abs(denominator) <= tolerance
+            ? undef
+            : KnotCross2D(offset, b) / denominator,
+        blendB = abs(denominator) <= tolerance
+            ? undef
+            : KnotCross2D(offset, a) / denominator
+    )
+    is_undef(blendA)
+    || blendA <= tolerance
+    || blendA >= 1 - tolerance
+    || blendB <= tolerance
+    || blendB >= 1 - tolerance
+    ? undef
+    : [
+        [a0[0] + blendA * a[0], a0[1] + blendA * a[1]],
+        blendA,
+        blendB
+    ];
+
+function KnotSampledSelfIntersections(samples, tolerance = 0.000001) =
+    let(segmentCount = len(samples) - 1)
+[
+    for (firstIndex = [0 : segmentCount - 2])
+        for (secondIndex = [firstIndex + 1 : segmentCount - 1])
+            if (!KnotSegmentsAreAdjacent(firstIndex, secondIndex, segmentCount))
+                let(
+                    intersection = KnotProperSegmentIntersection(
+                        samples[firstIndex],
+                        samples[firstIndex + 1],
+                        samples[secondIndex],
+                        samples[secondIndex + 1],
+                        tolerance
+                    )
+                )
+                if (!is_undef(intersection))
+                    [
+                        intersection[0],
+                        (firstIndex + intersection[1]) / segmentCount,
+                        (secondIndex + intersection[2]) / segmentCount,
+                        samples[firstIndex][2]
+                            + intersection[1]
+                                * (samples[firstIndex + 1][2] - samples[firstIndex][2]),
+                        samples[secondIndex][2]
+                            + intersection[2]
+                                * (samples[secondIndex + 1][2] - samples[secondIndex][2])
+                    ]
+];
+
+function KnotLissajousCrossings(intersections) =
+[
+    for (intersection = intersections)
+        MakeKnotCrossing(
+            intersection[0],
+            0,
+            intersection[1],
+            0,
+            intersection[2],
+            0,
+            intersection[3] >= intersection[4] ? "A" : "B"
+        )
+];
+
+function KnotIntersectionsHaveDistinctHeights(
+    intersections,
+    tolerance,
+    index = 0) =
+    index >= len(intersections)
+    ? true
+    : abs(intersections[index][3] - intersections[index][4]) > tolerance
+        && KnotIntersectionsHaveDistinctHeights(
+            intersections,
+            tolerance,
+            index + 1
+        );
+
+function KnotCrossingEncounterIndexes(crossingCount) =
+    crossingCount == 0 ? [] : [for (index = [0 : crossingCount - 1]) index];
+
+function KnotReplaceAt(values, index, value) =
+[
+    for (candidateIndex = [0 : len(values) - 1])
+        candidateIndex == index ? value : values[candidateIndex]
+];
+
+function KnotCrossingBranchNode(crossingIndex, branch) =
+    crossingIndex * 2 + (branch == "A" ? 0 : 1);
+
+function KnotCrossingBranchEvent(crossing, crossingIndex, strandIndex, branch) =
+    branch == "A"
+    && KnotCrossingStrandA(crossing) == strandIndex
+    ? [
+        KnotCrossingParameterA(crossing),
+        KnotCrossingBranchNode(crossingIndex, "A")
+    ]
+    : branch == "B"
+        && KnotCrossingStrandB(crossing) == strandIndex
+        ? [
+            KnotCrossingParameterB(crossing),
+            KnotCrossingBranchNode(crossingIndex, "B")
+        ]
+        : [];
+
+function KnotStrandCrossingBranchEvents(crossings, strandIndex) =
+    len(crossings) == 0
+    ? []
+    : [
+        for (crossingIndex = [0 : len(crossings) - 1])
+            for (branch = ["A", "B"])
+                let(event = KnotCrossingBranchEvent(
+                    crossings[crossingIndex],
+                    crossingIndex,
+                    strandIndex,
+                    branch
+                ))
+                if (len(event) == 2)
+                    event
+    ];
+
+function KnotSortParameterEvents(events) =
+    len(events) <= 1
+    ? events
+    : let(
+        pivot = events[0],
+        before = [for (index = [1 : len(events) - 1])
+            if (events[index][0] < pivot[0]) events[index]],
+        after = [for (index = [1 : len(events) - 1])
+            if (events[index][0] >= pivot[0]) events[index]]
+    )
+    concat(
+        KnotSortParameterEvents(before),
+        [pivot],
+        KnotSortParameterEvents(after)
+    );
+
+function KnotAlternatingEdgesForStrand(strand, crossings, strandIndex) =
+    let(
+        events = KnotSortParameterEvents(
+            KnotStrandCrossingBranchEvents(crossings, strandIndex)
+        ),
+        eventCount = len(events),
+        sequential = eventCount < 2
+            ? []
+            : [for (index = [0 : eventCount - 2])
+                [events[index][1], events[index + 1][1]]],
+        closure = KnotStrandClosed(strand) && eventCount > 1
+            ? [[events[eventCount - 1][1], events[0][1]]]
+            : []
+    )
+    concat(sequential, closure);
+
+function KnotAlternatingConstraintEdges(knot) =
+    let(
+        crossings = KnotCrossings(knot),
+        strands = KnotStrands(knot),
+        crossingEdges = len(crossings) == 0
+            ? []
+            : [for (crossingIndex = [0 : len(crossings) - 1])
+                [
+                    KnotCrossingBranchNode(crossingIndex, "A"),
+                    KnotCrossingBranchNode(crossingIndex, "B")
+                ]],
+        strandEdges = len(strands) == 0
+            ? []
+            : [for (strandIndex = [0 : len(strands) - 1])
+                each KnotAlternatingEdgesForStrand(
+                    strands[strandIndex],
+                    crossings,
+                    strandIndex
+                )]
+    )
+    concat(crossingEdges, strandEdges);
+
+// Result is [valid, colors]. Every constraint edge requires opposite colors.
+function KnotParityPropagate(edges, colors, node, color, edgeIndex = 0) =
+    !is_undef(colors[node]) && colors[node] != color
+    ? [false, colors]
+    : let(assigned = is_undef(colors[node])
+        ? KnotReplaceAt(colors, node, color)
+        : colors)
+    edgeIndex >= len(edges)
+    ? [true, assigned]
+    : let(
+        edge = edges[edgeIndex],
+        neighbor = edge[0] == node
+            ? edge[1]
+            : edge[1] == node
+                ? edge[0]
+                : undef,
+        propagated = is_undef(neighbor)
+            ? [true, assigned]
+            : is_undef(assigned[neighbor])
+                ? KnotParityPropagate(
+                    edges,
+                    assigned,
+                    neighbor,
+                    1 - color,
+                    0
+                )
+                : [assigned[neighbor] == 1 - color, assigned]
+    )
+    !propagated[0]
+    ? propagated
+    : KnotParityPropagate(
+        edges,
+        propagated[1],
+        node,
+        color,
+        edgeIndex + 1
+    );
+
+function KnotParitySolveComponents(edges, colors, node = 0) =
+    node >= len(colors)
+    ? [true, colors]
+    : !is_undef(colors[node])
+        ? KnotParitySolveComponents(edges, colors, node + 1)
+        : let(component = KnotParityPropagate(edges, colors, node, 0))
+            !component[0]
+            ? component
+            : KnotParitySolveComponents(edges, component[1], node + 1);
+
+function SolveKnotAlternatingParity(knot) =
+    let(
+        nodeCount = len(KnotCrossings(knot)) * 2,
+        colors = nodeCount == 0
+            ? []
+            : [for (node = [0 : nodeCount - 1]) undef]
+    )
+    KnotParitySolveComponents(
+        KnotAlternatingConstraintEdges(knot),
+        colors
+    );
+
+function KnotAlternatingParityIsValid(result) = result[0];
+function KnotAlternatingParityColors(result) = result[1];
+
+function KnotCrossingWithParity(crossing, crossingIndex, colors) =
+    let(overBranch = colors[
+        KnotCrossingBranchNode(crossingIndex, "A")
+    ] == 1 ? "A" : "B")
+    MakeKnotCrossing(
+        KnotCrossingPoint(crossing),
+        KnotCrossingStrandA(crossing),
+        KnotCrossingParameterA(crossing),
+        KnotCrossingStrandB(crossing),
+        KnotCrossingParameterB(crossing),
+        overBranch == "A"
+            ? KnotCrossingStrandA(crossing)
+            : KnotCrossingStrandB(crossing),
+        overBranch
+    );
+
+function AssignKnotAlternatingCrossings(knot) =
+    let(
+        result = SolveKnotAlternatingParity(knot),
+        colors = KnotAlternatingParityColors(result),
+        crossings = KnotCrossings(knot)
+    )
+    assert(
+        KnotAlternatingParityIsValid(result),
+        "Knot projection cannot satisfy alternating crossing constraints."
+    )
+    MakeKnot(
+        KnotStrands(knot),
+        len(crossings) == 0
+        ? []
+        : [for (crossingIndex = [0 : len(crossings) - 1])
+            KnotCrossingWithParity(
+                crossings[crossingIndex],
+                crossingIndex,
+                colors
+            )],
+        KnotMetadata(knot)
+    );
+
+function KnotHarmonicTermIsValid(term) =
+    is_list(term)
+    && len(term) == 3
+    && is_num(term[0])
+    && is_num(term[1])
+    && term[1] > 0
+    && floor(term[1]) == term[1]
+    && is_num(term[2]);
+
+function KnotHarmonicTermsAreValid(terms, index = 0) =
+    is_list(terms)
+    && len(terms) > 0
+    && (
+        index >= len(terms)
+        || (
+            KnotHarmonicTermIsValid(terms[index])
+            && KnotHarmonicTermsAreValid(terms, index + 1)
+        )
+    );
+
+function KnotHarmonicValue(terms, parameter, index = 0) =
+    index >= len(terms)
+    ? 0
+    : terms[index][0]
+        * sin(360 * terms[index][1] * parameter + terms[index][2])
+        + KnotHarmonicValue(terms, parameter, index + 1);
+
+function KnotHarmonicPoint(parameter, xTerms, yTerms) =
+[
+    KnotHarmonicValue(xTerms, parameter),
+    KnotHarmonicValue(yTerms, parameter),
+    0
+];
+
+function KnotHarmonicSamples(xTerms, yTerms, sampleCount) =
+[
+    for (sampleIndex = [0 : sampleCount])
+        KnotHarmonicPoint(
+            sampleIndex / sampleCount,
+            xTerms,
+            yTerms
+        )
+];
+
+function KnotPlanarCrossings(intersections) =
+[
+    for (intersection = intersections)
+        MakeKnotCrossing(
+            intersection[0],
+            0,
+            intersection[1],
+            0,
+            intersection[2],
+            0,
+            "A"
+        )
+];
+
+// Construct a closed planar multi-term harmonic route, discover proper
+// projected self-crossings, and assign a deterministic alternating diagram.
+function MakeHarmonicKnot(
+    xTerms = [[20, 3, 0]],
+    yTerms = [[20, 4, 17]],
+    sampleCount = 240,
+    intersectionTolerance = 0.000001) =
+    assert(
+        KnotHarmonicTermsAreValid(xTerms),
+        "Harmonic X terms must be [amplitude, positive integer frequency, phase] records."
+    )
+    assert(
+        KnotHarmonicTermsAreValid(yTerms),
+        "Harmonic Y terms must be [amplitude, positive integer frequency, phase] records."
+    )
+    assert(
+        is_num(sampleCount) && floor(sampleCount) == sampleCount && sampleCount >= 12,
+        "Harmonic sample count must be an integer of at least 12."
+    )
+    assert(
+        is_num(intersectionTolerance) && intersectionTolerance > 0,
+        "Harmonic intersection tolerance must be positive."
+    )
+    let(
+        samples = KnotHarmonicSamples(xTerms, yTerms, sampleCount),
+        intersections = KnotSampledSelfIntersections(
+            samples,
+            intersectionTolerance
+        ),
+        crossings = KnotPlanarCrossings(intersections),
+        provisional = MakeKnot(
+            [
+                MakeKnotStrand(
+                    true,
+                    samples,
+                    KnotCrossingEncounterIndexes(len(crossings)),
+                    [0],
+                    ["generator", "harmonic"]
+                )
+            ],
+            crossings,
+            [
+                "generator", "harmonic",
+                "xTerms", xTerms,
+                "yTerms", yTerms,
+                "sampleCount", sampleCount,
+                "crossingPolicy", "alternatingParity"
+            ]
+        )
+    )
+    AssignKnotAlternatingCrossings(provisional);
+
+function KnotPolarRosetteRadius(
+    parameter,
+    baseRadius,
+    radialAmplitude,
+    radialFrequency,
+    radialPhase,
+    secondaryAmplitude,
+    secondaryFrequency,
+    secondaryPhase) =
+    baseRadius
+    + radialAmplitude
+        * cos(360 * radialFrequency * parameter + radialPhase)
+    + secondaryAmplitude
+        * cos(360 * secondaryFrequency * parameter + secondaryPhase);
+
+function KnotPolarRosettePoint(
+    parameter,
+    baseRadius = 18,
+    radialAmplitude = 5,
+    radialFrequency = 5,
+    radialPhase = 11,
+    secondaryAmplitude = 0.5,
+    secondaryFrequency = 10,
+    secondaryPhase = 30,
+    winding = 2) =
+    let(
+        radius = KnotPolarRosetteRadius(
+            parameter,
+            baseRadius,
+            radialAmplitude,
+            radialFrequency,
+            radialPhase,
+            secondaryAmplitude,
+            secondaryFrequency,
+            secondaryPhase
+        ),
+        angle = 360 * winding * parameter
+    )
+    [radius * cos(angle), radius * sin(angle), 0];
+
+function KnotPolarRosetteSamples(
+    baseRadius,
+    radialAmplitude,
+    radialFrequency,
+    radialPhase,
+    secondaryAmplitude,
+    secondaryFrequency,
+    secondaryPhase,
+    winding,
+    sampleCount) =
+[
+    for (sampleIndex = [0 : sampleCount])
+        KnotPolarRosettePoint(
+            sampleIndex / sampleCount,
+            baseRadius,
+            radialAmplitude,
+            radialFrequency,
+            radialPhase,
+            secondaryAmplitude,
+            secondaryFrequency,
+            secondaryPhase,
+            winding
+        )
+];
+
+// Construct a circular planar route whose radius contains two harmonic terms.
+// Proper self-crossings receive deterministic alternating over/under branches.
+function MakePolarRosetteKnot(
+    baseRadius = 18,
+    radialAmplitude = 5,
+    radialFrequency = 5,
+    radialPhase = 11,
+    secondaryAmplitude = 0.5,
+    secondaryFrequency = 10,
+    secondaryPhase = 30,
+    winding = 2,
+    sampleCount = 240,
+    intersectionTolerance = 0.000001) =
+    assert(
+        is_num(radialAmplitude) && is_num(secondaryAmplitude),
+        "Polar rosette amplitudes must be numbers."
+    )
+    assert(
+        is_num(baseRadius)
+        && baseRadius > abs(radialAmplitude) + abs(secondaryAmplitude),
+        "Polar rosette base radius must keep the sampled radius positive."
+    )
+    assert(
+        is_num(radialFrequency) && radialFrequency > 0
+        && floor(radialFrequency) == radialFrequency
+        && is_num(secondaryFrequency) && secondaryFrequency > 0
+        && floor(secondaryFrequency) == secondaryFrequency,
+        "Polar rosette radial frequencies must be positive integers."
+    )
+    assert(
+        is_num(radialPhase) && is_num(secondaryPhase),
+        "Polar rosette phases must be numbers in degrees."
+    )
+    assert(
+        is_num(winding) && winding > 0 && floor(winding) == winding,
+        "Polar rosette winding must be a positive integer."
+    )
+    assert(
+        is_num(sampleCount) && floor(sampleCount) == sampleCount && sampleCount >= 12,
+        "Polar rosette sample count must be an integer of at least 12."
+    )
+    assert(
+        is_num(intersectionTolerance) && intersectionTolerance > 0,
+        "Polar rosette intersection tolerance must be positive."
+    )
+    let(
+        samples = KnotPolarRosetteSamples(
+            baseRadius,
+            radialAmplitude,
+            radialFrequency,
+            radialPhase,
+            secondaryAmplitude,
+            secondaryFrequency,
+            secondaryPhase,
+            winding,
+            sampleCount
+        ),
+        intersections = KnotSampledSelfIntersections(
+            samples,
+            intersectionTolerance
+        ),
+        crossings = KnotPlanarCrossings(intersections),
+        provisional = MakeKnot(
+            [
+                MakeKnotStrand(
+                    true,
+                    samples,
+                    KnotCrossingEncounterIndexes(len(crossings)),
+                    [0],
+                    ["generator", "polarRosette"]
+                )
+            ],
+            crossings,
+            [
+                "generator", "polarRosette",
+                "baseRadius", baseRadius,
+                "radialAmplitude", radialAmplitude,
+                "radialFrequency", radialFrequency,
+                "radialPhase", radialPhase,
+                "secondaryAmplitude", secondaryAmplitude,
+                "secondaryFrequency", secondaryFrequency,
+                "secondaryPhase", secondaryPhase,
+                "winding", winding,
+                "sampleCount", sampleCount,
+                "crossingPolicy", "alternatingParity"
+            ]
+        )
+    )
+    AssignKnotAlternatingCrossings(provisional);
+
+// Construct one closed spatial Lissajous route and discover every proper
+// self-crossing in its XY projection. Integer frequencies guarantee closure;
+// interpolated Z chooses the over branch at each crossing.
+function MakeLissajousKnot(
+    frequencies = [3, 4, 5],
+    amplitudes = [20, 20, 6],
+    phases = [0, 17, 31],
+    sampleCount = 240,
+    intersectionTolerance = 0.000001) =
+    assert(
+        is_list(frequencies) && len(frequencies) == 3
+        && min([for (frequency = frequencies)
+            is_num(frequency) && frequency > 0 && floor(frequency) == frequency ? 1 : 0]) == 1,
+        "Lissajous frequencies must be three positive integers."
+    )
+    assert(
+        is_list(amplitudes) && len(amplitudes) == 3
+        && min([for (amplitude = amplitudes)
+            is_num(amplitude) && amplitude > 0 ? 1 : 0]) == 1,
+        "Lissajous amplitudes must be three positive numbers."
+    )
+    assert(
+        is_list(phases) && len(phases) == 3
+        && min([for (phase = phases) is_num(phase) ? 1 : 0]) == 1,
+        "Lissajous phases must be three numbers in degrees."
+    )
+    assert(
+        is_num(sampleCount) && floor(sampleCount) == sampleCount && sampleCount >= 12,
+        "Lissajous sample count must be an integer of at least 12."
+    )
+    assert(
+        is_num(intersectionTolerance) && intersectionTolerance > 0,
+        "Lissajous intersection tolerance must be positive."
+    )
+    let(
+        samples = KnotLissajousSamples(
+            frequencies,
+            amplitudes,
+            phases,
+            sampleCount
+        ),
+        intersections = KnotSampledSelfIntersections(
+            samples,
+            intersectionTolerance
+        ),
+        crossings = KnotLissajousCrossings(intersections)
+    )
+    assert(
+        KnotIntersectionsHaveDistinctHeights(
+            intersections,
+            intersectionTolerance
+        ),
+        "Lissajous projection has a crossing with ambiguous Z order."
+    )
+    MakeKnot(
+        [
+            MakeKnotStrand(
+                true,
+                samples,
+                KnotCrossingEncounterIndexes(len(crossings)),
+                [0],
+                ["generator", "lissajous"]
+            )
+        ],
+        crossings,
+        [
+            "generator", "lissajous",
+            "frequencies", frequencies,
+            "amplitudes", amplitudes,
+            "phases", phases,
+            "sampleCount", sampleCount,
+            "intersectionPolicy", "properProjectedSegments"
+        ]
     );
 
 function KnotVectorSignedAngle(from, to, axis) =
@@ -1966,6 +2621,825 @@ function MakeCelticTileGridKnot(
     )
     knot;
 
+// Medial planar graphs use explicit 2D vertices and undirected edge-index pairs.
+// Each edge becomes two locally crossing tracks. Cyclic angular pairing around
+// every vertex joins neighboring track ends into closed components.
+function KnotMedialVerticesAreValid(vertices, index = 0) =
+    is_list(vertices)
+    && len(vertices) >= 2
+    && (
+        index >= len(vertices)
+        || (
+            KnotPointIs2D(vertices[index])
+            && KnotMedialVerticesAreValid(vertices, index + 1)
+        )
+    );
+
+function KnotMedialVerticesAreDistinct(
+    vertices,
+    tolerance,
+    firstIndex = 0,
+    secondIndex = 1) =
+    firstIndex >= len(vertices) - 1
+    ? true
+    : secondIndex >= len(vertices)
+        ? KnotMedialVerticesAreDistinct(
+            vertices,
+            tolerance,
+            firstIndex + 1,
+            firstIndex + 2
+        )
+        : KnotPointDistance(
+            concat(vertices[firstIndex], [0]),
+            concat(vertices[secondIndex], [0])
+        ) > tolerance
+        && KnotMedialVerticesAreDistinct(
+            vertices,
+            tolerance,
+            firstIndex,
+            secondIndex + 1
+        );
+
+function KnotMedialEdgeIsValid(edge, vertexCount) =
+    is_list(edge)
+    && len(edge) == 2
+    && is_num(edge[0])
+    && is_num(edge[1])
+    && floor(edge[0]) == edge[0]
+    && floor(edge[1]) == edge[1]
+    && edge[0] >= 0
+    && edge[1] >= 0
+    && edge[0] < vertexCount
+    && edge[1] < vertexCount
+    && edge[0] != edge[1];
+
+function KnotMedialEdgesAreValid(edges, vertexCount, index = 0) =
+    is_list(edges)
+    && len(edges) > 0
+    && (
+        index >= len(edges)
+        || (
+            KnotMedialEdgeIsValid(edges[index], vertexCount)
+            && KnotMedialEdgesAreValid(edges, vertexCount, index + 1)
+        )
+    );
+
+function KnotMedialEdgesMatchUndirected(first, second) =
+    first == second
+    || (first[0] == second[1] && first[1] == second[0]);
+
+function KnotMedialEdgesAreUnique(
+    edges,
+    firstIndex = 0,
+    secondIndex = 1) =
+    firstIndex >= len(edges) - 1
+    ? true
+    : secondIndex >= len(edges)
+        ? KnotMedialEdgesAreUnique(edges, firstIndex + 1, firstIndex + 2)
+        : !KnotMedialEdgesMatchUndirected(
+            edges[firstIndex],
+            edges[secondIndex]
+        )
+        && KnotMedialEdgesAreUnique(
+            edges,
+            firstIndex,
+            secondIndex + 1
+        );
+
+function KnotMedialVertexIsUsed(edges, vertexIndex, edgeIndex = 0) =
+    edgeIndex < len(edges)
+    && (
+        edges[edgeIndex][0] == vertexIndex
+        || edges[edgeIndex][1] == vertexIndex
+        || KnotMedialVertexIsUsed(edges, vertexIndex, edgeIndex + 1)
+    );
+
+function KnotMedialAllVerticesAreUsed(
+    vertices,
+    edges,
+    vertexIndex = 0) =
+    vertexIndex >= len(vertices)
+    || (
+        KnotMedialVertexIsUsed(edges, vertexIndex)
+        && KnotMedialAllVerticesAreUsed(
+            vertices,
+            edges,
+            vertexIndex + 1
+        )
+    );
+
+function KnotMedialPointOnSegment(point, start, end, tolerance) =
+    let(
+        segment = [end[0] - start[0], end[1] - start[1]],
+        offset = [point[0] - start[0], point[1] - start[1]],
+        lengthSquared = segment[0] * segment[0]
+            + segment[1] * segment[1],
+        projection = offset[0] * segment[0]
+            + offset[1] * segment[1]
+    )
+    lengthSquared > tolerance * tolerance
+    && abs(KnotCross2D(segment, offset))
+        <= tolerance * sqrt(lengthSquared)
+    && projection >= -tolerance * sqrt(lengthSquared)
+    && projection <= lengthSquared + tolerance * sqrt(lengthSquared);
+
+function KnotMedialEdgesShareVertex(first, second) =
+    first[0] == second[0]
+    || first[0] == second[1]
+    || first[1] == second[0]
+    || first[1] == second[1];
+
+function KnotMedialSharedVertex(first, second) =
+    first[0] == second[0] || first[0] == second[1]
+    ? first[0]
+    : first[1];
+
+function KnotMedialOtherVertex(edge, vertexIndex) =
+    edge[0] == vertexIndex ? edge[1] : edge[0];
+
+function KnotMedialIncidentEdgesOverlap(
+    vertices,
+    first,
+    second,
+    tolerance) =
+    let(
+        shared = KnotMedialSharedVertex(first, second),
+        firstOther = KnotMedialOtherVertex(first, shared),
+        secondOther = KnotMedialOtherVertex(second, shared),
+        firstVector = [
+            vertices[firstOther][0] - vertices[shared][0],
+            vertices[firstOther][1] - vertices[shared][1]
+        ],
+        secondVector = [
+            vertices[secondOther][0] - vertices[shared][0],
+            vertices[secondOther][1] - vertices[shared][1]
+        ],
+        lengthProduct = sqrt(
+            (firstVector[0] * firstVector[0]
+                + firstVector[1] * firstVector[1])
+            * (secondVector[0] * secondVector[0]
+                + secondVector[1] * secondVector[1])
+        )
+    )
+    abs(KnotCross2D(firstVector, secondVector))
+        <= tolerance * lengthProduct
+    && firstVector[0] * secondVector[0]
+        + firstVector[1] * secondVector[1] > 0;
+
+function KnotMedialNonincidentEdgesConflict(
+    vertices,
+    first,
+    second,
+    tolerance) =
+    let(
+        firstStart = vertices[first[0]],
+        firstEnd = vertices[first[1]],
+        secondStart = vertices[second[0]],
+        secondEnd = vertices[second[1]]
+    )
+    !is_undef(KnotProperSegmentIntersection(
+        firstStart,
+        firstEnd,
+        secondStart,
+        secondEnd,
+        tolerance
+    ))
+    || KnotMedialPointOnSegment(
+        firstStart,
+        secondStart,
+        secondEnd,
+        tolerance
+    )
+    || KnotMedialPointOnSegment(
+        firstEnd,
+        secondStart,
+        secondEnd,
+        tolerance
+    )
+    || KnotMedialPointOnSegment(
+        secondStart,
+        firstStart,
+        firstEnd,
+        tolerance
+    )
+    || KnotMedialPointOnSegment(
+        secondEnd,
+        firstStart,
+        firstEnd,
+        tolerance
+    );
+
+function KnotMedialEdgePairsArePlanar(
+    vertices,
+    edges,
+    tolerance,
+    firstIndex = 0,
+    secondIndex = 1) =
+    firstIndex >= len(edges) - 1
+    ? true
+    : secondIndex >= len(edges)
+        ? KnotMedialEdgePairsArePlanar(
+            vertices,
+            edges,
+            tolerance,
+            firstIndex + 1,
+            firstIndex + 2
+        )
+        : !(
+            KnotMedialEdgesShareVertex(
+                edges[firstIndex],
+                edges[secondIndex]
+            )
+            ? KnotMedialIncidentEdgesOverlap(
+                vertices,
+                edges[firstIndex],
+                edges[secondIndex],
+                tolerance
+            )
+            : KnotMedialNonincidentEdgesConflict(
+                vertices,
+                edges[firstIndex],
+                edges[secondIndex],
+                tolerance
+            )
+        )
+        && KnotMedialEdgePairsArePlanar(
+            vertices,
+            edges,
+            tolerance,
+            firstIndex,
+            secondIndex + 1
+        );
+
+function KnotMedialGraphIsValid(
+    vertices,
+    edges,
+    tolerance = 0.000001) =
+    is_num(tolerance)
+    && tolerance > 0
+    && KnotMedialVerticesAreValid(vertices)
+    && KnotMedialVerticesAreDistinct(vertices, tolerance)
+    && KnotMedialEdgesAreValid(edges, len(vertices))
+    && KnotMedialEdgesAreUnique(edges)
+    && KnotMedialAllVerticesAreUsed(vertices, edges)
+    && KnotMedialEdgePairsArePlanar(vertices, edges, tolerance);
+
+function KnotMedialEdgeLength(vertices, edge) =
+    KnotPointDistance(
+        concat(vertices[edge[0]], [0]),
+        concat(vertices[edge[1]], [0])
+    );
+
+function KnotMedialEdgesFitTrackOffset(
+    vertices,
+    edges,
+    trackOffset,
+    tolerance,
+    edgeIndex = 0) =
+    edgeIndex >= len(edges)
+    || (
+        KnotMedialEdgeLength(vertices, edges[edgeIndex])
+            > 4 * trackOffset + tolerance
+        && KnotMedialEdgesFitTrackOffset(
+            vertices,
+            edges,
+            trackOffset,
+            tolerance,
+            edgeIndex + 1
+        )
+    );
+
+function KnotMedialStateId(edgeIndex, endpointIndex, side) =
+    edgeIndex * 4 + endpointIndex * 2 + side;
+
+function KnotMedialStateEdge(stateId) = floor(stateId / 4);
+function KnotMedialStateEndpoint(stateId) = floor(stateId / 2) % 2;
+function KnotMedialStateSide(stateId) = stateId % 2;
+
+function KnotMedialOtherEndpointState(stateId) =
+    KnotMedialStateId(
+        KnotMedialStateEdge(stateId),
+        1 - KnotMedialStateEndpoint(stateId),
+        KnotMedialStateSide(stateId)
+    );
+
+function KnotMedialOppositeSideState(stateId) =
+    KnotMedialStateId(
+        KnotMedialStateEdge(stateId),
+        KnotMedialStateEndpoint(stateId),
+        1 - KnotMedialStateSide(stateId)
+    );
+
+function KnotMedialStateVertex(edges, stateId) =
+    edges[KnotMedialStateEdge(stateId)][
+        KnotMedialStateEndpoint(stateId)
+    ];
+
+function KnotMedialHalfEdgeRecord(vertices, edges, edgeIndex, endpointIndex) =
+    let(
+        edge = edges[edgeIndex],
+        vertexIndex = edge[endpointIndex],
+        otherIndex = edge[1 - endpointIndex],
+        delta = [
+            vertices[otherIndex][0] - vertices[vertexIndex][0],
+            vertices[otherIndex][1] - vertices[vertexIndex][1]
+        ]
+    )
+    [atan2(delta[1], delta[0]), edgeIndex, endpointIndex];
+
+function KnotMedialIncidentHalfEdges(vertices, edges, vertexIndex) =
+    KnotSortParameterEvents([
+        for (edgeIndex = [0 : len(edges) - 1])
+            each concat(
+                edges[edgeIndex][0] == vertexIndex
+                ? [KnotMedialHalfEdgeRecord(
+                    vertices,
+                    edges,
+                    edgeIndex,
+                    0
+                )]
+                : [],
+                edges[edgeIndex][1] == vertexIndex
+                ? [KnotMedialHalfEdgeRecord(
+                    vertices,
+                    edges,
+                    edgeIndex,
+                    1
+                )]
+                : []
+            )
+    ]);
+
+function KnotMedialHalfEdgeIndex(
+    halfEdges,
+    edgeIndex,
+    endpointIndex,
+    index = 0) =
+    index >= len(halfEdges)
+    ? -1
+    : halfEdges[index][1] == edgeIndex
+        && halfEdges[index][2] == endpointIndex
+        ? index
+        : KnotMedialHalfEdgeIndex(
+            halfEdges,
+            edgeIndex,
+            endpointIndex,
+            index + 1
+        );
+
+function KnotMedialVertexPartnerState(vertices, edges, stateId) =
+    let(
+        vertexIndex = KnotMedialStateVertex(edges, stateId),
+        halfEdges = KnotMedialIncidentHalfEdges(
+            vertices,
+            edges,
+            vertexIndex
+        ),
+        halfEdgeIndex = KnotMedialHalfEdgeIndex(
+            halfEdges,
+            KnotMedialStateEdge(stateId),
+            KnotMedialStateEndpoint(stateId)
+        ),
+        partnerIndex = KnotMedialStateSide(stateId) == 0
+            ? (halfEdgeIndex + 1) % len(halfEdges)
+            : (halfEdgeIndex + len(halfEdges) - 1) % len(halfEdges),
+        partner = halfEdges[partnerIndex]
+    )
+    assert(halfEdgeIndex >= 0, "Medial state is absent from its vertex rotation.")
+    KnotMedialStateId(
+        partner[1],
+        partner[2],
+        1 - KnotMedialStateSide(stateId)
+    );
+
+function KnotMedialSuccessorState(vertices, edges, stateId) =
+    KnotMedialVertexPartnerState(
+        vertices,
+        edges,
+        KnotMedialOtherEndpointState(stateId)
+    );
+
+function KnotMedialTraceCycle(
+    vertices,
+    edges,
+    startState,
+    currentState,
+    cycle = [],
+    limit = 0) =
+    len(cycle) > 0 && currentState == startState
+    ? cycle
+    : assert(
+        len(cycle) < limit,
+        "Medial graph route did not close within its state count."
+    )
+    KnotMedialTraceCycle(
+        vertices,
+        edges,
+        startState,
+        KnotMedialSuccessorState(vertices, edges, currentState),
+        concat(cycle, [currentState]),
+        limit
+    );
+
+function KnotMedialFirstUnvisitedState(
+    stateCount,
+    visited,
+    stateId = 0) =
+    stateId >= stateCount
+    ? undef
+    : KnotListContains(visited, stateId)
+        ? KnotMedialFirstUnvisitedState(
+            stateCount,
+            visited,
+            stateId + 1
+        )
+        : stateId;
+
+function KnotMedialTraceCycles(
+    vertices,
+    edges,
+    visited = [],
+    cycles = []) =
+    let(
+        stateCount = len(edges) * 4,
+        startState = KnotMedialFirstUnvisitedState(
+            stateCount,
+            visited
+        )
+    )
+    is_undef(startState)
+    ? cycles
+    : let(
+        cycle = KnotMedialTraceCycle(
+            vertices,
+            edges,
+            startState,
+            startState,
+            [],
+            stateCount + 1
+        ),
+        reverseStates = [
+            for (stateId = cycle)
+                KnotMedialOtherEndpointState(stateId)
+        ]
+    )
+    KnotMedialTraceCycles(
+        vertices,
+        edges,
+        concat(visited, cycle, reverseStates),
+        concat(cycles, [cycle])
+    );
+
+function KnotMedialStateDirection(vertices, edges, stateId) =
+    let(
+        edge = edges[KnotMedialStateEdge(stateId)],
+        endpoint = KnotMedialStateEndpoint(stateId),
+        start = vertices[edge[endpoint]],
+        end = vertices[edge[1 - endpoint]]
+    )
+    KnotVectorNormalize([
+        end[0] - start[0],
+        end[1] - start[1],
+        0
+    ]);
+
+function KnotMedialStatePoint(
+    vertices,
+    edges,
+    stateId,
+    trackOffset) =
+    let(
+        vertex = vertices[KnotMedialStateVertex(edges, stateId)],
+        direction = KnotMedialStateDirection(vertices, edges, stateId),
+        normal = [-direction[1], direction[0], 0],
+        sign = KnotMedialStateSide(stateId) == 0 ? 1 : -1
+    )
+    [
+        vertex[0] + sign * trackOffset * normal[0],
+        vertex[1] + sign * trackOffset * normal[1],
+        0
+    ];
+
+function KnotMedialEdgePoint(
+    vertices,
+    edges,
+    stateId,
+    trackOffset,
+    blend) =
+    let(
+        start = KnotMedialStatePoint(
+            vertices,
+            edges,
+            stateId,
+            trackOffset
+        ),
+        end = KnotMedialStatePoint(
+            vertices,
+            edges,
+            KnotMedialOtherEndpointState(stateId),
+            trackOffset
+        ),
+        direction = KnotMedialStateDirection(vertices, edges, stateId),
+        normal = [-direction[1], direction[0], 0],
+        sign = KnotMedialStateSide(stateId) == 0 ? 1 : -1,
+        center = [
+            (start[0] + end[0]) / 2,
+            (start[1] + end[1]) / 2,
+            0
+        ],
+        before = KnotVectorAdd(
+            KnotVectorSubtract(
+                center,
+                KnotVectorScale(direction, trackOffset)
+            ),
+            KnotVectorScale(normal, sign * trackOffset)
+        ),
+        after = KnotVectorSubtract(
+            KnotVectorAdd(
+                center,
+                KnotVectorScale(direction, trackOffset)
+            ),
+            KnotVectorScale(normal, sign * trackOffset)
+        )
+    )
+    blend <= 0.5
+    ? KnotCelticQuadraticPoint(start, before, center, blend * 2)
+    : KnotCelticQuadraticPoint(
+        center,
+        after,
+        end,
+        (blend - 0.5) * 2
+    );
+
+function KnotMedialCubicPoint(start, controlA, controlB, end, blend) =
+    let(inverse = 1 - blend)
+    KnotVectorAdd(
+        KnotVectorAdd(
+            KnotVectorScale(start, inverse * inverse * inverse),
+            KnotVectorScale(
+                controlA,
+                3 * inverse * inverse * blend
+            )
+        ),
+        KnotVectorAdd(
+            KnotVectorScale(
+                controlB,
+                3 * inverse * blend * blend
+            ),
+            KnotVectorScale(end, blend * blend * blend)
+        )
+    );
+
+function KnotMedialVertexPoint(
+    vertices,
+    edges,
+    stateId,
+    trackOffset,
+    blend) =
+    let(
+        arrivalState = KnotMedialOtherEndpointState(stateId),
+        nextState = KnotMedialVertexPartnerState(
+            vertices,
+            edges,
+            arrivalState
+        ),
+        start = KnotMedialStatePoint(
+            vertices,
+            edges,
+            arrivalState,
+            trackOffset
+        ),
+        end = KnotMedialStatePoint(
+            vertices,
+            edges,
+            nextState,
+            trackOffset
+        ),
+        arrivalDirection = KnotVectorScale(
+            KnotMedialStateDirection(vertices, edges, arrivalState),
+            -1
+        ),
+        departureDirection = KnotMedialStateDirection(
+            vertices,
+            edges,
+            nextState
+        ),
+        handle = trackOffset * 0.75,
+        controlA = KnotVectorAdd(
+            start,
+            KnotVectorScale(arrivalDirection, handle)
+        ),
+        controlB = KnotVectorSubtract(
+            end,
+            KnotVectorScale(departureDirection, handle)
+        )
+    )
+    KnotMedialCubicPoint(
+        start,
+        controlA,
+        controlB,
+        end,
+        blend
+    );
+
+function KnotMedialCycleSamples(
+    vertices,
+    edges,
+    cycle,
+    trackOffset,
+    samplesPerEdge,
+    samplesPerVertex) =
+    concat(
+        [
+            for (stateId = cycle)
+                each concat(
+                    [
+                        for (sampleIndex = [0 : samplesPerEdge - 1])
+                            KnotMedialEdgePoint(
+                                vertices,
+                                edges,
+                                stateId,
+                                trackOffset,
+                                sampleIndex / samplesPerEdge
+                            )
+                    ],
+                    [
+                        for (sampleIndex = [0 : samplesPerVertex - 1])
+                            KnotMedialVertexPoint(
+                                vertices,
+                                edges,
+                                stateId,
+                                trackOffset,
+                                sampleIndex / samplesPerVertex
+                            )
+                    ]
+                )
+        ],
+        [KnotMedialEdgePoint(
+            vertices,
+            edges,
+            cycle[0],
+            trackOffset,
+            0
+        )]
+    );
+
+function KnotMedialEdgeOwners(cycles, edgeIndex) =
+[
+    for (strandIndex = [0 : len(cycles) - 1])
+        for (stateIndex = [0 : len(cycles[strandIndex]) - 1])
+            if (
+                KnotMedialStateEdge(
+                    cycles[strandIndex][stateIndex]
+                ) == edgeIndex
+            )
+                [strandIndex, stateIndex]
+];
+
+function KnotMedialEdgeCrossing(
+    vertices,
+    edges,
+    cycles,
+    edgeIndex,
+    samplesPerEdge,
+    samplesPerVertex) =
+    let(
+        edge = edges[edgeIndex],
+        owners = KnotMedialEdgeOwners(cycles, edgeIndex)
+    )
+    assert(
+        len(owners) == 2,
+        "Every medial graph edge must contribute exactly two crossing branches."
+    )
+    let(
+        stride = samplesPerEdge + samplesPerVertex,
+        firstSegmentCount = len(cycles[owners[0][0]]) * stride,
+        secondSegmentCount = len(cycles[owners[1][0]]) * stride,
+        firstParameter = (
+            owners[0][1] * stride + samplesPerEdge / 2
+        ) / firstSegmentCount,
+        secondParameter = (
+            owners[1][1] * stride + samplesPerEdge / 2
+        ) / secondSegmentCount
+    )
+    MakeKnotCrossing(
+        [
+            (vertices[edge[0]][0] + vertices[edge[1]][0]) / 2,
+            (vertices[edge[0]][1] + vertices[edge[1]][1]) / 2
+        ],
+        owners[0][0],
+        firstParameter,
+        owners[1][0],
+        secondParameter,
+        owners[0][0],
+        "A"
+    );
+
+function KnotMedialGraphCrossings(
+    vertices,
+    edges,
+    cycles,
+    samplesPerEdge,
+    samplesPerVertex) =
+[
+    for (edgeIndex = [0 : len(edges) - 1])
+        KnotMedialEdgeCrossing(
+            vertices,
+            edges,
+            cycles,
+            edgeIndex,
+            samplesPerEdge,
+            samplesPerVertex
+        )
+];
+
+// Convert a straight-line embedded planar graph into closed medial knot routes.
+// Vertices are [[x,y], ...]; edges are unique undirected [vertexA,vertexB] pairs.
+function MakeMedialGraphKnot(
+    vertices,
+    edges,
+    trackOffset = 2.5,
+    samplesPerEdge = 8,
+    samplesPerVertex = 6,
+    tolerance = 0.000001) =
+    assert(
+        KnotMedialGraphIsValid(vertices, edges, tolerance),
+        "Medial graph must be a simple planar straight-line embedding with every vertex used."
+    )
+    assert(
+        is_num(trackOffset) && trackOffset > 0,
+        "Medial graph track offset must be positive."
+    )
+    assert(
+        is_num(samplesPerEdge)
+        && floor(samplesPerEdge) == samplesPerEdge
+        && samplesPerEdge >= 4
+        && samplesPerEdge % 2 == 0,
+        "Medial edge samples must be an even integer of at least 4."
+    )
+    assert(
+        is_num(samplesPerVertex)
+        && floor(samplesPerVertex) == samplesPerVertex
+        && samplesPerVertex >= 2,
+        "Medial vertex samples must be an integer of at least 2."
+    )
+    assert(
+        KnotMedialEdgesFitTrackOffset(
+            vertices,
+            edges,
+            trackOffset,
+            tolerance
+        ),
+        "Every medial graph edge must be longer than four track offsets."
+    )
+    let(
+        cycles = KnotMedialTraceCycles(vertices, edges),
+        crossings = KnotMedialGraphCrossings(
+            vertices,
+            edges,
+            cycles,
+            samplesPerEdge,
+            samplesPerVertex
+        ),
+        strands = [
+            for (strandIndex = [0 : len(cycles) - 1])
+                MakeKnotStrand(
+                    true,
+                    KnotMedialCycleSamples(
+                        vertices,
+                        edges,
+                        cycles[strandIndex],
+                        trackOffset,
+                        samplesPerEdge,
+                        samplesPerVertex
+                    ),
+                    KnotBraidComponentEncounters(
+                        crossings,
+                        strandIndex
+                    ),
+                    metadata = [
+                        "generator", "medialPlanarGraph",
+                        "component", strandIndex,
+                        "stateCycle", cycles[strandIndex]
+                    ]
+                )
+        ],
+        provisional = MakeKnot(
+            strands,
+            crossings,
+            [
+                "generator", "medialPlanarGraph",
+                "vertices", vertices,
+                "edges", edges,
+                "trackOffset", trackOffset,
+                "samplesPerEdge", samplesPerEdge,
+                "samplesPerVertex", samplesPerVertex,
+                "crossingPolicy", "alternatingParity"
+            ]
+        )
+    )
+    AssignKnotAlternatingCrossings(provisional);
+
 function KnotBundleOccupiedWidth(cordCount, cordRadius, cordGap = 0) =
     assert(
         is_num(cordCount) && floor(cordCount) == cordCount && cordCount > 0,
@@ -2761,6 +4235,17 @@ function KnotCrossingBranchParameter(crossing, branch) =
     ? KnotCrossingParameterA(crossing)
     : KnotCrossingParameterB(crossing);
 
+function KnotCrossingOtherBranch(branch) =
+    assert(branch == "A" || branch == "B", "Knot crossing branch must be A or B.")
+    branch == "A" ? "B" : "A";
+
+// OpenSCAD 2021.01 treats [0 : -1] as a descending range instead of an
+// empty range. Always route crossing-index loops through this helper.
+function KnotCrossingIndexes(knot) =
+    len(KnotCrossings(knot)) == 0
+    ? []
+    : [0 : len(KnotCrossings(knot)) - 1];
+
 function KnotRibbonCrossingSpan(
     ribbonWidth,
     crossingClearance,
@@ -2841,13 +4326,166 @@ function KnotRibbonCrossingMaskRegions(
         KnotRibbonCrossingRegion(
             knot,
             crossing,
-            KnotCrossingOverBranch(crossing),
+            KnotCrossingOtherBranch(KnotCrossingOverBranch(crossing)),
             ribbonWidth,
             crossingClearance,
             arcFragments,
             true
         )
 ];
+
+function KnotParameterEventNodeIndex(events, node, index = 0) =
+    index >= len(events)
+    ? undef
+    : events[index][1] == node
+        ? index
+        : KnotParameterEventNodeIndex(events, node, index + 1);
+
+function KnotForwardParameterGap(from, to) =
+    to >= from ? to - from : 1 - from + to;
+
+function KnotRibbonCrossingSegmentIndexes(
+    knot,
+    crossingIndex,
+    branch,
+    halfSpan) =
+    let(
+        crossing = KnotCrossings(knot)[crossingIndex],
+        strandIndex = KnotCrossingBranchStrand(crossing, branch),
+        strand = KnotStrands(knot)[strandIndex],
+        parameter = KnotCrossingBranchParameter(crossing, branch),
+        segmentCount = KnotStrandSegmentCount(strand),
+        centerIndex = min(segmentCount - 1, floor(parameter * segmentCount)),
+        samples = KnotStrandSamples(strand),
+        centerLength = KnotPointDistance(
+            samples[centerIndex],
+            samples[centerIndex + 1]
+        ),
+        events = KnotSortParameterEvents(
+            KnotStrandCrossingBranchEvents(KnotCrossings(knot), strandIndex)
+        ),
+        node = KnotCrossingBranchNode(crossingIndex, branch),
+        eventPosition = KnotParameterEventNodeIndex(events, node),
+        eventCount = len(events),
+        priorEvent = events[(eventPosition - 1 + eventCount) % eventCount],
+        nextEvent = events[(eventPosition + 1) % eventCount],
+        priorGap = KnotForwardParameterGap(priorEvent[0], parameter),
+        nextGap = KnotForwardParameterGap(parameter, nextEvent[0]),
+        neighborLimit = max(
+            1,
+            floor(min(priorGap, nextGap) * segmentCount / 2)
+        ),
+        requestedReach = ceil(halfSpan / max(centerLength, 0.000001)) + 2,
+        reach = requestedReach
+    )
+[
+    for (offset = [-reach : reach])
+        let(rawIndex = centerIndex + offset)
+        if (KnotStrandClosed(strand) || (rawIndex >= 0 && rawIndex < segmentCount))
+            (rawIndex % segmentCount + segmentCount) % segmentCount
+];
+
+function KnotRibbonCurvedOverpassSourceRegions(
+    knot,
+    crossingIndex,
+    branch,
+    ribbonWidth,
+    crossingClearance,
+    arcFragments) =
+    let(
+        crossing = KnotCrossings(knot)[crossingIndex],
+        strandIndex = KnotCrossingBranchStrand(crossing, branch),
+        parameter = KnotCrossingBranchParameter(crossing, branch),
+        strand = KnotStrands(knot)[strandIndex],
+        samples = KnotStrandSamples(strand),
+        halfSpan = KnotRibbonCurvedOverpassHalfSpan(
+            knot,
+            crossing,
+            ribbonWidth,
+            crossingClearance
+        )
+    )
+[
+    for (segmentIndex = KnotRibbonCrossingSegmentIndexes(
+        knot,
+        crossingIndex,
+        branch,
+        halfSpan
+    ))
+        KnotRibbonCapsuleRegion(
+            samples[segmentIndex],
+            samples[segmentIndex + 1],
+            ribbonWidth / 2,
+            arcFragments
+        )
+];
+
+function KnotRibbonCurvedOverpassHalfSpan(
+    knot,
+    crossing,
+    ribbonWidth,
+    crossingClearance) =
+    let(
+        overBranch = KnotCrossingOverBranch(crossing),
+        underBranch = KnotCrossingOtherBranch(overBranch),
+        overStrand = KnotStrands(knot)[
+            KnotCrossingBranchStrand(crossing, overBranch)
+        ],
+        underStrand = KnotStrands(knot)[
+            KnotCrossingBranchStrand(crossing, underBranch)
+        ],
+        overTangent = KnotStrandTangentAtParameter(
+            overStrand,
+            KnotCrossingBranchParameter(crossing, overBranch)
+        ),
+        underTangent = KnotStrandTangentAtParameter(
+            underStrand,
+            KnotCrossingBranchParameter(crossing, underBranch)
+        ),
+        cosine = min(1, abs(KnotVectorDot(overTangent, underTangent))),
+        sine = sqrt(max(0, 1 - cosine * cosine)),
+        maskHalfLength = KnotRibbonCrossingSpan(
+            ribbonWidth,
+            crossingClearance,
+            true
+        ) / 2,
+        maskHalfWidth = ribbonWidth / 2 + crossingClearance,
+        projectedHalfSpan = min(
+            maskHalfLength / max(cosine, 0.000001),
+            maskHalfWidth / max(sine, 0.000001)
+        )
+    )
+    projectedHalfSpan + ribbonWidth / 2 + crossingClearance;
+
+function KnotRibbonCurvedOverpassClipRegion(
+    knot,
+    crossing,
+    branch,
+    ribbonWidth,
+    crossingClearance) =
+    let(
+        strandIndex = KnotCrossingBranchStrand(crossing, branch),
+        parameter = KnotCrossingBranchParameter(crossing, branch),
+        strand = KnotStrands(knot)[strandIndex],
+        center = KnotStrandPointAtParameter(strand, parameter),
+        tangent = KnotStrandTangentAtParameter(strand, parameter),
+        halfSpan = KnotRibbonCurvedOverpassHalfSpan(
+            knot,
+            crossing,
+            ribbonWidth,
+            crossingClearance
+        ),
+        span = 2 * halfSpan,
+        start = KnotVectorSubtract(
+            center,
+            KnotVectorScale(tangent, halfSpan)
+        ),
+        end = KnotVectorAdd(
+            center,
+            KnotVectorScale(tangent, halfSpan)
+        )
+    )
+    KnotRibbonRectangleRegion(start, end, span);
 
 function KnotRibbonOverpassRegions(
     knot,
@@ -2878,9 +4516,267 @@ module RenderKnotRegionList(regions, convexity = 10)
         RenderRegion2D(region, convexity);
 }
 
+// Clip each recorded over branch to its own longer crossing window. Keeping
+// source segments and windows paired prevents dense neighboring crossings or
+// the under branch from being restored accidentally.
+module RenderKnotCurvedOverpasses2D(
+    knot,
+    ribbonWidth,
+    crossingClearance,
+    arcFragments,
+    convexity = 10)
+{
+    for (crossingIndex = KnotCrossingIndexes(knot))
+    {
+        crossing = KnotCrossings(knot)[crossingIndex];
+        branch = KnotCrossingOverBranch(crossing);
+        sourceRegions = KnotRibbonCurvedOverpassSourceRegions(
+            knot,
+            crossingIndex,
+            branch,
+            ribbonWidth,
+            crossingClearance,
+            arcFragments
+        );
+        clipRegion = KnotRibbonCurvedOverpassClipRegion(
+            knot,
+            crossing,
+            branch,
+            ribbonWidth,
+            crossingClearance
+        );
+
+        intersection()
+        {
+            union()
+                RenderKnotRegionList(sourceRegions, convexity);
+
+            RenderRegion2D(clipRegion, convexity);
+        }
+    }
+}
+
+function KnotRibbonTraversalCrossingRegion(
+    knot,
+    crossing,
+    ribbonWidth,
+    crossingClearance) =
+    let(
+        overBranch = KnotCrossingOverBranch(crossing),
+        underBranch = KnotCrossingOtherBranch(overBranch),
+        overStrand = KnotStrands(knot)[
+            KnotCrossingBranchStrand(crossing, overBranch)
+        ],
+        underStrand = KnotStrands(knot)[
+            KnotCrossingBranchStrand(crossing, underBranch)
+        ],
+        center = KnotStrandPointAtParameter(
+            overStrand,
+            KnotCrossingBranchParameter(crossing, overBranch)
+        ),
+        overTangent = KnotStrandTangentAtParameter(
+            overStrand,
+            KnotCrossingBranchParameter(crossing, overBranch)
+        ),
+        underTangent = KnotStrandTangentAtParameter(
+            underStrand,
+            KnotCrossingBranchParameter(crossing, underBranch)
+        ),
+        cosine = min(1, abs(KnotVectorDot(overTangent, underTangent))),
+        sine = sqrt(max(0, 1 - cosine * cosine)),
+        radius = ribbonWidth / 2,
+        halfWidth = radius + crossingClearance,
+        underSamples = KnotStrandSamples(underStrand),
+        underMinX = min([for (point = underSamples) point[0]]),
+        underMaxX = max([for (point = underSamples) point[0]]),
+        underMinY = min([for (point = underSamples) point[1]]),
+        underMaxY = max([for (point = underSamples) point[1]]),
+        halfLength = sqrt(
+            (underMaxX - underMinX) * (underMaxX - underMinX)
+            + (underMaxY - underMinY) * (underMaxY - underMinY)
+        ) + ribbonWidth + crossingClearance,
+        start = KnotVectorSubtract(
+            center,
+            KnotVectorScale(overTangent, halfLength)
+        ),
+        end = KnotVectorAdd(
+            center,
+            KnotVectorScale(overTangent, halfLength)
+        )
+    )
+    KnotRibbonRectangleRegion(start, end, halfWidth);
+
+function KnotRibbonTraversalParameterDistance(a, b, closed) =
+    closed ? min(abs(a - b), 1 - abs(a - b)) : abs(a - b);
+
+function KnotRibbonCumulativeLengths(samples, index = 0, total = 0) =
+    index >= len(samples) - 1
+    ? [total]
+    : concat(
+        [total],
+        KnotRibbonCumulativeLengths(
+            samples,
+            index + 1,
+            total + KnotPointDistance(samples[index], samples[index + 1])
+        )
+    );
+
+function KnotRibbonArcLengthAtParameter(strand, cumulativeLengths, parameter) =
+    let(
+        segmentCount = KnotStrandSegmentCount(strand),
+        scaled = parameter * segmentCount,
+        segmentIndex = min(segmentCount - 1, floor(scaled)),
+        blend = parameter == 1 ? 1 : scaled - segmentIndex
+    )
+    cumulativeLengths[segmentIndex]
+    + blend * (
+        cumulativeLengths[segmentIndex + 1]
+        - cumulativeLengths[segmentIndex]
+    );
+
+function KnotRibbonArcDistanceToSegment(
+    strand,
+    cumulativeLengths,
+    parameter,
+    segmentIndex) =
+    let(
+        crossingLength = KnotRibbonArcLengthAtParameter(
+            strand,
+            cumulativeLengths,
+            parameter
+        ),
+        startLength = cumulativeLengths[segmentIndex],
+        endLength = cumulativeLengths[segmentIndex + 1],
+        totalLength = cumulativeLengths[len(cumulativeLengths) - 1],
+        endpointDistance = min(
+            abs(crossingLength - startLength),
+            abs(crossingLength - endLength)
+        ),
+        wrappedDistance = totalLength - max(
+            abs(crossingLength - startLength),
+            abs(crossingLength - endLength)
+        )
+    )
+    crossingLength >= startLength && crossingLength <= endLength
+    ? 0
+    : KnotStrandClosed(strand)
+        ? min(endpointDistance, wrappedDistance)
+        : endpointDistance;
+
+function KnotRibbonTraversalMaskApplies(
+    knot,
+    crossing,
+    strandIndex,
+    segmentIndex,
+    ribbonWidth,
+    crossingClearance,
+    cumulativeLengths = undef) =
+    let(
+        underBranch = KnotCrossingOtherBranch(
+            KnotCrossingOverBranch(crossing)
+        ),
+        underStrandIndex = KnotCrossingBranchStrand(crossing, underBranch),
+        strand = KnotStrands(knot)[strandIndex],
+        parameter = KnotCrossingBranchParameter(crossing, underBranch),
+        samples = KnotStrandSamples(strand),
+        lengths = is_undef(cumulativeLengths)
+            ? KnotRibbonCumulativeLengths(samples)
+            : cumulativeLengths,
+        overBranch = KnotCrossingOverBranch(crossing),
+        overStrand = KnotStrands(knot)[
+            KnotCrossingBranchStrand(crossing, overBranch)
+        ],
+        overTangent = KnotStrandTangentAtParameter(
+            overStrand,
+            KnotCrossingBranchParameter(crossing, overBranch)
+        ),
+        underTangent = KnotStrandTangentAtParameter(strand, parameter),
+        cosine = min(1, abs(KnotVectorDot(overTangent, underTangent))),
+        sine = sqrt(max(0, 1 - cosine * cosine)),
+        radius = ribbonWidth / 2,
+        halfTravel = (radius + crossingClearance + radius * cosine)
+            / max(sine, 0.000001),
+        localArcDistance = KnotRibbonArcDistanceToSegment(
+            strand, lengths, parameter, segmentIndex
+        ),
+        selectionReach = halfTravel + 2 * radius + crossingClearance,
+        maskOuter = RegionOuter(KnotRibbonTraversalCrossingRegion(
+            knot, crossing, ribbonWidth, crossingClearance
+        )),
+        maskMinX = min([for (point = maskOuter) point[0]]),
+        maskMaxX = max([for (point = maskOuter) point[0]]),
+        maskMinY = min([for (point = maskOuter) point[1]]),
+        maskMaxY = max([for (point = maskOuter) point[1]]),
+        segmentStart = KnotRibbonPoint2D(samples[segmentIndex]),
+        segmentEnd = KnotRibbonPoint2D(samples[segmentIndex + 1]),
+        segmentMinX = min(segmentStart[0], segmentEnd[0]) - radius,
+        segmentMaxX = max(segmentStart[0], segmentEnd[0]) + radius,
+        segmentMinY = min(segmentStart[1], segmentEnd[1]) - radius,
+        segmentMaxY = max(segmentStart[1], segmentEnd[1]) + radius,
+        boundsOverlap = segmentMaxX >= maskMinX
+            && segmentMinX <= maskMaxX
+            && segmentMaxY >= maskMinY
+            && segmentMinY <= maskMaxY
+    )
+    strandIndex == underStrandIndex
+    && localArcDistance <= selectionReach
+    && boundsOverlap;
+
+// Traverse each sampled strand and cut only the capsules local to an under
+// event. The over branch is never removed and therefore never reconstructed.
+module RenderKnotTraversalRibbons2D(
+    knot,
+    ribbonWidth,
+    crossingClearance,
+    arcFragments,
+    convexity = 10)
+{
+    for (strandIndex = [0 : len(KnotStrands(knot)) - 1])
+    {
+        strand = KnotStrands(knot)[strandIndex];
+        samples = KnotStrandSamples(strand);
+        cumulativeLengths = KnotRibbonCumulativeLengths(samples);
+
+        for (segmentIndex = [0 : len(samples) - 2])
+            difference()
+            {
+                RenderRegion2D(
+                    KnotRibbonCapsuleRegion(
+                        samples[segmentIndex],
+                        samples[segmentIndex + 1],
+                        ribbonWidth / 2,
+                        arcFragments
+                    ),
+                    convexity
+                );
+
+                for (crossingIndex = KnotCrossingIndexes(knot))
+                    let(crossing = KnotCrossings(knot)[crossingIndex])
+                    if (KnotRibbonTraversalMaskApplies(
+                        knot,
+                        crossing,
+                        strandIndex,
+                        segmentIndex,
+                        ribbonWidth,
+                        crossingClearance,
+                        cumulativeLengths
+                    ))
+                        RenderRegion2D(
+                            KnotRibbonTraversalCrossingRegion(
+                                knot,
+                                crossing,
+                                ribbonWidth,
+                                crossingClearance
+                            ),
+                            convexity
+                        );
+            }
+    }
+}
+
 // Render a planar interlace through LogoSC Core regions. The base ribbon is
-// cut by an expanded flat-ended mask around each over branch, then a longer
-// normal-width flat-ended overpass footprint is restored. Native
+// cut by an expanded flat-ended mask around each over branch, then the
+// corresponding normal-width sampled curve is restored. Native
 // difference/union performs only the final region composition.
 module RenderKnotRibbons2D(
     knot,
@@ -2888,8 +4784,23 @@ module RenderKnotRibbons2D(
     crossingClearance = 0.6,
     arcFragments = 8,
     convexity = 10,
-    planarTolerance = 0.001)
+    planarTolerance = 0.001,
+    crossingMethod = "traversal")
 {
+    assert(
+        crossingMethod == "traversal" || crossingMethod == "legacy-mask",
+        "Knot ribbon crossing method must be traversal or legacy-mask."
+    );
+    if (crossingMethod == "traversal")
+        RenderKnotTraversalRibbons2D(
+            knot,
+            ribbonWidth,
+            crossingClearance,
+            arcFragments,
+            convexity
+        );
+    else
+    {
     ribbonRegions = KnotRibbonRegions(
         knot,
         ribbonWidth,
@@ -2903,14 +4814,6 @@ module RenderKnotRibbons2D(
         arcFragments,
         planarTolerance
     );
-    overpassRegions = KnotRibbonOverpassRegions(
-        knot,
-        ribbonWidth,
-        crossingClearance,
-        arcFragments,
-        planarTolerance
-    );
-
     union()
     {
         difference()
@@ -2922,8 +4825,14 @@ module RenderKnotRibbons2D(
                 RenderKnotRegionList(maskRegions, convexity);
         }
 
-        union()
-            RenderKnotRegionList(overpassRegions, convexity);
+        RenderKnotCurvedOverpasses2D(
+            knot,
+            ribbonWidth,
+            crossingClearance,
+            arcFragments,
+            convexity
+        );
+    }
     }
 }
 
@@ -3184,14 +5093,6 @@ module RenderKnotBasRelief(
     totalHeight = KnotBasReliefTotalHeight(baseHeight, overpassHeight);
     layerOverlap = min(0.01, baseHeight / 10);
 
-    overpassRegions = KnotRibbonOverpassRegions(
-        knot,
-        ribbonWidth,
-        crossingClearance,
-        arcFragments,
-        planarTolerance
-    );
-
     union()
     {
         assert(totalHeight > baseHeight);
@@ -3211,7 +5112,13 @@ module RenderKnotBasRelief(
             height = overpassHeight + layerOverlap,
             convexity = convexity
         )
-            RenderKnotRegionList(overpassRegions, convexity);
+            RenderKnotCurvedOverpasses2D(
+                knot,
+                ribbonWidth,
+                crossingClearance,
+                arcFragments,
+                convexity
+            );
     }
 }
 

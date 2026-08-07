@@ -49,6 +49,8 @@ LogoSC-Knots.scad
 LogoSC-Knots-Examples.scad
 LogoSC-Celtic-Large-Grids.scad
 LogoSC-Celtic-Large-Grids.md
+generated/
+tools/logosc-knot-grid/
 LogoSC-Knots-Tests.scad
 LogoSC-Knots-Test-Runner.scad
 LogoSC-Experiments.scad

@@ -21,6 +21,8 @@
 - [Export-quality presets](#export-quality-presets)
 - [Rounded cords](#rounded-cords)
 - [AI-assisted image-to-knot import](#ai-assisted-image-to-knot-import)
+- [External C++ knot compiler and SVG path](#external-c-knot-compiler-and-svg-path)
+  - [Indexed topology and crossing algorithm](#indexed-topology-and-crossing-algorithm)
 - [Companion files](#companion-files)
 - [Verification requirements](#verification-requirements)
 - [Implementation sequence](#implementation-sequence)
@@ -31,9 +33,9 @@
 This is the authoritative design plan for generative knot work in LogoSC. It covers organic or
 Gordian-style parametric knots and traditional Celtic interlace. The torus, circular-braid, and
 explicit Celtic tile-grid generators, single-cord manufacturing, and controlled integer
-half-turn bundle twists are implemented. Planar ribbon footprints and underpass masks are also
-implemented; printable beveled bas-relief plaques are implemented from those regions; later
-milestones remain proposals until their APIs are reviewed.
+half-turn bundle twists are implemented. Medial planar-graph interlace, planar ribbon footprints,
+underpass masks, and printable beveled bas-relief plaques are also implemented. The remaining
+work is the explicit completion/defer audit described below.
 
 LogoSC remains a 2D filled-region evaluator. A future optional companion may use LogoSC for
 planar routes, ribbon footprints, masks, local transforms, and repeated motifs. Native OpenSCAD
@@ -51,6 +53,12 @@ remains responsible for extrusion, hulls, Minkowski operations, booleans, and 3D
   markers;
 - `MakeTorusKnot()`, producing one component for coprime `p` and `q` or
   `gcd(p,q)` independently closed components for a torus link;
+- `MakeLissajousKnot()`, sampling three integer-frequency harmonic axes, discovering proper
+  self-intersections in XY, and choosing over/under branches from interpolated Z;
+- `MakeHarmonicKnot()`, summing user-authored planar harmonic terms, discovering projected
+  crossings, and assigning a deterministic alternating diagram through parity constraints;
+- `MakePolarRosetteKnot()`, combining two radial harmonics with integer angular winding to
+  produce circular alternating knot medallions;
 - `RenderKnotCords()`, producing manufacturable round cords from sphere-hulled capsules with
   explicit radius and fragment controls;
 - `MakeKnotBundle()` and `RenderKnotCordBundle()`, expanding each master route into stable,
@@ -62,24 +70,26 @@ remains responsible for extrusion, hulls, Minkowski operations, booleans, and 3D
 - `MakeCelticTileGridKnot()`, validating three four-port tiles plus canonical blank cells,
   closing independent exterior and void boundaries, tracing components, removing reverse
   duplicates, and enforcing alternating crossings;
+- `MakeMedialGraphKnot()`, validating straight-line planar embeddings, doubling edges into
+  controlled crossing tracks, joining angular neighbors at vertices, tracing components, and
+  assigning alternating crossings;
 - `KnotRibbonRegions()` and `RenderKnotRibbons2D()`, compiling planar samples into Core region
   capsules with crossing-local masks and restored overpass footprints;
 - `RenderKnotBasRelief()` and `RenderKnotBasReliefPlaque()`, extruding corrected ribbon
   footprints, raising crossing overpasses, and adding optional beveled backing plates;
 - selectable planar-projection and spatial views across diagnostics, cords, bundles, and
   presentation galleries;
-- a dedicated 88-result automated suite plus topology, bundle, twisted-bundle, braid,
-  braided-bundle, Celtic tile-grid, ribbon, relief, and plaque presentation galleries.
+- a dedicated 122-result automated suite plus topology, bundle, twisted-bundle, braid,
+  braided-bundle, Celtic tile-grid, medial-graph, ribbon, relief, and plaque presentation galleries.
 
 This slice deliberately does not implement general collision discovery, tight-curve rejection,
 or AI image import. Callers must select dimensions and sampling appropriate for the route.
 Reserved strand fields and metadata allow later milestones to extend the representation without
 changing its established leading fields.
 
-The remaining knot milestone is scheduled immediately after the optional L-system companion and
-before the next release. “Finish” means completing the agreed remaining generators and making an
-explicit implement-or-defer decision for every residual item below; it does not require pulling
-knot-specific behavior into Core.
+The planned knot generators are now implemented. The remaining knot milestone before the next
+release is a completion audit: make an explicit implement-or-defer decision for every residual
+item below, synchronize tests and galleries, and keep knot-specific behavior outside Core.
 
 ## How LogoSC is used
 
@@ -90,7 +100,8 @@ rendering do not call the LogoSC evaluator behind the scenes.
 The present execution path is:
 
 ```text
-MakeTorusKnot(), MakeCircularBraidKnot(), or MakeCelticTileGridKnot()
+MakeTorusKnot(), MakeLissajousKnot(), MakeHarmonicKnot(), MakePolarRosetteKnot(),
+MakeCircularBraidKnot(), MakeCelticTileGridKnot(), or MakeMedialGraphKnot()
   -> pure OpenSCAD functions calculate sampled strand and crossing records
   -> ValidateKnot() checks those records without producing geometry
   -> RenderKnotDebug() uses native color(), translate(), sphere(), and hull()
@@ -594,8 +605,9 @@ Every `"X"` cell creates a crossing record with normalized parameters. Checkerbo
 assigns equal/opposite Z bumps, and the complete result is rejected unless sorted encounters
 alternate cyclically on every component.
 
-`LogoSC-Celtic-Large-Grids.scad` provides deliberate 8-, 16-, 24-, and 32-cell scaling examples
-plus a sparse 37-by-9 CELTIC word mask. The tracer resumes its search after the previous
+`LogoSC-Celtic-Large-Grids.scad` provides deliberate 8-, 16-, 24-, and 32-cell scaling examples,
+a sparse 37-by-9 CELTIC word mask, and a batch-only 128-by-32 `LOGOSC128 ***` mask made from
+native 18-by-24 glyphs. The tracer resumes its search after the previous
 lowest-numbered visited state rather than rescanning from zero for every component. This
 preserves deterministic results while materially reducing large-grid calculation time. Boundary
 length, separate loops, route components, crossings, sampling, and output geometry still make
@@ -614,6 +626,7 @@ sampling were:
 | 16-by-16 ring | about 4.4 s | not separately measured | 1,464 |
 | 24-by-24 ring | about 29.5 s | not separately measured | 3,112 |
 | 32-by-32 ring | about 75.5 s | not separately measured | 5,368 |
+| LOGOSC word, 128 by 32 | not separately finalized | about 180 s | 4,118 |
 | CELTIC word, 37 by 9 | about 46 s | about 37–52 s for preview PNG | 838 |
 
 These timings are illustrative, not guarantees. Results will vary with processor speed,
@@ -625,6 +638,20 @@ outputs on the target machine.
 This boundary deliberately excludes random filling and substitution systems.
 
 ## Generator 4: harmonic and Lissajous curves
+
+The spatial Lissajous slice is implemented as `MakeLissajousKnot()`. It accepts three
+positive integer frequencies, three positive amplitudes, three degree phases, a sample count,
+and an intersection tolerance. The closed sampled route is compared pairwise in XY; adjacent
+segments, endpoints, parallel segments, and tangencies are excluded. Proper intersections
+record both route parameters, and interpolated Z determines the over branch. Equal-height
+crossings are rejected as ambiguous.
+
+`MakeHarmonicKnot()` implements the general multi-term planar form below. Each term is
+`[amplitude, positiveIntegerFrequency, phaseDegrees]`. The generator samples a closed route,
+discovers proper self-crossings, builds traversal and crossing-opposition constraints, and
+requires the projection to admit a deterministic alternating assignment. Non-alternating
+constraint cycles are rejected. Duplicate merging near vertices remains deferred because the
+current proper-intersection policy excludes endpoints.
 
 Organic closed routes can use multiple harmonic terms:
 
@@ -640,15 +667,52 @@ xTerms = [[amplitude, frequency, phase], ...];
 yTerms = [[amplitude, frequency, phase], ...];
 ```
 
-Integer frequencies over a complete period produce closed curves. The sampled route then needs
-crossing discovery:
+Integer frequencies over a complete period produce closed curves.
 
-1. compare nonadjacent segment pairs;
-2. reject disjoint bounding boxes;
-3. classify proper intersections;
-4. interpolate both route parameters;
-5. merge duplicate detections near vertices;
-6. reject tangencies and ambiguous multi-way crossings initially.
+### Implemented crossing-discovery algorithm
+
+`KnotSampledSelfIntersections()` operates on the polyline produced by a parametric generator. If
+the closed route has `S` sampled segments, it enumerates every unordered segment pair and skips
+pairs that are adjacent in traversal order, including the first/last closure pair. The current
+implementation has no bounding-box broad phase or spatial index.
+
+For each remaining pair, `KnotProperSegmentIntersection()` performs a 2D parametric line-segment
+test. It takes the cross product of the two direction vectors as the denominator, rejects a pair
+when that denominator is within `intersectionTolerance` of zero, and otherwise solves the blend
+fractions on both segments. Both fractions must be strictly inside the segments after applying
+the tolerance, so endpoint contacts, parallel or collinear segments, and sampled tangencies do
+not become crossings.
+
+Each accepted result stores the interpolated XY crossing point, the normalized route parameter
+on each polyline visit, and the interpolated Z value on each visit. `MakeLissajousKnot()` compares
+the Z values and makes the higher visit the over branch; equal-height visits within tolerance are
+rejected. Planar harmonic and polar generators instead send the two parameters to the
+alternating-parity solver, which assigns consistent over/under states or rejects a contradictory
+diagram.
+
+The enumeration performs approximately `S * (S - 3) / 2` intersection tests for one closed
+strand. Each test is constant-time arithmetic, so discovery is `O(S^2)` time and stores `O(K)`
+records for `K` accepted crossings, in addition to the `O(S)` samples. Doubling sampling makes
+this stage roughly four times as expensive. OpenSCAD's immutable list comprehensions add
+evaluator and allocation overhead without changing the asymptotic bound.
+
+Current limitations are intentional and observable:
+
+- discovery follows the sampled polyline, not the exact analytic curve, so insufficient sampling
+  can miss or move crossings;
+- there is no broad-phase acceleration, sweep line, grid, or rotational-symmetry reduction;
+- only self-intersections within the single sampled route passed to the function are discovered;
+- endpoint and near-endpoint crossings are excluded, and duplicate detections near a shared
+  sample vertex are not merged;
+- parallel, collinear, tangent, and nearly tangent contacts are excluded rather than classified;
+- multi-way or tightly clustered crossings are not consolidated into one topological event;
+- the absolute tolerance is coordinate-scale dependent, and topology can change with sampling or
+  tolerance; and
+- ribbon generation assumes an isolated crossing neighborhood containing only the intended pair
+  of local branches.
+
+A future accelerator can preserve the crossing-record contract while using bounding boxes, a
+uniform grid, a sweep line, or a symmetric-generator fast path to reduce candidate pairs.
 
 To request an alternating diagram:
 
@@ -659,10 +723,21 @@ To request an alternating diagram:
 5. report inconsistency when the projection cannot alternate.
 
 This family offers a broad organic design space, but arbitrary parameters can create tangencies,
-clustered crossings, tiny loops, and abrupt topology changes. Implement it after crossing
-records and braid validation are stable.
+clustered crossings, tiny loops, and abrupt topology changes. Callers should inspect validation
+and debug output when exploring parameter sets near those degeneracies.
 
 ## Generator 5: polar rosettes
+
+`MakePolarRosetteKnot()` implements this family with base radius, primary and secondary radial
+amplitudes, positive integer radial frequencies, independent degree phases, positive integer
+angular winding, sample count, and intersection tolerance. The base radius must exceed the sum
+of absolute radial amplitudes so the route remains a positive-radius circular medallion.
+
+The generator reuses proper segment-intersection discovery and
+`AssignKnotAlternatingCrossings()`. Phase-shifting the primary radial term keeps standard presets
+away from sample-vertex degeneracies. The documented gallery uses a secondary amplitude of
+`0.5`, retaining smooth petal profiles and five-, seven-, and sixteen-crossing alternating
+results. Arbitrary parameter sets can still be rejected when their projection cannot alternate.
 
 Circular medallions can use:
 
@@ -676,9 +751,14 @@ y(t) = radius(t)*sin(angle(t))
 Polar rosettes reuse harmonic crossing discovery and parity solving while naturally producing
 circular motifs.
 
+Their exact rotational symmetry also permits a future fast path: construct and clip one
+fundamental `1 / N` peak sector, then rotate the completed sector `N` times. That optimization is
+specific to declared symmetric generators; the general knot renderer must not infer symmetry from
+samples.
+
 ## Generator 6: medial planar graphs
 
-A general Celtic construction can begin with a planar graph:
+A general Celtic construction now begins with an explicit straight-line planar graph:
 
 1. duplicate every edge into two parallel tracks;
 2. connect neighboring tracks cyclically around vertices;
@@ -686,8 +766,44 @@ A general Celtic construction can begin with a planar graph:
 4. assign alternating crossings;
 5. smooth routes into line and arc samples.
 
-This can turn grids, trees, or user-authored networks into knotwork. It is more general than
-tiles but requires robust graph embedding and validation, so it is deliberately later work.
+`MakeMedialGraphKnot(vertices, edges, trackOffset, samplesPerEdge,
+samplesPerVertex, tolerance)` implements this boundary. Vertices are numeric `[x,y]` points;
+edges are unique undirected pairs of vertex indexes. The function rejects duplicate or unused
+vertices, malformed or duplicate edges, nonincident intersections and contacts, and incident
+edges that leave one vertex along the same ray. Each edge must be longer than four track offsets.
+
+Every edge contributes four directed states: two endpoints times two sides. Traversing an edge
+keeps the side identifier while the endpoint direction reverses, so the physical track changes
+sides through a localized quadratic midpoint crossing. At the destination vertex, half-edges are
+sorted by `atan2()` angle. Side zero pairs with side one of the next counterclockwise half-edge;
+side one pairs with side zero of the previous half-edge. This is an involution at the vertex and
+therefore closes the combined edge/vertex successor relation into cycles.
+
+The route tracer accepts one cycle and marks both its states and their opposite-endpoint darts as
+visited. The latter are the reverse traversal of the same geometry. Each original graph edge must
+then have exactly two retained state owners; they become branches A and B of a crossing at the
+edge midpoint. Edge samples use paired quadratics so both branches share their crossing point and
+retain matching tangents through it. Vertex joins use cubic curves with arrival and departure
+controls aligned to their incident edges. The ordinary alternating-parity solver assigns final
+over/under records.
+
+The first reverse-route probe mistakenly marked the opposite *side* at the same endpoint as the
+reverse dart. That worked for the one-edge fixture but failed immediately on a triangle because
+some edges then had fewer than two retained crossing owners. The correct reverse dart is the same
+side at the opposite endpoint. Preserve path, triangle, square, and branching fixtures together;
+a one-edge smoke test alone cannot detect this combinatorial error.
+
+Direct validation compares vertex pairs and edge pairs, giving worst-case `O(V^2 + E^2)` time
+and `O(E)` route storage for `V` vertices and `E` edges. Route tracing visits `4E` states, though
+the OpenSCAD implementation repeatedly constructs and sorts local vertex rotations. This is
+appropriate for small decorative graphs. It is not a graph-planarization system: it does not
+infer embeddings, split crossings, route around obstacles, or guarantee clearance for arbitrary
+ribbon widths at acute or high-degree vertices. Those cases require a better embedding, larger
+track offset, or narrower output.
+
+The presentation gallery covers a triangular cycle, a square that closes into two components,
+and a degree-three branching tree. All remain under the three-second Customizer warning threshold
+on RAINBOW.
 
 ## Over/under assignment
 
@@ -701,6 +817,13 @@ For planar routes, crossing assignment is a parity-constraint problem. The solve
 alternating traversal, explicit overrides, multiple strands, contradictory-cycle detection, and
 deterministic choice between equivalent assignments. It must never silently label both
 encounters of one crossing as over or both as under.
+
+`SolveKnotAlternatingParity()` now constructs opposite-color constraints between both branches
+of every crossing and between successive crossing encounters along every strand. Closed strands
+also constrain their last encounter against their first. Components are colored deterministically
+from the lowest unassigned branch, and odd or otherwise contradictory cycles return an invalid
+result. `AssignKnotAlternatingCrossings()` applies a valid solution to ordinary crossing records.
+Explicit user overrides remain deferred.
 
 ## 2D ribbon generation
 
@@ -722,12 +845,70 @@ subtract an overpass clearance mask from the under ribbon and then add the overp
 wraps it with Core's `MakeRegion()`. The union of segment regions gives continuous width and
 rounded sampled joins without forcing a self-crossing route into one invalid polygon contour.
 
-For each crossing, the compiler interpolates the recorded over branch and its planar tangent.
-`KnotRibbonCrossingMaskRegions()` creates an expanded flat-ended band along that tangent;
-`KnotRibbonOverpassRegions()` creates a slightly longer normal-width flat-ended band.
-`RenderKnotRibbons2D()` subtracts the expanded masks from the union of continuous ribbon regions
-and then restores every overpass. All footprints and masks are rendered by
-`RenderRegion2D()` before native OpenSCAD performs the Boolean composition.
+For each crossing, the compiler already knows both branch parameters and their planar tangents.
+The default `traversal` method visits sampled capsules near each under event and clips only those
+capsules with a band aligned to the over tangent. Crossing angle, ribbon radii, and clearance
+determine the local under-curve ownership distance and band width. The band extends beyond the
+complete strand bounds so only its parallel sides, never its finite ends, can terminate the
+underpass. The over branch is never removed or reconstructed, so its original sampled curvature
+remains continuous. `legacy-mask` retains the earlier whole-ribbon subtraction and curved-
+overpass restoration for comparison. All footprints and masks are rendered by `RenderRegion2D()`
+before native OpenSCAD performs the Boolean composition.
+
+### Crossing-artifact postmortem and guardrails
+
+The sixteen-crossing polar rosette exposed several avoidable mistakes in the first ribbon
+iterations. Record these failure modes so a visually plausible low-crossing example does not
+hide them in the next generator:
+
+- **Mistaking a compositor defect for a curve defect.** Increasing samples, averaging points, or
+  changing harmonic amplitudes can make a curve look different, but cannot repair a straight or
+  incorrectly bounded crossing replacement. First render the centerline and continuous ribbon
+  without crossing composition. If both are smooth, debug the crossing compiler, not the
+  generator.
+- **Removing and reconstructing the over branch.** A straight tangent patch cannot generally
+  match a curved source at both ends. Even a restored sequence of sampled capsules can expose
+  seams when its clipping boundary differs from the subtraction boundary. The default algorithm
+  therefore leaves the over branch untouched and modifies only the under branch.
+- **Using a fixed mask length.** Shallow crossing angles project a ribbon width much farther along
+  the other branch than near-right-angle crossings. A fixed rectangle that works for five- and
+  seven-crossing examples can produce wedges in a sixteen-crossing example.
+- **Allowing finite cutter ends near the curve.** This was the final one-sided tooth. The end of a
+  crossing rectangle intersected one side of the curved under-ribbon, so the artifact appeared to
+  depend on traversal direction. Once cutting is restricted to local under-branch capsules, make
+  the band extend beyond the whole strand bounds; only its two sides should define the gap.
+- **Approximating physical travel with normalized parameter distance.** Parametric samples are
+  uniformly spaced in parameter, not necessarily in arc length. Estimating both sides from one
+  segment length can omit a boundary capsule on the faster-moving side. Build cumulative physical
+  lengths and measure local ownership along the sampled curve.
+- **Broadening ownership before proving locality.** Assigning large event cells to underpasses can
+  let a shallow, long cutter affect unrelated nearby geometry, especially at self-crossings.
+  Require both local arc ownership and spatial bounds overlap. Also enforce the design assumption
+  that no third branch enters the printable crossing neighborhood.
+- **Inspecting only a convenient crop or camera angle.** One zoomed view excluded the remaining
+  artifact. Inspect the complete motif top-down, an oblique extruded view, and enlarged views of
+  both sides of multiple crossings. Rotational symmetry makes inconsistent sides especially easy
+  to detect; do not assume one crossing view proves all rotated copies.
+- **Replacing a failing method without retaining a comparison path.** Keep materially different
+  implementations selectable until the new output and tests are accepted. Here the prior behavior
+  remains available as `crossingMethod = "legacy-mask"`.
+
+OpenSCAD makes this work more cumbersome than an imperative geometry library: lists are
+immutable, traversal state is expressed through recursion and comprehensions, there is no native
+path-splitting or offset-curve API, and capsule-level CSG is the available composition unit. Those
+constraints justify explicit prefix-length lists and ownership predicates; they do not justify
+tuning visual artifacts by eye.
+
+For future knot types, use this order:
+
+1. validate the sampled centerline and its crossing records independently;
+2. render a continuous ribbon with crossing logic disabled;
+3. inspect crossing angle, branch parameters, tangent directions, and neighborhood isolation;
+4. cut only the recorded under branch and leave the over geometry unchanged;
+5. test the shallowest angle and densest crossing preset first;
+6. inspect full top-down and oblique renders before close-up approval;
+7. add focused ownership and boundary tests, then run the complete knot and Foundation suites;
+8. optimize repeated symmetric sectors only after the single-sector geometry is correct.
 
 The boundary requires structurally valid planar samples, positive width, nonnegative clearance,
 and a nondegenerate tangent at every crossing. It deliberately does not expose this as a general
@@ -751,10 +932,10 @@ This is robust and visually explicit, though it does not create a truly separate
 `KnotBasReliefTotalHeight()` reports their sum. Raised regions overlap the base internally by at
 most `0.01` to avoid relying on exactly coplanar shell contact without changing external height.
 
-Before extrusion, the restored overpass span is extended beyond the expanded subtraction mask.
-Its flat ends overlap the source ribbon inside the straight crossing segment. This eliminates
-isolated capsule halos and curve-to-overpass gaps while preserving clearance along the underpass
-sides.
+Before extrusion, the restored overpass follows enough original sampled segments to extend
+beyond the expanded subtraction mask. Its curved ends overlap the unchanged source ribbon with
+matching position and tangent. This eliminates isolated capsule halos and curve-to-overpass gaps
+while preserving clearance along the underpass sides.
 
 The bare result is positive printable geometry with no backing plate. Separate link components
 remain separate solids unless a caller supplies support or uses the plaque renderer.
@@ -793,6 +974,86 @@ raises radial facets; `Custom` uses the three explicit Customizer values.
 The resolver functions live in the knot companion so their mappings can be tested, but they do
 not alter generator or renderer defaults. Direct API callers remain free to choose every sample
 and fragment count independently.
+
+### Customizer scene timing warnings
+
+The `KnotExample` dropdown appends a warning suffix to scenes whose Standard-preset command-line
+preview is slow enough to make casual Customizer exploration surprising:
+
+- `*` means longer than approximately 3 seconds;
+- `**` means longer than approximately 30 seconds; and
+- `***` means longer than approximately 3 minutes.
+
+The suffix is a user-facing label. `KnotCanonicalExampleName()` removes it before scene dispatch,
+so warning text does not leak into generator names. Benchmark scripts override the public
+`KnotExample` selector directly. Do not add a second hidden scene selector: saved or retained
+Customizer state can let it override the visible dropdown and misleadingly route every selection
+through one individual knot and its output mode.
+
+The current classifications were measured on `RAINBOW` on 2026-08-06 using the Standard preset,
+`openscad.com --preview`, orthographic projection, and a 512-by-320 output image. Borderline
+scenes were repeated, and a conservative suffix is retained when measurements straddle a
+threshold. Galleries and individual scenes are separately ordered from fastest to slowest in the
+Customizer.
+
+Gallery wall times were:
+
+| Scene | Seconds | Suffix |
+|---|---:|---|
+| MedialGraphGallery | 1.95 | |
+| RibbonGallery | 2.88 median; 2.84–3.11 observed | `*` |
+| ReliefGallery | 3.14 | `*` |
+| PlaqueGallery | 3.19 | `*` |
+| RosetteGallery | 3.37 | `*` |
+| BraidGallery | 11.28 | `*` |
+| CordGallery | 12.64 | `*` |
+| BundleGallery | 20.30 | `*` |
+| BraidBundleGallery | 21.02 | `*` |
+| LissajousGallery | 25.18 | `*` |
+| TwistGallery | 31.13 | `**` |
+| CelticGallery | 33.71 | `**` |
+
+Individual-scene wall times, using the default Plaque output, were:
+
+| Scene | Seconds | Suffix |
+|---|---:|---|
+| CrossingRecord | 0.67 | |
+| Unknot | 0.68 | |
+| Trefoil | 0.69 | |
+| HopfLink | 0.69 | |
+| CelticGrid | 0.96 | |
+| MedialGraph | 0.96 | |
+| PolarRosette Individual | 1.57 | |
+| Lissajous | 1.79 | |
+| Harmonic | 2.55 | |
+
+These are navigation warnings, not performance guarantees. GUI preview, full CGAL rendering,
+PNG or mesh export, `Fine` or `Custom` quality, other output modes, cache state, and different
+hardware can take substantially longer. Re-run the complete scene benchmark and update both the
+dropdown and this table after changes that materially affect generators, sampling, galleries, or
+renderers. Use a conservative suffix when repeated measurements straddle a threshold.
+
+`RosetteGallery` deliberately fixes its validated 120-, 140-, and 160-sample routes and ten
+ribbon arc fragments. It does not inherit the individual model's Print Quality or Custom sample
+controls; low saved settings previously removed crossing records, produced partial/stale gallery
+geometry, and exposed the zero-crossing loop defect.
+
+The Customizer places all gallery scenes first and all individual scenes second. Each group is
+sorted by its measured preview time. `PolarRosette Individual` distinguishes the single knot
+routed through `KnotOutput`—Plaque by default—from the fixed three-medallion presentation.
+Compilation echoes both the displayed selector value and canonical dispatch name so stale or
+mistaken Customizer state is visible in the console.
+
+Customizer dropdown values avoid parentheses because OpenSCAD removes them from the assigned
+value (`RosetteGallery (*)` becomes `RosetteGallery *`). The canonicalizer accepts both forms so
+older command-line scripts and saved parameter sets remain compatible.
+
+The separate `LogoSC-Celtic-Large-Grids.scad` Customizer contains the deliberately expensive
+Celtic stress scenes that are not present in `KnotExample`. Its current RAINBOW Cord-CSG labels
+are `Ring16 *`, `Diamond24 *`, `Ring32 **`, and `CELTIC *`; only `Diamond8` remains
+unmarked among the original scenes. `LOGOSC128 ***` is the intentional batch-only stress
+example. Exact measurements and machine-separated history are maintained in
+`LogoSC-Celtic-Large-Grids.md`.
 
 ## Rounded cords
 
@@ -995,6 +1256,100 @@ design; the intended use is user-owned, licensed, or newly generated source imag
 [inspiration-fyffe]: https://www.neilfyffe.co.uk/celtic-knotwork/
 [inspiration-gaelic]: https://www.gaelicmatters.com/celtic-knot-designs.html
 
+## External C++ knot compiler and SVG path
+
+Large Celtic grids expose a performance boundary in OpenSCAD's immutable list evaluation,
+repeated topology scans, and geometry construction. The standalone C++20 tool now covers text and
+grid input, indexed topology, compatible sampled knot records, crossing assignment, and finished
+interlaced SVG. This remains an optional accelerated build path, not a replacement for the
+readable OpenSCAD reference implementation or LogoSC Core.
+
+The proposed toolchain is C++20 with CMake. Use indexed graph structures and hash-based lookup
+for tile connectivity, boundary loops, components, and crossings. Prefer an established polygon
+library such as Clipper2 for offsets and Boolean operations rather than implementing robust
+computational geometry primitives locally. Keep the executable deterministic, cross-platform,
+and usable without an embedded scripting runtime.
+
+The implemented preprocessing milestone accepts a string, exact output dimensions, margins,
+spacing, integer pixel or connected-stroke scaling, a tile pattern, and either the built-in 5-by-7 font or an external BDF
+bitmap font. It writes the compact grid vocabulary as a deliberately trivial ASCII contract:
+
+- one rectangular row per line;
+- only `X`, `>`, `<`, and `.` characters;
+- no quotes, commas, brackets, escaping, or header; and
+- native, explicit CRLF, carriage-return-only CR, or explicit LF line endings.
+
+It also validates and normalizes an existing grid. Because OpenSCAD 2021.01 cannot read an
+arbitrary text file, the tool can write a generated `.scad` adapter containing the identical rows
+as a string list. `GeneratedPlaque **` in `LogoSC-Celtic-Large-Grids.scad` consumes the committed
+adapter and forces printable plaque output. A delayed worker prints progress dots only after a
+run exceeds two seconds, so ordinary fast generation remains quiet apart from its final summary.
+
+The topology-and-SVG milestone accepts the same textual Celtic grid vocabulary and emits two
+additional outputs:
+
+1. a generated `.scad` file containing sampled knot strands, crossings, metadata, and dimensions
+   compatible with the existing LogoSC knot renderers and diagnostics;
+2. an SVG containing completed ribbon polygons with rounded outlines and underpass clearances
+   already resolved, suitable for direct `import()` and `linear_extrude()` in OpenSCAD, vector
+   editing, laser cutting, or other 2D manufacturing workflows.
+
+The SVG route is the primary performance path for flat knots and plaques. OpenSCAD receives
+finished 2D regions instead of reconstructing thousands of sampled capsules and crossing-local
+Boolean operations. `FastSvgPlaque` is the deliberately small wrapper around `import()` and
+`linear_extrude()`:
+
+```scad
+linear_extrude(height = 2)
+    import("LogoSC-celtic.svg");
+```
+
+Later milestones may add direct binary STL or 3MF output by sweeping a profile along sampled
+routes, bypassing repeated OpenSCAD `sphere()` and `hull()` cord construction. SVG should come
+first because it is inspectable, easy to compare visually, retains exact planar geometry, and
+serves both OpenSCAD and non-OpenSCAD workflows.
+
+`LogoSC-Celtic-Generated-Test.scad` recomputes the committed 128-by-32 fixture through the
+OpenSCAD reference and recursively compares all sampled points and crossing records within a
+numeric tolerance. It also validates the generated knot and checks 38 components, 32 crossings,
+and 928 segments. The SVG is imported into the accelerated plaque scene and verified through CSG,
+preview, and full STL export.
+
+### Indexed topology and crossing algorithm
+
+Each occupied cell contributes four integer port states. Interior ports link directly to the
+opposite port of an occupied neighbor. Exposed ports are indexed by their geometric edge vertices;
+a hash map supplies the possible boundary successor states, and the same clockwise turn ranking
+as the OpenSCAD reference traces each independent exterior or hole boundary. Adjacent states on
+each boundary loop are paired. Following those successor links produces closed component cycles;
+canonical visited-state tracking removes the reverse traversal of each component.
+
+Each component is then sampled from the exact quadratic tile and boundary formulas used by
+OpenSCAD. Every `X` cell contributes its two crossing branches, with checkerboard parity selecting
+the over branch. For SVG, cumulative arc length locates the under-branch encounter. The cut
+half-length is `(ribbonRadius + clearance) / abs(sin(crossingAngle))` plus one cap radius. Wrapped
+intervals on closed strands are split, intervals are sorted and merged, and the remaining visible
+spans are emitted as overlapping closed capsule polygons.
+
+For `R` rows, `C` columns, `E` occupied port states, `S` sampled points, and `K` crossings, grid
+indexing, boundary tracing, component tracing, and sampling are `O(R*C + E + S)`. Sorting cut
+intervals adds at most `O(K log K)` overall. Space is `O(R*C + E + S + K)`. This replaces the
+reference implementation's repeated immutable-list searches, which behave much closer to
+quadratic on large fixtures.
+
+Important limitations are deliberate: only `X`, `>`, `<`, and `.` Celtic tiles are accepted;
+crossings must be isolated and transverse enough to fit the requested ribbon and gap; ribbons
+have uniform width; and the SVG uses sampled capsules rather than a general-purpose polygon
+offset library. An early SVG-stroke implementation previewed correctly but produced a non-closed
+mesh when its extrusion entered a plaque Boolean. Emitting explicit closed capsule polygons fixed
+the final CGAL export. Preserve that regression lesson when changing vector output: preview and
+standalone extrusion are insufficient; test the final manufacturing Boolean.
+
+OpenSCAD cannot launch the compiler during model evaluation. Generation is therefore an
+explicit build step performed by the executable, CMake, or a repository script before the
+resulting `.scad` or SVG is opened. Generated artifacts and their reproducibility policy must be
+decided before distribution packaging.
+
 ## Companion files
 
 ```text
@@ -1004,6 +1359,12 @@ LogoSC-Knots-Examples.scad
 LogoSC-Knots-Tests.scad
 LogoSC-Knots-Test-Runner.scad
 LogoSC-Knots-Design.md
+tools/logosc-knot-grid/
+generated/LogoSC-Celtic-Generated.grid
+generated/LogoSC-Celtic-Generated.scad
+generated/LogoSC-Celtic-Generated-Knot.scad
+generated/LogoSC-Celtic-Generated.svg
+LogoSC-Celtic-Generated-Test.scad
 ```
 
 The first, examples, tests, runner, and design files are implemented.
@@ -1016,6 +1377,8 @@ Tests should cover:
 - torus closure, sample counts, and component count from `gcd(p,q)`;
 - braid lane exchange, signed over/under, and closure permutation;
 - Celtic tile port matching, strand tracing, and open-port rejection;
+- medial-graph embedding validation, angular vertex pairing, reverse-route suppression,
+  component/crossing counts, closure, and alternation;
 - deterministic harmonic samples;
 - crossing records and duplicate suppression;
 - alternating-parity success and contradiction detection;
@@ -1057,16 +1420,34 @@ links where supported by the selected generator.
      complete.
    - Random filling and explicit boundary maps remain deferred.
 5. **2D ribbon compiler** — implemented
-   - Rounded capsule regions, Core rendering, underpass masks, restored overpasses, tests, and a
-     comparison gallery are complete.
+   - Rounded capsule regions, Core rendering, event-local underpass traversal, retained legacy
+     mask comparison, tests, and a comparison gallery are complete.
    - Bas-relief extrusion and corrected overpass overlap are complete.
    - Bas-relief backing plates, top-edge bevels, and print-quality presets are complete.
    - Unified polygon export, decorative borders, and bundled planar ribbons remain deferred.
-6. **Harmonic/Lissajous and polar generators**
-   - Add automatic crossing discovery and parity solving.
-7. **Medial planar graphs**
-   - Generalize Celtic construction after tile topology is stable.
-8. **Knot completion and release boundary**
+6. **Harmonic/Lissajous and polar generators** — implemented
+   - Three-axis single-term Lissajous sampling, proper projected crossing discovery, Z-derived
+     crossing order, tests, an individual Customizer example, and a three-route gallery are
+     complete.
+   - General multi-term planar harmonics and deterministic alternating parity solving are
+     complete, including contradiction tests and a selectable example.
+   - Polar rosettes with two radial harmonics, angular winding, alternating crossings, tests,
+     an individual example, and a three-medallion ribbon gallery are complete.
+   - Duplicate merging near vertices and explicit crossing overrides remain deferred.
+7. **Medial planar graphs** — implemented
+   - Explicit straight-line embeddings, edge-pair validation, angular vertex rotations, doubled
+     track crossings, reverse-route suppression, closed components, alternating assignment,
+     focused tests, individual output, and a three-design ribbon gallery are complete.
+   - Automatic graph planarization, obstacle routing, and high-degree clearance guarantees remain
+     deliberately outside the first public boundary.
+8. **External C++ knot compiler and SVG acceleration** — implemented
+   - The C++20/CMake executable generates or validates grids, compiles indexed topology, writes
+     compatible `.scad` knot records, and emits finished interlaced SVG ribbon geometry.
+   - `FastSvgPlaque` imports the SVG without invoking native Celtic topology or ribbon Boolean
+     construction; the permanent parity runner compares the generated record with OpenSCAD.
+   - Direct STL or 3MF mesh generation remains optional future work after broader grid benchmarks.
+   - The accelerator remains optional and is not a prerequisite for the OpenSCAD knot companion.
+9. **Knot completion and release boundary**
    - Decide and record the disposition of tight-curve rejection, general collision discovery,
      rectangular braid closure, random Celtic filling, explicit boundary maps, unified polygon
      export, decorative borders, and bundled planar ribbons.
@@ -1112,8 +1493,11 @@ Record answers here before they become implementation assumptions.
   [explicit-grid boundary](#implemented-explicit-grid-boundary)
 - **Companion architecture:** [LogoSC boundary](#how-logosc-is-used),
   [shared representation](#shared-representation), [companion files](#companion-files)
-- **Crossings:** [over/under assignment](#overunder-assignment),
+- **Crossings:** [discovery algorithm](#implemented-crossing-discovery-algorithm),
+  [over/under assignment](#overunder-assignment),
+  [ribbon-artifact postmortem](#crossing-artifact-postmortem-and-guardrails),
   [printable clearance](#required-feature-adjacent-multi-cord-bundles)
+- **External compiler:** [C++ grid preprocessing and SVG acceleration](#external-c-knot-compiler-and-svg-path)
 - **Generators:** [torus knots](#generator-1-torus-knots), [braid words](#generator-2-braid-words),
   [Celtic grids](#generator-3-celtic-tile-grids),
   [harmonic curves](#generator-4-harmonic-and-lissajous-curves),
@@ -1121,6 +1505,8 @@ Record answers here before they become implementation assumptions.
   [medial planar graphs](#generator-6-medial-planar-graphs)
 - **Manufacturing output:** [2D ribbons](#2d-ribbon-generation), [bas-relief](#bas-relief),
   [rounded cords](#rounded-cords), [quality presets](#export-quality-presets)
+- **Performance:** [Customizer scene warnings](#customizer-scene-timing-warnings),
+  [Celtic-grid measurements](#generator-3-celtic-tile-grids)
 - **References:** [further reading](#further-reading-and-example-collections),
   [visual references](#visual-reference)
 - **Roadmap:** [goals](#goals), [implementation sequence](#implementation-sequence),

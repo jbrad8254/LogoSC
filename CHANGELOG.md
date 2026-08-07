@@ -11,11 +11,15 @@
 - [[2026.2.1] - 2026-07-21](#202621---2026-07-21)
 - [[2026.2] - 2026-07-13](#20262---2026-07-13)
 - [[2026.0] - Initial public foundation](#20260---initial-public-foundation)
+- [Index](#index)
 
 ## [Unreleased]
 
 ### Documentation
 
+- Added a planned C++20/CMake knot-compiler milestone with compatible generated `.scad` records,
+  pre-resolved SVG ribbons for accelerated OpenSCAD import and extrusion, optional later STL/3MF
+  output, fixture parity checks, and a 128-by-32 `LogoSC` benchmark target.
 - Added a persistent OpenSCAD community-submission guide with researched official venues, staged
   outreach, release prerequisites, AI provenance language, ready-to-adapt announcements, and a
   possible official Libraries-page request.
@@ -26,8 +30,64 @@
   sequence is now the optional L-system companion, completion or explicit deferral of the
   remaining knot roadmap, and then synchronized release preparation.
 
+### Changed
+
+- Rebenchmarked every knot gallery and individual scene using full Standard-preset preview time
+  on RAINBOW. The Customizer now groups galleries before individuals, sorts each group from
+  fastest to slowest, and applies warning suffixes from interactive rather than CSG-only cost.
+
 ### Added
 
+- Added `MakeMedialGraphKnot()` for simple straight-line planar embeddings, with graph validation,
+  angular vertex pairing, doubled edge tracks, localized crossings, reverse-route suppression,
+  alternating assignment, nine focused tests, individual output, and a three-design ribbon gallery.
+- Extended `logosc-knot-grid` into an indexed Celtic topology compiler that emits compatible
+  sampled `.scad` knot records and pre-resolved closed-polygon SVG ribbons. Added the printable
+  `FastSvgPlaque` scene, permanent C++/OpenSCAD parity test, manufacturing export check, and
+  separated compiler, preview, CSG, and STL benchmarks.
+- Added the dependency-free C++20 `logosc-knot-grid` command-line preprocessor with exact output
+  sizing, a built-in 5-by-7 font, optional BDF fonts, pixel or connected-stroke scaling,
+  configurable spacing, margins, and tile patterns, plain ASCII grid validation and
+  normalization, CRLF/CR/LF selection, deterministic
+  hashes and statistics, delayed progress dots, CMake tests, and generated OpenSCAD adapters.
+- Added a committed 128-by-32 `LogoSC` ASCII grid and adapter plus the large-Celtic
+  `GeneratedPlaque **` scene, which compiles the generated input into a printable plaque.
+- Added measured performance-warning suffixes to the knot and large-Celtic Customizers, with
+  documented RAINBOW timing results and thresholds.
+- Added `LOGOSC128 ***`, a batch-only 128-by-32 Celtic LogoSC word using native 18-by-24 glyphs,
+  with 4,118 cord segments, a generated preview, and an approximately three-minute RAINBOW Cord
+  benchmark for later C++/SVG acceleration comparisons.
+- Restored the 16-crossing RosetteGallery route from an obsolete experimental 480 samples to 160,
+  preserving the corrected crossings while reducing recursive stack and GUI geometry pressure;
+  verified CSG, preview PNG, and full CGAL rendering.
+- Fixed zero-crossing ribbon and bas-relief rendering on OpenSCAD 2021.01 by replacing deprecated
+  `[0 : -1]` crossing loops with an explicit empty-index helper, as identified by the supplied
+  source-level assertion trace.
+- Made RosetteGallery sampling and ribbon fragments truly presentation-fixed, preventing saved
+  low-quality individual settings from reducing it to partial, crossing-free, or stale geometry.
+- Clarified the knot Customizer by placing `PolarRosette Individual` next to
+  `RosetteGallery *` and echoing displayed and canonical scene selections during compilation;
+  canonicalization accepts OpenSCAD's parenthesis-stripped Customizer values.
+- Removed the hidden benchmark scene override that could retain a stale index and make every
+  visible knot-scene choice render the same individual plaque; benchmarks now override the
+  visible `KnotExample` selector directly.
+- Replaced the default planar-knot crossing composition with an event-local traversal renderer:
+  only under-branch sample capsules are clipped, cut length follows the crossing angle and ribbon
+  widths, and the original over curve remains untouched. The prior renderer remains available as
+  `crossingMethod = "legacy-mask"`; polar rosette symmetry is recorded as a future one-sector
+  rotation optimization.
+- Added `MakePolarRosetteKnot()` with two phase-controlled radial harmonics, integer angular
+  winding, proper crossing discovery, alternating assignment, focused tests, an individual
+  example, and a generated three-medallion ribbon gallery. A restrained secondary harmonic and
+  event-local underpass traversal keep the medallion ribbons smooth through crossings.
+- Added `SolveKnotAlternatingParity()` and `AssignKnotAlternatingCrossings()` with deterministic
+  multi-strand parity coloring, closed-traversal constraints, and contradiction detection.
+- Added `MakeHarmonicKnot()` for closed multi-term planar harmonic curves with automatic proper
+  crossing discovery and alternating assignment, plus focused tests and a selectable example.
+- Added `MakeLissajousKnot()` with closed three-axis harmonic sampling, proper projected
+  self-crossing discovery, interpolated route parameters, Z-derived over/under branches,
+  focused tests, a selectable example supporting every existing knot output mode, and a
+  three-route Lissajous gallery with a generated documentation image.
 - Added focused contracts for seeded angle-jitter reproducibility and path-distance restoration
   across `POP`, bringing the L-system suite to 25 passing tests.
 - Exported all nine L-system presets at their gallery defaults and verified that every STL has one
@@ -66,6 +126,13 @@
   The set includes a scalloped-cutout feature panel, connected radial fan, Koch-cutout plate,
   thickened Peano curve, tapered astroid sculpture with a centered through-opening, slotted link,
   perforated ring, and curvy `rotate_extrude()` wire spool. Every model rests at `Z=0`.
+
+### Changed
+
+- Changed the LogoSC wordmark to keep `Logo` upright and apply an explicit `[SHEAR, 0.25]` to the
+  complete multi-region `SC` suffix. Regenerated `images/logosc-wordmark.png` from the selected
+  OpenSCAD geometry with the established oblique 3D presentation, and refreshed
+  `images/examples-gallery.png` so its masthead and expanded gallery match the current source.
 
 ### Fixed
 
@@ -632,3 +699,14 @@ an internal development snapshot and was not published as a separate release.
   cursor-style full-loop motion.
 - 3D composition remains the responsibility of native OpenSCAD operations such
   as `linear_extrude()` and `rotate_extrude()`.
+
+## Index
+
+- **Affine transforms and SHEAR:** [Unreleased](#unreleased), [2026.7](#20267---2026-07-31)
+- **AI engineering and documentation:** [Unreleased](#unreleased), [2026.3](#20263---2026-07-22)
+- **Celtic grids and knot compiler:** [Unreleased](#unreleased), [2026.5](#20265---2026-07-29)
+- **Core commands and geometry:** [2026.0](#20260---initial-public-foundation), [2026.2](#20262---2026-07-13)
+- **Fasteners:** [2026.3](#20263---2026-07-22)
+- **L-systems:** [Unreleased](#unreleased)
+- **Mini library and publishing:** [Unreleased](#unreleased), [2026.6](#20266---2026-07-31)
+- **Testing and validation:** [Unreleased](#unreleased), [2026.2.1](#202621---2026-07-21), [2026.3](#20263---2026-07-22)

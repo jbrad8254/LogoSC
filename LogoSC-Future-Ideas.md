@@ -29,6 +29,9 @@ The authoritative near-term order is now:
 The active details remain in `LogoSC-Developer-Notebook.md` and `LogoSC-Knots-Design.md`. Ideas
 elsewhere in this file do not preempt that sequence.
 
+Status: every planned knot generator is implemented, including medial planar graphs and the
+optional C++/SVG Celtic accelerator. The knot completion/defer audit is the next active step.
+
 ### L-System Companion Library
 
 Keep L-systems outside the core library in an optional `LogoSC-LSystems.scad` companion. Include

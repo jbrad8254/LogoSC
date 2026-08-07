@@ -8,7 +8,8 @@
   "entryPoints": [
     "LogoSC-Knots-Examples.scad",
     "LogoSC-Celtic-Large-Grids.scad",
-    "LogoSC-Knots-Test-Runner.scad"
+    "LogoSC-Knots-Test-Runner.scad",
+    "LogoSC-Celtic-Generated-Test.scad"
   ],
   "verification": [
     {
@@ -25,6 +26,20 @@
         "CelticLargeOutput=\\\"Plaque\\\""
       ],
       "requiredMarker": ""
+    },
+    {
+      "name": "generated-cpp-parity",
+      "input": "LogoSC-Celtic-Generated-Test.scad",
+      "defines": [],
+      "requiredMarker": "\"LOGOSC_CPP_KNOT_PARITY\", \"PASS\""
+    },
+    {
+      "name": "medial-graph-gallery",
+      "input": "LogoSC-Knots-Examples.scad",
+      "defines": [
+        "KnotExample=\\\"MedialGraphGallery\\\""
+      ],
+      "requiredMarker": ""
     }
   ],
   "files": [
@@ -35,7 +50,15 @@
     "LogoSC-Knots-Tests.scad",
     "LogoSC-Knots-Test-Runner.scad",
     "LogoSC-Celtic-Large-Grids.scad",
+    "LogoSC-Celtic-Generated-Test.scad",
     "LogoSC-Celtic-Large-Grids.md",
+    "generated/LogoSC-Celtic-Generated.grid",
+    "generated/LogoSC-Celtic-Generated.scad",
+    "generated/LogoSC-Celtic-Generated-Knot.scad",
+    "generated/LogoSC-Celtic-Generated.svg",
+    "tools/logosc-knot-grid/CMakeLists.txt",
+    "tools/logosc-knot-grid/README.md",
+    "tools/logosc-knot-grid/src/main.cpp",
     "LogoSC-Knots-Design.md",
     "LogoSC-User-Manual.md",
     "LogoSC-CheatSheet.md",

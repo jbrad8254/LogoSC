@@ -25,6 +25,7 @@ was built.
 - [Installation and compatibility](#installation-and-compatibility)
 - [Development provenance](#development-provenance)
 - [Getting help and reporting bugs](#getting-help-and-reporting-bugs)
+- [License and source](#license-and-source)
 
 ## Choose a suite
 
@@ -188,7 +189,8 @@ history, issues, and fixes.
 
 The knot suite builds specialized topology and printable geometry on the stable Core renderer. It
 supports explicit knot records, torus knots and links, circular braids, Celtic tile grids,
-adjacent and crossing-aware cord bundles, planar ribbons, bas-relief, and plaques.
+medial planar-graph interlace, adjacent and crossing-aware cord bundles, planar ribbons,
+bas-relief, and plaques.
 
 Colors in the galleries distinguish examples, components, or cords. Manufacturing geometry is
 produced by the documented renderers rather than by the preview colors themselves.
@@ -245,6 +247,21 @@ The large-grid showcase demonstrates that blank cells can become deliberate nega
 37-by-9 mask spells CELTIC while the occupied cells remain closed, alternating knot components.
 Large scenes print an early scene/output-specific duration estimate rather than pretending that
 OpenSCAD offers a trustworthy model-level percentage-complete callback.
+
+The optional C++20 `logosc-knot-grid` compiler converts text into exact-size plain ASCII tile
+grids and can emit the adapter needed by OpenSCAD 2021.01, a compatible sampled knot record, and
+pre-resolved interlaced SVG. The showcase's `GeneratedPlaque **` scene retains the reference
+OpenSCAD path; `FastSvgPlaque` imports the SVG through the accelerated printable path.
+
+### Medial planar graphs
+
+![LogoSC medial planar-graph knot gallery](images/knot-medial-graph-gallery.png)
+
+The medial-graph generator accepts explicit 2D vertices and undirected edges. It turns each edge
+into a pair of tracks with a controlled crossing, connects neighboring track ends around each
+embedded vertex, traces closed components, and assigns deterministic alternating over/under
+order. The gallery compares a triangular cycle, a two-component square, and a branching tree.
+Invalid or intersecting straight-line embeddings are rejected before route construction.
 
 ### Planar ribbons
 

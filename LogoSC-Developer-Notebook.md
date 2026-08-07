@@ -98,8 +98,11 @@
 - [Printable Mini cover models](#2026-08-02--printable-mini-cover-models)
 - [Printable Core cover models](#2026-08-03--printable-core-cover-models)
 - [Local SHEAR command](#2026-08-03--local-shear-command)
+- [Wordmark SC shear](#2026-08-05--wordmark-sc-shear-and-documentation-image)
 - [L-system, knot, and release sequence](#2026-08-03--l-system-knot-and-release-sequence)
 - [Optional L-system companion](#2026-08-03--optional-l-system-companion)
+- [C++ knot topology and SVG compiler](#2026-08-06--c-knot-topology-and-svg-compiler)
+- [Medial planar-graph knot generator](#2026-08-06--medial-planar-graph-knot-generator)
 - [2026.7 release preparation](#2026-07-31--20267-celtic-and-publishing-release-preparation)
 - [2026.7 publication checkpoint](#2026-08-01--20267-publication-and-tag-alignment-checkpoint)
 - [Journal-entry template](#yyyy-mm-dd--topic)
@@ -282,7 +285,7 @@ Verified working state:
   repetition, holes, stacks, validation, and debug rendering.
 - `LogoSC-Nuts-And-Bolts.scad` supplies the standalone customizable fastener application while
   keeping native OpenSCAD responsible for twisted extrusion and 3D booleans.
-- `LogoSC-Knots.scad` supplies optional torus, braid, Celtic-grid, cord, bundle, planar-ribbon,
+- `LogoSC-Knots.scad` supplies optional torus, Lissajous, braid, Celtic-grid, cord, bundle, planar-ribbon,
   bas-relief, and beveled-plaque workflows without adding knot topology to Core.
 - `RenderLogoDebug()` is implemented and visually verified.
 - Debug visualization is preview/debug-only, not intended to create manufacturable stroke geometry.
@@ -679,10 +682,11 @@ The active sequence is:
 1. **L-system companion — development complete:** the reusable expansion and interpretation
    layer, nine presets, deterministic tests, 3-by-3 gallery, and public documentation are implemented.
    Distribution integration remains deferred until explicitly authorized.
-2. **Knot completion — next:** complete the agreed remaining generator milestones in
-   `LogoSC-Knots-Design.md`, then either implement or explicitly defer each residual collision,
-   closure, Celtic, ribbon, export, and presentation item. Knot topology and manufacturing remain
-   outside Core.
+2. **Knot completion — audit next:** the C++ topology/SVG accelerator and all planned OpenSCAD
+   generators, including medial planar graphs, are implemented. Explicitly implement or defer
+   each residual collision, closure, Celtic, ribbon, export, and presentation item, then run the
+   complete knot acceptance wall. The accelerator remains optional; knot topology and
+   manufacturing remain outside Core.
 3. **Release:** after both milestones pass their focused suites and the complete acceptance wall,
    synchronize distribution documentation, package manifests, release notes, version references,
    images, and reproducible archives for the next release.
@@ -3906,6 +3910,569 @@ Verification:
   presets, visual review of filled and diagnostic systems, an independent companion PASS marker,
   and the complete LogoSC acceptance wall.
 
+### 2026-08-05 — Wordmark SC shear and documentation image
+
+Context:
+
+- The feature wordmark previously demonstrated generated shear by composing nonuniform `SCALE`,
+  `TURN`, and world-absolute `DIR` on both O glyphs.
+- The new explicit `SHEAR` opcode made that workaround unnecessary and provided a clearer way to
+  distinguish the OpenSCAD suffix from the `Logo` portion of the name.
+
+Decision:
+
+- Keep `Logo` upright and apply a local X shear factor of `0.25` to the complete `SC` suffix.
+- Transform both each S/C component and its placement offset through the same affine frame so the
+  separately rendered rounded rectangles and circles remain coherent multi-region glyphs.
+- Regenerate `images/logosc-wordmark.png` from the actual OpenSCAD model at 1050 by 345 pixels,
+  using a 25-degree X camera rotation that clearly shows the extruded red geometry's 3D depth.
+- Regenerate `images/examples-gallery.png` at its established 1077 by 771 pixels with an elevated
+  top-down camera that fits the current six-column gallery and updated wordmark masthead.
+
+Verification:
+
+- Require the complete Foundation/Validation PASS marker, a warning-free Examples CSG export,
+  visual inspection of both regenerated PNGs, and documentation-link and image-dimension checks.
+
+### 2026-08-05 — Spatial Lissajous knot and crossing discovery
+
+Context:
+
+- The knot roadmap placed harmonic/Lissajous generation after the completed torus, braid,
+  Celtic-grid, and ribbon milestones.
+- A true three-axis Lissajous route can supply crossing order directly from spatial height,
+  allowing useful knot output before the more general planar parity solver is complete.
+
+Decision:
+
+- Add `MakeLissajousKnot()` with three positive integer frequencies, positive amplitudes,
+  degree phases, deterministic sampling, and exact periodic closure.
+- Discover proper self-intersections between nonadjacent XY segments, interpolate both route
+  parameters and heights, and choose the over branch from Z. Reject endpoint contacts,
+  tangencies, parallel overlaps, and ambiguous equal-height crossings in this first slice.
+- Reuse the shared knot record and every existing Debug, Cord, Bundle, Ribbon, Relief, and
+  Plaque renderer. Add a three-route gallery comparing 2:3:5, 3:4:5, and 3:5:7 frequency sets.
+  Keep general multi-term harmonic curves, parity solving, duplicate merging, and polar
+  rosettes explicit in the remaining roadmap.
+
+Verification:
+
+- Add focused harmonic evaluation, segment-intersection, adjacency, closure, crossing-record,
+  and validation tests; require the knot companion and complete acceptance suites to pass.
+
+### 2026-08-05 — Planned C++ knot compiler and SVG acceleration
+
+Context:
+
+- Large Celtic word grids spend disproportionate time in OpenSCAD topology evaluation and
+  sampled capsule or ribbon construction.
+- A standalone compiler can use conventional indexed graphs and polygon algorithms while
+  preserving OpenSCAD as the modeling and presentation environment.
+
+Decision:
+
+- Add a future C++20/CMake knot compiler to the authoritative knot roadmap. Its first input is
+  the established textual Celtic tile grid.
+- Emit a generated `.scad` knot record for compatibility and diagnostics, plus an SVG whose
+  ribbon outlines and underpass gaps are already resolved for fast OpenSCAD import, extrusion,
+  vector editing, and laser-cutting workflows.
+- Prefer Clipper2 or another established polygon library. Consider direct binary STL or 3MF
+  swept-cord output only after the SVG path is implemented and benchmarked.
+- Treat compilation as an explicit pre-build step; OpenSCAD cannot launch the executable during
+  evaluation. Keep the existing pure-OpenSCAD companion usable without the external tool.
+
+Verification:
+
+- Compare component topology, route closure, crossings, bounds, and deterministic output with
+  existing fixtures. Benchmark the current large-grid set and a 128-by-32 `LogoSC` stress mask,
+  separating compiler, SVG import, and final export time.
+
+### 2026-08-05 — Alternating parity and planar harmonic knots
+
+Context:
+
+- Spatial Lissajous knots derive crossing order from Z, but planned planar harmonic and polar
+  generators need explicit over/under assignment.
+- Alternation is a graph-coloring constraint: crossing branches must oppose each other, and
+  successive encounters along every strand must alternate cyclically.
+
+Decision:
+
+- Add `SolveKnotAlternatingParity()` with deterministic component coloring, multi-strand
+  traversal edges, closed-strand last-to-first constraints, and an inspectable validity result.
+- Add `AssignKnotAlternatingCrossings()` to apply valid branch colors while preserving the
+  established knot, strand, and crossing record layouts. Reject contradictory cycles.
+- Add `MakeHarmonicKnot()` for user-authored multi-term planar X and Y equations. Require
+  positive integer frequencies, discover proper projected intersections, and apply the shared
+  alternating solver automatically.
+- Keep explicit crossing overrides, duplicate merging near sampled vertices, and polar rosettes
+  as the remaining parts of the harmonic milestone.
+
+Verification:
+
+- Cover deterministic self-crossing assignment, empty diagrams, multi-strand odd-cycle
+  contradiction, harmonic term evaluation, exact closure, discovered crossings, alternation,
+  planarity, and shared knot validation. Require the individual harmonic example, knot suite,
+  and complete acceptance wall to pass without warnings.
+
+### 2026-08-06 — Polar-rosette knot generator
+
+Context:
+
+- The completed alternating-parity solver made the planned polar family a small, reusable
+  extension rather than another crossing implementation.
+- Lissajous routes read as harmonic loops; circular radial modulation offers a stronger Celtic
+  medallion silhouette while retaining analytic, deterministic construction.
+
+Decision:
+
+- Add `MakePolarRosetteKnot()` with a positive base radius, two amplitude/frequency/phase radial
+  harmonics, positive integer angular winding, sampling, and intersection tolerance.
+- Require the base radius to exceed the combined absolute amplitudes so the route remains a
+  positive-radius medallion. Phase-shift the primary term in standard presets to avoid
+  sample-vertex crossing degeneracies.
+- Reuse proper segment crossing discovery and `AssignKnotAlternatingCrossings()` without adding
+  generator-specific crossing semantics.
+- Add individual output plus a fixed planar ribbon gallery containing validated five-, seven-,
+  and sixteen-crossing medallions. Use a secondary radial amplitude of `0.5` for restrained
+  curvature shoulders. Restore crossing overpasses from the original sampled curve segments
+  instead of a straight tangent patch so both ends match the surrounding medallion. Generate the
+  gallery image from the actual OpenSCAD geometry.
+
+Verification:
+
+- Cover radial evaluation, angular conversion, exact planar closure, deterministic crossing
+  counts, cyclic alternation, alternate-preset stability, and shared validation. Require the
+  gallery, individual output, knot suite, and complete acceptance wall to pass without warnings.
+
+### 2026-08-06 — Event-local ribbon crossing traversal
+
+Context:
+
+- Whole-ribbon subtraction followed by overpass reconstruction produced boundary mismatches at
+  the shallow crossing angles in the sixteen-crossing rosette.
+
+Decision:
+
+- Preserve the earlier implementation as `crossingMethod = "legacy-mask"`.
+- Make `traversal` the default. Use recorded crossing events, clip only sampled capsules local to
+  the under parameter, and leave the over curve untouched.
+- Use an effectively infinite cutter parallel to the over tangent. Only its side boundaries set
+  the underpass ends; finite cutter ends must remain outside the complete strand bounds.
+- Build immutable cumulative arc-length lists because OpenSCAD has no mutable traversal cursor.
+  Use per-capsule CSG and explicit self-crossing parameter ownership because OpenSCAD has no path
+  splitting or conventional offset-curve API.
+- Treat polar rotational symmetry as a future explicit fast path: construct one `1 / N` sector
+  and rotate it, without imposing symmetry assumptions on general knots.
+
+Verification:
+
+- Visually inspect enlarged angled and top-down sixteen-crossing renders, add focused ownership
+  and cut-boundary contracts, and require both the knot suite and full acceptance suite to pass.
+
+### 2026-08-06 — Native-glyph 128-by-32 Celtic LogoSC stress scene
+
+Decision:
+
+- Add `LOGOSC128 ***` to the separate large-Celtic Customizer as the first intentionally
+  multi-minute example and the future C++/SVG acceleration fixture.
+- Draw six native 18-by-24 glyphs on an exact 128-by-32 mask. Do not enlarge the existing 5-by-7
+  alphabet; Celtic construction requires only a valid occupied-cell mask, not scaled pixels.
+- Keep `CELTIC *` as the default so opening the file does not automatically start the longest
+  scene.
+
+Measured result:
+
+- The final Cord CSG contains 411 occupied cells, 32 components, 139 crossings, and 4,118
+  segments. Nearby measurements bracketed three minutes, with approximately 180.5 seconds for
+  the complete command invocation, so the conservative `(***)` warning applies.
+- Odd glyph heights and one-cell inter-letter spacing triggered severe topology-performance
+  cliffs and were rejected after runs exceeded roughly 7 to 10 minutes. The shipped even-height,
+  two-cell-gap layout is deliberately close to the requested threshold.
+
+### 2026-08-06 — C++ text-to-Celtic-grid generator and plaque bridge
+
+Context:
+
+- The 128-by-32 LogoSC fixture established the OpenSCAD performance baseline, but authoring text
+  masks and transporting them into a future faster renderer needed a stable external format.
+- The requested compact format is not a quoted OpenSCAD list: it is ordinary ASCII with one
+  `X`, `>`, `<`, and `.` row per line and nothing else.
+- OpenSCAD 2021.01 has no general text-file reader, so it cannot consume that format directly.
+
+Decision:
+
+- Add the dependency-free C++20/CMake `tools/logosc-knot-grid/` executable. It generates an
+  exact-size grid from text, supports a built-in 5-by-7 font or a BDF bitmap font, accepts size,
+  scale, pixel or connected-stroke scaling, margin, spacing, pattern, and line-ending overrides,
+  and validates existing grids.
+- Write the plain `.grid` contract as the primary interchange file and optionally write a
+  generated `.scad` adapter containing identical rows. Keep both committed for the reference
+  fixture so OpenSCAD users do not need a C++ toolchain.
+- Print a deterministic hash and summary for reproducibility. Start progress dots only after two
+  seconds so slow future compiler stages show life without cluttering normal millisecond runs.
+- Add `GeneratedPlaque **` to the large-Celtic Customizer. It consumes the generated adapter and
+  forces printable bas-relief plaque output.
+- Keep the committed fixture at one-cell stroke scale. Scale-2 filled pixels and scale-3
+  connected strokes both hit severe OpenSCAD topology or plaque-construction cliffs; the latter
+  exceeded ten minutes. The 88-cell scale-1 fixture compiled to plaque CSG in about 38 seconds,
+  so it receives `(**)` and leaves `LOGOSC128 ***` as the only three-star example.
+- This completes preprocessing and interchange only. Indexed topology compilation, compatible
+  sampled knot records, and finished interlaced SVG ribbon polygons remain the next accelerator
+  stages.
+
+Verification:
+
+- Require MSVC and CMake builds, the executable self-test, plain-grid validation/round-trip checks,
+  exact row/column and character checks, deterministic fixture hash, and successful OpenSCAD
+  compilation of the generated plaque.
+
+### 2026-08-06 — C++ knot topology and SVG compiler
+
+Context:
+
+- The committed grid preprocessor still left OpenSCAD doing the expensive boundary searches,
+  component tracing, curve sampling, and per-segment ribbon Booleans.
+- The external format needed to remain inspectable and compatible with the existing OpenSCAD
+  implementation, while the accelerated manufacturing path needed finished planar geometry.
+
+Decision:
+
+- Port the exact Celtic port, clockwise boundary-loop, adjacent boundary-pairing, component-cycle,
+  quadratic sampling, and checkerboard crossing rules to indexed C++ structures. Emit both a
+  LogoSC-compatible sampled `.scad` knot record and an interlaced SVG.
+- Resolve SVG underpasses by cumulative arc length and crossing angle. Split and merge cut
+  intervals on each closed strand, then emit visible segments as overlapping closed capsule
+  polygons.
+- Preserve the pure-OpenSCAD path as `GeneratedPlaque **` and add `FastSvgPlaque` as the practical
+  interactive path. Keep the external compiler optional and its generated artifacts committed.
+- Preserve a permanent slow parity test outside the routine knot suite. It recomputes the same
+  fixture in OpenSCAD and compares every sample and crossing, so normal tests remain quick.
+
+Failure and correction:
+
+- The first SVG used ordinary stroked paths. It imported, previewed, and even extruded by itself,
+  but its extrusion was not a closed mesh when a later union forced CGAL conversion. Neither
+  `offset(delta = 0)` nor a standalone extrusion test exposed a usable manufacturing result.
+- Explicit closed capsule polygons fixed the final plaque Boolean. The guardrail is to verify the
+  complete manufacturing composition, not merely SVG validity, preview appearance, or isolated
+  extrusion. OpenSCAD's separate CSG, preview, and CGAL/export modes made that distinction visible.
+
+Measured result on RAINBOW:
+
+- C++ topology: 0.000304 seconds; complete grid, sampled record, and closed SVG: 0.020449 seconds.
+- OpenSCAD reference topology plus parity comparison: 30.028 seconds. The corresponding speedups
+  are roughly 99,000 times for topology and 1,470 times for complete external artifact creation,
+  including OpenSCAD startup and parsing in the reference number.
+- Fast plaque CSG: 0.684 seconds versus 37.848 seconds, about 55 times faster. Preview: 1.027
+  seconds versus about 38.9 seconds, about 38 times faster.
+- Full STL command: 43.6 seconds, with 12.1 seconds reported in CGAL rendering. OpenSCAD reported
+  8,364 CGAL facets; the STL contains one connected watertight component with 33,132 triangles,
+  no boundary edges, and no non-manifold edges.
+
+Verification:
+
+- Require the CMake self-test, exact committed-artifact regeneration, XML parsing, permanent
+  C++/OpenSCAD route-and-crossing parity, accelerated CSG and preview, and a complete CGAL STL
+  export before treating vector output as printable.
+
+### 2026-08-06 — Medial planar-graph knot generator
+
+Context:
+
+- Medial planar graphs were the last named generator in the knot roadmap. Unlike Celtic tile
+  grids, they need an explicit geometric embedding and vertex rotation order rather than a fixed
+  four-port lattice.
+- The public boundary needed to be deterministic and inspectable without pretending OpenSCAD is a
+  general graph-planarization or obstacle-routing engine.
+
+Decision:
+
+- Add `MakeMedialGraphKnot()` for numeric 2D vertices and unique undirected edge-index pairs.
+  Validate the simple straight-line embedding before constructing routes.
+- Give each graph edge two tracks and one localized midpoint crossing. Sort incident half-edges
+  by embedded angle, pair neighboring track ends cyclically around each vertex, and trace the
+  resulting state permutation into closed components.
+- Remove reverse traversal duplicates by marking the same track at its opposite endpoint, then
+  require exactly two retained branch owners per original edge. Apply the established alternating
+  parity solver rather than introducing graph-specific crossing semantics.
+- Use paired quadratic edge halves for tangent-matched crossings and cubic vertex connectors
+  aligned with arrival and departure edges. Keep acute-angle and high-degree clearance a caller
+  responsibility in this first version.
+
+Failure and correction:
+
+- The first reverse-route implementation marked the opposite side at the same endpoint. The
+  one-edge fixture passed, but a triangle failed because some edges no longer had two crossing
+  owners. The reverse dart is the same side at the opposite endpoint. This is now guarded by path,
+  triangle, square, and branching fixtures plus the exact two-owner assertion.
+
+Verification:
+
+- Add nine deterministic tests for graph/edge validation, rejected intersections and overlapping
+  rays, state transitions, reverse suppression, crossing geometry, component/sample counts,
+  closure, alternation, record validation, and metadata. The knot suite now has 122 results.
+- Add `MedialGraph` individual output and a fixed ribbon gallery containing a triangular cycle,
+  two-component square, and branching tree. CSG measurements on RAINBOW were approximately 0.69
+  seconds for the individual plaque and 0.80 seconds for the gallery, below the warning threshold.
+- Generate and inspect the top-down gallery image from the actual OpenSCAD geometry.
+
+### 2026-08-06 — OpenSCAD features that support AI-assisted graphics development
+
+Purpose:
+
+- Maintain a living record of OpenSCAD capabilities that make LogoSC easier to develop,
+  diagnose, verify, and document with an AI coding agent.
+- Translate those observations into design guidance for other graphics languages, editors, and
+  modeling systems. Extend this note whenever later LogoSC work reveals another useful feature.
+- Recognize that OpenSCAD's developers made unusually consequential choices for automation and
+  reproducibility, even where those choices were originally intended for ordinary human use.
+
+The short version is that LogoSC could be developed by an AI because OpenSCAD is not confined to
+an interactive canvas. It has documented text source, a capable command line, controllable
+headless cameras, ordinary output files, and diagnostics that can be captured and inspected. The
+agent could edit a model, run it, read its assertions and warnings, inspect the resulting image or
+mesh, and repeat without asking a person to operate the GUI after every change.
+
+| OpenSCAD feature | Concrete interface | How it enabled LogoSC development |
+|---|---|---|
+| Headless command-line execution | `openscad.com input.scad -o output.csg` | Compile and test every edit from an automated shell session. |
+| Command-line parameter overrides | `-D Name=value` | Exercise presets and benchmark scenes without editing the model for every case. |
+| Capturable diagnostic output | `.echo` output, `echo()`, `assert()`, warnings, errors, and source-level assertion traces | Build Foundation, Validation, fastener, L-system, and knot suites with inspectable results and failure locations. |
+| Headless image output | `-o output.png`, `--preview`, `--render`, and `--imgsize` | Generate and inspect documentation galleries and visual regression evidence. |
+| Reproducible viewport control | `--camera`, `--projection`, `--viewall`, and `--autocenter` | Recreate top-down, oblique, full-model, and close-up views; this was crucial during the rosette crossing investigation. |
+| Multiple artifact formats | CSG, PNG, SVG where applicable, STL, and console output | Use cheap compile checks during iteration, visual checks for appearance, and mesh exports for manufacturing validation. |
+| Textual parametric models | `.scad` source, functions, modules, `include`, and `use` | Search, diff, patch, review, and test geometry without reverse-engineering an opaque editor file. |
+| Customizer UI from source annotations | Named variables, section comments, enumerated choices, ranges, steps, and hidden controls | Turn tested code parameters into an immediate human-facing UI without building and synchronizing a separate application. |
+| Accessible documentation | OpenSCAD language reference, user manual, command-line documentation/help, and examples | Discover exact syntax and flags, understand preview versus render behavior, and verify how CSG, extrusion, hulls, transforms, special variables, and Customizer annotations behave. |
+
+The C++ knot SVG work exposed another benefit of those distinct output modes. A stroked SVG
+looked correct in preview and could be extruded alone, yet failed as a non-closed mesh only when
+the complete plaque union forced CGAL conversion. The same headless source could be exercised as
+CSG, preview PNG, isolated extrusion, and final STL, making it possible to localize the contract
+boundary and replace strokes with closed polygons. An AI-friendly graphics tool should therefore
+expose cheap intermediate modes and authoritative manufacturing export separately, while making
+clear that success at an earlier level does not certify the next one.
+
+A representative LogoSC automation sequence is:
+
+```powershell
+# Run semantic tests and capture machine-readable echo records.
+openscad.com -o LogoSC-tests.echo LogoSC-Foundation-Test-Runner.scad
+
+# Perform a cheap structural compilation before an expensive render.
+openscad.com -o LogoSC-example.csg LogoSC-Examples.scad
+
+# Produce a deterministic documentation or diagnostic image.
+openscad.com --preview --imgsize=1050,345 `
+    --camera=0,0,0,55,0,25,300 `
+    -o logosc-example.png LogoSC-Examples.scad
+
+# Select a numeric or string model parameter from automation.
+openscad.com -D ExampleIndex=3 -o selected-example.csg LogoSC-Examples.scad
+```
+
+The documentation matters as much as the executable interfaces. The source language is unusual,
+especially its immutable evaluation model, special variables, list comprehensions, and CSG tree
+semantics. Usable reference material and examples made it possible to distinguish a language rule
+from a LogoSC defect, locate the relevant command-line control, and construct small probes instead
+of guessing blindly. For an AI-oriented graphics system, documentation should be searchable,
+versioned, example-rich, explicit about headless behavior, and precise about error and output
+semantics.
+
+The Customizer is especially valuable as an AI/human interface. A small amount of markup-like
+source annotation turns ordinary model variables into labeled sections, dropdowns, checkboxes,
+sliders, numeric ranges, and stepped values. The AI can define the parameter, its safe bounds,
+its default, and its available choices beside the code that consumes it; a person can then explore
+those choices visually without editing source. Because command-line `-D` overrides address the
+same variables, automated tests and benchmarks exercise the same control surface the human sees.
+That shared parameter contract greatly reduces drift between implementation, automation, and UI.
+
+LogoSC uses this pattern for example selection, output modes, print-quality presets, knot and
+bundle dimensions, ribbon clearance, relief and plaque geometry, L-system controls, and the
+nuts-and-bolts application. The knot example dropdown now also demonstrates that generated UI
+needs operational guidance: lightweight `*`, `**`, and `***` suffixes warn humans before selecting
+scenes measured at more than 3 seconds, 30 seconds, or 3 minutes, while a normalization function
+keeps those labels separate from canonical program values. Benchmark the complete interactive
+preview rather than CSG compilation alone: the 2026-08-06 RAINBOW audit found 3D gallery previews
+roughly 12 to 34 seconds even when their CSG trees compiled in well under a second. Keep galleries
+and individual scenes in separate fastest-to-slowest blocks so cost and scene scope are visible
+before selection.
+
+For other graphics systems, the general lesson is to treat declarative parameter metadata as a
+first-class bridge between code and interactive tools. It should support labels, grouping, units,
+descriptions, ranges, validation, dependencies, estimated cost, and machine-readable stable IDs.
+The editor, CLI, API, presets, tests, and saved documents should all consume the same schema. An AI
+can then construct or revise a useful UI through small textual edits, and the human can immediately
+inspect and steer the generated work through familiar controls.
+
+OpenSCAD's assertion trace is particularly useful for LogoSC debugging. It reports the `.scad`
+function/module call chain and source lines that led to a failed model assertion. That identifies
+the user-level generator, validator, renderer, or immutable recursive helper involved, often with
+the last emitted parameter values nearby. LogoSC's fail-fast test mode relies on this trace to
+locate the first failed result instead of returning only a top-level Boolean failure.
+
+This is complementary to a native C++ stack dump, not redundant with it. A native stack is the
+right evidence when OpenSCAD's engine, allocator, graphics driver, or geometry library crashes,
+but it usually describes implementation frames rather than the user's `.scad` scene and parameter
+path. Conversely, a model-language assertion trace cannot diagnose memory corruption inside the
+engine. AI-friendly graphics applications should preserve both layers: a source/scene evaluation
+trace containing file, line, node or module, parameters, and diagnostic messages, plus a native
+crash report with engine frames and build information. When the process terminates abruptly, the
+last successfully emitted source-level trace and scene milestone should be retained with the
+native dump.
+
+For the ordinary class of LogoSC failures—an invalid parameter, failed invariant, incorrect
+record, recursive helper error, or bad geometry decision—the OpenSCAD source-level trace is
+usually more useful to an AI than a core-dump stack. It names the model functions and source lines
+the AI can inspect and change, whereas a native dump often stops inside evaluator or geometry-
+engine implementation details. The priority reverses when the OpenSCAD process itself terminates
+without a model assertion: then the native dump is indispensable, and the best diagnostic package
+combines it with the last `.scad` trace, console messages, parameters, input file, OpenSCAD build,
+and render mode.
+
+The rosette failure illustrates the value directly. Initial headless CSG, preview, and full CGAL
+runs completed, so inspection first found and removed an obsolete experimental 480-sample setting
+that created unnecessary recursive stack and geometry pressure. The user's actual OpenSCAD trace
+then identified the asserted failure precisely: an index loop constructed `[0 : -1]` for a valid
+zero-crossing knot. OpenSCAD 2021.01 treated that as a deprecated descending range, produced
+invalid crossing indexes, and eventually passed `undef` to `KnotCrossingOtherBranch()`.
+`KnotCrossingIndexes()` now returns an explicit empty list when no crossings exist, and every
+index-based crossing renderer uses it. The source-level trace was more useful than a native core
+dump for this defect because it exposed the exact model call chain and editable lines; no engine
+crash occurred.
+
+The accompanying one-medallion/no-interlace symptom identified a second bug: RosetteGallery was
+passing its nominally fixed sample counts and ribbon fragments through saved individual Print
+Quality controls. Low Custom settings could remove crossing records and stop later gallery work.
+The gallery now uses validated fixed counts of 120, 140, and 160 plus ten ribbon arc fragments,
+independent of individual-model quality settings.
+
+Capabilities that have materially helped:
+
+- **A complete command-line application.** `openscad.com` can compile a source file without GUI
+  interaction. Explicit input and output paths make runs scriptable, repeatable, and easy for an
+  agent to invoke. A graphics system intended for automation should expose the same operations as
+  its editor through a documented, noninteractive CLI.
+- **Several useful output forms from one source.** The `-o` target can request console-oriented
+  echo output, lightweight CSG smoke artifacts, preview PNGs, or manufacturing exports such as
+  STL. This supports a verification ladder: inexpensive semantic tests first, structural compile
+  checks second, visual inspection next, and expensive final geometry only when warranted.
+- **Machine-readable diagnostics in ordinary logs.** `echo()`, `assert()`, warnings, errors, and
+  assertion traces expose values and call paths without requiring a debugger protocol. LogoSC can
+  emit exact `LOGOSC_AUTOMATED_TEST_RESULT` records and distinguish a completed suite from a
+  compile that merely returned control. Other tools should support structured diagnostics—JSON
+  when possible—alongside readable text, stable severity labels, source locations, and nonzero
+  failure status.
+- **Deterministic headless image generation.** Image size, camera, projection, view-all,
+  autocenter, preview, and full-render controls allow documentation images and visual regressions
+  to be reproduced. This was essential for finding crossing artifacts that appeared only at a
+  particular scale or view. Graphics tools should make every viewport property serializable and
+  settable from the command line or API.
+- **Cheap preview and authoritative render paths.** Fast preview images enable iteration, while
+  CGAL-backed rendering and mesh export provide a stronger final check. Separating these costs
+  lets an agent gather evidence progressively instead of paying the maximum render cost after
+  every edit.
+- **Text source as the model of record.** `.scad` files are diffable, searchable, reviewable, and
+  reproducible without an opaque editor database. Includes, `use`, modules, and functions support
+  real library boundaries. AI-friendly graphics systems should retain a stable textual or fully
+  serializable representation even when a rich direct-manipulation editor is available.
+- **Functional, parameterized construction.** Immutable values, list comprehensions, named module
+  parameters, and deterministic evaluation make generated geometry inspectable and testable.
+  OpenSCAD's Customizer convention also turns top-level variables into a lightweight public UI
+  without creating a second model definition.
+- **Native CSG composition.** `union()`, `difference()`, `intersection()`, extrusion, hulls, and
+  transforms let LogoSC concentrate on 2D path semantics while delegating established solid
+  operations. A graphics language is easier to extend when small domain-specific generators can
+  compose with reliable general primitives rather than reimplementing the whole geometry stack.
+- **Source-compatible diagnostic geometry.** The same program can render centerlines, samples,
+  crossing markers, ribbons, relief, and final solids through selectable modes. Diagnostic views
+  that share the production inputs are substantially more trustworthy than screenshots recreated
+  in a separate debugging tool.
+- **Straightforward artifact capture.** Logs, PNGs, CSG files, and meshes are ordinary files that
+  can be archived, compared, embedded in documentation, or inspected by external programs. Tools
+  become easier for agents when outputs are addressable artifacts rather than transient canvas
+  state.
+
+LogoSC features developed with those capabilities include:
+
+- **Core command evaluation and regression testing:** the Foundation and Validation suites use
+  headless CLI runs, `echo()` records, assertions, and exact completion sentinels to verify command
+  semantics, contours, regions, transforms, holes, validation, and immutable state behavior.
+- **Knot generators and crossing topology:** Lissajous, harmonic, polar-rosette, braid, bundle,
+  twist, and Celtic-grid work used quick CSG compilation, diagnostic crossing records,
+  `RenderKnotDebug()` overlays, preview PNGs, and enlarged camera-controlled renders. The
+  sixteen-crossing rosette artifact specifically demonstrated why reproducible full-motif,
+  close-up, top-down, and oblique images all matter.
+- **Ribbon, bas-relief, and plaque output:** LogoSC produces the planar regions while native
+  OpenSCAD supplies Boolean composition, `linear_extrude()`, hulls, and final solid assembly.
+  Preview output supports rapid boundary work; final rendering and STL export check printable
+  geometry.
+- **Rounded cords and multi-cord bundles:** native spheres, hulls, transforms, and fragment
+  controls turned sampled routes into spatial cords while the same text source exposed topology,
+  lane fitting, transported frames, twists, and closure permutations for tests.
+- **Wordmark and documentation galleries:** explicit image size, camera, projection, view fitting,
+  color, and PNG export produced the sheared 3D wordmark and the knot, L-system, Core, Mini,
+  fastener, and validation illustrations embedded in project documentation.
+- **Customizer-driven applications:** named top-level variables and enumerated choices support
+  interactive examples, knots, L-systems, and nuts-and-bolts models without separating the UI
+  configuration from the tested model source.
+- **Performance investigation:** deterministic CLI invocation and ordinary output artifacts made
+  it possible to time Celtic-grid workloads on different PCs, compare preview and compilation
+  costs, and identify crossing discovery and OpenSCAD evaluation as candidates for a future C++
+  compiler with pre-resolved SVG output.
+- **Release and manufacturing checks:** CSG smoke files, PNG galleries, STL exports, console logs,
+  and externally inspectable meshes form a progressive evidence chain from source-level behavior
+  to documentation and printable deliverables.
+
+OpenSCAD-specific friction is worth recording beside the advantages. CLI quoting for `-D` varies
+by shell; some failures require checking diagnostic content rather than trusting the process exit
+code alone; immutable recursion can make traversal algorithms verbose; and there is no native
+path-splitting, offset-curve, or structured test-runner API. These gaps suggest corresponding
+improvements for future systems: typed parameter transport instead of shell expressions,
+unambiguous exit semantics, structured test results, geometry-query APIs, and first-class path
+operations. They do not diminish the value of the automation surface OpenSCAD already provides.
+
+General guidance for AI-friendly graphics systems:
+
+1. make all editor operations available through a deterministic CLI or local API;
+2. accept explicit parameters without fragile shell quoting;
+3. expose structured errors, warnings, traces, measurements, and test results;
+4. support fast previews and authoritative renders from identical source and camera state;
+5. export ordinary image, vector, scene, and manufacturing artifacts;
+6. keep the source representation textual or losslessly serializable and friendly to diffs;
+7. provide diagnostic overlays and geometry queries without requiring GUI interaction; and
+8. generate human-facing controls from the same declarative parameter schema used by code, tests,
+   presets, CLI arguments, and APIs; and
+9. make performance timing, caching behavior, and render mode visible enough to benchmark.
+
+#### AI-to-AI handoff: graphics-app interfaces worth requesting
+
+When helping design or integrate another graphics application, push for these interfaces first:
+
+- Keep one textual or losslessly serialized scene as the source of truth, with stable object and
+  parameter IDs suitable for small diffs.
+- Expose GUI operations through a deterministic CLI or local API. Accept typed JSON parameters;
+  do not make an AI construct language expressions through shell quoting.
+- Provide headless validation, cheap preview, authoritative render, and export as separate cost
+  levels operating on the same scene.
+- Make camera, projection, viewport, quality, seed, fonts, and environment explicit and
+  serializable so images are reproducible.
+- Return structured diagnostics with severity, source/object location, parameters, progress,
+  timing, cancellation, and reliable exit status. Preserve both the scene-language trace and the
+  native crash report.
+- Expose geometry facts and diagnostic layersâ€”bounds, topology, intersections, element counts,
+  selected objects, and intermediate pathsâ€”rather than forcing every check through pixels.
+- Generate human controls from the same typed parameter schema used by the API and tests. Keep
+  stable machine values separate from display labels, warnings, and timing marks; OpenSCAD's
+  removal of parentheses from a Customizer label caused a real LogoSC dispatch failure.
+- Write logs, images, vectors, scenes, and meshes as ordinary addressable artifacts with build
+  metadata. Make documentation searchable, versioned, and rich in executable examples.
+
+For an AI client, the ideal edit loop is: inspect scene and schema, apply a small change, validate,
+render a targeted diagnostic view, query geometry facts, run focused tests, then produce the final
+artifact. Design the app so none of those steps requires a human to click the canvas.
+
 ## Index
 
 - **Affine transforms:** [design direction](#2026-07-27--preliminary-local-transform-design-direction),
@@ -3922,9 +4489,20 @@ Verification:
 - **Fasteners:** [customizable fasteners](#2026-07-21--customizable-nuts-bolts-and-helical-thread-profiles),
   [test suite](#2026-07-24--non-rendering-fastener-test-suite)
 - **Knot companion:** [first vertical slice](#2026-07-27--optional-knot-companion-first-vertical-slice),
+  [alternating parity and harmonics](#2026-08-05--alternating-parity-and-planar-harmonic-knots),
   [Celtic grids](#2026-07-29--explicit-celtic-tile-grid-topology),
+  [C++ and SVG accelerator](#2026-08-05--planned-c-knot-compiler-and-svg-acceleration),
+  [C++ grid generator and plaque bridge](#2026-08-06--c-text-to-celtic-grid-generator-and-plaque-bridge),
+  [C++ topology and SVG compiler](#2026-08-06--c-knot-topology-and-svg-compiler),
+  [medial planar graphs](#2026-08-06--medial-planar-graph-knot-generator),
+  [Lissajous knot](#2026-08-05--spatial-lissajous-knot-and-crossing-discovery),
+  [polar rosettes](#2026-08-06--polar-rosette-knot-generator),
+  [128-by-32 LogoSC stress scene](#2026-08-06--native-glyph-128-by-32-celtic-logosc-stress-scene),
   [ribbons](#2026-07-29--logosc-backed-planar-ribbons-and-underpass-masks),
   [twisted bundles](#2026-07-29--twisted-bundle-closure-and-component-tracing)
+- **OpenSCAD:** [AI-assisted development features](#2026-08-06--openscad-features-that-support-ai-assisted-graphics-development),
+  [AI-to-AI graphics-app handoff](#ai-to-ai-handoff-graphics-app-interfaces-worth-requesting),
+  [command-line verification](#2026-07-20--openscad-command-line-verification-guide)
 - **Packaging and publishing:** [repository workflow](#8-repository-and-packaging-workflow),
   [suite release manual](#2026-07-31--suite-release-manual-and-single-repository-publishing),
   [generated suites](#2026-07-31--generated-publication-suites-and-thingiverse-materials),
@@ -3942,3 +4520,4 @@ Verification:
 - **Validation:** [path analysis](#2026-07-20--optional-path-analysis-and-validation),
   [topology](#2026-07-27--general-topology-relations-and-strict-hole-validation),
   [convexity](#2026-07-27--convexity-query-api)
+- **Wordmark:** [SC shear and documentation image](#2026-08-05--wordmark-sc-shear-and-documentation-image)

@@ -1,7 +1,7 @@
 # LogoSC Knots & Celtic Designs — Cords, Braids, Ribbons, Reliefs, and Plaques
 
 Generate mathematical knots and links, circular braids, multi-cord bundles, Celtic tile grids,
-planar interlace, bas-relief, and automatically bounded plaques in OpenSCAD.
+medial planar-graph interlace, bas-relief, and automatically bounded plaques in OpenSCAD.
 
 The self-contained download includes the knot library, galleries, deterministic tests, and the
 large Celtic showcase with Diamond8, Ring16, Diamond24, Ring32, and a 37-by-9 CELTIC design.
