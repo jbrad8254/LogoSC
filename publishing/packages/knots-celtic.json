@@ -32,6 +32,14 @@
       "input": "LogoSC-Celtic-Generated-Test.scad",
       "defines": [],
       "requiredMarker": "\"LOGOSC_CPP_KNOT_PARITY\", \"PASS\""
+    },
+    {
+      "name": "medial-graph-gallery",
+      "input": "LogoSC-Knots-Examples.scad",
+      "defines": [
+        "KnotExample=\\\"MedialGraphGallery\\\""
+      ],
+      "requiredMarker": ""
     }
   ],
   "files": [

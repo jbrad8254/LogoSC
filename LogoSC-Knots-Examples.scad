@@ -6,7 +6,7 @@ include <LogoSC-Knots.scad>
 
 // Timing suffixes use Standard-preset CSG compilation on RAINBOW:
 // (*) > 3 seconds, (**) > 30 seconds, (***) > 3 minutes.
-KnotExample = "PlaqueGallery"; // [Unknot,Trefoil,HopfLink,Lissajous,Harmonic,PolarRosette Individual,RosetteGallery *,CelticGrid,CrossingRecord,CordGallery,BundleGallery,TwistGallery,LissajousGallery,BraidGallery,BraidBundleGallery,CelticGallery,RibbonGallery,ReliefGallery,PlaqueGallery]
+KnotExample = "PlaqueGallery"; // [Unknot,Trefoil,HopfLink,Lissajous,Harmonic,PolarRosette Individual,MedialGraph,RosetteGallery *,CelticGrid,CrossingRecord,CordGallery,BundleGallery,TwistGallery,LissajousGallery,BraidGallery,BraidBundleGallery,CelticGallery,MedialGraphGallery,RibbonGallery,ReliefGallery,PlaqueGallery]
 
 /* [Individual Output - ignored by Gallery scenes] */
 
@@ -131,6 +131,27 @@ function KnotCelticExampleGrid(variant = 0) =
             "<X>"
         ];
 
+function KnotMedialExampleVertices(variant = 0) =
+    variant == 1
+    ? [[0, 0], [30, 0], [30, 30], [0, 30]]
+    : variant == 2
+        ? [[24, 20], [24, 50], [50, 5], [-2, 5]]
+        : [[0, 0], [30, 0], [15, 26]];
+
+function KnotMedialExampleEdges(variant = 0) =
+    variant == 1
+    ? [[0, 1], [1, 2], [2, 3], [3, 0]]
+    : variant == 2
+        ? [[0, 1], [0, 2], [0, 3]]
+        : variant == 3
+            ? [
+                [0, 1], [1, 2], [2, 3], [3, 0], [0, 2]
+            ]
+            : [[0, 1], [1, 2], [2, 0]];
+
+function KnotMedialExampleTrackOffset(variant = 0) =
+    variant == 2 ? 3.5 : 2.5;
+
 function KnotExampleResult(name) =
     name == "Unknot"
     ? MakeTorusKnot(1, 1, 18, 5, KnotExampleSampleCount(72, 12))
@@ -183,6 +204,14 @@ function KnotExampleResult(name) =
                     KnotExampleSampleCount(8, 4, true),
                     KnotExampleSampleCount(6, 2),
                     4
+                )
+            : name == "MedialGraph"
+                ? MakeMedialGraphKnot(
+                    KnotMedialExampleVertices(1),
+                    KnotMedialExampleEdges(3),
+                    2.5,
+                    KnotExampleSampleCount(8, 4, true),
+                    KnotExampleSampleCount(6, 2)
                 )
     : name == "HopfLink"
         ? MakeTorusKnot(
@@ -843,6 +872,75 @@ module RenderKnotCelticGallery()
     RenderKnotGalleryLabel("4 x 4 GRID", [145, -30, -8], 3.5);
 }
 
+module RenderKnotMedialGraphGalleryExample(
+    variant,
+    position,
+    rotation,
+    colorValue)
+{
+    vertices = KnotMedialExampleVertices(variant);
+    edges = KnotMedialExampleEdges(variant);
+    knot = MakeMedialGraphKnot(
+        vertices,
+        edges,
+        KnotMedialExampleTrackOffset(variant),
+        KnotExampleSampleCount(8, 4, true),
+        KnotExampleSampleCount(6, 2)
+    );
+    minimumX = min([for (vertex = vertices) vertex[0]]);
+    maximumX = max([for (vertex = vertices) vertex[0]]);
+    minimumY = min([for (vertex = vertices) vertex[1]]);
+    maximumY = max([for (vertex = vertices) vertex[1]]);
+
+    color(colorValue)
+    translate(position)
+    rotate([0, 0, rotation])
+    translate([
+        -(minimumX + maximumX) / 2,
+        -(minimumY + maximumY) / 2,
+        0
+    ])
+        RenderKnotRibbons2D(
+            knot,
+            ribbonWidth = 1.8,
+            crossingClearance = 0.5,
+            arcFragments = KnotExampleRibbonArcFragments()
+        );
+}
+
+module RenderKnotMedialGraphGallery()
+{
+    RenderKnotGalleryLabel(
+        "LogoSC  MEDIAL PLANAR GRAPH KNOTS",
+        [85, 39, -1],
+        5.5
+    );
+
+    RenderKnotMedialGraphGalleryExample(
+        0,
+        [25, 4, 0],
+        -4,
+        [0.02, 0.62, 0.76]
+    );
+    RenderKnotGalleryLabel("TRIANGLE", [25, -30, -1], 3.5);
+
+    RenderKnotMedialGraphGalleryExample(
+        1,
+        [85, 4, 0],
+        4,
+        [0.98, 0.58, 0.06]
+    );
+    RenderKnotGalleryLabel("2-COMPONENT SQUARE", [85, -30, -1], 3.1);
+
+    RenderKnotMedialGraphGalleryExample(
+        2,
+        [145, 4, 0],
+        -5,
+        [0.48, 0.22, 0.76]
+    );
+    RenderKnotGalleryLabel("BRANCHING TREE", [145, -30, -1], 3.2);
+}
+
 module RenderKnotRibbonGalleryExample(
     variant,
     position,
@@ -1116,6 +1214,10 @@ else if (SelectedKnotExample == "RibbonGallery")
 else if (SelectedKnotExample == "CelticGallery")
 {
     RenderKnotCelticGallery();
+}
+else if (SelectedKnotExample == "MedialGraphGallery")
+{
+    RenderKnotMedialGraphGallery();
 }
 else if (SelectedKnotExample == "TwistGallery")
 {

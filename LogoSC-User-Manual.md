@@ -1337,7 +1337,7 @@ radius, sampling density, and fragment count that preserve clearance and surface
 Planar ribbons and controlled bundle twists are implemented; AI image import remains deferred.
 
 There is no hidden LogoSC evaluation in the generators. The torus, Lissajous, harmonic, polar,
-braid, and Celtic tile-grid
+braid, Celtic tile-grid, and medial planar-graph
 generators and `ValidateKnot()` are pure OpenSCAD functions, while `RenderKnotDebug()` and
 `RenderKnotCords()` use native OpenSCAD geometry. The planar ribbon compiler is the first knot
 stage that uses Core behind the scenes: it constructs `MakeRegion()` capsule footprints and
@@ -1352,9 +1352,9 @@ The opening Customizer sections separate scene selection from controls whose sco
 
 | `KnotExample` selection | `KnotOutput` | `KnotView` |
 |---|---|---|
-| `Unknot`, `Trefoil`, `HopfLink`, `Lissajous`, `Harmonic`, `PolarRosette Individual`, `CelticGrid`, `CrossingRecord` | Selects the individual renderer | Applies to Debug, Cord, and Bundle |
+| `Unknot`, `Trefoil`, `HopfLink`, `Lissajous`, `Harmonic`, `PolarRosette Individual`, `CelticGrid`, `MedialGraph`, `CrossingRecord` | Selects the individual renderer | Applies to Debug, Cord, and Bundle |
 | `CordGallery`, `BundleGallery`, `TwistGallery`, `LissajousGallery`, `BraidGallery`, `BraidBundleGallery`, `CelticGallery` | Ignored; the gallery has fixed cord output | Selects Planar or Spatial presentation |
-| `RosetteGallery *` | Ignored; the gallery has three fixed ribbon outputs | Ignored; this is a fixed planar scene |
+| `RosetteGallery *`, `MedialGraphGallery` | Ignored; each gallery has three fixed ribbon outputs | Ignored; these are fixed planar scenes |
 | `RibbonGallery`, `ReliefGallery`, `PlaqueGallery` | Ignored; the gallery has a fixed output | Ignored; these are fixed planar scenes |
 
 Individual Ribbon, Relief, and Plaque output also ignores `KnotView` and automatically projects
@@ -1561,6 +1561,62 @@ Customizer for the reference compiler or `FastSvgPlaque` for the approximately o
 import path. The accelerated path is the practical choice for iterative plaque work.
 
 This MVP deliberately excludes random tile filling and user-selectable boundary pairing.
+
+#### Medial planar graphs
+
+`MakeMedialGraphKnot()` creates interlace from a simple straight-line planar embedding:
+
+```scad
+graphKnot = MakeMedialGraphKnot(
+    vertices = [[0, 0], [30, 0], [30, 30], [0, 30]],
+    edges = [[0, 1], [1, 2], [2, 3], [3, 0]],
+    trackOffset = 2.5,
+    samplesPerEdge = 8,
+    samplesPerVertex = 6,
+    tolerance = 0.000001
+);
+
+ReportKnotValidation(graphKnot, strict = true);
+RenderKnotRibbons2D(
+    graphKnot,
+    ribbonWidth = 1.8,
+    crossingClearance = 0.5
+);
+```
+
+Each undirected edge creates four directed state records: two endpoints times two track sides.
+The two track centerlines run parallel near the edge endpoints and exchange sides through one
+smooth controlled crossing at the midpoint. At every vertex, incident half-edges are sorted by
+their `atan2()` angle. The left track end of one half-edge pairs with the right track end of its
+next counterclockwise neighbor; the reverse pairing uses the previous neighbor. This rotation
+system is deterministic from the supplied embedding.
+
+Following edge and vertex successor links produces closed state cycles. The reverse traversal is
+the same track viewed from the other endpoint, so those opposite-endpoint darts are marked visited
+when a component is accepted. Every original graph edge must then appear exactly twice among the
+retained cycles, supplying the two branches of one crossing record. The shared parity solver makes
+successive encounters alternate around all resulting components.
+
+Input validation requires:
+
+- at least two distinct numeric 2D vertices, all referenced by an edge;
+- nonempty, unique, undirected edge pairs with valid distinct vertex indexes;
+- no proper intersections, endpoint-on-nonincident-edge contacts, duplicate edges, or two
+  incident edges leaving a vertex along the same ray; and
+- every edge longer than four `trackOffset` values, leaving room for its localized crossing.
+
+Validation of a graph with `V` vertices and `E` edges uses direct vertex- and edge-pair checks,
+so its worst case is `O(V^2 + E^2)`. Route tracing is linear in the `4E` directed states apart
+from repeated sorting of vertex rotations. The intended first-version scale is decorative graphs,
+not very large imported meshes.
+
+The generator does not infer a planar embedding, split intersecting edges, route around obstacles,
+or guarantee that a chosen ribbon width fits an acute or high-degree vertex neighborhood. Increase
+`trackOffset`, spread the embedded edges, or reduce ribbon width when neighboring vertex arcs are
+too close. `KnotExample = "MedialGraph"` exercises all individual output modes;
+`MedialGraphGallery` shows a triangle, a two-component square, and a branching tree.
+
+![LogoSC medial planar-graph knot gallery](images/knot-medial-graph-gallery.png)
 
 #### Planar knot ribbons
 

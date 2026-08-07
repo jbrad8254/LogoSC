@@ -2621,6 +2621,825 @@ function MakeCelticTileGridKnot(
     )
     knot;
 
+// Medial planar graphs use explicit 2D vertices and undirected edge-index pairs.
+// Each edge becomes two locally crossing tracks. Cyclic angular pairing around
+// every vertex joins neighboring track ends into closed components.
+function KnotMedialVerticesAreValid(vertices, index = 0) =
+    is_list(vertices)
+    && len(vertices) >= 2
+    && (
+        index >= len(vertices)
+        || (
+            KnotPointIs2D(vertices[index])
+            && KnotMedialVerticesAreValid(vertices, index + 1)
+        )
+    );
+
+function KnotMedialVerticesAreDistinct(
+    vertices,
+    tolerance,
+    firstIndex = 0,
+    secondIndex = 1) =
+    firstIndex >= len(vertices) - 1
+    ? true
+    : secondIndex >= len(vertices)
+        ? KnotMedialVerticesAreDistinct(
+            vertices,
+            tolerance,
+            firstIndex + 1,
+            firstIndex + 2
+        )
+        : KnotPointDistance(
+            concat(vertices[firstIndex], [0]),
+            concat(vertices[secondIndex], [0])
+        ) > tolerance
+        && KnotMedialVerticesAreDistinct(
+            vertices,
+            tolerance,
+            firstIndex,
+            secondIndex + 1
+        );
+
+function KnotMedialEdgeIsValid(edge, vertexCount) =
+    is_list(edge)
+    && len(edge) == 2
+    && is_num(edge[0])
+    && is_num(edge[1])
+    && floor(edge[0]) == edge[0]
+    && floor(edge[1]) == edge[1]
+    && edge[0] >= 0
+    && edge[1] >= 0
+    && edge[0] < vertexCount
+    && edge[1] < vertexCount
+    && edge[0] != edge[1];
+
+function KnotMedialEdgesAreValid(edges, vertexCount, index = 0) =
+    is_list(edges)
+    && len(edges) > 0
+    && (
+        index >= len(edges)
+        || (
+            KnotMedialEdgeIsValid(edges[index], vertexCount)
+            && KnotMedialEdgesAreValid(edges, vertexCount, index + 1)
+        )
+    );
+
+function KnotMedialEdgesMatchUndirected(first, second) =
+    first == second
+    || (first[0] == second[1] && first[1] == second[0]);
+
+function KnotMedialEdgesAreUnique(
+    edges,
+    firstIndex = 0,
+    secondIndex = 1) =
+    firstIndex >= len(edges) - 1
+    ? true
+    : secondIndex >= len(edges)
+        ? KnotMedialEdgesAreUnique(edges, firstIndex + 1, firstIndex + 2)
+        : !KnotMedialEdgesMatchUndirected(
+            edges[firstIndex],
+            edges[secondIndex]
+        )
+        && KnotMedialEdgesAreUnique(
+            edges,
+            firstIndex,
+            secondIndex + 1
+        );
+
+function KnotMedialVertexIsUsed(edges, vertexIndex, edgeIndex = 0) =
+    edgeIndex < len(edges)
+    && (
+        edges[edgeIndex][0] == vertexIndex
+        || edges[edgeIndex][1] == vertexIndex
+        || KnotMedialVertexIsUsed(edges, vertexIndex, edgeIndex + 1)
+    );
+
+function KnotMedialAllVerticesAreUsed(
+    vertices,
+    edges,
+    vertexIndex = 0) =
+    vertexIndex >= len(vertices)
+    || (
+        KnotMedialVertexIsUsed(edges, vertexIndex)
+        && KnotMedialAllVerticesAreUsed(
+            vertices,
+            edges,
+            vertexIndex + 1
+        )
+    );
+
+function KnotMedialPointOnSegment(point, start, end, tolerance) =
+    let(
+        segment = [end[0] - start[0], end[1] - start[1]],
+        offset = [point[0] - start[0], point[1] - start[1]],
+        lengthSquared = segment[0] * segment[0]
+            + segment[1] * segment[1],
+        projection = offset[0] * segment[0]
+            + offset[1] * segment[1]
+    )
+    lengthSquared > tolerance * tolerance
+    && abs(KnotCross2D(segment, offset))
+        <= tolerance * sqrt(lengthSquared)
+    && projection >= -tolerance * sqrt(lengthSquared)
+    && projection <= lengthSquared + tolerance * sqrt(lengthSquared);
+
+function KnotMedialEdgesShareVertex(first, second) =
+    first[0] == second[0]
+    || first[0] == second[1]
+    || first[1] == second[0]
+    || first[1] == second[1];
+
+function KnotMedialSharedVertex(first, second) =
+    first[0] == second[0] || first[0] == second[1]
+    ? first[0]
+    : first[1];
+
+function KnotMedialOtherVertex(edge, vertexIndex) =
+    edge[0] == vertexIndex ? edge[1] : edge[0];
+
+function KnotMedialIncidentEdgesOverlap(
+    vertices,
+    first,
+    second,
+    tolerance) =
+    let(
+        shared = KnotMedialSharedVertex(first, second),
+        firstOther = KnotMedialOtherVertex(first, shared),
+        secondOther = KnotMedialOtherVertex(second, shared),
+        firstVector = [
+            vertices[firstOther][0] - vertices[shared][0],
+            vertices[firstOther][1] - vertices[shared][1]
+        ],
+        secondVector = [
+            vertices[secondOther][0] - vertices[shared][0],
+            vertices[secondOther][1] - vertices[shared][1]
+        ],
+        lengthProduct = sqrt(
+            (firstVector[0] * firstVector[0]
+                + firstVector[1] * firstVector[1])
+            * (secondVector[0] * secondVector[0]
+                + secondVector[1] * secondVector[1])
+        )
+    )
+    abs(KnotCross2D(firstVector, secondVector))
+        <= tolerance * lengthProduct
+    && firstVector[0] * secondVector[0]
+        + firstVector[1] * secondVector[1] > 0;
+
+function KnotMedialNonincidentEdgesConflict(
+    vertices,
+    first,
+    second,
+    tolerance) =
+    let(
+        firstStart = vertices[first[0]],
+        firstEnd = vertices[first[1]],
+        secondStart = vertices[second[0]],
+        secondEnd = vertices[second[1]]
+    )
+    !is_undef(KnotProperSegmentIntersection(
+        firstStart,
+        firstEnd,
+        secondStart,
+        secondEnd,
+        tolerance
+    ))
+    || KnotMedialPointOnSegment(
+        firstStart,
+        secondStart,
+        secondEnd,
+        tolerance
+    )
+    || KnotMedialPointOnSegment(
+        firstEnd,
+        secondStart,
+        secondEnd,
+        tolerance
+    )
+    || KnotMedialPointOnSegment(
+        secondStart,
+        firstStart,
+        firstEnd,
+        tolerance
+    )
+    || KnotMedialPointOnSegment(
+        secondEnd,
+        firstStart,
+        firstEnd,
+        tolerance
+    );
+
+function KnotMedialEdgePairsArePlanar(
+    vertices,
+    edges,
+    tolerance,
+    firstIndex = 0,
+    secondIndex = 1) =
+    firstIndex >= len(edges) - 1
+    ? true
+    : secondIndex >= len(edges)
+        ? KnotMedialEdgePairsArePlanar(
+            vertices,
+            edges,
+            tolerance,
+            firstIndex + 1,
+            firstIndex + 2
+        )
+        : !(
+            KnotMedialEdgesShareVertex(
+                edges[firstIndex],
+                edges[secondIndex]
+            )
+            ? KnotMedialIncidentEdgesOverlap(
+                vertices,
+                edges[firstIndex],
+                edges[secondIndex],
+                tolerance
+            )
+            : KnotMedialNonincidentEdgesConflict(
+                vertices,
+                edges[firstIndex],
+                edges[secondIndex],
+                tolerance
+            )
+        )
+        && KnotMedialEdgePairsArePlanar(
+            vertices,
+            edges,
+            tolerance,
+            firstIndex,
+            secondIndex + 1
+        );
+
+function KnotMedialGraphIsValid(
+    vertices,
+    edges,
+    tolerance = 0.000001) =
+    is_num(tolerance)
+    && tolerance > 0
+    && KnotMedialVerticesAreValid(vertices)
+    && KnotMedialVerticesAreDistinct(vertices, tolerance)
+    && KnotMedialEdgesAreValid(edges, len(vertices))
+    && KnotMedialEdgesAreUnique(edges)
+    && KnotMedialAllVerticesAreUsed(vertices, edges)
+    && KnotMedialEdgePairsArePlanar(vertices, edges, tolerance);
+
+function KnotMedialEdgeLength(vertices, edge) =
+    KnotPointDistance(
+        concat(vertices[edge[0]], [0]),
+        concat(vertices[edge[1]], [0])
+    );
+
+function KnotMedialEdgesFitTrackOffset(
+    vertices,
+    edges,
+    trackOffset,
+    tolerance,
+    edgeIndex = 0) =
+    edgeIndex >= len(edges)
+    || (
+        KnotMedialEdgeLength(vertices, edges[edgeIndex])
+            > 4 * trackOffset + tolerance
+        && KnotMedialEdgesFitTrackOffset(
+            vertices,
+            edges,
+            trackOffset,
+            tolerance,
+            edgeIndex + 1
+        )
+    );
+
+function KnotMedialStateId(edgeIndex, endpointIndex, side) =
+    edgeIndex * 4 + endpointIndex * 2 + side;
+
+function KnotMedialStateEdge(stateId) = floor(stateId / 4);
+function KnotMedialStateEndpoint(stateId) = floor(stateId / 2) % 2;
+function KnotMedialStateSide(stateId) = stateId % 2;
+
+function KnotMedialOtherEndpointState(stateId) =
+    KnotMedialStateId(
+        KnotMedialStateEdge(stateId),
+        1 - KnotMedialStateEndpoint(stateId),
+        KnotMedialStateSide(stateId)
+    );
+
+function KnotMedialOppositeSideState(stateId) =
+    KnotMedialStateId(
+        KnotMedialStateEdge(stateId),
+        KnotMedialStateEndpoint(stateId),
+        1 - KnotMedialStateSide(stateId)
+    );
+
+function KnotMedialStateVertex(edges, stateId) =
+    edges[KnotMedialStateEdge(stateId)][
+        KnotMedialStateEndpoint(stateId)
+    ];
+
+function KnotMedialHalfEdgeRecord(vertices, edges, edgeIndex, endpointIndex) =
+    let(
+        edge = edges[edgeIndex],
+        vertexIndex = edge[endpointIndex],
+        otherIndex = edge[1 - endpointIndex],
+        delta = [
+            vertices[otherIndex][0] - vertices[vertexIndex][0],
+            vertices[otherIndex][1] - vertices[vertexIndex][1]
+        ]
+    )
+    [atan2(delta[1], delta[0]), edgeIndex, endpointIndex];
+
+function KnotMedialIncidentHalfEdges(vertices, edges, vertexIndex) =
+    KnotSortParameterEvents([
+        for (edgeIndex = [0 : len(edges) - 1])
+            each concat(
+                edges[edgeIndex][0] == vertexIndex
+                ? [KnotMedialHalfEdgeRecord(
+                    vertices,
+                    edges,
+                    edgeIndex,
+                    0
+                )]
+                : [],
+                edges[edgeIndex][1] == vertexIndex
+                ? [KnotMedialHalfEdgeRecord(
+                    vertices,
+                    edges,
+                    edgeIndex,
+                    1
+                )]
+                : []
+            )
+    ]);
+
+function KnotMedialHalfEdgeIndex(
+    halfEdges,
+    edgeIndex,
+    endpointIndex,
+    index = 0) =
+    index >= len(halfEdges)
+    ? -1
+    : halfEdges[index][1] == edgeIndex
+        && halfEdges[index][2] == endpointIndex
+        ? index
+        : KnotMedialHalfEdgeIndex(
+            halfEdges,
+            edgeIndex,
+            endpointIndex,
+            index + 1
+        );
+
+function KnotMedialVertexPartnerState(vertices, edges, stateId) =
+    let(
+        vertexIndex = KnotMedialStateVertex(edges, stateId),
+        halfEdges = KnotMedialIncidentHalfEdges(
+            vertices,
+            edges,
+            vertexIndex
+        ),
+        halfEdgeIndex = KnotMedialHalfEdgeIndex(
+            halfEdges,
+            KnotMedialStateEdge(stateId),
+            KnotMedialStateEndpoint(stateId)
+        ),
+        partnerIndex = KnotMedialStateSide(stateId) == 0
+            ? (halfEdgeIndex + 1) % len(halfEdges)
+            : (halfEdgeIndex + len(halfEdges) - 1) % len(halfEdges),
+        partner = halfEdges[partnerIndex]
+    )
+    assert(halfEdgeIndex >= 0, "Medial state is absent from its vertex rotation.")
+    KnotMedialStateId(
+        partner[1],
+        partner[2],
+        1 - KnotMedialStateSide(stateId)
+    );
+
+function KnotMedialSuccessorState(vertices, edges, stateId) =
+    KnotMedialVertexPartnerState(
+        vertices,
+        edges,
+        KnotMedialOtherEndpointState(stateId)
+    );
+
+function KnotMedialTraceCycle(
+    vertices,
+    edges,
+    startState,
+    currentState,
+    cycle = [],
+    limit = 0) =
+    len(cycle) > 0 && currentState == startState
+    ? cycle
+    : assert(
+        len(cycle) < limit,
+        "Medial graph route did not close within its state count."
+    )
+    KnotMedialTraceCycle(
+        vertices,
+        edges,
+        startState,
+        KnotMedialSuccessorState(vertices, edges, currentState),
+        concat(cycle, [currentState]),
+        limit
+    );
+
+function KnotMedialFirstUnvisitedState(
+    stateCount,
+    visited,
+    stateId = 0) =
+    stateId >= stateCount
+    ? undef
+    : KnotListContains(visited, stateId)
+        ? KnotMedialFirstUnvisitedState(
+            stateCount,
+            visited,
+            stateId + 1
+        )
+        : stateId;
+
+function KnotMedialTraceCycles(
+    vertices,
+    edges,
+    visited = [],
+    cycles = []) =
+    let(
+        stateCount = len(edges) * 4,
+        startState = KnotMedialFirstUnvisitedState(
+            stateCount,
+            visited
+        )
+    )
+    is_undef(startState)
+    ? cycles
+    : let(
+        cycle = KnotMedialTraceCycle(
+            vertices,
+            edges,
+            startState,
+            startState,
+            [],
+            stateCount + 1
+        ),
+        reverseStates = [
+            for (stateId = cycle)
+                KnotMedialOtherEndpointState(stateId)
+        ]
+    )
+    KnotMedialTraceCycles(
+        vertices,
+        edges,
+        concat(visited, cycle, reverseStates),
+        concat(cycles, [cycle])
+    );
+
+function KnotMedialStateDirection(vertices, edges, stateId) =
+    let(
+        edge = edges[KnotMedialStateEdge(stateId)],
+        endpoint = KnotMedialStateEndpoint(stateId),
+        start = vertices[edge[endpoint]],
+        end = vertices[edge[1 - endpoint]]
+    )
+    KnotVectorNormalize([
+        end[0] - start[0],
+        end[1] - start[1],
+        0
+    ]);
+
+function KnotMedialStatePoint(
+    vertices,
+    edges,
+    stateId,
+    trackOffset) =
+    let(
+        vertex = vertices[KnotMedialStateVertex(edges, stateId)],
+        direction = KnotMedialStateDirection(vertices, edges, stateId),
+        normal = [-direction[1], direction[0], 0],
+        sign = KnotMedialStateSide(stateId) == 0 ? 1 : -1
+    )
+    [
+        vertex[0] + sign * trackOffset * normal[0],
+        vertex[1] + sign * trackOffset * normal[1],
+        0
+    ];
+
+function KnotMedialEdgePoint(
+    vertices,
+    edges,
+    stateId,
+    trackOffset,
+    blend) =
+    let(
+        start = KnotMedialStatePoint(
+            vertices,
+            edges,
+            stateId,
+            trackOffset
+        ),
+        end = KnotMedialStatePoint(
+            vertices,
+            edges,
+            KnotMedialOtherEndpointState(stateId),
+            trackOffset
+        ),
+        direction = KnotMedialStateDirection(vertices, edges, stateId),
+        normal = [-direction[1], direction[0], 0],
+        sign = KnotMedialStateSide(stateId) == 0 ? 1 : -1,
+        center = [
+            (start[0] + end[0]) / 2,
+            (start[1] + end[1]) / 2,
+            0
+        ],
+        before = KnotVectorAdd(
+            KnotVectorSubtract(
+                center,
+                KnotVectorScale(direction, trackOffset)
+            ),
+            KnotVectorScale(normal, sign * trackOffset)
+        ),
+        after = KnotVectorSubtract(
+            KnotVectorAdd(
+                center,
+                KnotVectorScale(direction, trackOffset)
+            ),
+            KnotVectorScale(normal, sign * trackOffset)
+        )
+    )
+    blend <= 0.5
+    ? KnotCelticQuadraticPoint(start, before, center, blend * 2)
+    : KnotCelticQuadraticPoint(
+        center,
+        after,
+        end,
+        (blend - 0.5) * 2
+    );
+
+function KnotMedialCubicPoint(start, controlA, controlB, end, blend) =
+    let(inverse = 1 - blend)
+    KnotVectorAdd(
+        KnotVectorAdd(
+            KnotVectorScale(start, inverse * inverse * inverse),
+            KnotVectorScale(
+                controlA,
+                3 * inverse * inverse * blend
+            )
+        ),
+        KnotVectorAdd(
+            KnotVectorScale(
+                controlB,
+                3 * inverse * blend * blend
+            ),
+            KnotVectorScale(end, blend * blend * blend)
+        )
+    );
+
+function KnotMedialVertexPoint(
+    vertices,
+    edges,
+    stateId,
+    trackOffset,
+    blend) =
+    let(
+        arrivalState = KnotMedialOtherEndpointState(stateId),
+        nextState = KnotMedialVertexPartnerState(
+            vertices,
+            edges,
+            arrivalState
+        ),
+        start = KnotMedialStatePoint(
+            vertices,
+            edges,
+            arrivalState,
+            trackOffset
+        ),
+        end = KnotMedialStatePoint(
+            vertices,
+            edges,
+            nextState,
+            trackOffset
+        ),
+        arrivalDirection = KnotVectorScale(
+            KnotMedialStateDirection(vertices, edges, arrivalState),
+            -1
+        ),
+        departureDirection = KnotMedialStateDirection(
+            vertices,
+            edges,
+            nextState
+        ),
+        handle = trackOffset * 0.75,
+        controlA = KnotVectorAdd(
+            start,
+            KnotVectorScale(arrivalDirection, handle)
+        ),
+        controlB = KnotVectorSubtract(
+            end,
+            KnotVectorScale(departureDirection, handle)
+        )
+    )
+    KnotMedialCubicPoint(
+        start,
+        controlA,
+        controlB,
+        end,
+        blend
+    );
+
+function KnotMedialCycleSamples(
+    vertices,
+    edges,
+    cycle,
+    trackOffset,
+    samplesPerEdge,
+    samplesPerVertex) =
+    concat(
+        [
+            for (stateId = cycle)
+                each concat(
+                    [
+                        for (sampleIndex = [0 : samplesPerEdge - 1])
+                            KnotMedialEdgePoint(
+                                vertices,
+                                edges,
+                                stateId,
+                                trackOffset,
+                                sampleIndex / samplesPerEdge
+                            )
+                    ],
+                    [
+                        for (sampleIndex = [0 : samplesPerVertex - 1])
+                            KnotMedialVertexPoint(
+                                vertices,
+                                edges,
+                                stateId,
+                                trackOffset,
+                                sampleIndex / samplesPerVertex
+                            )
+                    ]
+                )
+        ],
+        [KnotMedialEdgePoint(
+            vertices,
+            edges,
+            cycle[0],
+            trackOffset,
+            0
+        )]
+    );
+
+function KnotMedialEdgeOwners(cycles, edgeIndex) =
+[
+    for (strandIndex = [0 : len(cycles) - 1])
+        for (stateIndex = [0 : len(cycles[strandIndex]) - 1])
+            if (
+                KnotMedialStateEdge(
+                    cycles[strandIndex][stateIndex]
+                ) == edgeIndex
+            )
+                [strandIndex, stateIndex]
+];
+
+function KnotMedialEdgeCrossing(
+    vertices,
+    edges,
+    cycles,
+    edgeIndex,
+    samplesPerEdge,
+    samplesPerVertex) =
+    let(
+        edge = edges[edgeIndex],
+        owners = KnotMedialEdgeOwners(cycles, edgeIndex)
+    )
+    assert(
+        len(owners) == 2,
+        "Every medial graph edge must contribute exactly two crossing branches."
+    )
+    let(
+        stride = samplesPerEdge + samplesPerVertex,
+        firstSegmentCount = len(cycles[owners[0][0]]) * stride,
+        secondSegmentCount = len(cycles[owners[1][0]]) * stride,
+        firstParameter = (
+            owners[0][1] * stride + samplesPerEdge / 2
+        ) / firstSegmentCount,
+        secondParameter = (
+            owners[1][1] * stride + samplesPerEdge / 2
+        ) / secondSegmentCount
+    )
+    MakeKnotCrossing(
+        [
+            (vertices[edge[0]][0] + vertices[edge[1]][0]) / 2,
+            (vertices[edge[0]][1] + vertices[edge[1]][1]) / 2
+        ],
+        owners[0][0],
+        firstParameter,
+        owners[1][0],
+        secondParameter,
+        owners[0][0],
+        "A"
+    );
+
+function KnotMedialGraphCrossings(
+    vertices,
+    edges,
+    cycles,
+    samplesPerEdge,
+    samplesPerVertex) =
+[
+    for (edgeIndex = [0 : len(edges) - 1])
+        KnotMedialEdgeCrossing(
+            vertices,
+            edges,
+            cycles,
+            edgeIndex,
+            samplesPerEdge,
+            samplesPerVertex
+        )
+];
+
+// Convert a straight-line embedded planar graph into closed medial knot routes.
+// Vertices are [[x,y], ...]; edges are unique undirected [vertexA,vertexB] pairs.
+function MakeMedialGraphKnot(
+    vertices,
+    edges,
+    trackOffset = 2.5,
+    samplesPerEdge = 8,
+    samplesPerVertex = 6,
+    tolerance = 0.000001) =
+    assert(
+        KnotMedialGraphIsValid(vertices, edges, tolerance),
+        "Medial graph must be a simple planar straight-line embedding with every vertex used."
+    )
+    assert(
+        is_num(trackOffset) && trackOffset > 0,
+        "Medial graph track offset must be positive."
+    )
+    assert(
+        is_num(samplesPerEdge)
+        && floor(samplesPerEdge) == samplesPerEdge
+        && samplesPerEdge >= 4
+        && samplesPerEdge % 2 == 0,
+        "Medial edge samples must be an even integer of at least 4."
+    )
+    assert(
+        is_num(samplesPerVertex)
+        && floor(samplesPerVertex) == samplesPerVertex
+        && samplesPerVertex >= 2,
+        "Medial vertex samples must be an integer of at least 2."
+    )
+    assert(
+        KnotMedialEdgesFitTrackOffset(
+            vertices,
+            edges,
+            trackOffset,
+            tolerance
+        ),
+        "Every medial graph edge must be longer than four track offsets."
+    )
+    let(
+        cycles = KnotMedialTraceCycles(vertices, edges),
+        crossings = KnotMedialGraphCrossings(
+            vertices,
+            edges,
+            cycles,
+            samplesPerEdge,
+            samplesPerVertex
+        ),
+        strands = [
+            for (strandIndex = [0 : len(cycles) - 1])
+                MakeKnotStrand(
+                    true,
+                    KnotMedialCycleSamples(
+                        vertices,
+                        edges,
+                        cycles[strandIndex],
+                        trackOffset,
+                        samplesPerEdge,
+                        samplesPerVertex
+                    ),
+                    KnotBraidComponentEncounters(
+                        crossings,
+                        strandIndex
+                    ),
+                    metadata = [
+                        "generator", "medialPlanarGraph",
+                        "component", strandIndex,
+                        "stateCycle", cycles[strandIndex]
+                    ]
+                )
+        ],
+        provisional = MakeKnot(
+            strands,
+            crossings,
+            [
+                "generator", "medialPlanarGraph",
+                "vertices", vertices,
+                "edges", edges,
+                "trackOffset", trackOffset,
+                "samplesPerEdge", samplesPerEdge,
+                "samplesPerVertex", samplesPerVertex,
+                "crossingPolicy", "alternatingParity"
+            ]
+        )
+    )
+    AssignKnotAlternatingCrossings(provisional);
+
 function KnotBundleOccupiedWidth(cordCount, cordRadius, cordGap = 0) =
     assert(
         is_num(cordCount) && floor(cordCount) == cordCount && cordCount > 0,

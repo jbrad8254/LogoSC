@@ -102,6 +102,7 @@
 - [L-system, knot, and release sequence](#2026-08-03--l-system-knot-and-release-sequence)
 - [Optional L-system companion](#2026-08-03--optional-l-system-companion)
 - [C++ knot topology and SVG compiler](#2026-08-06--c-knot-topology-and-svg-compiler)
+- [Medial planar-graph knot generator](#2026-08-06--medial-planar-graph-knot-generator)
 - [2026.7 release preparation](#2026-07-31--20267-celtic-and-publishing-release-preparation)
 - [2026.7 publication checkpoint](#2026-08-01--20267-publication-and-tag-alignment-checkpoint)
 - [Journal-entry template](#yyyy-mm-dd--topic)
@@ -681,13 +682,11 @@ The active sequence is:
 1. **L-system companion — development complete:** the reusable expansion and interpretation
    layer, nine presets, deterministic tests, 3-by-3 gallery, and public documentation are implemented.
    Distribution integration remains deferred until explicitly authorized.
-2. **Knot completion — next:** the C++ text-to-grid generator and generated-plaque bridge are
-   implemented. Complete the accelerated topology and finished-SVG stages plus the agreed
-   remaining generator milestones in `LogoSC-Knots-Design.md`, then either implement or explicitly
-   defer each residual collision, closure, Celtic, ribbon, export, and presentation item.
-   Compatible generated knot records and pre-resolved SVG ribbons remain optional and are not
-   required to complete the current OpenSCAD release. Knot topology and manufacturing remain
-   outside Core.
+2. **Knot completion — audit next:** the C++ topology/SVG accelerator and all planned OpenSCAD
+   generators, including medial planar graphs, are implemented. Explicitly implement or defer
+   each residual collision, closure, Celtic, ribbon, export, and presentation item, then run the
+   complete knot acceptance wall. The accelerator remains optional; knot topology and
+   manufacturing remain outside Core.
 3. **Release:** after both milestones pass their focused suites and the complete acceptance wall,
    synchronize distribution documentation, package manifests, release notes, version references,
    images, and reproducible archives for the next release.
@@ -4177,6 +4176,47 @@ Verification:
   C++/OpenSCAD route-and-crossing parity, accelerated CSG and preview, and a complete CGAL STL
   export before treating vector output as printable.
 
+### 2026-08-06 — Medial planar-graph knot generator
+
+Context:
+
+- Medial planar graphs were the last named generator in the knot roadmap. Unlike Celtic tile
+  grids, they need an explicit geometric embedding and vertex rotation order rather than a fixed
+  four-port lattice.
+- The public boundary needed to be deterministic and inspectable without pretending OpenSCAD is a
+  general graph-planarization or obstacle-routing engine.
+
+Decision:
+
+- Add `MakeMedialGraphKnot()` for numeric 2D vertices and unique undirected edge-index pairs.
+  Validate the simple straight-line embedding before constructing routes.
+- Give each graph edge two tracks and one localized midpoint crossing. Sort incident half-edges
+  by embedded angle, pair neighboring track ends cyclically around each vertex, and trace the
+  resulting state permutation into closed components.
+- Remove reverse traversal duplicates by marking the same track at its opposite endpoint, then
+  require exactly two retained branch owners per original edge. Apply the established alternating
+  parity solver rather than introducing graph-specific crossing semantics.
+- Use paired quadratic edge halves for tangent-matched crossings and cubic vertex connectors
+  aligned with arrival and departure edges. Keep acute-angle and high-degree clearance a caller
+  responsibility in this first version.
+
+Failure and correction:
+
+- The first reverse-route implementation marked the opposite side at the same endpoint. The
+  one-edge fixture passed, but a triangle failed because some edges no longer had two crossing
+  owners. The reverse dart is the same side at the opposite endpoint. This is now guarded by path,
+  triangle, square, and branching fixtures plus the exact two-owner assertion.
+
+Verification:
+
+- Add nine deterministic tests for graph/edge validation, rejected intersections and overlapping
+  rays, state transitions, reverse suppression, crossing geometry, component/sample counts,
+  closure, alternation, record validation, and metadata. The knot suite now has 122 results.
+- Add `MedialGraph` individual output and a fixed ribbon gallery containing a triangular cycle,
+  two-component square, and branching tree. CSG measurements on RAINBOW were approximately 0.69
+  seconds for the individual plaque and 0.80 seconds for the gallery, below the warning threshold.
+- Generate and inspect the top-down gallery image from the actual OpenSCAD geometry.
+
 ### 2026-08-06 — OpenSCAD features that support AI-assisted graphics development
 
 Purpose:
@@ -4450,6 +4490,7 @@ artifact. Design the app so none of those steps requires a human to click the ca
   [C++ and SVG accelerator](#2026-08-05--planned-c-knot-compiler-and-svg-acceleration),
   [C++ grid generator and plaque bridge](#2026-08-06--c-text-to-celtic-grid-generator-and-plaque-bridge),
   [C++ topology and SVG compiler](#2026-08-06--c-knot-topology-and-svg-compiler),
+  [medial planar graphs](#2026-08-06--medial-planar-graph-knot-generator),
   [Lissajous knot](#2026-08-05--spatial-lissajous-knot-and-crossing-discovery),
   [polar rosettes](#2026-08-06--polar-rosette-knot-generator),
   [128-by-32 LogoSC stress scene](#2026-08-06--native-glyph-128-by-32-celtic-logosc-stress-scene),

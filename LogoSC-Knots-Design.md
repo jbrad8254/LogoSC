@@ -33,9 +33,9 @@
 This is the authoritative design plan for generative knot work in LogoSC. It covers organic or
 Gordian-style parametric knots and traditional Celtic interlace. The torus, circular-braid, and
 explicit Celtic tile-grid generators, single-cord manufacturing, and controlled integer
-half-turn bundle twists are implemented. Planar ribbon footprints and underpass masks are also
-implemented; printable beveled bas-relief plaques are implemented from those regions; later
-milestones remain proposals until their APIs are reviewed.
+half-turn bundle twists are implemented. Medial planar-graph interlace, planar ribbon footprints,
+underpass masks, and printable beveled bas-relief plaques are also implemented. The remaining
+work is the explicit completion/defer audit described below.
 
 LogoSC remains a 2D filled-region evaluator. A future optional companion may use LogoSC for
 planar routes, ribbon footprints, masks, local transforms, and repeated motifs. Native OpenSCAD
@@ -70,24 +70,26 @@ remains responsible for extrusion, hulls, Minkowski operations, booleans, and 3D
 - `MakeCelticTileGridKnot()`, validating three four-port tiles plus canonical blank cells,
   closing independent exterior and void boundaries, tracing components, removing reverse
   duplicates, and enforcing alternating crossings;
+- `MakeMedialGraphKnot()`, validating straight-line planar embeddings, doubling edges into
+  controlled crossing tracks, joining angular neighbors at vertices, tracing components, and
+  assigning alternating crossings;
 - `KnotRibbonRegions()` and `RenderKnotRibbons2D()`, compiling planar samples into Core region
   capsules with crossing-local masks and restored overpass footprints;
 - `RenderKnotBasRelief()` and `RenderKnotBasReliefPlaque()`, extruding corrected ribbon
   footprints, raising crossing overpasses, and adding optional beveled backing plates;
 - selectable planar-projection and spatial views across diagnostics, cords, bundles, and
   presentation galleries;
-- a dedicated 113-result automated suite plus topology, bundle, twisted-bundle, braid,
-  braided-bundle, Celtic tile-grid, ribbon, relief, and plaque presentation galleries.
+- a dedicated 122-result automated suite plus topology, bundle, twisted-bundle, braid,
+  braided-bundle, Celtic tile-grid, medial-graph, ribbon, relief, and plaque presentation galleries.
 
 This slice deliberately does not implement general collision discovery, tight-curve rejection,
 or AI image import. Callers must select dimensions and sampling appropriate for the route.
 Reserved strand fields and metadata allow later milestones to extend the representation without
 changing its established leading fields.
 
-The remaining knot milestone is scheduled immediately after the optional L-system companion and
-before the next release. “Finish” means completing the agreed remaining generators and making an
-explicit implement-or-defer decision for every residual item below; it does not require pulling
-knot-specific behavior into Core.
+The planned knot generators are now implemented. The remaining knot milestone before the next
+release is a completion audit: make an explicit implement-or-defer decision for every residual
+item below, synchronize tests and galleries, and keep knot-specific behavior outside Core.
 
 ## How LogoSC is used
 
@@ -99,7 +101,7 @@ The present execution path is:
 
 ```text
 MakeTorusKnot(), MakeLissajousKnot(), MakeHarmonicKnot(), MakePolarRosetteKnot(),
-MakeCircularBraidKnot(), or MakeCelticTileGridKnot()
+MakeCircularBraidKnot(), MakeCelticTileGridKnot(), or MakeMedialGraphKnot()
   -> pure OpenSCAD functions calculate sampled strand and crossing records
   -> ValidateKnot() checks those records without producing geometry
   -> RenderKnotDebug() uses native color(), translate(), sphere(), and hull()
@@ -756,7 +758,7 @@ samples.
 
 ## Generator 6: medial planar graphs
 
-A general Celtic construction can begin with a planar graph:
+A general Celtic construction now begins with an explicit straight-line planar graph:
 
 1. duplicate every edge into two parallel tracks;
 2. connect neighboring tracks cyclically around vertices;
@@ -764,8 +766,44 @@ A general Celtic construction can begin with a planar graph:
 4. assign alternating crossings;
 5. smooth routes into line and arc samples.
 
-This can turn grids, trees, or user-authored networks into knotwork. It is more general than
-tiles but requires robust graph embedding and validation, so it is deliberately later work.
+`MakeMedialGraphKnot(vertices, edges, trackOffset, samplesPerEdge,
+samplesPerVertex, tolerance)` implements this boundary. Vertices are numeric `[x,y]` points;
+edges are unique undirected pairs of vertex indexes. The function rejects duplicate or unused
+vertices, malformed or duplicate edges, nonincident intersections and contacts, and incident
+edges that leave one vertex along the same ray. Each edge must be longer than four track offsets.
+
+Every edge contributes four directed states: two endpoints times two sides. Traversing an edge
+keeps the side identifier while the endpoint direction reverses, so the physical track changes
+sides through a localized quadratic midpoint crossing. At the destination vertex, half-edges are
+sorted by `atan2()` angle. Side zero pairs with side one of the next counterclockwise half-edge;
+side one pairs with side zero of the previous half-edge. This is an involution at the vertex and
+therefore closes the combined edge/vertex successor relation into cycles.
+
+The route tracer accepts one cycle and marks both its states and their opposite-endpoint darts as
+visited. The latter are the reverse traversal of the same geometry. Each original graph edge must
+then have exactly two retained state owners; they become branches A and B of a crossing at the
+edge midpoint. Edge samples use paired quadratics so both branches share their crossing point and
+retain matching tangents through it. Vertex joins use cubic curves with arrival and departure
+controls aligned to their incident edges. The ordinary alternating-parity solver assigns final
+over/under records.
+
+The first reverse-route probe mistakenly marked the opposite *side* at the same endpoint as the
+reverse dart. That worked for the one-edge fixture but failed immediately on a triangle because
+some edges then had fewer than two retained crossing owners. The correct reverse dart is the same
+side at the opposite endpoint. Preserve path, triangle, square, and branching fixtures together;
+a one-edge smoke test alone cannot detect this combinatorial error.
+
+Direct validation compares vertex pairs and edge pairs, giving worst-case `O(V^2 + E^2)` time
+and `O(E)` route storage for `V` vertices and `E` edges. Route tracing visits `4E` states, though
+the OpenSCAD implementation repeatedly constructs and sorts local vertex rotations. This is
+appropriate for small decorative graphs. It is not a graph-planarization system: it does not
+infer embeddings, split crossings, route around obstacles, or guarantee clearance for arbitrary
+ribbon widths at acute or high-degree vertices. Those cases require a better embedding, larger
+track offset, or narrower output.
+
+The presentation gallery covers a triangular cycle, a square that closes into two components,
+and a degree-three branching tree. All remain under the three-second Customizer warning threshold
+on RAINBOW.
 
 ## Over/under assignment
 
@@ -1326,6 +1364,8 @@ Tests should cover:
 - torus closure, sample counts, and component count from `gcd(p,q)`;
 - braid lane exchange, signed over/under, and closure permutation;
 - Celtic tile port matching, strand tracing, and open-port rejection;
+- medial-graph embedding validation, angular vertex pairing, reverse-route suppression,
+  component/crossing counts, closure, and alternation;
 - deterministic harmonic samples;
 - crossing records and duplicate suppression;
 - alternating-parity success and contradiction detection;
@@ -1381,8 +1421,12 @@ links where supported by the selected generator.
    - Polar rosettes with two radial harmonics, angular winding, alternating crossings, tests,
      an individual example, and a three-medallion ribbon gallery are complete.
    - Duplicate merging near vertices and explicit crossing overrides remain deferred.
-7. **Medial planar graphs**
-   - Generalize Celtic construction after tile topology is stable.
+7. **Medial planar graphs** — implemented
+   - Explicit straight-line embeddings, edge-pair validation, angular vertex rotations, doubled
+     track crossings, reverse-route suppression, closed components, alternating assignment,
+     focused tests, individual output, and a three-design ribbon gallery are complete.
+   - Automatic graph planarization, obstacle routing, and high-degree clearance guarantees remain
+     deliberately outside the first public boundary.
 8. **External C++ knot compiler and SVG acceleration** — implemented
    - The C++20/CMake executable generates or validates grids, compiles indexed topology, writes
      compatible `.scad` knot records, and emits finished interlaced SVG ribbon geometry.

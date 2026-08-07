@@ -32,7 +32,7 @@ LogoSC is not trying to be a full Logo language. It is a lightweight OpenSCAD ge
 - Provides optional path analysis and validation without changing filled-region rendering.
 - Provides an optional sampled-knot companion with structural validation, debug rendering,
   torus knots or links, circular braids, Celtic grids, spatial Lissajous knots, planar
-  harmonics, and polar-rosette medallions with discovered projected crossings.
+  harmonics, polar-rosette medallions, and medial planar-graph interlace with recorded crossings.
 - Leaves 3D composition to native OpenSCAD tools such as `linear_extrude()`, `difference()`, `union()`, and `translate()`.
 
 ## Engineering guidance and restart order
@@ -434,6 +434,37 @@ Customizer's `GeneratedPlaque **` scene retains the reference OpenSCAD path; `Fa
 imports the pre-resolved SVG into a printable plaque in about one second for CSG or preview on
 RAINBOW.
 
+### Generate knotwork from a planar graph
+
+`MakeMedialGraphKnot()` converts an explicit straight-line planar graph into Celtic-style
+interlace. Vertices are 2D points and edges are undirected pairs of vertex indexes:
+
+```scad
+graphKnot = MakeMedialGraphKnot(
+    vertices = [[0, 0], [30, 0], [30, 30], [0, 30]],
+    edges = [[0, 1], [1, 2], [2, 3], [3, 0]],
+    trackOffset = 2.5,
+    samplesPerEdge = 8,
+    samplesPerVertex = 6
+);
+
+ReportKnotValidation(graphKnot, strict = true);
+RenderKnotRibbons2D(graphKnot, ribbonWidth = 1.8, crossingClearance = 0.5);
+```
+
+Every graph edge becomes two tracks with one controlled midpoint crossing. Around each vertex,
+the generator sorts incident edges by embedded angle and joins neighboring track ends cyclically.
+It traces the resulting permutation into independently closed components, removes reverse-route
+duplicates, and applies the shared alternating-parity solver. Malformed edges, unused or duplicate
+vertices, duplicate edges, nonincident intersections, and ambiguous overlapping rays are rejected.
+
+![LogoSC medial planar-graph knot gallery](images/knot-medial-graph-gallery.png)
+
+Choose `MedialGraph` for individual Debug, Cord, Bundle, Ribbon, Relief, or Plaque output and
+`MedialGraphGallery` for triangle, two-component square, and branching-tree ribbon examples.
+This first version assumes a simple straight-line embedding with enough edge length and angular
+clearance for the selected track offset and ribbon width.
+
 ### Render planar knot ribbons
 
 Project a knot before compiling its sampled segments into LogoSC regions:
@@ -701,12 +732,12 @@ plant, Lévy C, Gosper, and canopy presets without adding Core opcodes.
 ## Near-term roadmap
 
 1. **L-system development complete:** the optional companion now has a reusable
-   expansion/interpreter boundary, six presets, focused tests, examples, and documentation.
+   expansion/interpreter boundary, nine presets, focused tests, examples, and documentation.
    Distribution integration remains deliberately deferred.
-2. **Next:** finish the planned knot-companion work. The C++ text-to-grid preprocessor and
-   OpenSCAD generated-plaque bridge are implemented; the accelerated topology compiler and
-   finished interlaced SVG output remain. Complete or explicitly defer the other residual
-   manufacturing and topology items, and keep all knot logic outside Core.
+2. **Next:** audit the completed knot-generator milestone. The planned OpenSCAD generators and
+   optional C++ topology/SVG accelerator are implemented; complete or explicitly defer the
+   residual collision, closure, manufacturing, export, and presentation items, and keep all knot
+   logic outside Core.
 3. Prepare and publish the next release only after the L-system and knot milestones form one
    coherent, fully verified change set.
 

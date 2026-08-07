@@ -1164,6 +1164,161 @@ function KnotCelticTestResults() =
     )
 ];
 
+function KnotMedialGraphTestResults() =
+    let(
+        pathVertices = [[0, 0], [24, 0]],
+        pathEdges = [[0, 1]],
+        path = MakeMedialGraphKnot(
+            pathVertices,
+            pathEdges,
+            2.5,
+            8,
+            6
+        ),
+        triangleVertices = [[0, 0], [30, 0], [15, 26]],
+        triangleEdges = [[0, 1], [1, 2], [2, 0]],
+        triangle = MakeMedialGraphKnot(
+            triangleVertices,
+            triangleEdges,
+            2.5,
+            8,
+            6
+        ),
+        squareVertices = [[0, 0], [30, 0], [30, 30], [0, 30]],
+        squareEdges = [[0, 1], [1, 2], [2, 3], [3, 0]],
+        square = MakeMedialGraphKnot(
+            squareVertices,
+            squareEdges,
+            2.5,
+            8,
+            6
+        ),
+        treeVertices = [[24, 20], [24, 50], [50, 5], [-2, 5]],
+        treeEdges = [[0, 1], [0, 2], [0, 3]],
+        tree = MakeMedialGraphKnot(
+            treeVertices,
+            treeEdges,
+            3.5,
+            8,
+            6
+        ),
+        crossingVertices = [[0, 0], [20, 20], [0, 20], [20, 0]],
+        crossingEdges = [[0, 1], [2, 3]],
+        firstPathStrand = KnotStrands(path)[0],
+        firstPathCrossing = KnotCrossings(path)[0]
+    )
+[
+    LogoTestResult(
+        "medial graph structure validation",
+        KnotMedialGraphIsValid(pathVertices, pathEdges)
+        && KnotMedialGraphIsValid(triangleVertices, triangleEdges)
+        && !KnotMedialGraphIsValid(
+            [[0, 0], [0, 0]],
+            [[0, 1]]
+        )
+        && !KnotMedialGraphIsValid(
+            [[0, 0], [20, 0], [40, 0]],
+            [[0, 1]]
+        )
+    ),
+    LogoTestResult(
+        "medial graph edge validation",
+        KnotMedialEdgeIsValid([0, 1], 2)
+        && !KnotMedialEdgeIsValid([0, 0], 2)
+        && !KnotMedialEdgeIsValid([0, 2], 2)
+        && KnotMedialEdgesAreUnique([[0, 1], [1, 2]])
+        && !KnotMedialEdgesAreUnique([[0, 1], [1, 0]])
+    ),
+    LogoTestResult(
+        "medial graph rejects crossing and overlapping edges",
+        !KnotMedialGraphIsValid(crossingVertices, crossingEdges)
+        && !KnotMedialGraphIsValid(
+            [[0, 0], [10, 0], [20, 0]],
+            [[0, 1], [0, 2]]
+        )
+    ),
+    LogoTestResult(
+        "medial state transitions and reverse darts",
+        KnotMedialOtherEndpointState(0) == 2
+        && KnotMedialOppositeSideState(0) == 1
+        && KnotMedialSuccessorState(pathVertices, pathEdges, 0) == 3
+        && KnotMedialTraceCycles(pathVertices, pathEdges) == [[0, 3]]
+    ),
+    LogoTestResult(
+        "medial edge crossing geometry",
+        KnotTestPointNearlyEqual(
+            KnotMedialStatePoint(
+                pathVertices,
+                pathEdges,
+                0,
+                2.5
+            ),
+            [0, 2.5, 0]
+        )
+        && KnotTestPointNearlyEqual(
+            KnotMedialEdgePoint(
+                pathVertices,
+                pathEdges,
+                0,
+                2.5,
+                0.5
+            ),
+            [12, 0, 0]
+        )
+    ),
+    LogoTestResult(
+        "medial path component counts and closure",
+        len(KnotStrands(path)) == 1
+        && len(KnotCrossings(path)) == 1
+        && KnotCordSegmentCount(path) == 28
+        && KnotStrandSampleCount(firstPathStrand) == 29
+        && KnotTestPointNearlyEqual(
+            KnotStrandSamples(firstPathStrand)[0],
+            KnotStrandSamples(firstPathStrand)[28]
+        )
+    ),
+    LogoTestResult(
+        "medial graph route and crossing records",
+        len(KnotStrands(triangle)) == 1
+        && len(KnotCrossings(triangle)) == 3
+        && KnotCordSegmentCount(triangle) == 84
+        && len(KnotStrands(square)) == 2
+        && len(KnotCrossings(square)) == 4
+        && KnotCordSegmentCount(square) == 112
+        && len(KnotStrands(tree)) == 1
+        && len(KnotCrossings(tree)) == 3
+        && KnotCordSegmentCount(tree) == 84
+        && KnotCrossingPoint(firstPathCrossing) == [12, 0]
+        && KnotCrossingStrandA(firstPathCrossing) == 0
+        && KnotCrossingStrandB(firstPathCrossing) == 0
+        && KnotCrossingParameterA(firstPathCrossing)
+            != KnotCrossingParameterB(firstPathCrossing)
+    ),
+    LogoTestResult(
+        "medial graph alternation and validation",
+        KnotCelticKnotIsAlternating(path)
+        && KnotCelticKnotIsAlternating(triangle)
+        && KnotCelticKnotIsAlternating(square)
+        && KnotCelticKnotIsAlternating(tree)
+        && KnotValidationIsValid(ValidateKnot(path))
+        && KnotValidationIsValid(ValidateKnot(triangle))
+        && KnotValidationIsValid(ValidateKnot(square))
+        && KnotValidationIsValid(ValidateKnot(tree))
+    ),
+    LogoTestResult(
+        "medial graph metadata",
+        KnotMetadata(path) == [
+            "generator", "medialPlanarGraph",
+            "vertices", pathVertices,
+            "edges", pathEdges,
+            "trackOffset", 2.5,
+            "samplesPerEdge", 8,
+            "samplesPerVertex", 6,
+            "crossingPolicy", "alternatingParity"
+        ]
+    )
+];
+
 function KnotRibbonTestResults() =
     let(
         spatialCeltic = MakeCelticTileGridKnot(
@@ -1418,6 +1573,7 @@ function KnotAutomatedTestResults() =
         KnotBundleTestResults(),
         KnotBraidTestResults(),
         KnotCelticTestResults(),
+        KnotMedialGraphTestResults(),
         KnotRibbonTestResults()
     );
 

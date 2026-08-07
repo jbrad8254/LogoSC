@@ -1,7 +1,8 @@
 # LogoSC Knots & Celtic Designs
 
 This self-contained suite creates mathematical knots and links, circular braids, adjacent and
-crossing-aware bundles, Celtic tile grids, planar ribbons, bas-relief, and configurable plaques.
+crossing-aware bundles, Celtic tile grids, medial planar-graph interlace, planar ribbons,
+bas-relief, and configurable plaques.
 
 ## Open this first
 
@@ -20,6 +21,7 @@ it does not fake a percentage-complete callback that OpenSCAD does not provide.
 - `tools/logosc-knot-grid/README.md` — optional C++20 grid, topology, and SVG compiler guide.
 - `generated/LogoSC-Celtic-Generated.grid` — plain unquoted ASCII grid used by the generated plaque.
 - `generated/LogoSC-Celtic-Generated.svg` — pre-resolved interlaced regions used by the fast plaque.
+- `images/knot-medial-graph-gallery.png` — triangle, square, and branching graph interlace.
 - `LogoSC-Knots-Design.md` — topology, generators, renderers, dependencies, and verification.
 - `LogoSC-User-Manual.md` — complete user-facing knot chapters and Core reference.
 - `LogoSC-Version.txt` — exact package source identity.

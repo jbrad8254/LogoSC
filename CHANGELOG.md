@@ -32,6 +32,9 @@
 
 ### Added
 
+- Added `MakeMedialGraphKnot()` for simple straight-line planar embeddings, with graph validation,
+  angular vertex pairing, doubled edge tracks, localized crossings, reverse-route suppression,
+  alternating assignment, nine focused tests, individual output, and a three-design ribbon gallery.
 - Extended `logosc-knot-grid` into an indexed Celtic topology compiler that emits compatible
   sampled `.scad` knot records and pre-resolved closed-polygon SVG ribbons. Added the printable
   `FastSvgPlaque` scene, permanent C++/OpenSCAD parity test, manufacturing export check, and
